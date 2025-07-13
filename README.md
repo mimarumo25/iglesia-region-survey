@@ -1,73 +1,257 @@
-# Welcome to your Lovable project
+# Sistema Parroquial - Caracterización Poblacional
 
-## Project info
+## 📋 Descripción
 
-**URL**: https://lovable.dev/projects/24308d0c-d54d-48ab-80f5-d5b28aa178f9
+Sistema web desarrollado para iglesias católicas en Colombia que permite caracterizar la población de una región mediante encuestas estructuradas, gestión de usuarios y generación de reportes estadísticos.
 
-## How can I edit this code?
+## 🎯 Características Principales
 
-There are several ways of editing your application.
+### ✅ Implementadas
+- **Sistema de autenticación** con login/logout
+- **Dashboard interactivo** con widgets estadísticos 
+- **Diseño responsivo** con modo claro/oscuro
+- **Sidebar navegable** con colapso automático
+- **Formulario multi-etapa** con guardado automático
+- **Sistema de diseño consistente** usando Tailwind CSS + shadcn/ui
+- **Tipografía accesible** con alto contraste
+- **Componentes reutilizables** con variantes personalizadas
 
-**Use Lovable**
+### 🚧 Módulos Planificados
+- Gestión completa de usuarios (CRUD)
+- Reportes avanzados con gráficos
+- Gestión de sectores geográficos
+- Panel de configuración de parroquia
+- Sistema de recuperación de contraseña
+- Exportación de datos (PDF, Excel)
+- Mapas interactivos con Leaflet
+- Modo offline PWA
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/24308d0c-d54d-48ab-80f5-d5b28aa178f9) and start prompting.
+## 🎨 Diseño y UX
 
-Changes made via Lovable will be committed automatically to this repo.
+### Paleta de Colores
+- **Primario**: Azul católico tradicional (#1e40af) - Elementos principales
+- **Secundario**: Dorado litúrgico (#d97706) - Acentos importantes  
+- **Fondos**: Blanco puro con grises suaves para secciones
+- **Textos**: Negro intenso para máximo contraste y legibilidad
 
-**Use your preferred IDE**
+### Principios de Diseño
+- **Alto contraste** para máxima accesibilidad
+- **Espaciado generoso** con mucho espacio en blanco
+- **Tipografía clara** (Inter 16px+) para fácil lectura
+- **Botones grandes** con bordes redondeados suaves
+- **Animaciones sutiles** que mejoran la experiencia
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🏗️ Estructura del Proyecto
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+```
+src/
+├── components/           # Componentes reutilizables
+│   ├── ui/              # Componentes base de shadcn/ui
+│   ├── AppSidebar.tsx   # Navegación lateral principal
+│   ├── Layout.tsx       # Layout principal con header
+│   └── SurveyForm.tsx   # Formulario multi-etapa
+├── pages/               # Páginas principales
+│   ├── Login.tsx        # Autenticación
+│   ├── Dashboard.tsx    # Panel de control
+│   └── NotFound.tsx     # Página 404
+├── hooks/               # Hooks personalizados
+│   └── use-toast.ts     # Sistema de notificaciones
+├── lib/                 # Utilidades
+│   └── utils.ts         # Funciones auxiliares
+├── index.css           # Sistema de diseño (tokens CSS)
+└── App.tsx             # Configuración de rutas
+```
 
-Follow these steps:
+## 🚀 Instalación y Configuración
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Prerrequisitos
+- Node.js 18+ y npm
+- Git
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Instalación
+```bash
+# Clonar el repositorio
+git clone <URL_DEL_REPOSITORIO>
+cd sistema-parroquial
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Instalar dependencias
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Iniciar servidor de desarrollo
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Scripts Disponibles
+```bash
+npm run dev      # Servidor de desarrollo
+npm run build    # Compilar para producción
+npm run preview  # Vista previa de producción
+npm run lint     # Verificar código
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📱 Páginas y Funcionalidades
 
-**Use GitHub Codespaces**
+### 🔐 Página de Login
+- **Ruta**: `/login`
+- **Características**:
+  - Formulario centrado con logo de iglesia
+  - Validación en tiempo real
+  - Enlace de recuperación de contraseña
+  - Diseño responsive y accesible
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### 📊 Dashboard Principal  
+- **Ruta**: `/dashboard`
+- **Widgets implementados**:
+  - **Estadísticas generales**: Total encuestas, completadas, pendientes
+  - **Progreso por sector**: Barras de progreso para cada sector
+  - **Tipos de vivienda**: Distribución con gráfico de barras
+  - **Actividad reciente**: Timeline de acciones del sistema
+- **Características**:
+  - Header con gradiente parroquial
+  - Cards con sombras elegantes
+  - Colores semánticos (éxito, advertencia, info)
 
-## What technologies are used for this project?
+### 📋 Formulario Multi-Etapa
+- **Componente**: `SurveyForm.tsx`
+- **5 Etapas estructuradas**:
+  1. **Datos Personales**: Nombres, cédula, edad, estado civil
+  2. **Ubicación y Vivienda**: Dirección, sector, tipo vivienda, servicios
+  3. **Información Familiar**: Composición del hogar
+  4. **Actividades Parroquiales**: Participación en la vida de la iglesia
+  5. **Necesidades y Observaciones**: Requerimientos especiales
+- **Características avanzadas**:
+  - **Barra de progreso visual** (1 de 5, 40% completado)
+  - **Guardado automático** en localStorage
+  - **Navegación fluida** entre etapas
+  - **Validaciones inline** con mensajes claros
+  - **Recuperación de borradores** al recargar página
 
-This project is built with:
+## 🎯 Componentes Clave
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### AppSidebar
+```tsx
+// Navegación lateral con colapso inteligente
+<AppSidebar />
+```
+- **Menús**: Dashboard, Encuestas, Familias, Sectores, Reportes, Usuarios, Configuración
+- **Estados**: Expandido/colapsado con tooltips
+- **Perfil de usuario** con avatar y rol
+- **Indicador de página activa**
 
-## How can I deploy this project?
+### Layout Principal
+```tsx
+// Wrapper que incluye sidebar + header + contenido
+<Layout>
+  <YourPageContent />
+</Layout>
+```
+- **Header superior** con búsqueda y notificaciones
+- **Sidebar fijo** con toggle responsive
+- **Área de contenido** con scroll automático
 
-Simply open [Lovable](https://lovable.dev/projects/24308d0c-d54d-48ab-80f5-d5b28aa178f9) and click on Share -> Publish.
+### Sistema de Diseño
+```css
+/* Clases utilitarias personalizadas */
+.parish-card           /* Cards con estilo parroquial */
+.parish-button-primary /* Botón principal azul */
+.parish-input         /* Inputs con bordes suaves */
+.parish-gradient-header /* Header con gradiente */
+```
 
-## Can I connect a custom domain to my Lovable project?
+## 🔧 Configuración del Sistema de Diseño
 
-Yes, you can!
+### Tokens CSS (index.css)
+```css
+:root {
+  /* Colores primarios */
+  --primary: 213 94% 35%;          /* Azul católico */
+  --secondary: 32 95% 44%;         /* Dorado litúrgico */
+  
+  /* Gradientes */
+  --gradient-primary: linear-gradient(135deg, ...);
+  
+  /* Sombras elegantes */
+  --shadow-glow: 0 0 20px hsl(var(--primary) / 0.15);
+}
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Configuración Tailwind (tailwind.config.ts)
+- **Fuente**: Inter para máxima legibilidad
+- **Colores extendidos**: primary-light, primary-dark, success, warning
+- **Sombras personalizadas**: glow, md, lg para depth visual
+- **Gradientes**: primary, secondary, subtle para headers y fondos
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 📊 Estructura de Datos del Formulario
+
+### Etapas Definidas
+```typescript
+const formStages = [
+  {
+    id: 1,
+    title: "Datos Personales",
+    fields: [
+      { id: "nombres", type: "text", required: true },
+      { id: "estado_civil", type: "select", options: [...] }
+    ]
+  },
+  // ... 4 etapas más
+]
+```
+
+### Tipos de Campo Soportados
+- **text/number**: Inputs básicos con validación
+- **select**: Dropdowns con opciones predefinidas  
+- **checkbox**: Selección múltiple para listas
+- **textarea**: Campos de texto largo para observaciones
+
+## 🎨 Guía de Contribución
+
+### Estándares de Código
+- **TypeScript estricto** para type safety
+- **Componentes funcionales** con hooks
+- **CSS-in-JS evitado** - usar solo Tailwind + tokens CSS
+- **Naming consistente** con prefijo `parish-` para clases custom
+
+### Nuevos Componentes
+1. Usar **tokens de diseño** definidos en `index.css`
+2. Implementar **variantes** en lugar de overrides
+3. Asegurar **accesibilidad** (ARIA labels, contrast ratios)
+4. Incluir **estados responsivos** para mobile/desktop
+
+### Colores y Estilos
+```tsx
+// ❌ Evitar - colores hardcodeados
+<Button className="bg-blue-500 text-white">
+
+// ✅ Correcto - usar tokens semánticos  
+<Button className="parish-button-primary">
+<Button variant="primary">  // Si existe variante
+```
+
+## 🚀 Próximos Pasos de Desarrollo
+
+### Fase 2 - Backend Integration
+- [ ] API FastAPI con autenticación JWT
+- [ ] Base de datos PostgreSQL 
+- [ ] Endpoints REST para CRUD completo
+- [ ] Sistema de roles y permisos
+
+### Fase 3 - Funcionalidades Avanzadas  
+- [ ] Generación de reportes PDF
+- [ ] Mapas interactivos con sectores
+- [ ] Sistema de notificaciones email
+- [ ] Backup automático de datos
+
+### Fase 4 - Mobile y PWA
+- [ ] Aplicación móvil nativa
+- [ ] Modo offline para capturistas
+- [ ] Sincronización automática 
+- [ ] Push notifications
+
+## 🤝 Soporte y Contacto
+
+Para dudas sobre implementación, personalización o despliegue del sistema, contactar al equipo de desarrollo.
+
+---
+
+**Sistema Parroquial v1.0** - Desarrollado con ❤️ para las comunidades católicas de Colombia
