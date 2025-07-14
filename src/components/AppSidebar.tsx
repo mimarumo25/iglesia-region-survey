@@ -89,6 +89,7 @@ const AppSidebar = () => {
     <Sidebar
       className="bg-sidebar border-r border-sidebar-border"
       collapsible="icon"
+      variant="sidebar"
     >
       {/* Header */}
       <SidebarHeader className="p-6 border-b border-sidebar-border">

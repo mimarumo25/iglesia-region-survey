@@ -244,20 +244,20 @@ const SurveyForm = () => {
   if (!currentStageData) return null;
 
   return (
-    <div className="parish-container parish-section max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 lg:py-8">
       {/* Header con progreso */}
-      <Card className="parish-card mb-8 fade-in">
-        <CardHeader>
-          <div className="flex items-center justify-between mb-4">
-            <div className="slide-in-left">
-              <CardTitle className="text-2xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+      <Card className="parish-card mb-6 lg:mb-8 fade-in">
+        <CardHeader className="p-4 lg:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+            <div className="slide-in-left min-w-0 flex-1">
+              <CardTitle className="text-xl lg:text-2xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Caracterización Poblacional
               </CardTitle>
-              <CardDescription className="text-lg">
+              <CardDescription className="text-sm lg:text-lg mt-1">
                 Etapa {currentStage} de {formStages.length}: {currentStageData.title}
               </CardDescription>
             </div>
-            <div className="text-sm text-muted-foreground font-medium scale-in">
+            <div className="text-sm font-medium scale-in flex-shrink-0 bg-muted px-3 py-1 rounded-full">
               {Math.round(progress)}% completado
             </div>
           </div>
@@ -297,7 +297,7 @@ const SurveyForm = () => {
       </Card>
 
       {/* Navegación */}
-      <div className="flex justify-between items-center mt-8 fade-in">
+      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mt-6 lg:mt-8 fade-in">
         <Button
           variant="outline"
           onClick={handlePrevious}
@@ -308,7 +308,7 @@ const SurveyForm = () => {
           Anterior
         </Button>
 
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 lg:gap-4 order-first sm:order-last">
           <Button
             variant="outline"
             onClick={() => {

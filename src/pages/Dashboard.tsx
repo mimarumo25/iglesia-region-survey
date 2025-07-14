@@ -59,32 +59,32 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="parish-container parish-section space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       {/* Header */}
-      <div className="parish-gradient-header -mx-4 -mt-8 px-4 py-8 mb-8">
-        <div className="parish-container">
-          <h1 className="text-4xl font-bold mb-2">Panel de Control</h1>
-          <p className="text-primary-foreground/80 text-lg">
+      <div className="parish-gradient-header -mx-4 lg:-mx-8 -mt-4 lg:-mt-8 px-4 lg:px-8 py-6 lg:py-8 mb-6 lg:mb-8">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-2xl lg:text-4xl font-bold mb-2">Panel de Control</h1>
+          <p className="text-primary-foreground/80 text-base lg:text-lg">
             Sistema de Caracterización Poblacional - Parroquia
           </p>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
         <Card className="parish-card fade-in group cursor-pointer">
-          <CardContent className="p-6">
+          <CardContent className="p-4 lg:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors duration-300">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs lg:text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors duration-300 truncate">
                   Total Encuestas
                 </p>
-                <p className="text-3xl font-bold text-primary transition-all duration-300 group-hover:scale-110">
+                <p className="text-xl lg:text-3xl font-bold text-primary transition-all duration-300 group-hover:scale-110">
                   {stats.totalEncuestas}
                 </p>
               </div>
-              <div className="relative">
-                <FileText className="h-8 w-8 text-primary transition-all duration-300 group-hover:scale-110 group-hover:rotate-12" />
+              <div className="relative flex-shrink-0">
+                <FileText className="h-6 w-6 lg:h-8 lg:w-8 text-primary transition-all duration-300 group-hover:scale-110 group-hover:rotate-12" />
                 <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
             </div>
@@ -150,7 +150,7 @@ const Dashboard = () => {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
         {/* Progreso por Sector */}
         <Card className="parish-card slide-up">
           <CardHeader>
