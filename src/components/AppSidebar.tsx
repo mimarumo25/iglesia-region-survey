@@ -82,8 +82,8 @@ const AppSidebar = () => {
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive 
-      ? "parish-sidebar-item active bg-sidebar-accent text-sidebar-accent-foreground" 
-      : "parish-sidebar-item hover:bg-sidebar-accent/10 text-sidebar-foreground";
+      ? "bg-sidebar-accent text-sidebar-accent-foreground rounded-lg transition-all duration-200" 
+      : "text-sidebar-foreground hover:bg-sidebar-accent/20 hover:text-sidebar-accent-foreground rounded-lg transition-all duration-200";
 
   return (
     <Sidebar
@@ -118,14 +118,17 @@ const AppSidebar = () => {
                     <NavLink 
                       to={item.url} 
                       end 
-                      className={getNavCls}
+                      className={({ isActive }) => `
+                        flex items-center gap-3 px-3 py-3 w-full
+                        ${getNavCls({ isActive })}
+                      `}
                       title={isCollapsed ? item.title : undefined}
                     >
                       <item.icon className="w-5 h-5 flex-shrink-0" />
                       {!isCollapsed && (
-                        <div>
-                          <span className="font-medium">{item.title}</span>
-                          <p className="text-xs text-sidebar-foreground/60">{item.description}</p>
+                        <div className="flex-1">
+                          <span className="font-medium block">{item.title}</span>
+                          <p className="text-xs opacity-70">{item.description}</p>
                         </div>
                       )}
                     </NavLink>
