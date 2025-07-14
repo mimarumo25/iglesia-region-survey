@@ -246,47 +246,69 @@ const SurveyForm = () => {
   return (
     <div className="parish-container parish-section max-w-4xl mx-auto">
       {/* Header con progreso */}
-      <Card className="parish-card mb-8">
+      <Card className="parish-card mb-8 fade-in">
         <CardHeader>
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <CardTitle className="text-2xl">Caracterización Poblacional</CardTitle>
-              <CardDescription>
+            <div className="slide-in-left">
+              <CardTitle className="text-2xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Caracterización Poblacional
+              </CardTitle>
+              <CardDescription className="text-lg">
                 Etapa {currentStage} de {formStages.length}: {currentStageData.title}
               </CardDescription>
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground font-medium scale-in">
               {Math.round(progress)}% completado
             </div>
           </div>
-          <Progress value={progress} className="parish-progress-bar" />
+          <div className="relative">
+            <Progress 
+              value={progress} 
+              className="parish-progress-bar h-3 bg-muted/50 overflow-hidden rounded-full"
+            />
+            <div 
+              className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary via-primary-light to-secondary rounded-full transition-all duration-1000 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </CardHeader>
       </Card>
 
       {/* Formulario actual */}
-      <Card className="parish-card">
+      <Card className="parish-card slide-up">
         <CardHeader>
-          <CardTitle>{currentStageData.title}</CardTitle>
-          <CardDescription>{currentStageData.description}</CardDescription>
+          <CardTitle className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold">
+              {currentStage}
+            </div>
+            {currentStageData.title}
+          </CardTitle>
+          <CardDescription className="text-base">
+            {currentStageData.description}
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {currentStageData.fields.map(renderField)}
+        <CardContent className="space-y-8">
+          {currentStageData.fields.map((field, index) => (
+            <div key={field.id} className="fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+              {renderField(field)}
+            </div>
+          ))}
         </CardContent>
       </Card>
 
       {/* Navegación */}
-      <div className="flex justify-between items-center mt-8">
+      <div className="flex justify-between items-center mt-8 fade-in">
         <Button
           variant="outline"
           onClick={handlePrevious}
           disabled={currentStage === 1}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" />
           Anterior
         </Button>
 
-        <div className="flex gap-3">
+        <div className="flex gap-4">
           <Button
             variant="outline"
             onClick={() => {
@@ -295,9 +317,9 @@ const SurveyForm = () => {
                 description: "Su progreso ha sido guardado automáticamente.",
               });
             }}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-muted/80"
           >
-            <Save className="w-4 h-4" />
+            <Save className="w-4 h-4 transition-transform duration-300 hover:rotate-12" />
             Guardar borrador
           </Button>
 
@@ -305,17 +327,27 @@ const SurveyForm = () => {
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="parish-button-primary flex items-center gap-2"
+              className="parish-button-primary flex items-center gap-2 glow-pulse"
             >
-              {isSubmitting ? "Enviando..." : "Finalizar encuesta"}
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <FileDown className="w-4 h-4 transition-transform duration-300 hover:translate-y-1" />
+                  Finalizar encuesta
+                </>
+              )}
             </Button>
           ) : (
             <Button
               onClick={handleNext}
-              className="parish-button-primary flex items-center gap-2"
+              className="parish-button-primary flex items-center gap-2 group"
             >
               Siguiente
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Button>
           )}
         </div>
