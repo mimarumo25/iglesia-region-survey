@@ -20,16 +20,18 @@ All colors MUST be HSL - Parroquial Design System
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
 
-    /* Primary - Catholic blue */
-    --primary: 213 94% 35%;
+    /* Primary - Catholic blue más vibrante */
+    --primary: 213 100% 45%;
     --primary-foreground: 0 0% 98%;
-    --primary-light: 213 94% 45%;
-    --primary-dark: 213 94% 25%;
+    --primary-light: 213 100% 55%;
+    --primary-dark: 213 100% 35%;
+    --primary-hover: 213 100% 50%;
 
-    /* Secondary - Liturgical gold accent */
-    --secondary: 32 95% 44%;
+    /* Secondary - Liturgical gold accent más brillante */
+    --secondary: 32 100% 50%;
     --secondary-foreground: 0 0% 98%;
-    --secondary-light: 32 95% 54%;
+    --secondary-light: 32 100% 60%;
+    --secondary-hover: 32 100% 55%;
 
     /* Muted backgrounds */
     --muted: 210 40% 98%;
@@ -53,26 +55,32 @@ All colors MUST be HSL - Parroquial Design System
     --input-border: 214.3 31.8% 91.4%;
     --ring: 213 94% 35%;
 
-    /* Gradientes fluidos y animados */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-light)) 50%, hsl(var(--primary)) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--secondary-light)) 50%, hsl(var(--secondary)) 100%);
+    /* Gradientes más vibrantes y animados */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-light)) 50%, hsl(var(--primary-hover)) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--secondary-light)) 50%, hsl(var(--secondary-hover)) 100%);
     --gradient-subtle: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
     --gradient-card: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%);
-    --gradient-glow: radial-gradient(circle, hsl(var(--primary) / 0.1) 0%, transparent 70%);
-    --gradient-animated: linear-gradient(-45deg, hsl(var(--primary)), hsl(var(--primary-light)), hsl(var(--secondary)), hsl(var(--primary)));
+    --gradient-glow: radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 70%);
+    --gradient-animated: linear-gradient(-45deg, hsl(var(--primary)), hsl(var(--primary-light)), hsl(var(--secondary)), hsl(var(--primary-hover)));
+    --gradient-sidebar: linear-gradient(180deg, hsl(var(--sidebar-background)) 0%, hsl(var(--sidebar-primary)) 100%);
+    --gradient-hover: linear-gradient(135deg, hsl(var(--primary-hover)) 0%, hsl(var(--secondary-hover)) 100%);
 
-    /* Sombras elegantes con gradientes */
-    --shadow-sm: 0 1px 3px 0 hsl(var(--primary) / 0.1), 0 1px 2px 0 hsl(var(--primary) / 0.06);
-    --shadow-md: 0 4px 6px -1px hsl(var(--primary) / 0.1), 0 2px 4px -1px hsl(var(--primary) / 0.06);
-    --shadow-lg: 0 10px 15px -3px hsl(var(--primary) / 0.1), 0 4px 6px -2px hsl(var(--primary) / 0.05);
-    --shadow-glow: 0 0 20px hsl(var(--primary) / 0.2), 0 0 40px hsl(var(--primary) / 0.1);
-    --shadow-card: 0 1px 3px 0 hsl(var(--foreground) / 0.1), 0 1px 2px 0 hsl(var(--foreground) / 0.06);
+    /* Sombras más dramáticas con colores vibrantes */
+    --shadow-sm: 0 2px 4px 0 hsl(var(--primary) / 0.15), 0 1px 2px 0 hsl(var(--primary) / 0.1);
+    --shadow-md: 0 6px 10px -2px hsl(var(--primary) / 0.15), 0 2px 4px -1px hsl(var(--primary) / 0.1);
+    --shadow-lg: 0 12px 20px -4px hsl(var(--primary) / 0.15), 0 4px 8px -2px hsl(var(--primary) / 0.1);
+    --shadow-glow: 0 0 25px hsl(var(--primary) / 0.3), 0 0 50px hsl(var(--primary) / 0.15);
+    --shadow-card: 0 2px 6px 0 hsl(var(--foreground) / 0.12), 0 1px 3px 0 hsl(var(--foreground) / 0.08);
+    --shadow-hover: 0 8px 15px -3px hsl(var(--primary) / 0.2), 0 4px 6px -2px hsl(var(--primary) / 0.1);
+    --shadow-active: 0 4px 8px -2px hsl(var(--primary) / 0.25), 0 2px 4px -1px hsl(var(--primary) / 0.15);
 
-    /* Transiciones fluidas */
-    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-slow: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Transiciones más expresivas */
+    --transition-smooth: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-fast: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-slow: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-elastic: all 0.5s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+    --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
     /* Sidebar actualizada para tema parroquial */
     --sidebar-background: 213 94% 35%;
@@ -302,13 +310,294 @@ All colors MUST be HSL - Parroquial Design System
     100% { left: 100%; }
   }
 
-  /* Estados de formulario */
-  .field-error {
-    @apply border-destructive ring-destructive/20 bg-destructive/5;
+  /* Nuevas animaciones más expresivas */
+  @keyframes pulse-glow {
+    0%, 100% { 
+      box-shadow: 0 0 5px hsl(var(--primary) / 0.3), 0 0 10px hsl(var(--primary) / 0.2);
+      transform: scale(1);
+    }
+    50% { 
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.5), 0 0 35px hsl(var(--primary) / 0.3);
+      transform: scale(1.02);
+    }
+  }
+  
+  @keyframes slide-in-left {
+    0% { 
+      opacity: 0; 
+      transform: translateX(-30px);
+    }
+    100% { 
+      opacity: 1; 
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes slide-in-right {
+    0% { 
+      opacity: 0; 
+      transform: translateX(30px);
+    }
+    100% { 
+      opacity: 1; 
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes bounce-in {
+    0% { 
+      opacity: 0; 
+      transform: scale(0.3) translateY(50px); 
+    }
+    50% { 
+      opacity: 0.8; 
+      transform: scale(1.05) translateY(-10px); 
+    }
+    70% { 
+      opacity: 0.9; 
+      transform: scale(0.95) translateY(5px); 
+    }
+    100% { 
+      opacity: 1; 
+      transform: scale(1) translateY(0); 
+    }
+  }
+  
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  /* Clases utilitarias para animaciones */
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  .animate-slide-in-left {
+    animation: slide-in-left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  
+  .animate-slide-in-right {
+    animation: slide-in-right 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  
+  .animate-bounce-in {
+    animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  /* Efectos hover más dramáticos */
+  .hover-lift {
+    transition: var(--transition-spring);
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: var(--shadow-hover);
+  }
+  
+  .hover-glow {
+    transition: var(--transition-smooth);
+  }
+  
+  .hover-glow:hover {
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-2px);
+  }
+  
+  .hover-scale {
+    transition: var(--transition-bounce);
+  }
+  
+  .hover-scale:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Efectos de click/activo */
+  .active-menu-item {
+    background: var(--gradient-hover) !important;
+    color: hsl(var(--primary-foreground)) !important;
+    box-shadow: var(--shadow-active);
+    transform: translateX(4px);
+    border-left: 4px solid hsl(var(--secondary));
+  }
+  
+  .click-effect {
+    transition: var(--transition-fast);
+  }
+  
+  .click-effect:active {
+    transform: scale(0.96);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  /* Gradientes animados para fondos */
+  .bg-gradient-animated {
+    background: var(--gradient-animated);
+    background-size: 400% 400%;
+    animation: gradientShift 4s ease infinite;
+  }
+  
+  .bg-gradient-sidebar {
+    background: var(--gradient-sidebar);
+  }
+  
+  /* Efectos para cards */
+  .card-enhanced {
+    background: var(--gradient-card);
+    border: 1px solid hsl(var(--border));
+    transition: var(--transition-smooth);
+  }
+  
+  .card-enhanced:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+    border-color: hsl(var(--primary) / 0.3);
+  }
+  
+  /* Estados de loading más atractivos */
+  .loading-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .loading-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--primary) / 0.1),
+      transparent
+    );
+    animation: shimmer 1.5s infinite;
   }
 
-  .field-success {
-    @apply border-success ring-success/20 bg-success/5;
+  /* Clases específicas para login mejorado */
+  .login-image-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 24px;
+    transition: var(--transition-smooth);
+  }
+  
+  .login-image-container:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .login-card-enhanced {
+    background: var(--gradient-card);
+    border: 2px solid hsl(var(--border));
+    border-radius: 24px;
+    transition: var(--transition-smooth);
+    backdrop-filter: blur(10px);
+  }
+  
+  .login-card-enhanced:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+    border-color: hsl(var(--primary) / 0.4);
+  }
+  
+  .login-input-enhanced {
+    border-radius: 16px;
+    border: 2px solid hsl(var(--border));
+    transition: var(--transition-smooth);
+    background: hsl(var(--background) / 0.8);
+    backdrop-filter: blur(5px);
+  }
+  
+  .login-input-enhanced:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.15);
+    transform: scale(1.02);
+  }
+  
+  .login-button-enhanced {
+    border-radius: 16px;
+    background: var(--gradient-primary);
+    transition: var(--transition-spring);
+    font-weight: 600;
+    letter-spacing: 0.025em;
+  }
+  
+  .login-button-enhanced:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .login-button-enhanced:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  /* Efectos adicionales de animación */
+  @keyframes bounce-in {
+    0% { 
+      opacity: 0; 
+      transform: scale(0.3) translateY(50px); 
+    }
+    50% { 
+      opacity: 0.8; 
+      transform: scale(1.05) translateY(-10px); 
+    }
+    70% { 
+      opacity: 0.9; 
+      transform: scale(0.95) translateY(5px); 
+    }
+    100% { 
+      opacity: 1; 
+      transform: scale(1) translateY(0); 
+    }
+  }
+  
+  .animate-bounce-in {
+    animation: bounce-in 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  
+  @keyframes slide-in-right {
+    from { 
+      opacity: 0; 
+      transform: translateX(50px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateX(0); 
+    }
+  }
+  
+  .animate-slide-in-right {
+    animation: slide-in-right 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% { 
+      box-shadow: 0 0 5px hsl(var(--primary) / 0.3); 
+    }
+    50% { 
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.6), 0 0 30px hsl(var(--primary) / 0.4); 
+    }
+  }
+  
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
   }
 
   /* Layout utilities */
@@ -319,4 +608,230 @@ All colors MUST be HSL - Parroquial Design System
   .parish-section {
     @apply py-8 lg:py-12;
   }
+}
+
+/* ===== ANIMACIONES MEJORADAS PARA MÓVIL ===== */
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Animaciones para el botón hamburguesa */
+@keyframes hamburgerPress {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+/* Efecto de rebote suave para elementos del menú */
+@keyframes softBounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-2px);
+  }
+  60% {
+    transform: translateY(-1px);
+  }
+}
+
+/* ===== CLASES DE UTILIDAD MÓVIL ===== */
+.animate-slide-in-left {
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+.animate-slide-out-left {
+  animation: slideOutToLeft 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-fade-out {
+  animation: fadeOut 0.2s ease-out;
+}
+
+.animate-hamburger-press {
+  animation: hamburgerPress 0.2s ease-out;
+}
+
+.animate-soft-bounce {
+  animation: softBounce 0.6s ease-out;
+}
+
+/* Mejoras para el menú móvil */
+.mobile-menu-overlay {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Mejoras táctiles para móvil */
+@media (hover: none) and (pointer: coarse) {
+  .hover-lift:hover {
+    transform: none;
+  }
+  
+  .hover-lift:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease-out;
+  }
+  
+  .click-effect:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease-out;
+  }
+  
+  /* Mejorar el área de toque para elementos pequeños */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Optimizaciones de rendimiento para móvil */
+.mobile-optimized {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Estados de enfoque mejorados para accesibilidad */
+.focus-visible:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Transiciones suaves para cambios de tema */
+.theme-transition {
+  transition: background-color 0.3s ease-out, 
+              border-color 0.3s ease-out, 
+              color 0.3s ease-out;
+}
+
+/* Mejoras para el sidebar en móvil */
+.sidebar-mobile {
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.sidebar-mobile.open {
+  transform: translateX(0);
+}
+
+/* Animación de entrada escalonada para elementos del menú */
+.staggered-fade-in {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: staggeredFadeIn 0.4s ease-out forwards;
+}
+
+@keyframes staggeredFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.staggered-fade-in:nth-child(1) { animation-delay: 0.1s; }
+.staggered-fade-in:nth-child(2) { animation-delay: 0.15s; }
+.staggered-fade-in:nth-child(3) { animation-delay: 0.2s; }
+.staggered-fade-in:nth-child(4) { animation-delay: 0.25s; }
+.staggered-fade-in:nth-child(5) { animation-delay: 0.3s; }
+.staggered-fade-in:nth-child(6) { animation-delay: 0.35s; }
+.staggered-fade-in:nth-child(7) { animation-delay: 0.4s; }
+
+/* Scrollbar personalizado para el sidebar */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--sidebar-border)) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--sidebar-border) / 0.5);
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--sidebar-border) / 0.8);
+}
+
+/* Mejoras para el texto truncado */
+.text-truncate-fade {
+  position: relative;
+  overflow: hidden;
+}
+
+.text-truncate-fade::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(to right, transparent, currentColor);
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+/* Altura mínima para elementos del menú */
+.menu-item-min-height {
+  min-height: 48px;
+}
+
+/* Mejora en la transición de altura del sidebar */
+.sidebar-transition {
+  transition: width 0.3s ease-in-out, padding 0.3s ease-in-out;
+}
+
+/* Espaciado consistente para elementos del sidebar */
+.sidebar-spacing {
+  padding: 0.5rem;
+  margin: 0.125rem 0;
 }

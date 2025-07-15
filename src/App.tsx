@@ -4,10 +4,16 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "@/components/Layout";
-import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import Surveys from "./pages/Surveys";
+import Families from "./pages/Families";
+import Sectors from "./pages/Sectors";
+import Reports from "./pages/Reports";
+import Users from "./pages/Users";
+import Settings from "./pages/Settings";
+import SurveyForm from "@/components/SurveyForm";
 
 const queryClient = new QueryClient();
 
@@ -21,12 +27,13 @@ const App = () => (
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-          <Route path="/surveys" element={<Layout><div className="p-8"><h1 className="text-2xl font-bold">Encuestas</h1><p className="text-muted-foreground">Módulo en construcción</p></div></Layout>} />
-          <Route path="/families" element={<Layout><div className="p-8"><h1 className="text-2xl font-bold">Familias</h1><p className="text-muted-foreground">Módulo en construcción</p></div></Layout>} />
-          <Route path="/sectors" element={<Layout><div className="p-8"><h1 className="text-2xl font-bold">Sectores</h1><p className="text-muted-foreground">Módulo en construcción</p></div></Layout>} />
-          <Route path="/reports" element={<Layout><div className="p-8"><h1 className="text-2xl font-bold">Reportes</h1><p className="text-muted-foreground">Módulo en construcción</p></div></Layout>} />
-          <Route path="/users" element={<Layout><div className="p-8"><h1 className="text-2xl font-bold">Usuarios</h1><p className="text-muted-foreground">Módulo en construcción</p></div></Layout>} />
-          <Route path="/settings" element={<Layout><div className="p-8"><h1 className="text-2xl font-bold">Configuración</h1><p className="text-muted-foreground">Módulo en construcción</p></div></Layout>} />
+          <Route path="/survey" element={<Layout><SurveyForm /></Layout>} />
+          <Route path="/surveys" element={<Layout><Surveys /></Layout>} />
+          <Route path="/families" element={<Layout><Families /></Layout>} />
+          <Route path="/sectors" element={<Layout><Sectors /></Layout>} />
+          <Route path="/reports" element={<Layout><Reports /></Layout>} />
+          <Route path="/users" element={<Layout><Users /></Layout>} />
+          <Route path="/settings" element={<Layout><Settings /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -1,84 +1,95 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, ChevronRight, Save, FileDown } from "lucide-react";
+import SurveyHeader from "./survey/SurveyHeader";
+import FormField from "./survey/FormField";
+import FamilyGrid from "./survey/FamilyGrid";
+import SurveyControls from "./survey/SurveyControls";
+import { FamilyMember, FormField as FormFieldType, FormStage } from "@/types/survey";
 
-// Definición de las etapas del formulario basado en el Excel
-const formStages = [
+// Definición de las etapas del formulario basado en la encuesta parroquial
+const formStages: FormStage[] = [
   {
     id: 1,
-    title: "Datos Personales",
-    description: "Información básica del encuestado",
+    title: "Información General",
+    description: "Datos básicos del hogar y ubicación",
     fields: [
-      { id: "nombres", label: "Nombres", type: "text", required: true },
-      { id: "apellidos", label: "Apellidos", type: "text", required: true },
-      { id: "cedula", label: "Cédula", type: "text", required: true },
-      { id: "edad", label: "Edad", type: "number", required: true },
+      { id: "parroquia", label: "Parroquia", type: "select", required: true, options: [
+        "San Juan Bautista", "Nuestra Señora del Carmen", "Sagrado Corazón", "San José", "Otra"
+      ]},
+      { id: "municipio", label: "Municipio", type: "text", required: true },
+      { id: "fecha", label: "Fecha", type: "date", required: true },
+      { id: "apellido_familiar", label: "Apellido Familiar", type: "text", required: true },
+      { id: "sector", label: "Sector", type: "select", required: true, options: [
+        "La Esperanza", "San José", "Cristo Rey", "Divino Niño", "La Paz", "San Antonio", "Otro"
+      ]},
+      { id: "vereda", label: "Vereda", type: "text", required: false },
+      { id: "direccion", label: "Dirección", type: "text", required: true },
       { id: "telefono", label: "Teléfono", type: "text", required: false },
-      { id: "estado_civil", label: "Estado Civil", type: "select", required: true, options: [
-        "Soltero/a", "Casado/a", "Unión libre", "Viudo/a", "Divorciado/a"
-      ]}
+      { id: "numero_contrato_epm", label: "Número Contrato EPM", type: "text", required: false }
     ]
   },
   {
     id: 2,
-    title: "Ubicación y Vivienda",
-    description: "Información sobre la vivienda y ubicación",
+    title: "Información de Vivienda y Basuras",
+    description: "Características de la vivienda y manejo de basuras",
     fields: [
-      { id: "direccion", label: "Dirección", type: "text", required: true },
-      { id: "sector", label: "Sector", type: "select", required: true, options: [
-        "La Esperanza", "San José", "Cristo Rey", "Divino Niño", "La Paz", "San Antonio"
-      ]},
       { id: "tipo_vivienda", label: "Tipo de Vivienda", type: "select", required: true, options: [
-        "Casa propia", "Casa arrendada", "Casa familiar", "Apartamento", "Otro"
+        "Arrendada", "Propia", "A crédito", "Invasión", "Prestada", "No aplica"
       ]},
-      { id: "servicios_publicos", label: "Servicios Públicos", type: "checkbox", required: false, options: [
-        "Agua", "Luz", "Gas", "Internet", "Alcantarillado", "Recolección de basuras"
-      ]}
+      { id: "basuras_recolector", label: "Basuras - Carro Recolector", type: "boolean", required: false },
+      { id: "basuras_quemada", label: "Basuras - Quemada al aire", type: "boolean", required: false },
+      { id: "basuras_enterrada", label: "Basuras - Enterrada", type: "boolean", required: false },
+      { id: "basuras_recicla", label: "¿Recicla?", type: "boolean", required: false },
+      { id: "basuras_aire_libre", label: "Basuras - Al aire libre", type: "boolean", required: false },
+      { id: "basuras_no_aplica", label: "Basuras - No aplica", type: "boolean", required: false }
     ]
   },
   {
     id: 3,
-    title: "Información Familiar",
-    description: "Composición del núcleo familiar",
+    title: "Acueducto y Aguas Residuales",
+    description: "Servicios de agua y saneamiento",
     fields: [
-      { id: "num_personas", label: "Número de personas en el hogar", type: "number", required: true },
-      { id: "num_menores", label: "Número de menores de edad", type: "number", required: false },
-      { id: "jefe_hogar", label: "Jefe del hogar", type: "text", required: true },
-      { id: "ocupacion_jefe", label: "Ocupación del jefe del hogar", type: "text", required: false }
+      { id: "acueducto_epm", label: "Acueducto EPM", type: "boolean", required: false },
+      { id: "acueducto_veredal", label: "Acueducto Veredal", type: "boolean", required: false },
+      { id: "acueducto_aljibe", label: "Aljibe", type: "boolean", required: false },
+      { id: "acueducto_gravedad", label: "Gravedad", type: "boolean", required: false },
+      { id: "aguas_alcantarillado", label: "Alcantarillado", type: "boolean", required: false },
+      { id: "aguas_pozo_septico", label: "Pozo Séptico", type: "boolean", required: false },
+      { id: "aguas_aire_libre", label: "Aguas Residuales - Al aire libre", type: "boolean", required: false }
     ]
   },
   {
     id: 4,
-    title: "Actividades Parroquiales",
-    description: "Participación en la vida parroquial",
-    fields: [
-      { id: "frecuencia_misa", label: "Frecuencia de asistencia a misa", type: "select", required: true, options: [
-        "Todos los días", "Una vez por semana", "Ocasionalmente", "Nunca"
-      ]},
-      { id: "grupos_parroquiales", label: "Grupos parroquiales en los que participa", type: "checkbox", required: false, options: [
-        "Coro", "Catequesis", "Grupos de oración", "Pastoral social", "Juventud", "Ninguno"
-      ]},
-      { id: "sacramentos_pendientes", label: "Sacramentos pendientes", type: "checkbox", required: false, options: [
-        "Bautismo", "Primera comunión", "Confirmación", "Matrimonio", "Ninguno"
-      ]}
-    ]
+    title: "Información Familiar",
+    description: "Integrantes del núcleo familiar con información completa",
+    type: "family_grid"
   },
   {
     id: 5,
-    title: "Necesidades y Observaciones",
-    description: "Necesidades específicas y comentarios adicionales",
+    title: "Difuntos de la Familia",
+    description: "Información sobre familiares difuntos y fechas de aniversario",
     fields: [
-      { id: "necesidades_especiales", label: "Necesidades especiales de la familia", type: "checkbox", required: false, options: [
-        "Apoyo económico", "Atención médica", "Educación", "Vivienda", "Alimentación", "Ninguna"
-      ]},
-      { id: "observaciones", label: "Observaciones adicionales", type: "textarea", required: false }
+      { id: "difuntos_nombres_1", label: "Difunto 1 - Nombres y Apellidos", type: "text", required: false },
+      { id: "difuntos_fecha_aniversario_1", label: "Difunto 1 - Fecha de Aniversario", type: "date", required: false },
+      { id: "difuntos_nombres_2", label: "Difunto 2 - Nombres y Apellidos", type: "text", required: false },
+      { id: "difuntos_fecha_aniversario_2", label: "Difunto 2 - Fecha de Aniversario", type: "date", required: false },
+      { id: "difuntos_nombres_3", label: "Difunto 3 - Nombres y Apellidos", type: "text", required: false },
+      { id: "difuntos_fecha_aniversario_3", label: "Difunto 3 - Fecha de Aniversario", type: "date", required: false },
+      { id: "padres_difuntos_padre", label: "¿Era Padre?", type: "boolean", required: false },
+      { id: "padres_difuntos_madre", label: "¿Era Madre?", type: "boolean", required: false }
+    ]
+  },
+  {
+    id: 6,
+    title: "Observaciones y Consentimiento",
+    description: "Observaciones finales y autorización de datos",
+    fields: [
+      { id: "sustento_familia", label: "Sustento de la Familia", type: "textarea", required: false },
+      { id: "observaciones_encuestador", label: "Observaciones del Encuestador", type: "textarea", required: false },
+      { id: "autorizacion_datos", label: "Autorizo el tratamiento de mis datos personales para vincularme a la parroquia y recibir notificaciones de interés", type: "boolean", required: true }
     ]
   }
 ];
@@ -86,6 +97,7 @@ const formStages = [
 const SurveyForm = () => {
   const [currentStage, setCurrentStage] = useState(1);
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -94,22 +106,26 @@ const SurveyForm = () => {
 
   // Auto-guardado cuando cambia la etapa
   useEffect(() => {
-    if (Object.keys(formData).length > 0) {
+    if (Object.keys(formData).length > 0 || familyMembers.length > 0) {
       localStorage.setItem('parish-survey-draft', JSON.stringify({
         stage: currentStage,
         data: formData,
+        familyMembers: familyMembers,
         timestamp: new Date().toISOString()
       }));
     }
-  }, [currentStage, formData]);
+  }, [currentStage, formData, familyMembers]);
 
   // Cargar borrador al iniciar
   useEffect(() => {
     const draft = localStorage.getItem('parish-survey-draft');
     if (draft) {
-      const { stage, data } = JSON.parse(draft);
+      const { stage, data, familyMembers: savedFamilyMembers } = JSON.parse(draft);
       setCurrentStage(stage);
       setFormData(data);
+      if (savedFamilyMembers) {
+        setFamilyMembers(savedFamilyMembers);
+      }
       toast({
         title: "Borrador recuperado",
         description: "Se ha recuperado un borrador guardado anteriormente.",
@@ -125,233 +141,174 @@ const SurveyForm = () => {
   };
 
   const handleNext = () => {
+    // Validar campos requeridos de la etapa actual
+    if (currentStageData?.fields) {
+      const requiredFields = currentStageData.fields.filter(field => field.required);
+      const missingFields = requiredFields.filter(field => {
+        const value = formData[field.id];
+        // Validación mejorada para manejar strings, dates y otros tipos
+        if (field.type === 'date') {
+          return !value || (!(value instanceof Date) && (!value || value.toString().trim() === ''));
+        }
+        return !value || (typeof value === 'string' && value.trim() === '');
+      });
+
+      if (missingFields.length > 0) {
+        toast({
+          title: "Campos requeridos",
+          description: `Por favor complete: ${missingFields.map(f => f.label).join(', ')}`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // Validar etapa de información familiar
+    if (currentStage === 4 && familyMembers.length === 0) {
+      toast({
+        title: "Información familiar requerida",
+        description: "Debe agregar al menos un miembro de la familia",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (currentStage < formStages.length) {
       setCurrentStage(currentStage + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handlePrevious = () => {
     if (currentStage > 1) {
       setCurrentStage(currentStage - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     
-    // Simulación de envío - aquí iría la llamada a la API
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Limpiar borrador
-    localStorage.removeItem('parish-survey-draft');
-    
-    toast({
-      title: "Encuesta completada",
-      description: "La encuesta ha sido enviada exitosamente.",
-      variant: "default"
-    });
+    try {
+      // Crear objeto con todos los datos de la encuesta
+      const surveyData = {
+        informacionGeneral: formData,
+        familyMembers: familyMembers,
+        timestamp: new Date().toISOString(),
+        completed: true
+      };
 
-    // Redirigir al dashboard o mostrar página de confirmación
-    setIsSubmitting(false);
+      // Aquí puedes agregar la lógica para enviar a tu API
+      console.log('Datos de la encuesta:', surveyData);
+      
+      // Simular envío a servidor
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Limpiar borrador
+      localStorage.removeItem('parish-survey-draft');
+      
+      toast({
+        title: "Encuesta completada",
+        description: "La encuesta ha sido enviada exitosamente.",
+        variant: "default"
+      });
+
+      // Aquí puedes redirigir al dashboard o mostrar página de confirmación
+      // window.location.href = '/dashboard';
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Hubo un problema al enviar la encuesta. Inténtelo nuevamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const renderField = (field: any) => {
-    const value = formData[field.id] || '';
+  const handleExportData = () => {
+    const surveyData = {
+      informacionGeneral: formData,
+      familyMembers: familyMembers,
+      timestamp: new Date().toISOString(),
+      exported: true
+    };
 
-    switch (field.type) {
-      case 'text':
-      case 'number':
-        return (
-          <div key={field.id} className="space-y-2">
-            <Label htmlFor={field.id}>{field.label}</Label>
-            <Input
-              id={field.id}
-              type={field.type}
-              value={value}
-              onChange={(e) => handleFieldChange(field.id, e.target.value)}
-              className="parish-input"
-              required={field.required}
-            />
-          </div>
-        );
+    const dataStr = JSON.stringify(surveyData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `encuesta-parroquial-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 
-      case 'select':
-        return (
-          <div key={field.id} className="space-y-2">
-            <Label htmlFor={field.id}>{field.label}</Label>
-            <Select value={value} onValueChange={(val) => handleFieldChange(field.id, val)}>
-              <SelectTrigger className="parish-input">
-                <SelectValue placeholder="Seleccionar..." />
-              </SelectTrigger>
-              <SelectContent>
-                {field.options?.map((option: string) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        );
-
-      case 'checkbox':
-        const selectedValues = Array.isArray(value) ? value : [];
-        return (
-          <div key={field.id} className="space-y-3">
-            <Label>{field.label}</Label>
-            <div className="grid grid-cols-1 gap-3">
-              {field.options?.map((option: string) => (
-                <div key={option} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`${field.id}-${option}`}
-                    checked={selectedValues.includes(option)}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        handleFieldChange(field.id, [...selectedValues, option]);
-                      } else {
-                        handleFieldChange(field.id, selectedValues.filter((v: string) => v !== option));
-                      }
-                    }}
-                  />
-                  <Label htmlFor={`${field.id}-${option}`} className="text-sm font-normal">
-                    {option}
-                  </Label>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'textarea':
-        return (
-          <div key={field.id} className="space-y-2">
-            <Label htmlFor={field.id}>{field.label}</Label>
-            <textarea
-              id={field.id}
-              value={value}
-              onChange={(e) => handleFieldChange(field.id, e.target.value)}
-              className="parish-input min-h-24 resize-y"
-              rows={4}
-            />
-          </div>
-        );
-
-      default:
-        return null;
-    }
+    toast({
+      title: "Datos exportados",
+      description: "Los datos se han descargado en formato JSON",
+    });
   };
 
   if (!currentStageData) return null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 lg:py-8">
-      {/* Header con progreso */}
-      <Card className="parish-card mb-6 lg:mb-8 fade-in">
-        <CardHeader className="p-4 lg:p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-            <div className="slide-in-left min-w-0 flex-1">
-              <CardTitle className="text-xl lg:text-2xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Caracterización Poblacional
-              </CardTitle>
-              <CardDescription className="text-sm lg:text-lg mt-1">
-                Etapa {currentStage} de {formStages.length}: {currentStageData.title}
-              </CardDescription>
-            </div>
-            <div className="text-sm font-medium scale-in flex-shrink-0 bg-muted px-3 py-1 rounded-full">
-              {Math.round(progress)}% completado
-            </div>
-          </div>
-          <div className="relative">
-            <Progress 
-              value={progress} 
-              className="parish-progress-bar h-3 bg-muted/50 overflow-hidden rounded-full"
-            />
-            <div 
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary via-primary-light to-secondary rounded-full transition-all duration-1000 ease-out"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </CardHeader>
-      </Card>
+    <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 lg:py-8 bg-gray-50 min-h-screen">
+      {/* Header con progreso usando componente refactorizado */}
+      <SurveyHeader 
+        title="Caracterización Poblacional"
+        description={`Etapa ${currentStage} de ${formStages.length}: ${currentStageData.title}`}
+        progress={progress}
+        currentStage={currentStage}
+        formStages={formStages}
+      />
 
-      {/* Formulario actual */}
-      <Card className="parish-card slide-up">
-        <CardHeader>
+      {/* Formulario actual con Tailwind CSS */}
+      <Card className="shadow-lg border-gray-200 rounded-xl bg-white">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-xl border-b border-gray-200">
           <CardTitle className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
               {currentStage}
             </div>
-            {currentStageData.title}
+            <span className="text-2xl font-bold text-gray-800">{currentStageData.title}</span>
           </CardTitle>
-          <CardDescription className="text-base">
+          <CardDescription className="text-base text-gray-600 pl-14 font-medium">
             {currentStageData.description}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-8">
-          {currentStageData.fields.map((field, index) => (
-            <div key={field.id} className="fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-              {renderField(field)}
-            </div>
-          ))}
+        <CardContent className="space-y-6 p-6">
+          {currentStageData.type === 'family_grid' ? (
+            <FamilyGrid 
+              familyMembers={familyMembers}
+              setFamilyMembers={setFamilyMembers}
+            />
+          ) : (
+            currentStageData.fields?.map((field) => (
+              <div key={field.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-200">
+                <FormField 
+                  field={field}
+                  value={formData[field.id]}
+                  onChange={handleFieldChange}
+                />
+              </div>
+            ))
+          )}
         </CardContent>
       </Card>
 
-      {/* Navegación */}
-      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mt-6 lg:mt-8 fade-in">
-        <Button
-          variant="outline"
-          onClick={handlePrevious}
-          disabled={currentStage === 1}
-          className="flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <ChevronLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" />
-          Anterior
-        </Button>
-
-        <div className="flex flex-col sm:flex-row gap-3 lg:gap-4 order-first sm:order-last">
-          <Button
-            variant="outline"
-            onClick={() => {
-              toast({
-                title: "Progreso guardado",
-                description: "Su progreso ha sido guardado automáticamente.",
-              });
-            }}
-            className="flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-muted/80"
-          >
-            <Save className="w-4 h-4 transition-transform duration-300 hover:rotate-12" />
-            Guardar borrador
-          </Button>
-
-          {currentStage === formStages.length ? (
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="parish-button-primary flex items-center gap-2 glow-pulse"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  <FileDown className="w-4 h-4 transition-transform duration-300 hover:translate-y-1" />
-                  Finalizar encuesta
-                </>
-              )}
-            </Button>
-          ) : (
-            <Button
-              onClick={handleNext}
-              className="parish-button-primary flex items-center gap-2 group"
-            >
-              Siguiente
-              <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Button>
-          )}
-        </div>
-      </div>
+      {/* Controles de navegación */}
+      <SurveyControls 
+        currentStage={currentStage}
+        totalStages={formStages.length}
+        isSubmitting={isSubmitting}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+        onSubmit={handleSubmit}
+        onExport={handleExportData}
+      />
     </div>
   );
 };
