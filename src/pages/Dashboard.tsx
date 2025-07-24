@@ -76,10 +76,10 @@ const DashboardMain = () => {
         <CardContent>
           <Button 
             onClick={() => navigate('/survey')}
-            className="bg-white text-primary hover:bg-gray-100 font-semibold"
+            className="bg-white text-primary hover:bg-gray-100 font-semibold rounded-full p-4"
             size="lg"
           >
-            <Plus className="w-5 h-5 mr-2" />
+            <Plus className="w-5 h-5 mr-2 " />
             Iniciar Nueva Encuesta
           </Button>
         </CardContent>

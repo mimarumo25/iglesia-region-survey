@@ -176,7 +176,8 @@ const Surveys = () => {
           </h1>
           <p className="text-gray-600">Administra todas las encuestas de caracterización familiar</p>
         </div>
-        <Button onClick={() => navigate("/survey")} className="flex items-center gap-2">
+        <Button onClick={() => navigate("/survey")} className="flex items-center gap-2 rounded-full p-4
+        ">
           <Plus className="w-4 h-4" />
           Nueva Encuesta
         </Button>
