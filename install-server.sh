@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script de instalación y configuración automática para servidor Linux
-# Ejecutar como usuario con privilegios sudo
+# Ejecutar como root o usuario con privilegios sudo
 
 set -e
 
@@ -10,7 +10,14 @@ REPO_URL="https://github.com/mimarumo25/iglesia-region-survey.git"
 PROJECT_DIR="/opt/$PROJECT_NAME"
 SERVICE_NAME="iglesia-survey"
 
-echo "🔧 Configurando servidor para $PROJECT_NAME..."
+# Detectar si estamos ejecutando como root
+if [ "$EUID" -eq 0 ]; then
+    SUDO=""
+    echo "🔧 Configurando servidor para $PROJECT_NAME (ejecutando como root)..."
+else
+    SUDO="sudo"
+    echo "🔧 Configurando servidor para $PROJECT_NAME (usando sudo)..."
+fi
 
 # Función para verificar si un comando existe
 command_exists() {
@@ -19,14 +26,16 @@ command_exists() {
 
 # Actualizar sistema
 echo "📦 Actualizando sistema..."
-sudo apt update
+$SUDO apt update
 
 # Instalar Docker si no está instalado
 if ! command_exists docker; then
     echo "🐳 Instalando Docker..."
     curl -fsSL https://get.docker.com -o get-docker.sh
-    sudo sh get-docker.sh
-    sudo usermod -aG docker $USER
+    $SUDO sh get-docker.sh
+    if [ "$EUID" -ne 0 ]; then
+        $SUDO usermod -aG docker $USER
+    fi
     rm get-docker.sh
     echo "✅ Docker instalado"
 else
@@ -36,8 +45,8 @@ fi
 # Instalar Docker Compose si no está instalado
 if ! command_exists docker-compose; then
     echo "🐳 Instalando Docker Compose..."
-    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
+    $SUDO curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    $SUDO chmod +x /usr/local/bin/docker-compose
     echo "✅ Docker Compose instalado"
 else
     echo "✅ Docker Compose ya está instalado"
@@ -46,7 +55,7 @@ fi
 # Instalar Git si no está instalado
 if ! command_exists git; then
     echo "📥 Instalando Git..."
-    sudo apt install -y git
+    $SUDO apt install -y git
     echo "✅ Git instalado"
 else
     echo "✅ Git ya está instalado"
@@ -55,7 +64,7 @@ fi
 # Instalar curl si no está instalado
 if ! command_exists curl; then
     echo "🌐 Instalando curl..."
-    sudo apt install -y curl
+    $SUDO apt install -y curl
     echo "✅ curl instalado"
 else
     echo "✅ curl ya está instalado"
@@ -63,8 +72,10 @@ fi
 
 # Crear directorio del proyecto
 echo "📁 Configurando directorio del proyecto..."
-sudo mkdir -p "$PROJECT_DIR"
-sudo chown $USER:$USER "$PROJECT_DIR"
+$SUDO mkdir -p "$PROJECT_DIR"
+if [ "$EUID" -ne 0 ]; then
+    $SUDO chown $USER:$USER "$PROJECT_DIR"
+fi
 
 # Clonar o actualizar repositorio
 cd "$PROJECT_DIR"
@@ -81,14 +92,14 @@ chmod +x deploy-from-git.sh
 
 # Instalar servicio systemd
 echo "⚙️ Configurando servicio systemd..."
-sudo cp iglesia-survey.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable $SERVICE_NAME
+$SUDO cp iglesia-survey.service /etc/systemd/system/
+$SUDO systemctl daemon-reload
+$SUDO systemctl enable $SERVICE_NAME
 
 # Iniciar Docker si no está corriendo
 echo "🐳 Asegurando que Docker esté corriendo..."
-sudo systemctl start docker
-sudo systemctl enable docker
+$SUDO systemctl start docker
+$SUDO systemctl enable docker
 
 # Ejecutar el primer despliegue
 echo "🚀 Ejecutando primer despliegue..."
@@ -96,7 +107,7 @@ echo "🚀 Ejecutando primer despliegue..."
 
 # Iniciar el servicio
 echo "▶️ Iniciando servicio systemd..."
-sudo systemctl start $SERVICE_NAME
+$SUDO systemctl start $SERVICE_NAME
 
 echo ""
 echo "🎉 ¡Instalación completada!"
@@ -108,16 +119,16 @@ echo "🌐 URL de acceso: http://$(hostname -I | awk '{print $1}'):8080"
 echo ""
 echo "=== COMANDOS DE GESTIÓN ==="
 echo "🔄 Redesplegar desde Git: cd $PROJECT_DIR && ./deploy-from-git.sh"
-echo "▶️ Iniciar servicio: sudo systemctl start $SERVICE_NAME"
-echo "🛑 Detener servicio: sudo systemctl stop $SERVICE_NAME"
-echo "🔄 Reiniciar servicio: sudo systemctl restart $SERVICE_NAME"
-echo "📊 Estado del servicio: sudo systemctl status $SERVICE_NAME"
-echo "📊 Ver logs: sudo journalctl -u $SERVICE_NAME -f"
+echo "▶️ Iniciar servicio: $SUDO systemctl start $SERVICE_NAME"
+echo "🛑 Detener servicio: $SUDO systemctl stop $SERVICE_NAME"
+echo "🔄 Reiniciar servicio: $SUDO systemctl restart $SERVICE_NAME"
+echo "📊 Estado del servicio: $SUDO systemctl status $SERVICE_NAME"
+echo "📊 Ver logs: $SUDO journalctl -u $SERVICE_NAME -f"
 echo ""
 echo "=== COMANDOS DOCKER DIRECTOS ==="
 echo "📊 Ver contenedores: docker ps"
 echo "📊 Ver logs de la app: docker-compose logs -f"
 echo "🔄 Reiniciar contenedor: docker-compose restart"
 echo ""
-echo "⚠️  NOTA: Si ves errores de permisos de Docker, cierra sesión y vuelve a iniciar sesión"
-echo "   o ejecuta: newgrp docker"
+echo "⚠️  NOTA: Si ves errores de permisos de Docker y NO estás ejecutando como root,"
+echo "   cierra sesión y vuelve a iniciar sesión o ejecuta: newgrp docker"

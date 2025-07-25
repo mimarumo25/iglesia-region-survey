@@ -10,6 +10,13 @@ REPO_URL="https://github.com/mimarumo25/iglesia-region-survey.git"
 PROJECT_DIR="/opt/$PROJECT_NAME"
 BRANCH="main"
 
+# Detectar si estamos ejecutando como root
+if [ "$EUID" -eq 0 ]; then
+    SUDO=""
+else
+    SUDO="sudo"
+fi
+
 echo "🚀 Iniciando despliegue automático de $PROJECT_NAME..."
 echo "📅 $(date)"
 
@@ -21,8 +28,10 @@ log() {
 # Crear directorio del proyecto si no existe
 if [ ! -d "$PROJECT_DIR" ]; then
     log "📁 Creando directorio del proyecto..."
-    sudo mkdir -p "$PROJECT_DIR"
-    sudo chown $USER:$USER "$PROJECT_DIR"
+    $SUDO mkdir -p "$PROJECT_DIR"
+    if [ "$EUID" -ne 0 ]; then
+        $SUDO chown $USER:$USER "$PROJECT_DIR"
+    fi
 fi
 
 cd "$PROJECT_DIR"
