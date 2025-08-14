@@ -328,10 +328,10 @@ const AppSidebar = () => {
 
   const getNavCls = (path?: string, isSubItem: boolean = false) => {
     const baseClasses = `
-      flex items-center gap-3 px-3 py-3 w-full rounded-xl
+      flex items-center gap-3 px-4 py-3 w-full rounded-xl
       transition-all duration-300 ease-out relative overflow-hidden
       hover-lift click-effect group min-h-[56px]
-      ${isSubItem ? 'ml-4 py-2 min-h-[48px]' : ''}
+      ${isSubItem ? 'ml-3 py-2 min-h-[48px] px-5' : ''}
     `;
     
     // Solo marcar como activo si la ruta coincide exactamente
@@ -358,12 +358,28 @@ const AppSidebar = () => {
     }
   };
 
+  // Verificar si el menú de configuración está expandido
+  const isConfigExpanded = isExpanded("Configuración");
+  
+  // Log para debugging (remover en producción)
+  useEffect(() => {
+    console.log('Configuración expandida:', isConfigExpanded);
+  }, [isConfigExpanded]);
+
   return (
-    <Sidebar
-      className="bg-gradient-sidebar border-r border-sidebar-border shadow-lg flex flex-col h-screen"
-      collapsible="icon"
-      variant="sidebar"
+    <div
+      style={{
+        // Cambiar el ancho dinámicamente según si configuración está expandida
+        '--sidebar-width': isConfigExpanded ? '22rem' : '16rem',
+        '--sidebar-width-mobile': isConfigExpanded ? '24rem' : '18rem',
+      } as React.CSSProperties}
+      className="sidebar-dynamic-width"
     >
+      <Sidebar
+        className="bg-gradient-sidebar border-r border-sidebar-border shadow-lg flex flex-col h-screen transition-all duration-300"
+        collapsible="icon"
+        variant="sidebar"
+      >
       {/* Header */}
       <SidebarHeader className="p-6 border-b border-sidebar-border/50">
         <div className="flex items-center gap-3 animate-bounce-in">
@@ -425,11 +441,11 @@ const AppSidebar = () => {
                               `} />
                               {!isCollapsed && (
                                 <>
-                                  <div className="flex-1 transition-all duration-300 min-w-0">
+                                  <div className="flex-1 transition-all duration-300 min-w-0 sidebar-text-wrapper">
                                     <span className="font-medium block transition-all duration-300 truncate text-sm text-sidebar-foreground">
                                       {item.title}
                                     </span>
-                                    <p className="text-[10px] leading-3 opacity-90 transition-all duration-300 truncate text-sidebar-foreground/80">
+                                    <p className="text-[10px] leading-3 opacity-90 transition-all duration-300 truncate text-sidebar-foreground/80 sidebar-description">
                                       {item.description}
                                     </p>
                                   </div>
@@ -444,8 +460,8 @@ const AppSidebar = () => {
                           </CollapsibleTrigger>
                           
                           {!isCollapsed && (
-                            <CollapsibleContent>
-                              <SidebarMenuSub className="ml-4 mt-2 space-y-1">
+                            <CollapsibleContent className="sidebar-collapsible-content">
+                              <SidebarMenuSub className="ml-3 mt-2 space-y-1 pl-2">
                                 {filterSubItems(item.subItems).map((subItem) => (
                                   <SidebarMenuSubItem key={subItem.title}>
                                     <SidebarMenuSubButton asChild>
@@ -459,7 +475,7 @@ const AppSidebar = () => {
                                           w-4 h-4 flex-shrink-0 transition-all duration-300
                                           ${isActive(subItem.url) ? 'text-white animate-pulse-glow' : 'group-hover:scale-110'}
                                         `} />
-                                        <div className="flex-1 transition-all duration-300 min-w-0">
+                                        <div className="flex-1 transition-all duration-300 min-w-0 sidebar-text-wrapper">
                                           <span className={`
                                             font-medium block transition-all duration-300 truncate text-sm text-sidebar-foreground
                                             ${isActive(subItem.url) ? 'text-white font-semibold' : ''}
@@ -467,7 +483,7 @@ const AppSidebar = () => {
                                             {subItem.title}
                                           </span>
                                           <p className={`
-                                            text-[10px] leading-3 opacity-90 transition-all duration-300 truncate
+                                            text-[10px] leading-3 opacity-90 transition-all duration-300 truncate sidebar-description
                                             ${isActive(subItem.url) ? 'text-white/90' : 'text-sidebar-foreground/80'}
                                           `}>
                                             {subItem.description}
@@ -499,7 +515,7 @@ const AppSidebar = () => {
                               ${isActive(item.url!) ? 'text-white animate-pulse-glow' : 'group-hover:scale-110'}
                             `} />
                             {!isCollapsed && (
-                              <div className="flex-1 transition-all duration-300 min-w-0">
+                              <div className="flex-1 transition-all duration-300 min-w-0 sidebar-text-wrapper">
                                 <span className={`
                                   font-medium block transition-all duration-300 truncate text-sm text-sidebar-foreground
                                   ${isActive(item.url!) ? 'text-white font-semibold' : ''}
@@ -507,7 +523,7 @@ const AppSidebar = () => {
                                   {item.title}
                                 </span>
                                 <p className={`
-                                  text-[10px] leading-3 opacity-90 transition-all duration-300 truncate
+                                  text-[10px] leading-3 opacity-90 transition-all duration-300 truncate sidebar-description
                                   ${isActive(item.url!) ? 'text-white/90' : 'text-sidebar-foreground/80'}
                                 `}>
                                   {item.description}
@@ -568,6 +584,7 @@ const AppSidebar = () => {
         </div>
       </SidebarContent>
     </Sidebar>
+    </div>
   );
 };
 
