@@ -146,13 +146,20 @@ const Families = () => {
     }
   };
 
-  const getInitials = (familyName: string) => {
+  const getInitials = (familyName?: string) => {
+    if (!familyName) return 'F'; // Familia por defecto
+    
     // Obtener las primeras letras de los apellidos
     const parts = familyName.split(' - ');
     if (parts.length === 2) {
-      return parts[0][0] + parts[1][0];
+      return (parts[0]?.charAt(0) || '') + (parts[1]?.charAt(0) || '');
     }
-    return familyName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    return familyName.split(' ')
+      .filter(n => n.length > 0)
+      .map(n => n.charAt(0))
+      .join('')
+      .toUpperCase()
+      .substring(0, 2) || 'F';
   };
 
   const filteredFamilies = families.filter(family => {

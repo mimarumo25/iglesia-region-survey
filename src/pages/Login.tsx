@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,14 +7,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, Church, Mail, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthContext } from "@/context/AuthContext";
+import { LoginCredentials } from "@/types/auth";
+import { AuthService } from "@/services/auth";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [isRecoveryLoading, setIsRecoveryLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [showDevLogin, setShowDevLogin] = useState(false);
+  const [formData, setFormData] = useState<LoginCredentials>({
     email: "",
     password: ""
   });
@@ -22,7 +26,27 @@ const Login = () => {
     password: "",
     recoveryEmail: ""
   });
+  
   const { toast } = useToast();
+  const { login, isLoading } = useAuthContext();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Verificar si es modo desarrollo y si se hizo logout manual
+  useEffect(() => {
+    if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
+      const manualLogout = sessionStorage.getItem('manual_logout');
+      if (manualLogout === 'true') {
+        setShowDevLogin(true);
+        toast({
+          title: "Sesión cerrada",
+          description: "Ha cerrado sesión correctamente. Click en 'Volver a Ingresar' para continuar.",
+          variant: "default"
+        });
+      }
+      // No redirigir automáticamente, dejar que el usuario elija
+    }
+  }, []); // Solo ejecutar una vez al montar el componente
 
   // Función de validación de email
   const validateEmail = (email: string): string => {
@@ -61,6 +85,12 @@ const Login = () => {
     }
   };
 
+  // Función especial para re-ingresar en modo desarrollo
+  const handleDevLogin = () => {
+    sessionStorage.removeItem('manual_logout');
+    navigate('/dashboard', { replace: true });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -84,21 +114,15 @@ const Login = () => {
       return;
     }
 
-    setIsLoading(true);
+    // Intentar login usando el contexto de autenticación
+    const success = await login(formData);
     
-    // Simulación de login - remover en implementación real
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "Bienvenido",
-      description: "Acceso autorizado al sistema parroquial.",
-      variant: "default"
-    });
-    
-    // Aquí iría la lógica de autenticación real
-    window.location.href = "/dashboard";
-    
-    setIsLoading(false);
+    if (success) {
+      // Redirigir a la página de origen o al dashboard
+      const from = (location.state as any)?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
+    }
+    // El manejo de errores se hace automáticamente en el hook useAuth
   };
 
   const handleForgotPassword = () => {
@@ -133,17 +157,26 @@ const Login = () => {
 
     setIsRecoveryLoading(true);
     
-    // Simulación de recuperación - remover en implementación real
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "Recuperación de contraseña",
-      description: `Se ha enviado un enlace de recuperación a ${forgotPasswordEmail}`,
-    });
-    
-    setIsRecoveryLoading(false);
-    setShowForgotPassword(false);
-    setForgotPasswordEmail("");
+    try {
+      // Llamar al servicio real de recuperación
+      const response = await AuthService.forgotPassword(forgotPasswordEmail);
+      
+      toast({
+        title: "Recuperación de contraseña",
+        description: response.message || `Se ha enviado un enlace de recuperación a ${forgotPasswordEmail}`,
+      });
+      
+      setShowForgotPassword(false);
+      setForgotPasswordEmail("");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Error al solicitar recuperación de contraseña",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRecoveryLoading(false);
+    }
   };
 
   const handleBackToLogin = () => {
@@ -166,7 +199,7 @@ const Login = () => {
               <img 
                 src="https://images.unsplash.com/photo-1520637836862-4d197d17c13a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
                 alt="Iglesia parroquial" 
-                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-transparent to-transparent" />
             </div>
@@ -197,32 +230,60 @@ const Login = () => {
           <Card className="card-enhanced hover-lift click-effect rounded-3xl border-2">
             <CardHeader className="space-y-1 text-center pb-8">
               <div className="inline-block bg-primary/10 rounded-2xl px-6 py-3 mb-4">
-                <CardTitle className="text-3xl text-primary">
-                  {showForgotPassword ? "Recuperar Contraseña" : "Iniciar Sesión"}
+                <CardTitle className="text-3xl text-foreground">
+                  {showDevLogin ? "Modo Desarrollo" : 
+                   showForgotPassword ? "Recuperar Contraseña" : "Iniciar Sesión"}
                 </CardTitle>
               </div>
               <CardDescription className="text-muted-foreground text-lg">
-                {showForgotPassword 
-                  ? "Ingrese su correo para recibir el enlace de recuperación"
-                  : "Ingrese sus credenciales para acceder al sistema"
+                {showDevLogin 
+                  ? "Sesión cerrada correctamente en modo desarrollo"
+                  : showForgotPassword 
+                    ? "Ingrese su correo para recibir el enlace de recuperación"
+                    : "Ingrese sus credenciales para acceder al sistema"
                 }
               </CardDescription>
             </CardHeader>
             <CardContent className="px-8 pb-8">
-              {showForgotPassword ? (
+              {showDevLogin ? (
+                // Interfaz especial para modo desarrollo después del logout
+                <div className="space-y-6">
+                  <Alert className="border-green-500/50 bg-green-50 dark:bg-green-950/20">
+                    <Church className="h-5 w-5 text-green-600" />
+                    <AlertDescription className="text-green-800 dark:text-green-200">
+                      <strong>Logout exitoso:</strong> Ha cerrado sesión correctamente del sistema. 
+                      En modo desarrollo puede volver a ingresar sin credenciales.
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <Button
+                    onClick={handleDevLogin}
+                    className="w-full h-14 parish-button-primary text-lg font-semibold rounded-2xl"
+                  >
+                    <Church className="w-5 h-5 mr-2" />
+                    Volver a Ingresar (Modo Dev)
+                  </Button>
+                  
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Modo desarrollo activo: <code className="bg-secondary/50 px-2 py-1 rounded">VITE_SKIP_AUTH=true</code>
+                    </p>
+                  </div>
+                </div>
+              ) : showForgotPassword ? (
                 // Formulario de recuperación de contraseña
                 <form onSubmit={handleRecoverySubmit} className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="recovery-email" className="text-sm font-medium">Correo Electrónico</Label>
                     <div className="relative group">
-                      <Mail className="absolute left-4 top-4 h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+                      <Mail className="absolute left-4 top-4 h-5 w-5 text-muted-foreground" />
                       <Input
                         id="recovery-email"
                         type="email"
                         placeholder="correo@parroquia.com"
                         value={forgotPasswordEmail}
                         onChange={(e) => handleRecoveryEmailChange(e.target.value)}
-                        className={`pl-12 h-14 parish-input hover-lift transition-all duration-300 focus:scale-[1.02] rounded-2xl text-lg ${
+                        className={`pl-12 h-14 parish-input rounded-2xl text-lg ${
                           errors.recoveryEmail ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
                         }`}
                         required
@@ -239,12 +300,12 @@ const Login = () => {
                   <div className="space-y-3">
                     <Button
                       type="submit"
-                      className="w-full h-14 parish-button-primary hover-lift click-effect text-lg font-semibold transition-all duration-300 rounded-2xl"
+                      className="w-full h-14 parish-button-primary text-lg font-semibold rounded-2xl"
                       disabled={isRecoveryLoading || !!errors.recoveryEmail || !forgotPasswordEmail}
                     >
                       {isRecoveryLoading ? (
                         <div className="flex items-center space-x-2">
-                          <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full" />
                           <span>Enviando...</span>
                         </div>
                       ) : (
@@ -256,7 +317,7 @@ const Login = () => {
                       type="button"
                       onClick={handleBackToLogin}
                       variant="outline"
-                      className="w-full h-14 text-lg font-semibold transition-all duration-300 rounded-2xl border-2"
+                      className="w-full h-14 text-lg font-semibold rounded-2xl border-2"
                     >
                       Volver al Inicio de Sesión
                     </Button>
@@ -268,7 +329,7 @@ const Login = () => {
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-sm font-medium">Correo Electrónico</Label>
                     <div className="relative group">
-                      <Mail className="absolute left-4 top-4 h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+                      <Mail className="absolute left-4 top-4 h-5 w-5 text-muted-foreground" />
                       <Input
                         id="email"
                         type="email"
@@ -337,7 +398,7 @@ const Login = () => {
                 </form>
               )}
 
-              {!showForgotPassword && (
+              {!showForgotPassword && !showDevLogin && (
                 <div className="mt-8 text-center">
                   <button
                     type="button"

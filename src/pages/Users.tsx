@@ -1,432 +1,614 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useNavigate } from "react-router-dom";
 import {
-  UserCheck,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ConfigModal, ConfigFormField, useConfigModal } from "@/components/ui/config-modal";
+import { useUsers } from "@/hooks/useUsers";
+import { UserResponse, CreateUserRequest, UpdateUserRequest } from "@/services/users";
+
+// Tipo para el formulario de usuarios
+interface UserFormData {
+  primer_nombre: string;
+  segundo_nombre: string;
+  primer_apellido: string;
+  segundo_apellido: string;
+  correo_electronico: string;
+  password: string;
+  telefono: string;
+  numero_documento: string;
+}
+import {
+  User as UserIcon,
   Plus,
   Search,
-  Filter,
-  Edit3,
+  Edit2,
   Trash2,
+  Loader2,
+  RefreshCw,
   Eye,
-  Mail,
-  Phone,
-  Shield,
-  ShieldCheck,
-  Clock,
-  MoreHorizontal
+  EyeOff,
 } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
-const Users = () => {
-  const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+const UsersPage = () => {
+  const usersHook = useUsers();
 
-  const users = [
-    {
-      id: 1,
-      name: "María González",
-      email: "maria.gonzalez@parroquia.com",
-      phone: "+57 300 123 4567",
-      role: "coordinator",
-      sector: "La Esperanza",
-      status: "active",
-      lastLogin: "2024-07-15 09:30",
-      surveysCompleted: 45,
-      joinDate: "2024-01-15",
-      avatar: null
-    },
-    {
-      id: 2,
-      name: "Carlos Mendoza",
-      email: "carlos.mendoza@parroquia.com",
-      phone: "+57 300 234 5678",
-      role: "surveyor",
-      sector: "San José",
-      status: "active",
-      lastLogin: "2024-07-15 08:45",
-      surveysCompleted: 32,
-      joinDate: "2024-02-01",
-      avatar: null
-    },
-    {
-      id: 3,
-      name: "Ana Rodríguez",
-      email: "ana.rodriguez@parroquia.com",
-      phone: "+57 300 345 6789",
-      role: "coordinator",
-      sector: "Cristo Rey",
-      status: "active",
-      lastLogin: "2024-07-14 16:20",
-      surveysCompleted: 38,
-      joinDate: "2024-01-20",
-      avatar: null
-    },
-    {
-      id: 4,
-      name: "Luis Herrera",
-      email: "luis.herrera@parroquia.com",
-      phone: "+57 300 456 7890",
-      role: "surveyor",
-      sector: "Divino Niño",
-      status: "active",
-      lastLogin: "2024-07-13 14:15",
-      surveysCompleted: 28,
-      joinDate: "2024-03-01",
-      avatar: null
-    },
-    {
-      id: 5,
-      name: "Carmen López",
-      email: "carmen.lopez@parroquia.com",
-      phone: "+57 300 567 8901",
-      role: "admin",
-      sector: "Todos",
-      status: "active",
-      lastLogin: "2024-07-15 10:00",
-      surveysCompleted: 0,
-      joinDate: "2024-01-01",
-      avatar: null
-    },
-    {
-      id: 6,
-      name: "Pedro Ramírez",
-      email: "pedro.ramirez@parroquia.com",
-      phone: "+57 300 678 9012",
-      role: "surveyor",
-      sector: "El Carmen",
-      status: "inactive",
-      lastLogin: "2024-07-01 12:30",
-      surveysCompleted: 15,
-      joinDate: "2024-04-15",
-      avatar: null
-    },
-    {
-      id: 7,
-      name: "Isabella Torres",
-      email: "isabella.torres@parroquia.com",
-      phone: "+57 300 789 0123",
-      role: "surveyor",
-      sector: "Santa María",
-      status: "active",
-      lastLogin: "2024-07-14 11:45",
-      surveysCompleted: 22,
-      joinDate: "2024-05-01",
-      avatar: null
-    }
-  ];
+  // Queries
+  const { data: usersData, isLoading: usersLoading, refetch: refetchUsers } = usersHook.useUsersQuery();
+  const users = usersData as UserResponse[] | undefined;
 
-  const roles = [
-    { value: "all", label: "Todos los roles" },
-    { value: "admin", label: "Administrador" },
-    { value: "coordinator", label: "Coordinador" },
-    { value: "surveyor", label: "Encuestador" }
-  ];
+  // Mutations
+  const createMutation = usersHook.useCreateUserMutation();
+  const updateMutation = usersHook.useUpdateUserMutation();
+  const deleteMutation = usersHook.useDeleteUserMutation();
 
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case "admin":
-        return <Badge variant="default" className="bg-red-100 text-red-800">Administrador</Badge>;
-      case "coordinator":
-        return <Badge variant="default" className="bg-blue-100 text-blue-800">Coordinador</Badge>;
-      case "surveyor":
-        return <Badge variant="secondary" className="bg-green-100 text-green-800">Encuestador</Badge>;
-      default:
-        return <Badge variant="outline">Sin rol</Badge>;
-    }
-  };
+  const loading = usersLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Badge variant="default" className="bg-green-100 text-green-800">Activo</Badge>;
-      case "inactive":
-        return <Badge variant="secondary" className="bg-gray-100 text-gray-800">Inactivo</Badge>;
-      default:
-        return <Badge variant="outline">Desconocido</Badge>;
-    }
-  };
-
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case "admin":
-        return <ShieldCheck className="w-4 h-4 text-red-600" />;
-      case "coordinator":
-        return <Shield className="w-4 h-4 text-blue-600" />;
-      case "surveyor":
-        return <UserCheck className="w-4 h-4 text-green-600" />;
-      default:
-        return <UserCheck className="w-4 h-4 text-gray-600" />;
-    }
-  };
-
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
-
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.sector.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    const matchesStatus = statusFilter === "all" || user.status === statusFilter;
-    return matchesSearch && matchesRole && matchesStatus;
+  // Estados para diálogos y formularios
+  const {
+    showCreateDialog,
+    showEditDialog,
+    showDeleteDialog,
+    openCreateDialog,
+    openEditDialog,
+    openDeleteDialog,
+    setShowCreateDialog,
+    setShowEditDialog,
+    setShowDeleteDialog,
+  } = useConfigModal();
+  
+  const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
+  const [formData, setFormData] = useState<UserFormData>({
+    primer_nombre: "",
+    segundo_nombre: "",
+    primer_apellido: "",
+    segundo_apellido: "",
+    correo_electronico: "",
+    password: "",
+    telefono: "",
+    numero_documento: "",
   });
 
-  const userStats = {
-    total: users.length,
-    active: users.filter(u => u.status === "active").length,
-    admins: users.filter(u => u.role === "admin").length,
-    coordinators: users.filter(u => u.role === "coordinator").length,
-    surveyors: users.filter(u => u.role === "surveyor").length
+  // Manejo del formulario
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.primer_nombre.trim() || !formData.primer_apellido.trim() || !formData.correo_electronico.trim() || !formData.password.trim()) return;
+
+    createMutation.mutate({
+      primer_nombre: formData.primer_nombre.trim(),
+      segundo_nombre: formData.segundo_nombre.trim() || undefined,
+      primer_apellido: formData.primer_apellido.trim(),
+      segundo_apellido: formData.segundo_apellido.trim() || undefined,
+      correo_electronico: formData.correo_electronico.trim(),
+      password: formData.password.trim(),
+      telefono: formData.telefono.trim() || undefined,
+      numero_documento: formData.numero_documento.trim() || undefined,
+    }, {
+      onSuccess: () => {
+        setShowCreateDialog(false);
+        setFormData({ 
+          primer_nombre: "", 
+          segundo_nombre: "", 
+          primer_apellido: "", 
+          segundo_apellido: "", 
+          correo_electronico: "", 
+          password: "", 
+          telefono: "", 
+          numero_documento: "" 
+        });
+      }
+    });
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUser || !formData.primer_nombre.trim() || !formData.primer_apellido.trim() || !formData.correo_electronico.trim()) return;
+
+    updateMutation.mutate({
+      id: selectedUser.id,
+      data: {
+        primer_nombre: formData.primer_nombre.trim(),
+        segundo_nombre: formData.segundo_nombre.trim() || undefined,
+        primer_apellido: formData.primer_apellido.trim(),
+        segundo_apellido: formData.segundo_apellido.trim() || undefined,
+        correo_electronico: formData.correo_electronico.trim(),
+        telefono: formData.telefono.trim() || undefined,
+        numero_documento: formData.numero_documento.trim() || undefined,
+      }
+    }, {
+      onSuccess: () => {
+        setShowEditDialog(false);
+        setSelectedUser(null);
+        setFormData({ 
+          primer_nombre: "", 
+          segundo_nombre: "", 
+          primer_apellido: "", 
+          segundo_apellido: "", 
+          correo_electronico: "", 
+          password: "", 
+          telefono: "", 
+          numero_documento: "" 
+        });
+      }
+    });
+  };
+
+  const handleDelete = async () => {
+    if (!selectedUser) return;
+
+    deleteMutation.mutate(selectedUser.id, {
+      onSuccess: () => {
+        setShowDeleteDialog(false);
+        setSelectedUser(null);
+      }
+    });
+  };
+
+  // Funciones para abrir diálogos
+  const handleOpenCreateDialog = () => {
+    setFormData({ 
+      primer_nombre: "", 
+      segundo_nombre: "", 
+      primer_apellido: "", 
+      segundo_apellido: "", 
+      correo_electronico: "", 
+      password: "", 
+      telefono: "", 
+      numero_documento: "" 
+    });
+    openCreateDialog();
+  };
+
+  const handleOpenEditDialog = (user: UserResponse) => {
+    setSelectedUser(user);
+    setFormData({
+      primer_nombre: user.primer_nombre,
+      segundo_nombre: user.segundo_nombre || "",
+      primer_apellido: user.primer_apellido,
+      segundo_apellido: user.segundo_apellido || "",
+      correo_electronico: user.correo_electronico,
+      password: "", // No cargar contraseña para edición
+      telefono: user.telefono || "",
+      numero_documento: user.numero_documento || "",
+    });
+    openEditDialog();
+  };
+
+  const handleOpenDeleteDialog = (user: UserResponse) => {
+    setSelectedUser(user);
+    openDeleteDialog();
+  };
+
+  // Formatear fecha
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Formatear nombre completo
+  const getFullName = (user: UserResponse) => {
+    const nombres = [user.primer_nombre, user.segundo_nombre].filter(Boolean).join(' ');
+    const apellidos = [user.primer_apellido, user.segundo_apellido].filter(Boolean).join(' ');
+    return `${nombres} ${apellidos}`.trim();
   };
 
   return (
-    <div className="container mx-auto p-6">
-      {/* Header */}
+    <div className="container mx-auto p-6 max-w-7xl bg-gradient-subtle min-h-screen">
+      {/* Header con diseño mejorado */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <UserCheck className="w-8 h-8 text-blue-600" />
+        <div className="">
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+            <UserIcon className="w-8 h-8 text-primary" />
             Gestión de Usuarios
           </h1>
-          <p className="text-gray-600">Administra usuarios del sistema parroquial</p>
+          <p className="text-muted-foreground mt-2">Administra los usuarios del sistema</p>
         </div>
-        <Button onClick={() => navigate("/users/new")} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Nuevo Usuario
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => refetchUsers()}
+            disabled={loading}
+            className=""
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? '' : ''}`} />
+            Actualizar
+          </Button>
+          <Button 
+            onClick={handleOpenCreateDialog}
+            className="bg-gradient-primary shadow-md"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo Usuario
+          </Button>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <UserCheck className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Total</p>
-                <p className="text-2xl font-bold text-gray-900">{userStats.total}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <UserCheck className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Activos</p>
-                <p className="text-2xl font-bold text-gray-900">{userStats.active}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Admins</p>
-                <p className="text-2xl font-bold text-gray-900">{userStats.admins}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Shield className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Coordinadores</p>
-                <p className="text-2xl font-bold text-gray-900">{userStats.coordinators}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                <UserCheck className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Encuestadores</p>
-                <p className="text-2xl font-bold text-gray-900">{userStats.surveyors}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Buscar por nombre, email o sector..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-500" />
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Filtrar por rol" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.map((role) => (
-                    <SelectItem key={role.value} value={role.value}>
-                      {role.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="active">Activos</SelectItem>
-                  <SelectItem value="inactive">Inactivos</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+      {/* Búsqueda (si aplica, no implementada en useUsersQuery) */}
+      {/* <Card className="mb-6 shadow-card hover:shadow-hover transition-smooth animate-bounce-in">
+        <CardContent className="pt-6">
+          <form onSubmit={handleSearch} className="flex gap-4">
+            <Input
+              placeholder="Buscar por nombre o email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1 border-input-border focus:ring-primary"
+            />
+            <Button 
+              type="submit" 
+              variant="outline"
+              className=""
+            >
+              <Search className="w-4 h-4 mr-2" />
+              Buscar
+            </Button>
+            {searchTerm && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setSearchTerm('');
+                  setPage(1); // Resetear paginación
+                }}
+                className=""
+              >
+                Limpiar
+              </Button>
+            )}
+          </form>
         </CardContent>
-      </Card>
+      </Card> */}
 
-      {/* Users Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Usuarios Registrados</CardTitle>
-          <CardDescription>
-            Lista completa de usuarios del sistema con sus roles y actividad
-          </CardDescription>
+      {/* Estadísticas (si aplica, no implementada en useUsersQuery) */}
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <Card className="shadow-card hover:shadow-hover transition-smooth animate-bounce-in bg-gradient-card">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Usuarios</p>
+                <p className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">{users.length}</p>
+              </div>
+              <UserIcon className="w-8 h-8 text-primary opacity-70 animate-float" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="shadow-card hover:shadow-hover transition-smooth animate-bounce-in bg-gradient-card">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Usuarios Activos</p>
+                <p className="text-2xl font-bold bg-gradient-secondary bg-clip-text text-transparent">{users.filter(u => u.isActive).length}</p>
+              </div>
+              <UserIcon className="w-8 h-8 text-secondary opacity-70 animate-float" />
+            </div>
+          </CardContent>
+        </Card>
+      </div> */}
+
+      {/* Tabla de usuarios con diseño mejorado */}
+      <Card className="shadow-card hover:shadow-hover">
+        <CardHeader className="bg-gradient-subtle">
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <UserIcon className="w-5 h-5" />
+            Listado de Usuarios
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Usuario</TableHead>
-                <TableHead>Contacto</TableHead>
-                <TableHead>Rol</TableHead>
-                <TableHead>Sector</TableHead>
-                <TableHead>Encuestas</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Último Acceso</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage src={user.avatar} />
-                        <AvatarFallback className="bg-gradient-to-r from-blue-400 to-purple-500 text-white font-semibold">
-                          {getInitials(user.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-sm text-gray-500">Desde {user.joinDate}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Mail className="w-3 h-3 text-gray-400" />
-                        {user.email}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Phone className="w-3 h-3 text-gray-400" />
-                        {user.phone}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {getRoleIcon(user.role)}
-                      {getRoleBadge(user.role)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{user.sector}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-center">
-                      <p className="font-medium text-lg">{user.surveysCompleted}</p>
-                      <p className="text-xs text-gray-500">completadas</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(user.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      <Clock className="w-3 h-3" />
-                      {user.lastLogin}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => navigate(`/users/${user.id}`)}>
-                          <Eye className="w-4 h-4 mr-2" />
-                          Ver Perfil
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate(`/users/${user.id}/edit`)}>
-                          <Edit3 className="w-4 h-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Eliminar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-8 h-8 text-primary" />
+              <span className="ml-2 text-muted-foreground">Cargando usuarios...</span>
+            </div>
+          ) : !users || users.length === 0 ? (
+            <div className="text-center py-8">
+              <UserIcon className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
+              <p className="text-muted-foreground">No se encontraron usuarios</p>
+            </div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-muted/50">
+                    <TableHead className="font-semibold text-foreground">Nombre Completo</TableHead>
+                    <TableHead className="font-semibold text-foreground">Email</TableHead>
+                    <TableHead className="font-semibold text-foreground">Teléfono</TableHead>
+                    <TableHead className="font-semibold text-foreground">Estado</TableHead>
+                    <TableHead className="font-semibold text-foreground">Email Verificado</TableHead>
+                    <TableHead className="font-semibold text-foreground">Último Acceso</TableHead>
+                    <TableHead className="font-semibold text-foreground">Fecha Creación</TableHead>
+                    <TableHead className="text-right font-semibold text-primary">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users && users.map((user, index) => (
+                    <TableRow 
+                      key={user.id}
+                      className="hover:bg-muted/50"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <UserIcon className="w-4 h-4 text-primary" />
+                          <div className="flex flex-col">
+                            <span className="font-medium">{getFullName(user)}</span>
+                            <span className="text-xs text-muted-foreground">{user.numero_documento || 'Sin documento'}</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                          {user.correo_electronico}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm">{user.telefono || '-'}</span>
+                      </TableCell>
+                      <TableCell>
+                        {user.activo ? (
+                          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                            <Eye className="w-3 h-3 mr-1" /> Activo
+                          </Badge>
+                        ) : (
+                          <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
+                            <EyeOff className="w-3 h-3 mr-1" /> Inactivo
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {user.email_verificado ? (
+                          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                            ✓ Verificado
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                            ⚠ Pendiente
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">
+                          {formatDate(user.fecha_ultimo_acceso)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                          {formatDate(user.created_at)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenEditDialog(user)}
+                            className="hover:bg-primary/10 hover:text-primary hover:shadow-md"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenDeleteDialog(user)}
+                            className="hover:bg-destructive/10 hover:text-destructive hover:shadow-md"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {/* Paginación (si aplica, no implementada en useUsersQuery) */}
+              {/* {pagination.totalPages > 1 && (
+                <div className="flex items-center justify-between pt-4 border-t border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando {users.length} de {pagination.totalCount} usuarios
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage - 1)}
+                      disabled={pagination.currentPage === 1}
+                      className="hover:shadow-hover disabled:opacity-50"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Anterior
+                    </Button>
+                    <span className="flex items-center px-3 text-sm font-medium text-primary bg-primary/10 rounded-md">
+                      Página {pagination.currentPage} de {pagination.totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage + 1)}
+                      disabled={pagination.currentPage === pagination.totalPages}
+                      className="hover:shadow-hover disabled:opacity-50"
+                    >
+                      Siguiente
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )} */}
+            </>
+          )}
         </CardContent>
       </Card>
+
+      {/* Modal de Crear Usuario */}
+      <ConfigModal
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        type="create"
+        title="Nuevo Usuario"
+        description="Crea un nuevo usuario en el sistema"
+        icon={UserIcon}
+        loading={createMutation.isPending}
+        onSubmit={handleCreateSubmit}
+        submitText="Crear Usuario"
+      >
+        <ConfigFormField
+          id="primer_nombre"
+          label="Primer Nombre"
+          placeholder="Ej: Juan"
+          value={formData.primer_nombre}
+          onChange={(value) => setFormData({ ...formData, primer_nombre: value })}
+          required
+        />
+        <ConfigFormField
+          id="segundo_nombre"
+          label="Segundo Nombre (Opcional)"
+          placeholder="Ej: Carlos"
+          value={formData.segundo_nombre}
+          onChange={(value) => setFormData({ ...formData, segundo_nombre: value })}
+        />
+        <ConfigFormField
+          id="primer_apellido"
+          label="Primer Apellido"
+          placeholder="Ej: Pérez"
+          value={formData.primer_apellido}
+          onChange={(value) => setFormData({ ...formData, primer_apellido: value })}
+          required
+        />
+        <ConfigFormField
+          id="segundo_apellido"
+          label="Segundo Apellido (Opcional)"
+          placeholder="Ej: García"
+          value={formData.segundo_apellido}
+          onChange={(value) => setFormData({ ...formData, segundo_apellido: value })}
+        />
+        <ConfigFormField
+          id="correo_electronico"
+          label="Correo Electrónico"
+          placeholder="Ej: juan.perez@example.com"
+          value={formData.correo_electronico}
+          onChange={(value) => setFormData({ ...formData, correo_electronico: value })}
+          required
+        />
+        <ConfigFormField
+          id="password"
+          label="Contraseña"
+          placeholder="********"
+          value={formData.password}
+          onChange={(value) => setFormData({ ...formData, password: value })}
+          required
+        />
+        <ConfigFormField
+          id="telefono"
+          label="Teléfono (Opcional)"
+          placeholder="Ej: +57 300 123 4567"
+          value={formData.telefono}
+          onChange={(value) => setFormData({ ...formData, telefono: value })}
+        />
+        <ConfigFormField
+          id="numero_documento"
+          label="Número de Documento (Opcional)"
+          placeholder="Ej: 12345678"
+          value={formData.numero_documento}
+          onChange={(value) => setFormData({ ...formData, numero_documento: value })}
+        />
+      </ConfigModal>
+
+      {/* Modal de Editar Usuario */}
+      <ConfigModal
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        type="edit"
+        title="Editar Usuario"
+        description="Modifica los datos del usuario"
+        icon={Edit2}
+        loading={updateMutation.isPending}
+        onSubmit={handleEditSubmit}
+        submitText="Guardar Cambios"
+      >
+        <ConfigFormField
+          id="edit-primer_nombre"
+          label="Primer Nombre"
+          placeholder="Ej: Juan"
+          value={formData.primer_nombre}
+          onChange={(value) => setFormData({ ...formData, primer_nombre: value })}
+          required
+        />
+        <ConfigFormField
+          id="edit-segundo_nombre"
+          label="Segundo Nombre (Opcional)"
+          placeholder="Ej: Carlos"
+          value={formData.segundo_nombre}
+          onChange={(value) => setFormData({ ...formData, segundo_nombre: value })}
+        />
+        <ConfigFormField
+          id="edit-primer_apellido"
+          label="Primer Apellido"
+          placeholder="Ej: Pérez"
+          value={formData.primer_apellido}
+          onChange={(value) => setFormData({ ...formData, primer_apellido: value })}
+          required
+        />
+        <ConfigFormField
+          id="edit-segundo_apellido"
+          label="Segundo Apellido (Opcional)"
+          placeholder="Ej: García"
+          value={formData.segundo_apellido}
+          onChange={(value) => setFormData({ ...formData, segundo_apellido: value })}
+        />
+        <ConfigFormField
+          id="edit-correo_electronico"
+          label="Correo Electrónico"
+          placeholder="Ej: juan.perez@example.com"
+          value={formData.correo_electronico}
+          onChange={(value) => setFormData({ ...formData, correo_electronico: value })}
+          required
+        />
+        <ConfigFormField
+          id="edit-telefono"
+          label="Teléfono (Opcional)"
+          placeholder="Ej: +57 300 123 4567"
+          value={formData.telefono}
+          onChange={(value) => setFormData({ ...formData, telefono: value })}
+        />
+        <ConfigFormField
+          id="edit-numero_documento"
+          label="Número de Documento (Opcional)"
+          placeholder="Ej: 12345678"
+          value={formData.numero_documento}
+          onChange={(value) => setFormData({ ...formData, numero_documento: value })}
+        />
+      </ConfigModal>
+
+      {/* Modal de Eliminar Usuario */}
+      <ConfigModal
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        type="delete"
+        title="¿Estás seguro?"
+        description="Esta acción no se puede deshacer. Se eliminará permanentemente el usuario"
+        icon={Trash2}
+        loading={deleteMutation.isPending}
+        onConfirm={handleDelete}
+        entityName={getFullName(selectedUser!)}
+        submitText="Eliminar Usuario"
+      />
     </div>
   );
 };
 
-export default Users;
+export default UsersPage;

@@ -8,7 +8,7 @@ interface HousingTypesProps {
 
 const HousingTypes = ({ housingTypes }: HousingTypesProps) => {
   return (
-    <Card className="card-enhanced hover-glow animate-bounce-in">
+    <Card className="card-enhanced">
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-gradient-to-br from-success/20 to-success/10">
@@ -23,11 +23,11 @@ const HousingTypes = ({ housingTypes }: HousingTypesProps) => {
       <CardContent>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {housingTypes.map((housing, index) => (
-            <div key={housing.type} className="text-center space-y-2 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-all duration-300 hover-lift click-effect animate-bounce-in">
+            <div key={housing.type} className="text-center space-y-2 p-4 rounded-lg bg-muted/30">
               <div className="w-12 h-12 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
                 <Home className="w-6 h-6 text-primary" />
               </div>
-              <p className="text-2xl font-bold text-primary">{housing.count}</p>
+              <p className="text-2xl font-bold text-foreground">{housing.count}</p>
               <p className="text-sm font-medium">{housing.type}</p>
               <p className="text-xs text-muted-foreground">{housing.percentage}%</p>
             </div>

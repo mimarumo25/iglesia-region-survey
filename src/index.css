@@ -8,37 +8,40 @@ All colors MUST be HSL - Parroquial Design System
 
 @layer base {
   :root {
+    /* Border radius */
+    --radius: 0.75rem;
+
     /* Base colors - High contrast for accessibility */
-    --background: 0 0% 100%;
+    --background: 0 0% 98%; /* Fondo blanco/muy claro para mejor legibilidad */
     --foreground: 0 0% 3.9%;
 
     /* Card components */
-    --card: 0 0% 100%;
+    --card: 0 0% 100%; /* Cards con fondo blanco para mejor contraste */
     --card-foreground: 0 0% 3.9%;
 
     /* Popover elements */
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
 
-    /* Primary - Catholic blue más vibrante */
-    --primary: 213 100% 45%;
+    /* Primary - Catholic blue más suave y profesional */
+    --primary: 213 70% 50%;
     --primary-foreground: 0 0% 98%;
-    --primary-light: 213 100% 55%;
-    --primary-dark: 213 100% 35%;
-    --primary-hover: 213 100% 50%;
+    --primary-light: 213 70% 60%;
+    --primary-dark: 213 70% 40%;
+    --primary-hover: 213 70% 55%;
 
-    /* Secondary - Liturgical gold accent más brillante */
-    --secondary: 32 100% 50%;
+    /* Secondary - Liturgical gold accent más suave */
+    --secondary: 32 70% 55%;
     --secondary-foreground: 0 0% 98%;
-    --secondary-light: 32 100% 60%;
-    --secondary-hover: 32 100% 55%;
+    --secondary-light: 32 70% 65%;
+    --secondary-hover: 32 70% 60%;
 
-    /* Muted backgrounds */
-    --muted: 210 40% 98%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted backgrounds - más neutros */
+    --muted: 210 20% 94%;
+    --muted-foreground: 215.4 16.3% 35%; /* Texto más oscuro para mejor contraste */
 
-    /* Accent colors */
-    --accent: 210 40% 96%;
+    /* Accent colors - más neutros */
+    --accent: 210 20% 94%;
     --accent-foreground: 0 0% 3.9%;
 
     /* Status colors */
@@ -53,85 +56,101 @@ All colors MUST be HSL - Parroquial Design System
     --border: 214.3 31.8% 91.4%;
     --input: 0 0% 100%;
     --input-border: 214.3 31.8% 91.4%;
-    --ring: 213 94% 35%;
+    --ring: 213 70% 50%; /* Usar el primary ajustado */
 
-    /* Gradientes más vibrantes y animados */
+    /* Gradientes más sutiles */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-light)) 50%, hsl(var(--primary-hover)) 100%);
     --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--secondary-light)) 50%, hsl(var(--secondary-hover)) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%);
-    --gradient-glow: radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 70%);
+    --gradient-subtle: hsl(var(--background));
+    --gradient-card: hsl(var(--card));
+    --gradient-glow: radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 70%); /* Más sutil */
     --gradient-animated: linear-gradient(-45deg, hsl(var(--primary)), hsl(var(--primary-light)), hsl(var(--secondary)), hsl(var(--primary-hover)));
     --gradient-sidebar: linear-gradient(180deg, hsl(var(--sidebar-background)) 0%, hsl(var(--sidebar-primary)) 100%);
     --gradient-hover: linear-gradient(135deg, hsl(var(--primary-hover)) 0%, hsl(var(--secondary-hover)) 100%);
 
-    /* Sombras más dramáticas con colores vibrantes */
-    --shadow-sm: 0 2px 4px 0 hsl(var(--primary) / 0.15), 0 1px 2px 0 hsl(var(--primary) / 0.1);
-    --shadow-md: 0 6px 10px -2px hsl(var(--primary) / 0.15), 0 2px 4px -1px hsl(var(--primary) / 0.1);
-    --shadow-lg: 0 12px 20px -4px hsl(var(--primary) / 0.15), 0 4px 8px -2px hsl(var(--primary) / 0.1);
-    --shadow-glow: 0 0 25px hsl(var(--primary) / 0.3), 0 0 50px hsl(var(--primary) / 0.15);
-    --shadow-card: 0 2px 6px 0 hsl(var(--foreground) / 0.12), 0 1px 3px 0 hsl(var(--foreground) / 0.08);
-    --shadow-hover: 0 8px 15px -3px hsl(var(--primary) / 0.2), 0 4px 6px -2px hsl(var(--primary) / 0.1);
-    --shadow-active: 0 4px 8px -2px hsl(var(--primary) / 0.25), 0 2px 4px -1px hsl(var(--primary) / 0.15);
+    /* Sombras más suaves y menos dramáticas */
+    --shadow-sm: 0 1px 2px 0 hsl(var(--foreground) / 0.02);
+    --shadow-md: 0 4px 6px -1px hsl(var(--foreground) / 0.05), 0 2px 4px -1px hsl(var(--foreground) / 0.03);
+    --shadow-lg: 0 10px 15px -3px hsl(var(--foreground) / 0.05), 0 4px 6px -2px hsl(var(--foreground) / 0.02);
+    --shadow-glow: 0 0 15px hsl(var(--primary) / 0.05), 0 0 25px hsl(var(--primary) / 0.02); /* Más sutil */
+    --shadow-card: 0 1px 3px 0 hsl(var(--foreground) / 0.04), 0 1px 2px 0 hsl(var(--foreground) / 0.02);
+    --shadow-hover: 0 4px 8px -2px hsl(var(--primary) / 0.05), 0 2px 4px -1px hsl(var(--primary) / 0.02); /* Más sutil */
+    --shadow-active: 0 2px 4px -1px hsl(var(--primary) / 0.08), 0 1px 2px -1px hsl(var(--primary) / 0.04); /* Más sutil */
 
-    /* Transiciones más expresivas */
-    --transition-smooth: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    --transition-fast: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    --transition-slow: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    --transition-elastic: all 0.5s cubic-bezier(0.68, -0.6, 0.32, 1.6);
-    --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Transiciones más suaves */
+    --transition-smooth: all 0.3s ease-in-out;
+    --transition-fast: all 0.15s ease-in-out;
+    --transition-slow: all 0.5s ease-in-out;
+    --transition-bounce: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    --transition-elastic: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    --transition-spring: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
     /* Sidebar actualizada para tema parroquial */
-    --sidebar-background: 213 94% 35%;
+    --sidebar-background: 213 70% 35%; /* Más oscuro para mejor contraste */
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 213 94% 25%;
+    --sidebar-primary: 213 70% 25%; /* Más oscuro que sidebar-background */
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 213 94% 45%; 
+    --sidebar-accent: 213 70% 45%; /* Más claro que sidebar-background */
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 213 94% 30%;
-    --sidebar-ring: 213 94% 45%;
+    --sidebar-border: 213 70% 30%;
+    --sidebar-ring: 213 70% 50%;
   }
 
   .dark {
     /* Dark mode con contraste alto */
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 0 0% 8% !important;
+    --foreground: 0 0% 95% !important;
 
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 12% !important;
+    --card-foreground: 0 0% 95% !important;
 
-    --popover: 0 0% 8%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 12% !important;
+    --popover-foreground: 0 0% 95% !important;
 
-    --primary: 213 94% 55%;
-    --primary-foreground: 0 0% 98%;
-    --primary-light: 213 94% 65%;
-    --primary-dark: 213 94% 45%;
+    --primary: 213 60% 55% !important; /* Ajustado para dark mode */
+    --primary-foreground: 0 0% 98% !important;
+    --primary-light: 213 60% 65% !important;
+    --primary-dark: 213 60% 45% !important;
+    --primary-hover: 213 60% 60% !important;
 
-    --secondary: 32 95% 54%;
-    --secondary-foreground: 0 0% 98%;
-    --secondary-light: 32 95% 64%;
+    --secondary: 32 60% 60% !important; /* Ajustado para dark mode */
+    --secondary-foreground: 0 0% 98% !important;
+    --secondary-light: 32 60% 70% !important;
+    --secondary-hover: 32 60% 65% !important;
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 0 0% 15% !important;
+    --muted-foreground: 215 15% 60% !important;
 
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 0 0% 18% !important;
+    --accent-foreground: 0 0% 95% !important;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 15%;
-    --input-border: 0 0% 25%;
-    --ring: 213 94% 55%;
+    --destructive: 0 84.2% 60.2% !important;
+    --destructive-foreground: 0 0% 98% !important;
+    --success: 142 76% 36% !important;
+    --success-foreground: 0 0% 98% !important;
+    --warning: 38 92% 50% !important;
+    --warning-foreground: 0 0% 98% !important;
 
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 213 94% 55%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 213 94% 55%;
+    --border: 0 0% 25% !important;
+    --input: 0 0% 18% !important;
+    --input-border: 0 0% 30% !important;
+    --ring: 213 60% 55% !important;
+
+    --sidebar-background: 0 0% 10% !important;
+    --sidebar-foreground: 0 0% 90% !important;
+    --sidebar-primary: 213 60% 45% !important;
+    --sidebar-primary-foreground: 0 0% 98% !important;
+    --sidebar-accent: 213 60% 55% !important;
+    --sidebar-accent-foreground: 0 0% 90% !important;
+    --sidebar-border: 0 0% 25% !important;
+    --sidebar-ring: 213 60% 55% !important;
+
+    /* Actualizar gradientes para modo oscuro */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-light)) 50%, hsl(var(--primary-hover)) 100%) !important;
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--secondary-light)) 50%, hsl(var(--secondary-hover)) 100%) !important;
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%) !important;
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%) !important;
+    --gradient-sidebar: linear-gradient(180deg, hsl(var(--sidebar-background)) 0%, hsl(var(--sidebar-primary)) 100%) !important;
   }
 }
 
@@ -140,105 +159,146 @@ All colors MUST be HSL - Parroquial Design System
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground font-sans;
-    font-feature-settings: "rlig" 1, "calt" 1;
+  html {
+    font-size: 16px; /* Base font size - 16px */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-size: 0.95rem; /* 15.2px - Slightly smaller for better reading */
+    line-height: 1.6; /* Improved line height for readability */
+    font-weight: 400;
+    letter-spacing: -0.01em; /* Better letter spacing */
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Typography hierarchy with improved sizing */
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold text-foreground;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    font-weight: 600;
   }
 
-  h1 { @apply text-3xl lg:text-4xl; }
-  h2 { @apply text-2xl lg:text-3xl; }
-  h3 { @apply text-xl lg:text-2xl; }
-  h4 { @apply text-lg lg:text-xl; }
+  h1 { 
+    @apply text-2xl lg:text-3xl; /* Slightly smaller but still prominent */
+    line-height: 1.2;
+    font-weight: 700;
+  }
+  
+  h2 { 
+    @apply text-xl lg:text-2xl;
+    font-weight: 650;
+  }
+  
+  h3 { 
+    @apply text-lg lg:text-xl;
+    font-weight: 600;
+  }
+  
+  h4 { 
+    @apply text-base lg:text-lg;
+    font-weight: 550;
+  }
+
+  h5 { 
+    @apply text-sm lg:text-base;
+    font-weight: 550;
+  }
+
+  h6 { 
+    @apply text-sm;
+    font-weight: 500;
+  }
+
+  /* Improved paragraph and text elements */
+  p {
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Form elements with better typography */
+  input, textarea, select, button {
+    font-family: inherit;
+    font-size: 0.9rem; /* Slightly smaller for form elements */
+    line-height: 1.5;
+  }
+
+  /* Button text sizing */
+  button {
+    font-weight: 500;
+    letter-spacing: 0.005em;
+  }
+
+  /* Table typography */
+  table {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  td {
+    font-size: 0.9rem;
+  }
+
+  /* Badge and small text elements */
+  .badge, .text-xs, small {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.025em;
+  }
+
+  /* Code and monospace elements */
+  code, pre {
+    font-family: 'SF Mono', Monaco, 'Inconsolata', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 0.85rem;
+  }
 }
 
 @layer components {
   /* Componentes especializados para el sistema parroquial */
   .parish-card {
-    @apply bg-card rounded-xl border border-border p-6 shadow-card hover:shadow-lg;
+    @apply bg-card rounded-xl border border-border p-6 shadow-card;
     background: var(--gradient-card);
-    transition: var(--transition-smooth);
-    transform: translateY(0);
-  }
-  
-  .parish-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
   }
 
   .parish-button-primary {
     @apply bg-primary text-primary-foreground font-medium px-6 py-3 rounded-lg shadow-md;
-    background: var(--gradient-primary);
-    background-size: 200% 200%;
-    transition: var(--transition-bounce);
-    transform: scale(1);
-  }
-  
-  .parish-button-primary:hover {
-    background-position: right center;
-    transform: scale(1.05);
-    box-shadow: var(--shadow-glow);
-  }
-  
-  .parish-button-primary:active {
-    transform: scale(0.98);
+    background: hsl(var(--primary));
   }
 
   .parish-button-secondary {
     @apply bg-secondary text-secondary-foreground font-medium px-6 py-3 rounded-lg shadow-md;
-    background: var(--gradient-secondary);
-    background-size: 200% 200%;
-    transition: var(--transition-bounce);
-    transform: scale(1);
-  }
-  
-  .parish-button-secondary:hover {
-    background-position: right center;
-    transform: scale(1.05);
-    box-shadow: var(--shadow-glow);
-  }
-  
-  .parish-button-secondary:active {
-    transform: scale(0.98);
+    background: hsl(var(--secondary));
   }
 
   .parish-input {
     @apply bg-input border border-input-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground;
-    transition: var(--transition-smooth);
-    transform: scale(1);
   }
   
   .parish-input:focus {
     @apply ring-2 ring-ring border-ring;
-    transform: scale(1.02);
-    box-shadow: var(--shadow-md);
   }
 
   .parish-gradient-header {
-    background: var(--gradient-animated);
-    background-size: 400% 400%;
-    @apply text-primary-foreground shadow-lg;
-    animation: gradientShift 8s ease infinite;
+    background: hsl(var(--background));
+    @apply text-primary-foreground shadow-md;
     position: relative;
     overflow: hidden;
   }
-  
-  .parish-gradient-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, hsl(var(--primary-foreground) / 0.1), transparent);
-    animation: shimmer 3s infinite;
-  }
 
   .parish-sidebar-item {
-    @apply flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground;
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg;
   }
 
   .parish-sidebar-item.active {
@@ -250,355 +310,16 @@ All colors MUST be HSL - Parroquial Design System
   }
 
   .parish-progress-fill {
-    @apply bg-primary h-full rounded-full transition-all duration-500 ease-out;
+    @apply bg-primary h-full rounded-full;
   }
 
-  /* Animaciones fluidas específicas */
-  .fade-in {
-    animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+  /* Animaciones eliminadas - solo elementos estáticos */
+  
+  /* Todas las animaciones eliminadas */
+  
+  /* Efectos hover y clases de animación eliminados */
 
-  .slide-up {
-    animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .slide-in-left {
-    animation: slideInLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .scale-in {
-    animation: scaleIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  }
-  
-  .glow-pulse {
-    animation: glowPulse 2s ease-in-out infinite;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(25px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  @keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-25px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  
-  @keyframes scaleIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-  }
-  
-  @keyframes glowPulse {
-    0%, 100% { box-shadow: 0 0 5px hsl(var(--primary) / 0.3); }
-    50% { box-shadow: 0 0 20px hsl(var(--primary) / 0.6), 0 0 30px hsl(var(--primary) / 0.4); }
-  }
-  
-  @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  
-  @keyframes shimmer {
-    0% { left: -100%; }
-    100% { left: 100%; }
-  }
-
-  /* Nuevas animaciones más expresivas */
-  @keyframes pulse-glow {
-    0%, 100% { 
-      box-shadow: 0 0 5px hsl(var(--primary) / 0.3), 0 0 10px hsl(var(--primary) / 0.2);
-      transform: scale(1);
-    }
-    50% { 
-      box-shadow: 0 0 20px hsl(var(--primary) / 0.5), 0 0 35px hsl(var(--primary) / 0.3);
-      transform: scale(1.02);
-    }
-  }
-  
-  @keyframes slide-in-left {
-    0% { 
-      opacity: 0; 
-      transform: translateX(-30px);
-    }
-    100% { 
-      opacity: 1; 
-      transform: translateX(0);
-    }
-  }
-  
-  @keyframes slide-in-right {
-    0% { 
-      opacity: 0; 
-      transform: translateX(30px);
-    }
-    100% { 
-      opacity: 1; 
-      transform: translateX(0);
-    }
-  }
-  
-  @keyframes bounce-in {
-    0% { 
-      opacity: 0; 
-      transform: scale(0.3) translateY(50px); 
-    }
-    50% { 
-      opacity: 0.8; 
-      transform: scale(1.05) translateY(-10px); 
-    }
-    70% { 
-      opacity: 0.9; 
-      transform: scale(0.95) translateY(5px); 
-    }
-    100% { 
-      opacity: 1; 
-      transform: scale(1) translateY(0); 
-    }
-  }
-  
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
-    20%, 40%, 60%, 80% { transform: translateX(2px); }
-  }
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-  }
-  
-  /* Clases utilitarias para animaciones */
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
-  
-  .animate-slide-in-left {
-    animation: slide-in-left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  }
-  
-  .animate-slide-in-right {
-    animation: slide-in-right 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  }
-  
-  .animate-bounce-in {
-    animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  }
-  
-  .animate-shake {
-    animation: shake 0.5s ease-in-out;
-  }
-  
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-  
-  /* Efectos hover más dramáticos */
-  .hover-lift {
-    transition: var(--transition-spring);
-  }
-  
-  .hover-lift:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: var(--shadow-hover);
-  }
-  
-  .hover-glow {
-    transition: var(--transition-smooth);
-  }
-  
-  .hover-glow:hover {
-    box-shadow: var(--shadow-glow);
-    transform: translateY(-2px);
-  }
-  
-  .hover-scale {
-    transition: var(--transition-bounce);
-  }
-  
-  .hover-scale:hover {
-    transform: scale(1.05);
-  }
-  
-  /* Efectos de click/activo */
-  .active-menu-item {
-    background: var(--gradient-hover) !important;
-    color: hsl(var(--primary-foreground)) !important;
-    box-shadow: var(--shadow-active);
-    transform: translateX(4px);
-    border-left: 4px solid hsl(var(--secondary));
-  }
-  
-  .click-effect {
-    transition: var(--transition-fast);
-  }
-  
-  .click-effect:active {
-    transform: scale(0.96);
-    box-shadow: var(--shadow-sm);
-  }
-  
-  /* Gradientes animados para fondos */
-  .bg-gradient-animated {
-    background: var(--gradient-animated);
-    background-size: 400% 400%;
-    animation: gradientShift 4s ease infinite;
-  }
-  
-  .bg-gradient-sidebar {
-    background: var(--gradient-sidebar);
-  }
-  
-  /* Efectos para cards */
-  .card-enhanced {
-    background: var(--gradient-card);
-    border: 1px solid hsl(var(--border));
-    transition: var(--transition-smooth);
-  }
-  
-  .card-enhanced:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow-lg);
-    border-color: hsl(var(--primary) / 0.3);
-  }
-  
-  /* Estados de loading más atractivos */
-  .loading-shimmer {
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .loading-shimmer::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      hsl(var(--primary) / 0.1),
-      transparent
-    );
-    animation: shimmer 1.5s infinite;
-  }
-
-  /* Clases específicas para login mejorado */
-  .login-image-container {
-    position: relative;
-    overflow: hidden;
-    border-radius: 24px;
-    transition: var(--transition-smooth);
-  }
-  
-  .login-image-container:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: var(--shadow-glow);
-  }
-  
-  .login-card-enhanced {
-    background: var(--gradient-card);
-    border: 2px solid hsl(var(--border));
-    border-radius: 24px;
-    transition: var(--transition-smooth);
-    backdrop-filter: blur(10px);
-  }
-  
-  .login-card-enhanced:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-lg);
-    border-color: hsl(var(--primary) / 0.4);
-  }
-  
-  .login-input-enhanced {
-    border-radius: 16px;
-    border: 2px solid hsl(var(--border));
-    transition: var(--transition-smooth);
-    background: hsl(var(--background) / 0.8);
-    backdrop-filter: blur(5px);
-  }
-  
-  .login-input-enhanced:focus {
-    border-color: hsl(var(--primary));
-    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.15);
-    transform: scale(1.02);
-  }
-  
-  .login-button-enhanced {
-    border-radius: 16px;
-    background: var(--gradient-primary);
-    transition: var(--transition-spring);
-    font-weight: 600;
-    letter-spacing: 0.025em;
-  }
-  
-  .login-button-enhanced:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: var(--shadow-glow);
-  }
-  
-  .login-button-enhanced:active {
-    transform: translateY(0) scale(0.98);
-  }
-
-  /* Efectos adicionales de animación */
-  @keyframes bounce-in {
-    0% { 
-      opacity: 0; 
-      transform: scale(0.3) translateY(50px); 
-    }
-    50% { 
-      opacity: 0.8; 
-      transform: scale(1.05) translateY(-10px); 
-    }
-    70% { 
-      opacity: 0.9; 
-      transform: scale(0.95) translateY(5px); 
-    }
-    100% { 
-      opacity: 1; 
-      transform: scale(1) translateY(0); 
-    }
-  }
-  
-  .animate-bounce-in {
-    animation: bounce-in 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  }
-  
-  @keyframes slide-in-right {
-    from { 
-      opacity: 0; 
-      transform: translateX(50px); 
-    }
-    to { 
-      opacity: 1; 
-      transform: translateX(0); 
-    }
-  }
-  
-  .animate-slide-in-right {
-    animation: slide-in-right 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  @keyframes pulse-glow {
-    0%, 100% { 
-      box-shadow: 0 0 5px hsl(var(--primary) / 0.3); 
-    }
-    50% { 
-      box-shadow: 0 0 20px hsl(var(--primary) / 0.6), 0 0 30px hsl(var(--primary) / 0.4); 
-    }
-  }
-  
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
+  /* Clases de efectos de login eliminadas */
 
   /* Layout utilities */
   .parish-container {
@@ -610,173 +331,43 @@ All colors MUST be HSL - Parroquial Design System
   }
 }
 
-/* ===== ANIMACIONES MEJORADAS PARA MÓVIL ===== */
-@keyframes slideInFromLeft {
-  from {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
+/* ===== ANIMACIONES ELIMINADAS ===== */
 
-@keyframes slideOutToLeft {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-}
+/* ===== CLASES DE UTILIDAD MÓVIL ELIMINADAS ===== */
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-/* Animaciones para el botón hamburguesa */
-@keyframes hamburgerPress {
-  0% { transform: scale(1); }
-  50% { transform: scale(0.95); }
-  100% { transform: scale(1); }
-}
-
-/* Efecto de rebote suave para elementos del menú */
-@keyframes softBounce {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-2px);
-  }
-  60% {
-    transform: translateY(-1px);
-  }
-}
-
-/* ===== CLASES DE UTILIDAD MÓVIL ===== */
-.animate-slide-in-left {
-  animation: slideInFromLeft 0.3s ease-out;
-}
-
-.animate-slide-out-left {
-  animation: slideOutToLeft 0.3s ease-out;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.2s ease-out;
-}
-
-.animate-fade-out {
-  animation: fadeOut 0.2s ease-out;
-}
-
-.animate-hamburger-press {
-  animation: hamburgerPress 0.2s ease-out;
-}
-
-.animate-soft-bounce {
-  animation: softBounce 0.6s ease-out;
-}
-
-/* Mejoras para el menú móvil */
+/* Mejoras para el menú móvil - sin animaciones */
 .mobile-menu-overlay {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 /* Mejoras táctiles para móvil */
 @media (hover: none) and (pointer: coarse) {
-  .hover-lift:hover {
-    transform: none;
-  }
-  
-  .hover-lift:active {
-    transform: scale(0.98);
-    transition: transform 0.1s ease-out;
-  }
-  
-  .click-effect:active {
-    transform: scale(0.95);
-    transition: transform 0.1s ease-out;
-  }
-  
-  /* Mejorar el área de toque para elementos pequeños */
   .touch-target {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: 40px;
+    min-width: 40px;
   }
-}
-
-/* Optimizaciones de rendimiento para móvil */
-.mobile-optimized {
-  will-change: transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
 }
 
 /* Estados de enfoque mejorados para accesibilidad */
 .focus-visible:focus-visible {
   outline: 2px solid hsl(var(--primary));
   outline-offset: 2px;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
-/* Transiciones suaves para cambios de tema */
-.theme-transition {
-  transition: background-color 0.3s ease-out, 
-              border-color 0.3s ease-out, 
-              color 0.3s ease-out;
-}
 
-/* Mejoras para el sidebar en móvil */
+
+/* Mejoras para el sidebar en móvil - sin animaciones */
 .sidebar-mobile {
   transform: translateX(-100%);
-  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .sidebar-mobile.open {
   transform: translateX(0);
 }
 
-/* Animación de entrada escalonada para elementos del menú */
-.staggered-fade-in {
-  opacity: 0;
-  transform: translateY(10px);
-  animation: staggeredFadeIn 0.4s ease-out forwards;
-}
-
-@keyframes staggeredFadeIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.staggered-fade-in:nth-child(1) { animation-delay: 0.1s; }
-.staggered-fade-in:nth-child(2) { animation-delay: 0.15s; }
-.staggered-fade-in:nth-child(3) { animation-delay: 0.2s; }
-.staggered-fade-in:nth-child(4) { animation-delay: 0.25s; }
-.staggered-fade-in:nth-child(5) { animation-delay: 0.3s; }
-.staggered-fade-in:nth-child(6) { animation-delay: 0.35s; }
-.staggered-fade-in:nth-child(7) { animation-delay: 0.4s; }
+/* Sin animación de entrada escalonada para elementos del menú */
 
 /* Scrollbar personalizado para el sidebar */
 .scrollbar-thin {
@@ -785,7 +376,7 @@ All colors MUST be HSL - Parroquial Design System
 }
 
 .scrollbar-thin::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
@@ -793,13 +384,13 @@ All colors MUST be HSL - Parroquial Design System
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--sidebar-border) / 0.5);
-  border-radius: 3px;
+  background-color: hsl(var(--sidebar-border) / 0.4);
+  border-radius: 2.5px;
   transition: background-color 0.2s ease;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(var(--sidebar-border) / 0.8);
+  background-color: hsl(var(--sidebar-border) / 0.6);
 }
 
 /* Mejoras para el texto truncado */
@@ -813,25 +404,11 @@ All colors MUST be HSL - Parroquial Design System
   position: absolute;
   right: 0;
   top: 0;
-  width: 20px;
+  width: 15px;
   height: 100%;
   background: linear-gradient(to right, transparent, currentColor);
-  opacity: 0.1;
+  opacity: 0.08;
   pointer-events: none;
 }
 
-/* Altura mínima para elementos del menú */
-.menu-item-min-height {
-  min-height: 48px;
-}
-
-/* Mejora en la transición de altura del sidebar */
-.sidebar-transition {
-  transition: width 0.3s ease-in-out, padding 0.3s ease-in-out;
-}
-
-/* Espaciado consistente para elementos del sidebar */
-.sidebar-spacing {
-  padding: 0.5rem;
-  margin: 0.125rem 0;
-}
+/* Todas las animaciones y efectos eliminados */

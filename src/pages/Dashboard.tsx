@@ -7,8 +7,10 @@ import {
 } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ParishButton } from "@/components/ui/parish-button";
+import { ParishCard } from "@/components/ui/parish-card";
 import { useNavigate } from "react-router-dom";
-import { FileText, Plus } from "lucide-react";
+import { FileText, Plus, Sparkles } from "lucide-react";
 
 const DashboardMain = () => {
   const navigate = useNavigate();
@@ -59,40 +61,98 @@ const DashboardMain = () => {
   ];
 
   return (
-    <div className="space-y-8 lg:space-y-10">
+    <div className="space-y-8 lg:space-y-10 min-h-screen bg-background/50 p-6">
       <DashboardHeader />
       
       {/* Botón de acción principal para nueva encuesta */}
-      <Card className="bg-gradient-to-r from-primary to-primary-light border-0 text-primary-foreground">
+      <ParishCard variant="gradient" themeBackground="animated" className="border-0 text-primary-foreground overflow-hidden">
         <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-white">
+          <CardTitle className="flex items-center gap-3">
             <FileText className="w-6 h-6" />
             Realizar Nueva Caracterización
           </CardTitle>
-          <CardDescription className="text-primary-foreground/80">
+          <CardDescription className="text">
             Inicie una nueva encuesta de caracterización poblacional para registrar información de familias
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button 
+          <ParishButton
+            variant="primary"
+            theme="parish"
+            icon={Plus}
             onClick={() => navigate('/survey')}
-            className="bg-white text-primary hover:bg-gray-100 font-semibold rounded-full p-4"
             size="lg"
           >
-            <Plus className="w-5 h-5 mr-2 " />
             Iniciar Nueva Encuesta
-          </Button>
+          </ParishButton>
         </CardContent>
-      </Card>
+      </ParishCard>
       
       <StatsCards stats={stats} />
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
-        <SectorProgress sectorData={sectorData} />
-        <RecentActivity activities={recentActivity} />
+        {/* Progreso de sectores con fondo primario */}
+        <ParishCard variant="elevated" themeBackground="subtle" className="p-6 bg-card/50 backdrop-blur-sm">
+          <SectorProgress sectorData={sectorData} />
+        </ParishCard>
+        
+        {/* Actividad reciente con fondo secundario */}
+        <ParishCard variant="interactive" themeBackground="default" className="p-6 bg-card/50 backdrop-blur-sm">
+          <RecentActivity activities={recentActivity} />
+        </ParishCard>
       </div>
 
-      <HousingTypes housingTypes={housingTypes} />
+      {/* Tipos de vivienda con fondo temático */}
+      <ParishCard variant="gradient" themeBackground="primary" className="text-primary-foreground">
+        <div className="relative z-10">
+          <HousingTypes housingTypes={housingTypes} />
+        </div>
+      </ParishCard>
+      
+      {/* Ejemplo adicional de variantes temáticas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <ParishCard variant="elevated" themeBackground="secondary" glowEffect className="text-secondary-foreground">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              Fondo Secundario
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm opacity-90">
+              Tarjeta con fondo temático secundario y efecto de brillo.
+            </p>
+          </CardContent>
+        </ParishCard>
+        
+        <ParishCard variant="interactive" themeBackground="subtle" hoverAnimation>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Fondo Sutil
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Tarjeta con gradiente sutil y animación de hover.
+            </p>
+          </CardContent>
+        </ParishCard>
+        
+        <ParishCard variant="gradient" themeBackground="default" className="card-enhanced">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              Fondo Default
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Tarjeta con fondo por defecto y patrón decorativo.
+            </p>
+          </CardContent>
+        </ParishCard>
+      </div>
     </div>
   );
 };

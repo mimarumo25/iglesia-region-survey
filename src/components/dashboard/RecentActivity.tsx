@@ -8,7 +8,7 @@ interface RecentActivityProps {
 
 const RecentActivity = ({ activities }: RecentActivityProps) => {
   return (
-    <Card className="card-enhanced hover-glow animate-slide-in-right">
+    <Card className="card-enhanced">
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-gradient-to-br from-secondary/20 to-secondary/10">
@@ -22,8 +22,8 @@ const RecentActivity = ({ activities }: RecentActivityProps) => {
       </CardHeader>
       <CardContent className="space-y-4">
         {activities.map((activity, index) => (
-          <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-all duration-300 hover-lift click-effect animate-slide-in-right">
-            <div className="w-2 h-2 rounded-full bg-primary mt-2 animate-pulse-glow" />
+          <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg">
+            <div className="w-2 h-2 rounded-full bg-primary mt-2" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium">{activity.type}</p>
               <p className="text-xs text-muted-foreground">

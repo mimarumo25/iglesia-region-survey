@@ -1,0 +1,509 @@
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table';
+import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
+import { useParentescos } from '@/hooks/useParentescos';
+import { Parentesco, ParentescoFormData } from '@/types/parentescos';
+import {
+  Users,
+  Plus,
+  Search,
+  Edit2,
+  Trash2,
+  Loader2,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+
+const ParentescosPage = () => {
+  const parentescosHook = useParentescos();
+
+  // Estados para paginación y filtros
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [includeInactive, setIncludeInactive] = useState(false);
+
+  // Queries de React Query
+  const { data: parentescosResponse, isLoading: parentescosLoading, refetch: refetchParentescos } = parentescosHook.useParentescosQuery(page, limit, includeInactive);
+  const { data: searchResponse, isLoading: searchLoading } = parentescosHook.useSearchParentescosQuery(searchTerm, page, limit, includeInactive);
+
+  // Mutaciones de React Query
+  const createMutation = parentescosHook.useCreateParentescoMutation();
+  const updateMutation = parentescosHook.useUpdateParentescoMutation();
+  const deleteMutation = parentescosHook.useDeleteParentescoMutation();
+
+  const parentescos = searchTerm ? (searchResponse?.data?.parentescos || []) : (parentescosResponse?.data?.parentescos || []);
+  const pagination = searchTerm ? (searchResponse?.data?.pagination || { currentPage: 1, totalPages: 1, totalCount: 0 }) : (parentescosResponse?.data?.pagination || { currentPage: 1, totalPages: 1, totalCount: 0 });
+
+  const loading = parentescosLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+
+  // Estados para diálogos y formularios
+  const {
+    showCreateDialog,
+    showEditDialog,
+    showDeleteDialog,
+    openCreateDialog,
+    openEditDialog,
+    openDeleteDialog,
+    setShowCreateDialog,
+    setShowEditDialog,
+    setShowDeleteDialog,
+  } = useConfigModal();
+  
+  const [selectedParentesco, setSelectedParentesco] = useState<Parentesco | null>(null);
+  const [formData, setFormData] = useState<ParentescoFormData>({
+    nombre: '',
+    descripcion: '',
+    activo: true,
+  });
+
+  // Manejo del formulario
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.nombre.trim()) return;
+
+    createMutation.mutate({
+      nombre: formData.nombre.trim(),
+      descripcion: formData.descripcion?.trim() || null,
+      activo: formData.activo,
+    }, {
+      onSuccess: () => {
+        setShowCreateDialog(false);
+        setFormData({ nombre: '', descripcion: '', activo: true });
+      }
+    });
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedParentesco || !formData.nombre.trim()) return;
+
+    updateMutation.mutate({
+      id: selectedParentesco.id_parentesco,
+      data: {
+        nombre: formData.nombre.trim(),
+        descripcion: formData.descripcion?.trim() || null,
+        activo: formData.activo,
+      }
+    }, {
+      onSuccess: () => {
+        setShowEditDialog(false);
+        setSelectedParentesco(null);
+        setFormData({ nombre: '', descripcion: '', activo: true });
+      }
+    });
+  };
+
+  const handleDelete = async () => {
+    if (!selectedParentesco) return;
+
+    deleteMutation.mutate(selectedParentesco.id_parentesco, {
+      onSuccess: () => {
+        setShowDeleteDialog(false);
+        setSelectedParentesco(null);
+      }
+    });
+  };
+
+  // Funciones para abrir diálogos
+  const handleOpenCreateDialog = () => {
+    setFormData({ nombre: '', descripcion: '', activo: true });
+    openCreateDialog();
+  };
+
+  const handleOpenEditDialog = (parentesco: Parentesco) => {
+    setSelectedParentesco(parentesco);
+    setFormData({
+      nombre: parentesco.nombre,
+      descripcion: parentesco.descripcion || '',
+      activo: parentesco.activo,
+    });
+    openEditDialog();
+  };
+
+  const handleOpenDeleteDialog = (parentesco: Parentesco) => {
+    setSelectedParentesco(parentesco);
+    openDeleteDialog();
+  };
+
+  // Manejo de búsqueda
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1); // Resetear paginación al buscar
+    // searchTerm ya está actualizado por el onChange del Input
+  };
+
+  // Manejo de paginación
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  // Manejo del filtro de inactivos
+  const handleIncludeInactiveChange = (checked: boolean) => {
+    setIncludeInactive(checked);
+    setPage(1); // Resetear paginación al cambiar filtro
+  };
+
+  // Formatear fecha
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('es-ES');
+  };
+
+  return (
+    <div className="container mx-auto p-6 max-w-7xl ">
+      {/* Header con diseño mejorado */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 ">
+        <div className="">
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+            <Users className="w-8 h-8 text-muted-foreground " />
+            Gestión de Parentescos
+          </h1>
+          <p className="text-muted-foreground mt-2">Administra los tipos de parentesco para encuestas</p>
+        </div>
+        <div className="flex gap-2 ">
+          <Button 
+            variant="outline" 
+            onClick={() => refetchParentescos()}
+            disabled={loading}
+            className=""
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? '' : ''}`} />
+            Actualizar
+          </Button>
+          <Button 
+            onClick={handleOpenCreateDialog}
+            className=""
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo Parentesco
+          </Button>
+        </div>
+      </div>
+
+      {/* Búsqueda y filtros con diseño mejorado */}
+      <Card className="mb-6  ">
+        <CardContent className="pt-6">
+          <form onSubmit={handleSearch} className="space-y-4">
+            <div className="flex flex-col md:flex-row gap-4 items-end">
+              {/* Búsqueda por texto */}
+              <div className="flex-1">
+                <Input
+                  placeholder="Buscar por nombre o descripción..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="border-input-border focus:ring-primary"
+                />
+              </div>
+              
+              {/* Incluir inactivos */}
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="include-inactive"
+                  checked={includeInactive}
+                  onCheckedChange={handleIncludeInactiveChange}
+                />
+                <Label htmlFor="include-inactive">Incluir Inactivos</Label>
+              </div>
+
+              {/* Botones de acción */}
+              <div className="flex gap-2">
+                <Button 
+                  type="submit" 
+                  variant="outline"
+                  className=""
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  Buscar
+                </Button>
+                {searchTerm && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      setSearchTerm('');
+                      setPage(1); // Resetear paginación
+                    }}
+                    className=""
+                  >
+                    Limpiar
+                  </Button>
+                )}
+              </div>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Estadísticas con diseño mejorado */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <Card className="  ">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Parentescos</p>
+                <p className="text-2xl font-bold text-foreground">{pagination.totalCount}</p>
+              </div>
+              <Users className="w-8 h-8 text-muted-foreground opacity-70 " />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="  ">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Páginas</p>
+                <p className="text-2xl font-bold text-foreground">{pagination.totalPages}</p>
+              </div>
+              <Users className="w-8 h-8 text-secondary opacity-70 " />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Tabla de parentescos con diseño mejorado */}
+      <Card className=" ">
+        <CardHeader className="">
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Users className="w-5 h-5" />
+            Listado de Parentescos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-8 h-8 text-muted-foreground" />
+              <span className="ml-2 text-muted-foreground">Cargando parentescos...</span>
+            </div>
+          ) : parentescos.length === 0 ? (
+            <div className="text-center py-8">
+              <Users className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4 " />
+              <p className="text-muted-foreground">No se encontraron parentescos</p>
+              {searchTerm && (
+                <p className="text-sm text-muted-foreground/70">
+                  Intenta con otros términos de búsqueda
+                </p>
+              )}
+            </div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-muted/50">
+                    <TableHead className="font-semibold">ID</TableHead>
+                    <TableHead className="font-semibold">Nombre</TableHead>
+                    <TableHead className="font-semibold">Descripción</TableHead>
+                    <TableHead className="font-semibold">Activo</TableHead>
+                    <TableHead className="font-semibold">Fecha Creación</TableHead>
+                    <TableHead className="text-right font-semibold text-muted-foreground">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {parentescos.map((parentesco, index) => (
+                    <TableRow 
+                      key={parentesco.id_parentesco}
+                      className="hover:bg-muted/50 "
+                      
+                    >
+                      <TableCell className="font-medium text-foreground">
+                        {parentesco.id_parentesco}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-muted-foreground " />
+                          <span className="font-medium">{parentesco.nombre}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-primary/10 text-muted-foreground border-primary/20">
+                          {parentesco.descripcion || 'N/A'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {parentesco.activo ? (
+                          <Badge variant="success" className="">
+                            <Eye className="w-3 h-3 mr-1" /> Activo
+                          </Badge>
+                        ) : (
+                          <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
+                            <EyeOff className="w-3 h-3 mr-1" /> Inactivo
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="">
+                          {formatDate(parentesco.created_at)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenEditDialog(parentesco)}
+                            className="hover:bg-primary/10 hover:text-muted-foreground hover:shadow-md"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenDeleteDialog(parentesco)}
+                            className="hover:bg-destructive/10 hover:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {/* Paginación con diseño mejorado */}
+              {pagination.totalPages > 1 && (
+                <div className="flex items-center justify-between pt-4 border-t border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando {parentescos.length} de {pagination.totalCount} parentescos
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage - 1)}
+                      disabled={pagination.currentPage === 1}
+                      className=""
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Anterior
+                    </Button>
+                    <span className="flex items-center px-3 text-sm font-medium text-muted-foreground bg-primary/10 rounded-md">
+                      Página {pagination.currentPage} de {pagination.totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage + 1)}
+                      disabled={pagination.currentPage === pagination.totalPages}
+                      className=""
+                    >
+                      Siguiente
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Modal de Crear Parentesco */}
+      <ConfigModal
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        type="create"
+        title="Nuevo Parentesco"
+        description="Crea un nuevo tipo de parentesco para las encuestas"
+        icon={Users}
+        loading={createMutation.isPending}
+        onSubmit={handleCreateSubmit}
+        submitText="Crear Parentesco"
+      >
+        <ConfigFormField
+          id="nombre"
+          label="Nombre del Parentesco"
+          placeholder="Ej: Padre/Madre"
+          value={formData.nombre}
+          onChange={(value) => setFormData({ ...formData, nombre: value })}
+          required
+        />
+        <ConfigFormField
+          id="descripcion"
+          label="Descripción"
+          placeholder="Breve descripción del parentesco"
+          value={formData.descripcion}
+          onChange={(value) => setFormData({ ...formData, descripcion: value })}
+        />
+        <div className="flex items-center space-x-2 mt-4">
+          <Switch
+            id="activo"
+            checked={formData.activo}
+            onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
+          />
+          <Label htmlFor="activo">Activo</Label>
+        </div>
+      </ConfigModal>
+
+      {/* Modal de Editar Parentesco */}
+      <ConfigModal
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        type="edit"
+        title="Editar Parentesco"
+        description="Modifica los datos del parentesco"
+        icon={Edit2}
+        loading={updateMutation.isPending}
+        onSubmit={handleEditSubmit}
+        submitText="Guardar Cambios"
+      >
+        <ConfigFormField
+          id="edit-nombre"
+          label="Nombre del Parentesco"
+          placeholder="Ej: Padre/Madre"
+          value={formData.nombre}
+          onChange={(value) => setFormData({ ...formData, nombre: value })}
+          required
+        />
+        <ConfigFormField
+          id="edit-descripcion"
+          label="Descripción"
+          placeholder="Breve descripción del parentesco"
+          value={formData.descripcion}
+          onChange={(value) => setFormData({ ...formData, descripcion: value })}
+        />
+        <div className="flex items-center space-x-2 mt-4">
+          <Switch
+            id="edit-activo"
+            checked={formData.activo}
+            onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
+          />
+          <Label htmlFor="edit-activo">Activo</Label>
+        </div>
+      </ConfigModal>
+
+      {/* Modal de Eliminar Parentesco */}
+      <ConfigModal
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        type="delete"
+        title="¿Estás seguro?"
+        description="Esta acción no se puede deshacer. Se eliminará permanentemente el parentesco"
+        icon={Trash2}
+        loading={deleteMutation.isPending}
+        onConfirm={handleDelete}
+        entityName={selectedParentesco?.nombre}
+        submitText="Eliminar Parentesco"
+      />
+    </div>
+  );
+};
+
+export default ParentescosPage;

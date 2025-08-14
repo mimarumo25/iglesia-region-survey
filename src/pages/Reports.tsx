@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { ParishButton } from "@/components/ui/parish-button";
+import { ParishCard } from "@/components/ui/parish-card";
+import { ParishInput } from "@/components/ui/parish-input";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -182,58 +184,63 @@ const Reports = () => {
   ];
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 min-h-screen bg-background/30">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <BarChart3 className="w-8 h-8 text-blue-600" />
+      <ParishCard variant="gradient" className="border-0 text-primary-foreground parish-gradient-header mb-6">
+        <CardHeader>
+          <CardTitle className="text-3xl font-bold text-white flex items-center gap-3">
+            <BarChart3 className="w-8 h-8" />
             Reportes y Estadísticas
-          </h1>
-          <p className="text-gray-600">Genera y consulta reportes del sistema parroquial</p>
-        </div>
-        <Button onClick={() => navigate("/reports/new")} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Generar Nuevo Reporte
-        </Button>
-      </div>
+          </CardTitle>
+          <CardDescription className="text-primary-foreground/90">
+            Genera y consulta reportes del sistema parroquial
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ParishButton 
+            variant="primary"
+            theme="parish"
+            icon={Plus}
+            onClick={() => navigate("/reports/new")}
+          >
+            Generar Nuevo Reporte
+          </ParishButton>
+        </CardContent>
+      </ParishCard>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         {quickStats.map((stat, index) => (
-          <Card key={index}>
+          <ParishCard key={index}>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 bg-${stat.color}-100 rounded-lg flex items-center justify-center`}>
-                  <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
+                <div className="w-10 h-10 parish-bg-primary/10 rounded-lg flex items-center justify-center">
+                  <stat.icon className="w-5 h-5 parish-text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-sm text-muted-foreground">{stat.title}</p>
+                  <p className="text-2xl font-bold parish-text-primary">{stat.value}</p>
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </ParishCard>
         ))}
       </div>
 
       {/* Filters */}
-      <Card className="mb-6">
+      <ParishCard className="mb-6">
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Buscar reportes..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+              <ParishInput
+                placeholder="Buscar reportes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                icon={Search}
+              />
             </div>
             <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-500" />
+              <Filter className="w-4 h-4 text-muted-foreground" />
               <Select value={reportType} onValueChange={setReportType}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Tipo de reporte" />
@@ -261,12 +268,12 @@ const Reports = () => {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </ParishCard>
 
       {/* Reports Table */}
-      <Card>
+      <ParishCard>
         <CardHeader>
-          <CardTitle>Reportes Disponibles</CardTitle>
+          <CardTitle className="parish-text-primary">Reportes Disponibles</CardTitle>
           <CardDescription>
             Lista de reportes generados y disponibles para descarga
           </CardDescription>
@@ -321,24 +328,25 @@ const Reports = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center gap-2 justify-end">
-                      <Button
+                      <ParishButton
                         variant="ghost"
+                        theme="parish"
                         size="sm"
                         onClick={() => navigate(`/reports/${report.id}`)}
                       >
                         <Eye className="w-4 h-4" />
-                      </Button>
+                      </ParishButton>
                       {report.status === "completed" && (
-                        <Button
+                        <ParishButton
                           variant="ghost"
+                          theme="parish"
                           size="sm"
                           onClick={() => {
                             // Lógica para descargar reporte
-                            console.log("Descargando reporte:", report.id);
                           }}
                         >
                           <Download className="w-4 h-4" />
-                        </Button>
+                        </ParishButton>
                       )}
                     </div>
                   </TableCell>
@@ -347,7 +355,7 @@ const Reports = () => {
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+      </ParishCard>
     </div>
   );
 };

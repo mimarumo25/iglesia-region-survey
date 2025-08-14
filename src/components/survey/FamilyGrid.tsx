@@ -13,8 +13,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import ModernDatePicker from "@/components/ui/modern-date-picker";
-import { Plus, Trash2, AlertCircle, CalendarIcon } from "lucide-react";
+import AutocompleteWithLoading from "@/components/ui/autocomplete-with-loading";
+import { Plus, Trash2, AlertCircle, CalendarIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useConfigurationData } from "@/hooks/useConfigurationData";
 import { cn } from "@/lib/utils";
 import { FamilyMember } from "@/types/survey";
 
@@ -60,6 +62,9 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
   const [showFamilyDialog, setShowFamilyDialog] = useState(false);
   const [editingFamilyMember, setEditingFamilyMember] = useState<FamilyMember | null>(null);
   const { toast } = useToast();
+  
+  // Hook para cargar datos de configuración dinámicos
+  const configurationData = useConfigurationData();
 
   // Función helper para migrar fechas del formato anterior
   const migrateDateFormat = (member: any): FamilyMember => {
@@ -149,6 +154,28 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
 
   return (
     <div className="space-y-6">
+      {/* Indicador de carga de servicios */}
+      {configurationData.isAnyLoading && (
+        <Card className="mb-6 border-amber-200 bg-amber-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 text-sm text-amber-800">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="font-medium">Cargando datos para el formulario...</span>
+              <div className="flex items-center gap-2 text-xs">
+                {configurationData.tiposIdentificacionLoading && <span className="bg-amber-200 px-2 py-1 rounded">Tipos ID</span>}
+                {configurationData.sexosLoading && <span className="bg-amber-200 px-2 py-1 rounded">Sexos</span>}
+                {configurationData.parentescosLoading && <span className="bg-amber-200 px-2 py-1 rounded">Parentescos</span>}
+                {configurationData.situacionesCivilesLoading && <span className="bg-amber-200 px-2 py-1 rounded">Estado Civil</span>}
+                {configurationData.estudiosLoading && <span className="bg-amber-200 px-2 py-1 rounded">Estudios</span>}
+                {configurationData.profesionesLoading && <span className="bg-amber-200 px-2 py-1 rounded">Profesiones</span>}
+                {configurationData.enfermedadesLoading && <span className="bg-amber-200 px-2 py-1 rounded">Enfermedades</span>}
+                {configurationData.comunidadesCulturalesLoading && <span className="bg-amber-200 px-2 py-1 rounded">Comunidades</span>}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-semibold text-gray-800">Integrantes de la Familia</h3>
@@ -228,21 +255,17 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     render={({ field }) => (
                       <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
                         <FormLabel className="text-gray-800 font-bold text-sm">Tipo de Identificación</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="bg-gray-100 border-2 border-gray-400 text-gray-900 rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
-                              <SelectValue placeholder="Seleccionar tipo..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="rounded-xl border-2 border-gray-300">
-                            <SelectItem value="RC" className="rounded-lg">RC - Registro Civil</SelectItem>
-                            <SelectItem value="TI" className="rounded-lg">TI - Tarjeta de Identidad</SelectItem>
-                            <SelectItem value="CC" className="rounded-lg">CC - Cédula de Ciudadanía</SelectItem>
-                            <SelectItem value="CE" className="rounded-lg">CE - Cédula de Extranjería</SelectItem>
-                            <SelectItem value="PAS" className="rounded-lg">PAS - Pasaporte</SelectItem>
-                            <SelectItem value="NIT" className="rounded-lg">NIT</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <AutocompleteWithLoading
+                            options={configurationData.tiposIdentificacionOptions}
+                            value={field.value || ''}
+                            onValueChange={field.onChange}
+                            placeholder="Seleccionar tipo de identificación..."
+                            isLoading={configurationData.tiposIdentificacionLoading}
+                            error={configurationData.tiposIdentificacionError}
+                            emptyText="No hay tipos de identificación disponibles"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -255,17 +278,17 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     render={({ field }) => (
                       <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
                         <FormLabel className="text-gray-800 font-bold text-sm">Sexo</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="bg-gray-100 border-2 border-gray-400 text-gray-900 rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
-                              <SelectValue placeholder="Seleccionar sexo..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="rounded-xl border-2 border-gray-300">
-                            <SelectItem value="Hombre" className="rounded-lg">Hombre</SelectItem>
-                            <SelectItem value="Mujer" className="rounded-lg">Mujer</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <AutocompleteWithLoading
+                            options={configurationData.sexoOptions}
+                            value={field.value || ''}
+                            onValueChange={field.onChange}
+                            placeholder="Seleccionar sexo..."
+                            isLoading={configurationData.sexosLoading}
+                            error={configurationData.sexosError}
+                            emptyText="No hay opciones de sexo disponibles"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -278,24 +301,17 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     render={({ field }) => (
                       <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
                         <FormLabel className="text-gray-800 font-bold text-sm">Parentesco</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="bg-gray-100 border-2 border-gray-400 text-gray-900 rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
-                              <SelectValue placeholder="Seleccionar parentesco..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="rounded-xl border-2 border-gray-300">
-                            <SelectItem value="Padre/Madre" className="rounded-lg">Padre/Madre</SelectItem>
-                            <SelectItem value="Hijo/Hija" className="rounded-lg">Hijo/Hija</SelectItem>
-                            <SelectItem value="Esposo/Esposa" className="rounded-lg">Esposo/Esposa</SelectItem>
-                            <SelectItem value="Hermano/Hermana" className="rounded-lg">Hermano/Hermana</SelectItem>
-                            <SelectItem value="Abuelo/Abuela" className="rounded-lg">Abuelo/Abuela</SelectItem>
-                            <SelectItem value="Nieto/Nieta" className="rounded-lg">Nieto/Nieta</SelectItem>
-                            <SelectItem value="Tío/Tía" className="rounded-lg">Tío/Tía</SelectItem>
-                            <SelectItem value="Primo/Prima" className="rounded-lg">Primo/Prima</SelectItem>
-                            <SelectItem value="Otro" className="rounded-lg">Otro</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <AutocompleteWithLoading
+                            options={configurationData.parentescosOptions}
+                            value={field.value || ''}
+                            onValueChange={field.onChange}
+                            placeholder="Seleccionar parentesco..."
+                            isLoading={configurationData.parentescosLoading}
+                            error={configurationData.parentescosError}
+                            emptyText="No hay opciones de parentesco disponibles"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -308,23 +324,17 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     render={({ field }) => (
                       <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
                         <FormLabel className="text-gray-800 font-bold text-sm">Situación Civil</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="bg-gray-100 border-2 border-gray-400 text-gray-900 rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
-                              <SelectValue placeholder="Seleccionar estado civil..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="rounded-xl border-2 border-gray-300">
-                            <SelectItem value="Soltero" className="rounded-lg">Soltero</SelectItem>
-                            <SelectItem value="Casado Civil" className="rounded-lg">Casado Civil</SelectItem>
-                            <SelectItem value="Matrimonio Religioso" className="rounded-lg">Matrimonio Religioso</SelectItem>
-                            <SelectItem value="Conviviente" className="rounded-lg">Conviviente</SelectItem>
-                            <SelectItem value="Divorciado(a)" className="rounded-lg">Divorciado(a)</SelectItem>
-                            <SelectItem value="Viudo(a)" className="rounded-lg">Viudo(a)</SelectItem>
-                            <SelectItem value="Separado(a)" className="rounded-lg">Separado(a)</SelectItem>
-                            <SelectItem value="Padre/Madre cabeza de hogar" className="rounded-lg">Padre/Madre cabeza de hogar</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <AutocompleteWithLoading
+                            options={configurationData.situacionesCivilesOptions}
+                            value={field.value || ''}
+                            onValueChange={field.onChange}
+                            placeholder="Seleccionar estado civil..."
+                            isLoading={configurationData.situacionesCivilesLoading}
+                            error={configurationData.situacionesCivilesError}
+                            emptyText="No hay opciones de estado civil disponibles"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -356,20 +366,17 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     render={({ field }) => (
                       <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
                         <FormLabel className="text-gray-800 font-bold text-sm">Nivel de Estudios</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="bg-gray-100 border-2 border-gray-400 text-gray-900 rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
-                              <SelectValue placeholder="Seleccionar nivel..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="rounded-xl border-2 border-gray-300">
-                            <SelectItem value="Sin estudio" className="rounded-lg">Sin estudio</SelectItem>
-                            <SelectItem value="Primaria" className="rounded-lg">Primaria</SelectItem>
-                            <SelectItem value="Secundaria" className="rounded-lg">Secundaria</SelectItem>
-                            <SelectItem value="Universitaria" className="rounded-lg">Universitaria</SelectItem>
-                            <SelectItem value="Otra" className="rounded-lg">Otra</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <AutocompleteWithLoading
+                            options={configurationData.estudiosOptions}
+                            value={field.value || ''}
+                            onValueChange={field.onChange}
+                            placeholder="Seleccionar nivel de estudios..."
+                            isLoading={configurationData.estudiosLoading}
+                            error={configurationData.estudiosError}
+                            emptyText="No hay opciones de estudios disponibles"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -382,18 +389,17 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     render={({ field }) => (
                       <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
                         <FormLabel className="text-gray-800 font-bold text-sm">Comunidad Cultural</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="bg-gray-100 border-2 border-gray-400 text-gray-900 rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
-                              <SelectValue placeholder="Seleccionar comunidad..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="rounded-xl border-2 border-gray-300">
-                            <SelectItem value="LGTBIQ+" className="rounded-lg">LGTBIQ+</SelectItem>
-                            <SelectItem value="Indígena" className="rounded-lg">Indígena</SelectItem>
-                            <SelectItem value="Negritudes" className="rounded-lg">Negritudes</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <AutocompleteWithLoading
+                            options={configurationData.comunidadesCulturalesOptions}
+                            value={field.value || ''}
+                            onValueChange={field.onChange}
+                            placeholder="Seleccionar comunidad cultural..."
+                            isLoading={configurationData.comunidadesCulturalesLoading}
+                            error={configurationData.comunidadesCulturalesError}
+                            emptyText="No hay opciones de comunidades culturales disponibles"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -484,10 +490,14 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                       <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
                         <FormLabel className="text-gray-800 font-bold text-sm">Enfermedad</FormLabel>
                         <FormControl>
-                          <Input 
-                            {...field} 
-                            className="bg-gray-100 border-2 border-gray-400 text-gray-900 font-semibold rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                            placeholder="Describe condiciones médicas"
+                          <AutocompleteWithLoading
+                            options={configurationData.enfermedadesOptions}
+                            value={field.value || ''}
+                            onValueChange={field.onChange}
+                            placeholder="Seleccionar enfermedad..."
+                            isLoading={configurationData.enfermedadesLoading}
+                            error={configurationData.enfermedadesError}
+                            emptyText="No hay opciones de enfermedades disponibles"
                           />
                         </FormControl>
                         <FormMessage />
@@ -530,10 +540,14 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                         <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
                           <FormLabel className="text-gray-800 font-bold text-sm">Camisa/Blusa</FormLabel>
                           <FormControl>
-                            <Input 
-                              {...field} 
-                              className="bg-gray-100 border-2 border-gray-400 text-gray-900 font-semibold rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                              placeholder="XS, S, M, L, XL..."
+                            <AutocompleteWithLoading
+                              options={configurationData.tallasOptions.filter(t => t.value.includes('camisa'))}
+                              value={field.value || ''}
+                              onValueChange={field.onChange}
+                              placeholder="Seleccionar talla de camisa..."
+                              isLoading={configurationData.tallasLoading}
+                              error={configurationData.tallasError}
+                              emptyText="No hay tallas de camisa disponibles"
                             />
                           </FormControl>
                           <FormMessage />
@@ -549,10 +563,14 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                         <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
                           <FormLabel className="text-gray-800 font-bold text-sm">Pantalón</FormLabel>
                           <FormControl>
-                            <Input 
-                              {...field} 
-                              className="bg-gray-100 border-2 border-gray-400 text-gray-900 font-semibold rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                              placeholder="28, 30, 32, 34..."
+                            <AutocompleteWithLoading
+                              options={configurationData.tallasOptions.filter(t => t.value.includes('pantalon'))}
+                              value={field.value || ''}
+                              onValueChange={field.onChange}
+                              placeholder="Seleccionar talla de pantalón..."
+                              isLoading={configurationData.tallasLoading}
+                              error={configurationData.tallasError}
+                              emptyText="No hay tallas de pantalón disponibles"
                             />
                           </FormControl>
                           <FormMessage />
@@ -568,10 +586,14 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                         <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
                           <FormLabel className="text-gray-800 font-bold text-sm">Calzado</FormLabel>
                           <FormControl>
-                            <Input 
-                              {...field} 
-                              className="bg-gray-100 border-2 border-gray-400 text-gray-900 font-semibold rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                              placeholder="35, 36, 37, 38..."
+                            <AutocompleteWithLoading
+                              options={configurationData.tallasOptions.filter(t => t.value.includes('calzado'))}
+                              value={field.value || ''}
+                              onValueChange={field.onChange}
+                              placeholder="Seleccionar talla de calzado..."
+                              isLoading={configurationData.tallasLoading}
+                              error={configurationData.tallasError}
+                              emptyText="No hay tallas de calzado disponibles"
                             />
                           </FormControl>
                           <FormMessage />
@@ -596,10 +618,14 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                         <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
                           <FormLabel className="text-gray-800 font-bold text-sm">Profesión</FormLabel>
                           <FormControl>
-                            <Input 
-                              {...field} 
-                              className="bg-gray-100 border-2 border-gray-400 text-gray-900 font-semibold rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                              placeholder="Describe la profesión"
+                            <AutocompleteWithLoading
+                              options={configurationData.profesionesOptions}
+                              value={field.value || ''}
+                              onValueChange={field.onChange}
+                              placeholder="Seleccionar profesión..."
+                              isLoading={configurationData.profesionesLoading}
+                              error={configurationData.profesionesError}
+                              emptyText="No hay opciones de profesiones disponibles"
                             />
                           </FormControl>
                           <FormMessage />

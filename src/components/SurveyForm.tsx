@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, ChevronRight, Save, FileDown } from "lucide-react";
+import { ChevronLeft, ChevronRight, Save, FileDown, Loader2 } from "lucide-react";
 import SurveyHeader from "./survey/SurveyHeader";
 import FormField from "./survey/FormField";
+import EnhancedFormField from "./survey/EnhancedFormField";
 import FamilyGrid from "./survey/FamilyGrid";
+import DeceasedGrid from "./survey/DeceasedGrid";
 import SurveyControls from "./survey/SurveyControls";
-import { FamilyMember, FormField as FormFieldType, FormStage } from "@/types/survey";
+import { FamilyMember, DeceasedFamilyMember, FormField as FormFieldType, FormStage } from "@/types/survey";
+import { useConfigurationData } from "@/hooks/useConfigurationData";
 
 // Definición de las etapas del formulario basado en la encuesta parroquial
 const formStages: FormStage[] = [
@@ -16,16 +19,12 @@ const formStages: FormStage[] = [
     title: "Información General",
     description: "Datos básicos del hogar y ubicación",
     fields: [
-      { id: "parroquia", label: "Parroquia", type: "select", required: true, options: [
-        "San Juan Bautista", "Nuestra Señora del Carmen", "Sagrado Corazón", "San José", "Otra"
-      ]},
-      { id: "municipio", label: "Municipio", type: "text", required: true },
+      { id: "municipio", label: "Municipio", type: "autocomplete", required: true, configKey: "municipioOptions" },
+      { id: "parroquia", label: "Parroquia", type: "autocomplete", required: true, configKey: "parroquiaOptions" },
       { id: "fecha", label: "Fecha", type: "date", required: true },
       { id: "apellido_familiar", label: "Apellido Familiar", type: "text", required: true },
-      { id: "sector", label: "Sector", type: "select", required: true, options: [
-        "La Esperanza", "San José", "Cristo Rey", "Divino Niño", "La Paz", "San Antonio", "Otro"
-      ]},
-      { id: "vereda", label: "Vereda", type: "text", required: false },
+      { id: "vereda", label: "Vereda", type: "autocomplete", required: false, configKey: "veredaOptions" },
+      { id: "sector", label: "Sector", type: "autocomplete", required: true, configKey: "sectorOptions" },
       { id: "direccion", label: "Dirección", type: "text", required: true },
       { id: "telefono", label: "Teléfono", type: "text", required: false },
       { id: "numero_contrato_epm", label: "Número Contrato EPM", type: "text", required: false }
@@ -36,29 +35,17 @@ const formStages: FormStage[] = [
     title: "Información de Vivienda y Basuras",
     description: "Características de la vivienda y manejo de basuras",
     fields: [
-      { id: "tipo_vivienda", label: "Tipo de Vivienda", type: "select", required: true, options: [
-        "Arrendada", "Propia", "A crédito", "Invasión", "Prestada", "No aplica"
-      ]},
-      { id: "basuras_recolector", label: "Basuras - Carro Recolector", type: "boolean", required: false },
-      { id: "basuras_quemada", label: "Basuras - Quemada al aire", type: "boolean", required: false },
-      { id: "basuras_enterrada", label: "Basuras - Enterrada", type: "boolean", required: false },
-      { id: "basuras_recicla", label: "¿Recicla?", type: "boolean", required: false },
-      { id: "basuras_aire_libre", label: "Basuras - Al aire libre", type: "boolean", required: false },
-      { id: "basuras_no_aplica", label: "Basuras - No aplica", type: "boolean", required: false }
+      { id: "tipo_vivienda", label: "Tipo de Vivienda", type: "autocomplete", required: true, configKey: "tipoViviendaOptions" },
+      { id: "disposicion_basura", label: "Tipos de Disposición de Basura", type: "multiple-checkbox", required: false, configKey: "disposicionBasuraOptions" }
     ]
   },
   {
     id: 3,
     title: "Acueducto y Aguas Residuales",
-    description: "Servicios de agua y saneamiento",
+    description: "Servicios de agua y saneamiento - Selecciona las opciones que apliquen",
     fields: [
-      { id: "acueducto_epm", label: "Acueducto EPM", type: "boolean", required: false },
-      { id: "acueducto_veredal", label: "Acueducto Veredal", type: "boolean", required: false },
-      { id: "acueducto_aljibe", label: "Aljibe", type: "boolean", required: false },
-      { id: "acueducto_gravedad", label: "Gravedad", type: "boolean", required: false },
-      { id: "aguas_alcantarillado", label: "Alcantarillado", type: "boolean", required: false },
-      { id: "aguas_pozo_septico", label: "Pozo Séptico", type: "boolean", required: false },
-      { id: "aguas_aire_libre", label: "Aguas Residuales - Al aire libre", type: "boolean", required: false }
+      { id: "sistema_acueducto", label: "Sistema de Acueducto", type: "autocomplete", required: false, configKey: "sistemasAcueductoOptions" },
+      { id: "aguas_residuales", label: "Tipos de Aguas Residuales", type: "multiple-checkbox", required: false, configKey: "aguasResidualesOptions" }
     ]
   },
   {
@@ -71,16 +58,7 @@ const formStages: FormStage[] = [
     id: 5,
     title: "Difuntos de la Familia",
     description: "Información sobre familiares difuntos y fechas de aniversario",
-    fields: [
-      { id: "difuntos_nombres_1", label: "Difunto 1 - Nombres y Apellidos", type: "text", required: false },
-      { id: "difuntos_fecha_aniversario_1", label: "Difunto 1 - Fecha de Aniversario", type: "date", required: false },
-      { id: "difuntos_nombres_2", label: "Difunto 2 - Nombres y Apellidos", type: "text", required: false },
-      { id: "difuntos_fecha_aniversario_2", label: "Difunto 2 - Fecha de Aniversario", type: "date", required: false },
-      { id: "difuntos_nombres_3", label: "Difunto 3 - Nombres y Apellidos", type: "text", required: false },
-      { id: "difuntos_fecha_aniversario_3", label: "Difunto 3 - Fecha de Aniversario", type: "date", required: false },
-      { id: "padres_difuntos_padre", label: "¿Era Padre?", type: "boolean", required: false },
-      { id: "padres_difuntos_madre", label: "¿Era Madre?", type: "boolean", required: false }
-    ]
+    type: "deceased_grid"
   },
   {
     id: 6,
@@ -98,33 +76,41 @@ const SurveyForm = () => {
   const [currentStage, setCurrentStage] = useState(1);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const [deceasedMembers, setDeceasedMembers] = useState<DeceasedFamilyMember[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  // Hook para cargar datos de configuración
+  const configurationData = useConfigurationData();
 
   const currentStageData = formStages.find(stage => stage.id === currentStage);
   const progress = (currentStage / formStages.length) * 100;
 
   // Auto-guardado cuando cambia la etapa
   useEffect(() => {
-    if (Object.keys(formData).length > 0 || familyMembers.length > 0) {
+    if (Object.keys(formData).length > 0 || familyMembers.length > 0 || deceasedMembers.length > 0) {
       localStorage.setItem('parish-survey-draft', JSON.stringify({
         stage: currentStage,
         data: formData,
         familyMembers: familyMembers,
+        deceasedMembers: deceasedMembers,
         timestamp: new Date().toISOString()
       }));
     }
-  }, [currentStage, formData, familyMembers]);
+  }, [currentStage, formData, familyMembers, deceasedMembers]);
 
   // Cargar borrador al iniciar
   useEffect(() => {
     const draft = localStorage.getItem('parish-survey-draft');
     if (draft) {
-      const { stage, data, familyMembers: savedFamilyMembers } = JSON.parse(draft);
+      const { stage, data, familyMembers: savedFamilyMembers, deceasedMembers: savedDeceasedMembers } = JSON.parse(draft);
       setCurrentStage(stage);
       setFormData(data);
       if (savedFamilyMembers) {
         setFamilyMembers(savedFamilyMembers);
+      }
+      if (savedDeceasedMembers) {
+        setDeceasedMembers(savedDeceasedMembers);
       }
       toast({
         title: "Borrador recuperado",
@@ -194,12 +180,12 @@ const SurveyForm = () => {
       const surveyData = {
         informacionGeneral: formData,
         familyMembers: familyMembers,
+        deceasedMembers: deceasedMembers,
         timestamp: new Date().toISOString(),
         completed: true
       };
 
       // Aquí puedes agregar la lógica para enviar a tu API
-      console.log('Datos de la encuesta:', surveyData);
       
       // Simular envío a servidor
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -231,6 +217,7 @@ const SurveyForm = () => {
     const surveyData = {
       informacionGeneral: formData,
       familyMembers: familyMembers,
+      deceasedMembers: deceasedMembers,
       timestamp: new Date().toISOString(),
       exported: true
     };
@@ -266,6 +253,26 @@ const SurveyForm = () => {
         formStages={formStages}
       />
 
+      {/* Indicador de carga de servicios */}
+      {configurationData.isAnyLoading && (
+        <Card className="mb-6 border-amber-200 bg-amber-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 text-sm text-amber-800">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="font-medium">Cargando datos de configuración...</span>
+              <div className="flex items-center gap-2 text-xs">
+                {configurationData.sectoresLoading && <span className="bg-amber-200 px-2 py-1 rounded">Sectores</span>}
+                {configurationData.parroquiasLoading && <span className="bg-amber-200 px-2 py-1 rounded">Parroquias</span>}
+                {configurationData.municipiosLoading && <span className="bg-amber-200 px-2 py-1 rounded">Municipios</span>}
+                {configurationData.tiposViviendaLoading && <span className="bg-amber-200 px-2 py-1 rounded">Tipos de Vivienda</span>}
+                {configurationData.disposicionBasuraLoading && <span className="bg-amber-200 px-2 py-1 rounded">Disposición de Basura</span>}
+                {configurationData.aguasResidualesLoading && <span className="bg-amber-200 px-2 py-1 rounded">Aguas Residuales</span>}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Formulario actual con Tailwind CSS */}
       <Card className="shadow-lg border-gray-200 rounded-xl bg-white">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-xl border-b border-gray-200">
@@ -285,16 +292,131 @@ const SurveyForm = () => {
               familyMembers={familyMembers}
               setFamilyMembers={setFamilyMembers}
             />
+          ) : currentStageData.type === 'deceased_grid' ? (
+            <DeceasedGrid 
+              deceasedMembers={deceasedMembers}
+              setDeceasedMembers={setDeceasedMembers}
+            />
           ) : (
-            currentStageData.fields?.map((field) => (
-              <div key={field.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-200">
-                <FormField 
-                  field={field}
-                  value={formData[field.id]}
-                  onChange={handleFieldChange}
-                />
-              </div>
-            ))
+            currentStageData.fields?.map((field) => {
+              // Función helper para obtener las opciones de autocomplete
+              const getAutocompleteOptions = (field: FormFieldType) => {
+                if ((field.type !== 'autocomplete' && field.type !== 'multiple-checkbox') || !field.configKey) return [];
+                
+                // Mapear configKey a las opciones del hook de configuración
+                switch (field.configKey) {
+                  case 'sectorOptions':
+                    return configurationData.sectorOptions;
+                  case 'parroquiaOptions':
+                    return configurationData.parroquiaOptions;
+                  case 'municipioOptions':
+                    return configurationData.municipioOptions;
+                  case 'veredaOptions':
+                    return configurationData.veredaOptions;
+                  case 'tipoViviendaOptions':
+                    return configurationData.tipoViviendaOptions;
+                  case 'disposicionBasuraOptions':
+                    return configurationData.disposicionBasuraOptions;
+                  case 'aguasResidualesOptions':
+                    return configurationData.aguasResidualesOptions;
+                  case 'sistemasAcueductoOptions':
+                    return configurationData.sistemasAcueductoOptions;
+                  case 'estadoCivilOptions':
+                    return configurationData.estadoCivilOptions;
+                  case 'sexoOptions':
+                    return configurationData.sexoOptions;
+                  case 'userOptions':
+                    return configurationData.userOptions;
+                  default:
+                    return [];
+                }
+              };
+
+              // Función helper para obtener el estado de loading
+              const getLoadingState = (field: FormFieldType) => {
+                if ((field.type !== 'autocomplete' && field.type !== 'multiple-checkbox') || !field.configKey) return false;
+                
+                switch (field.configKey) {
+                  case 'sectorOptions':
+                    return configurationData.sectoresLoading;
+                  case 'parroquiaOptions':
+                    return configurationData.parroquiasLoading;
+                  case 'municipioOptions':
+                    return configurationData.municipiosLoading;
+                  case 'veredaOptions':
+                    return configurationData.veredasLoading;
+                  case 'tipoViviendaOptions':
+                    return configurationData.tiposViviendaLoading;
+                  case 'disposicionBasuraOptions':
+                    return configurationData.disposicionBasuraLoading;
+                  case 'aguasResidualesOptions':
+                    return configurationData.aguasResidualesLoading;
+                  case 'sistemasAcueductoOptions':
+                    return configurationData.sistemasAcueductoLoading;
+                  case 'estadoCivilOptions':
+                    return configurationData.estadosCivilesLoading;
+                  case 'sexoOptions':
+                    return configurationData.sexosLoading;
+                  case 'userOptions':
+                    return configurationData.usersLoading;
+                  default:
+                    return false;
+                }
+              };
+
+              // Función helper para obtener el estado de error
+              const getErrorState = (field: FormFieldType) => {
+                if ((field.type !== 'autocomplete' && field.type !== 'multiple-checkbox') || !field.configKey) return null;
+                
+                switch (field.configKey) {
+                  case 'sectorOptions':
+                    return configurationData.sectoresError;
+                  case 'parroquiaOptions':
+                    return configurationData.parroquiasError;
+                  case 'municipioOptions':
+                    return configurationData.municipiosError;
+                  case 'veredaOptions':
+                    return configurationData.veredasError;
+                  case 'tipoViviendaOptions':
+                    return configurationData.tiposViviendaError;
+                  case 'disposicionBasuraOptions':
+                    return configurationData.disposicionBasuraError;
+                  case 'aguasResidualesOptions':
+                    return configurationData.aguasResidualesError;
+                  case 'sistemasAcueductoOptions':
+                    return configurationData.sistemasAcueductoError;
+                  case 'estadoCivilOptions':
+                    return configurationData.estadosCivilesError;
+                  case 'sexoOptions':
+                    return configurationData.sexosError;
+                  case 'userOptions':
+                    return configurationData.usersError;
+                  default:
+                    return null;
+                }
+              };
+
+              return (
+                <div key={field.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-200">
+                  {field.type === 'autocomplete' || field.type === 'multiple-checkbox' ? (
+                    <EnhancedFormField
+                      field={field}
+                      value={formData[field.id]}
+                      onChange={handleFieldChange}
+                      autocompleteOptions={getAutocompleteOptions(field)}
+                      isLoading={getLoadingState(field)}
+                      error={getErrorState(field)}
+                    />
+                  ) : (
+                    <FormField
+                      field={field}
+                      value={formData[field.id]}
+                      onChange={handleFieldChange}
+                    />
+                  )}
+                </div>
+              );
+            })
           )}
         </CardContent>
       </Card>

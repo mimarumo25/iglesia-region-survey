@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ThemeCustomizer from "@/components/ThemeCustomizer";
 import {
   Settings,
   Save,
@@ -25,8 +27,35 @@ import {
   RefreshCw
 } from "lucide-react";
 
-const SettingsPage = () => {
+interface SettingsPageProps {
+  initialTab?: string;
+}
+
+const SettingsPage = ({ initialTab }: SettingsPageProps) => {
+  const location = useLocation();
   const navigate = useNavigate();
+  
+  // Determinar el tab activo basado en la URL
+  const getActiveTabFromPath = () => {
+    const path = location.pathname;
+    // Solo permitir tabs válidos para configuración general
+    if (path === '/settings') return initialTab || 'general';
+    return 'general'; // Por defecto mostrar general si no coincide
+  };
+
+  const [activeTab, setActiveTab] = useState(getActiveTabFromPath());
+
+  useEffect(() => {
+    setActiveTab(getActiveTabFromPath());
+  }, [location.pathname]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Solo navegar dentro de settings para tabs válidos
+    if (['general', 'email', 'security', 'notifications', 'appearance'].includes(value)) {
+      navigate('/settings');
+    }
+  };
   const [settings, setSettings] = useState({
     // Configuración General
     siteName: "Sistema Parroquial",
@@ -71,18 +100,15 @@ const SettingsPage = () => {
 
   const handleSave = () => {
     // Lógica para guardar configuración
-    console.log("Guardando configuración:", settings);
     // Mostrar mensaje de éxito
   };
 
   const handleBackup = () => {
     // Lógica para crear backup
-    console.log("Creando backup...");
   };
 
   const handleRestore = () => {
     // Lógica para restaurar backup
-    console.log("Restaurando backup...");
   };
 
   const themes = [
@@ -117,7 +143,7 @@ const SettingsPage = () => {
   ];
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="container mx-auto p-6 max-w-7xl">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
@@ -139,9 +165,33 @@ const SettingsPage = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Configuración General */}
-        <div className="lg:col-span-2 space-y-6">
+      {/* Tabs de configuración */}
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 lg:grid-cols-5">
+          <TabsTrigger value="general" className="flex items-center gap-2">
+            <Globe className="w-4 h-4" />
+            General
+          </TabsTrigger>
+          <TabsTrigger value="email" className="flex items-center gap-2">
+            <Mail className="w-4 h-4" />
+            Email
+          </TabsTrigger>
+          <TabsTrigger value="security" className="flex items-center gap-2">
+            <Shield className="w-4 h-4" />
+            Seguridad
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <Bell className="w-4 h-4" />
+            Notificaciones
+          </TabsTrigger>
+          <TabsTrigger value="appearance" className="flex items-center gap-2">
+            <Palette className="w-4 h-4" />
+            Apariencia
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tab de Configuración General */}
+        <TabsContent value="general">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -206,8 +256,10 @@ const SettingsPage = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Configuración de Email */}
+        {/* Tab de Configuración de Email */}
+        <TabsContent value="email">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -270,8 +322,10 @@ const SettingsPage = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Configuración de Seguridad */}
+        {/* Tab de Configuración de Seguridad */}
+        <TabsContent value="security">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -334,21 +388,23 @@ const SettingsPage = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </TabsContent>
 
-        {/* Configuración Lateral */}
-        <div className="space-y-6">
-          {/* Notificaciones */}
+        {/* Tab de Notificaciones */}
+        <TabsContent value="notifications">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="w-5 h-5 text-yellow-600" />
-                Notificaciones
+                Configuración de Notificaciones
               </CardTitle>
+              <CardDescription>
+                Configurar preferencias de notificaciones
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label htmlFor="emailNotifications">Email</Label>
+                <Label htmlFor="emailNotifications">Notificaciones por Email</Label>
                 <Switch
                   id="emailNotifications"
                   checked={settings.emailNotifications}
@@ -357,7 +413,7 @@ const SettingsPage = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <Label htmlFor="smsNotifications">SMS</Label>
+                <Label htmlFor="smsNotifications">Notificaciones por SMS</Label>
                 <Switch
                   id="smsNotifications"
                   checked={settings.smsNotifications}
@@ -366,7 +422,7 @@ const SettingsPage = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <Label htmlFor="pushNotifications">Push</Label>
+                <Label htmlFor="pushNotifications">Notificaciones Push</Label>
                 <Switch
                   id="pushNotifications"
                   checked={settings.pushNotifications}
@@ -375,7 +431,7 @@ const SettingsPage = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <Label htmlFor="reportNotifications">Reportes</Label>
+                <Label htmlFor="reportNotifications">Notificaciones de Reportes</Label>
                 <Switch
                   id="reportNotifications"
                   checked={settings.reportNotifications}
@@ -384,137 +440,13 @@ const SettingsPage = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Apariencia */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="w-5 h-5 text-purple-600" />
-                Apariencia
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Tema</Label>
-                <Select value={settings.theme} onValueChange={(value) => handleSettingChange("theme", value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {themes.map((theme) => (
-                      <SelectItem key={theme.value} value={theme.value}>
-                        {theme.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Color Principal</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {colors.map((color) => (
-                    <Button
-                      key={color.value}
-                      variant={settings.primaryColor === color.value ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleSettingChange("primaryColor", color.value)}
-                      className="flex items-center gap-2"
-                    >
-                      <div className={`w-3 h-3 rounded-full ${color.color}`}></div>
-                      {color.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="flex items-center justify-between">
-                <Label htmlFor="showWelcomeMessage">Mensaje de Bienvenida</Label>
-                <Switch
-                  id="showWelcomeMessage"
-                  checked={settings.showWelcomeMessage}
-                  onCheckedChange={(checked) => handleSettingChange("showWelcomeMessage", checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label htmlFor="compactView">Vista Compacta</Label>
-                <Switch
-                  id="compactView"
-                  checked={settings.compactView}
-                  onCheckedChange={(checked) => handleSettingChange("compactView", checked)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Backup y Restauración */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="w-5 h-5 text-orange-600" />
-                Backup y Restauración
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="autoBackup">Backup Automático</Label>
-                <Switch
-                  id="autoBackup"
-                  checked={settings.autoBackup}
-                  onCheckedChange={(checked) => handleSettingChange("autoBackup", checked)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Frecuencia</Label>
-                <Select 
-                  value={settings.backupFrequency} 
-                  onValueChange={(value) => handleSettingChange("backupFrequency", value)}
-                  disabled={!settings.autoBackup}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {backupFrequencies.map((freq) => (
-                      <SelectItem key={freq.value} value={freq.value}>
-                        {freq.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="backupRetention">Retención (días)</Label>
-                <Input
-                  id="backupRetention"
-                  type="number"
-                  value={settings.backupRetention}
-                  onChange={(e) => handleSettingChange("backupRetention", e.target.value)}
-                  disabled={!settings.autoBackup}
-                />
-              </div>
-
-              <Separator />
-
-              <div className="space-y-2">
-                <Button variant="outline" onClick={handleRestore} className="w-full">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Restaurar Backup
-                </Button>
-                <Button variant="outline" onClick={handleBackup} className="w-full">
-                  <Download className="w-4 h-4 mr-2" />
-                  Crear Backup
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+        {/* Tab de Apariencia */}
+        <TabsContent value="appearance">
+          <ThemeCustomizer />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

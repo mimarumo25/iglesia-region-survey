@@ -1,0 +1,52 @@
+{
+  "informacionGeneral": {
+    "municipio": "dfdf",
+    "parroquia": "Nuestra Señora del Carmen",
+    "apellido_familiar": "ddff",
+    "sector": "Otro",
+    "vereda": "fdfdfd",
+    "direccion": "dffdfdf",
+    "telefono": "fdfdf",
+    "numero_contrato_epm": "dffdfdf",
+    "fecha": "2025-08-08T05:00:00.000Z",
+    "basuras_recolector": true,
+    "tipo_vivienda": "A crédito",
+    "acueducto_epm": true,
+    "autorizacion_datos": true
+  },
+  "familyMembers": [
+    {
+      "nombres": "nmmmmmmm",
+      "fechaNacimiento": "2025-08-11T04:18:08.745Z",
+      "tipoIdentificacion": "",
+      "numeroIdentificacion": "",
+      "sexo": "",
+      "situacionCivil": "",
+      "parentesco": "",
+      "talla": {
+        "camisa": "",
+        "pantalon": "",
+        "calzado": ""
+      },
+      "estudio": "",
+      "comunidadCultural": "",
+      "telefono": "",
+      "enQueEresLider": "",
+      "habilidadDestreza": "",
+      "correoElectronico": "",
+      "enfermedad": "",
+      "necesidadesEnfermo": "",
+      "solicitudComunionCasa": true,
+      "profesionMotivoFechaCelebrar": {
+        "profesion": "mmn",
+        "motivo": "",
+        "dia": "",
+        "mes": ""
+      },
+      "id": "1754886187328"
+    }
+  ],
+  "deceasedMembers": [],
+  "timestamp": "2025-08-11T05:08:33.484Z",
+  "exported": true
+}

@@ -9,7 +9,7 @@ interface SectorProgressProps {
 
 const SectorProgress = ({ sectorData }: SectorProgressProps) => {
   return (
-    <Card className="card-enhanced hover-glow animate-slide-in-left">
+    <Card className="card-enhanced">
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10">
@@ -23,7 +23,7 @@ const SectorProgress = ({ sectorData }: SectorProgressProps) => {
       </CardHeader>
       <CardContent className="space-y-4">
         {sectorData.map((sector, index) => (
-          <div key={sector.name} className="space-y-2 hover-lift p-3 rounded-lg hover:bg-muted/50 transition-all duration-300 animate-slide-in-left">
+          <div key={sector.name} className="space-y-2 p-3 rounded-lg">
             <div className="flex justify-between text-sm">
               <span className="font-medium">{sector.name}</span>
               <span className="text-muted-foreground">

@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Autocomplete, AutocompleteOption } from "@/components/ui/autocomplete";
+import { AutocompleteWithLoading } from "@/components/ui/autocomplete-with-loading";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import {
   FileText,
@@ -20,15 +23,31 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  MoreHorizontal
+  MoreHorizontal,
+  Loader2
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
+// Importar hooks de servicios
+import { useConfigurationData } from "@/hooks/useConfigurationData";
 
 const Surveys = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sectorFilter, setSectorFilter] = useState("all");
+  const [sectorFilter, setSectorFilter] = useState("");
+  const [surveyorFilter, setSurveyorFilter] = useState("");
+
+  // Hook centralizado para cargar datos de configuración
+  const {
+    sectorOptions,
+    sectoresLoading,
+    sectoresError,
+    userOptions: surveyorOptions,
+    usersLoading,
+    usersError,
+    isAnyLoading
+  } = useConfigurationData();
 
   const surveys = [
     {
@@ -111,8 +130,6 @@ const Surveys = () => {
     }
   ];
 
-  const sectors = ["La Esperanza", "San José", "Cristo Rey", "Divino Niño", "Santa María", "El Carmen"];
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
@@ -153,8 +170,16 @@ const Surveys = () => {
                          survey.sector.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          survey.surveyor.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || survey.status === statusFilter;
-    const matchesSector = sectorFilter === "all" || survey.sector === sectorFilter;
-    return matchesSearch && matchesStatus && matchesSector;
+    
+    // Filtro por sector - buscar por nombre ya que sectorFilter contiene el ID
+    const matchesSector = !sectorFilter || 
+                         sectorOptions.find(opt => opt.value === sectorFilter)?.label === survey.sector;
+    
+    // Filtro por encuestador - buscar por nombre ya que surveyorFilter contiene el ID
+    const matchesSurveyor = !surveyorFilter || 
+                           surveyorOptions.find(opt => opt.value === surveyorFilter)?.label === survey.surveyor;
+    
+    return matchesSearch && matchesStatus && matchesSector && matchesSurveyor;
   });
 
   const surveyStats = {
@@ -256,10 +281,24 @@ const Surveys = () => {
         </Card>
       </div>
 
+      {/* Indicador de carga de servicios */}
+      {isAnyLoading && (
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 text-sm text-gray-600">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Cargando datos de configuración...
+              {sectoresLoading && <span>• Sectores</span>}
+              {usersLoading && <span>• Usuarios</span>}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Filters */}
       <Card className="mb-6">
         <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -271,33 +310,74 @@ const Surveys = () => {
                 />
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-500" />
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="completed">Completadas</SelectItem>
-                  <SelectItem value="pending">Pendientes</SelectItem>
-                  <SelectItem value="in_progress">En Progreso</SelectItem>
-                  <SelectItem value="cancelled">Canceladas</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={sectorFilter} onValueChange={setSectorFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Sector" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {sectors.map((sector) => (
-                    <SelectItem key={sector} value={sector}>
-                      {sector}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Filter className="w-4 h-4" />
+                Filtros:
+              </div>
+              
+              {/* Filtro por Estado */}
+              <div className="min-w-[140px]">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="completed">Completadas</SelectItem>
+                    <SelectItem value="pending">Pendientes</SelectItem>
+                    <SelectItem value="in_progress">En Progreso</SelectItem>
+                    <SelectItem value="cancelled">Canceladas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Filtro por Sector */}
+              <div className="min-w-[180px]">
+                <AutocompleteWithLoading
+                  options={sectorOptions}
+                  value={sectorFilter}
+                  onValueChange={setSectorFilter}
+                  placeholder="Filtrar por sector..."
+                  emptyText="No hay sectores disponibles"
+                  searchPlaceholder="Buscar sector..."
+                  isLoading={sectoresLoading}
+                  error={sectoresError}
+                  errorText="Error al cargar sectores"
+                />
+              </div>
+
+              {/* Filtro por Encuestador */}
+              <div className="min-w-[200px]">
+                <AutocompleteWithLoading
+                  options={surveyorOptions}
+                  value={surveyorFilter}
+                  onValueChange={setSurveyorFilter}
+                  placeholder="Filtrar por encuestador..."
+                  emptyText="No hay encuestadores disponibles"
+                  searchPlaceholder="Buscar encuestador..."
+                  isLoading={usersLoading}
+                  error={usersError}
+                  errorText="Error al cargar usuarios"
+                />
+              </div>
+
+              {/* Botón para limpiar filtros */}
+              {(sectorFilter || surveyorFilter || statusFilter !== "all") && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSectorFilter("");
+                    setSurveyorFilter("");
+                    setStatusFilter("all");
+                  }}
+                  className="text-gray-600"
+                >
+                  Limpiar filtros
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>

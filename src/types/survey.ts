@@ -25,9 +25,14 @@ export interface FamilyMember {
 export interface FormField {
   id: string;
   label: string;
-  type: 'text' | 'number' | 'date' | 'select' | 'boolean' | 'checkbox' | 'textarea';
+  type: 'text' | 'number' | 'date' | 'select' | 'boolean' | 'checkbox' | 'textarea' | 'autocomplete' | 'multiple-checkbox';
   required: boolean;
   options?: string[];
+  configKey?: string; // Nueva propiedad para vincular con useConfigurationData
+  placeholder?: string;
+  emptyText?: string;
+  searchPlaceholder?: string;
+  errorText?: string;
 }
 
 export interface FormStage {
@@ -38,9 +43,18 @@ export interface FormStage {
   type?: string;
 }
 
+export interface DeceasedFamilyMember {
+  id: string;
+  nombres: string;
+  fechaAniversario: Date | null;
+  eraPadre: boolean;
+  eraMadre: boolean;
+}
+
 export interface SurveyData {
   informacionGeneral: Record<string, any>;
   familyMembers: FamilyMember[];
+  deceasedMembers: DeceasedFamilyMember[];
   timestamp: string;
   completed: boolean;
 }

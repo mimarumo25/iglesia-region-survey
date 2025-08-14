@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import { UserMenu } from "@/components/auth/UserMenu";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -110,6 +111,9 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
             >
               <Search className="w-4 h-4" />
             </Button>
+
+            {/* User Menu */}
+            <UserMenu />
           </div>
         </header>
 
@@ -119,6 +123,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
             {children}
           </div>
         </main>
+        
       </div>
     </div>
   );
