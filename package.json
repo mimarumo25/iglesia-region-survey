@@ -8,7 +8,21 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "node deploy-universal.js",
+    "deploy:docker": "docker-compose down && docker-compose build --no-cache && docker-compose up -d",
+    "deploy:windows": "npm run build && powershell -ExecutionPolicy Bypass -File ./deploy.ps1",
+    "deploy:linux": "npm run build && bash ./deploy.sh",
+    "deploy:server": "bash ./deploy-from-git.sh",
+    "deploy:full": "npm run lint && node deploy-universal.js",
+    "deploy:status": "docker-compose ps && echo 'Aplicación disponible en: http://localhost:8080'",
+    "update": "bash ./update.sh",
+    "server:install": "bash ./install-server.sh",
+    "server:logs": "docker-compose logs -f",
+    "server:restart": "docker-compose restart",
+    "server:stop": "docker-compose down",
+    "server:start": "docker-compose up -d",
+    "server:clean": "docker-compose down && docker image prune -f && docker container prune -f"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

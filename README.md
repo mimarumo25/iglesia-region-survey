@@ -233,7 +233,7 @@ src/
 - Node.js 18+ y npm/bun
 - Git
 
-### Instalación
+### Instalación Local
 ```bash
 # Clonar el repositorio
 git clone <URL_DEL_REPOSITORIO>
@@ -250,12 +250,511 @@ npm run dev
 
 ### Scripts Disponibles
 ```bash
+# DESARROLLO
 npm run dev         # Servidor de desarrollo (puerto 8081)
 npm run build       # Compilar para producción
 npm run build:dev   # Compilar en modo desarrollo
 npm run preview     # Vista previa de producción
 npm run lint        # Verificar código con ESLint
+
+# DESPLIEGUE - COMANDO PRINCIPAL 🚀
+npm run deploy      # Deploy universal inteligente (RECOMENDADO)
+npm run deploy:full # Deploy completo con lint + verificaciones
+
+# DESPLIEGUE - COMANDOS ESPECÍFICOS
+npm run deploy:docker   # Solo despliegue Docker
+npm run deploy:windows  # Despliegue específico Windows (PowerShell)
+npm run deploy:linux    # Despliegue específico Linux (Bash)
+npm run deploy:server   # Despliegue desde Git en servidor
+npm run deploy:status   # Ver estado del despliegue
+
+# GESTIÓN DEL SERVIDOR
+npm run server:start    # Iniciar contenedores
+npm run server:stop     # Detener contenedores  
+npm run server:restart  # Reiniciar contenedores
+npm run server:logs     # Ver logs en tiempo real
+npm run server:clean    # Limpiar contenedores e imágenes
+npm run server:install  # Instalación completa en servidor Linux
+
+# ACTUALIZACIÓN
+npm run update          # Actualización rápida desde Git
 ```
+
+## 🎯 **Comando Principal de Deploy**
+
+**¡Nuevo!** Ahora tienes un comando principal que hace todo automáticamente:
+
+```bash
+# Comando más simple - hace todo el despliegue completo
+npm run deploy
+```
+
+**¿Qué hace este comando?**
+- ✅ **Detecta automáticamente** tu sistema operativo (Windows/Linux/Mac)
+- ✅ **Verifica prerrequisitos** (Docker, Docker Compose, archivos necesarios)
+- ✅ **Construye la aplicación** React con Vite
+- ✅ **Detiene contenedores** existentes sin perder datos
+- ✅ **Construye nueva imagen** Docker sin cache para frescura
+- ✅ **Inicia los contenedores** en modo background
+- ✅ **Verifica el despliegue** automáticamente
+- ✅ **Muestra información útil** (URLs, comandos, logs)
+- ✅ **Manejo inteligente de errores** con sugerencias de solución
+
+### Ejemplo de uso:
+```bash
+# Desde el directorio del proyecto
+npm run deploy
+
+# Output esperado:
+# 🚀 INICIANDO DESPLIEGUE DE IGLESIA REGION SURVEY
+# 🔍 Verificando prerrequisitos...
+# ✅ Docker encontrado  
+# ✅ Docker Compose encontrado
+# ✅ Todos los archivos requeridos están presentes
+# 🖥️  Plataforma detectada: win32
+# 
+# 🔨 FASE 1: Construir aplicación
+# 📋 Construcción de la aplicación React...
+# ✅ Construcción de la aplicación React completado
+# 
+# 🐳 FASE 2: Despliegue Docker  
+# 📋 Deteniendo contenedores existentes...
+# ✅ Deteniendo contenedores existentes completado
+# 📋 Construyendo nueva imagen Docker...
+# ✅ Construyendo nueva imagen Docker completado
+# 📋 Iniciando contenedores...
+# ✅ Iniciando contenedores completado
+# 
+# ✅ FASE 3: Verificación del despliegue
+# 📋 Verificando estado de contenedores...
+# 
+# 🎉 ¡DESPLIEGUE COMPLETADO EXITOSAMENTE!
+# 
+# 📊 INFORMACIÓN DEL DESPLIEGUE:
+# 🌐 URL de la aplicación: http://localhost:8080
+# 🐳 Contenedor: iglesia-survey
+# 
+# 📋 COMANDOS ÚTILES:
+# 📊 Ver logs:           npm run server:logs
+# 🔄 Reiniciar:          npm run server:restart
+# ⏱️  Tiempo total de despliegue: 45 segundos
+```
+
+## 🐳 Deploy en Servidor con Docker
+
+### Prerrequisitos del Servidor
+- Sistema Linux (Ubuntu/Debian recomendado)
+- Acceso root o usuario con sudo
+- Conexión a internet
+
+### 🔧 Instalación Automatizada en Servidor
+
+Para una instalación completamente automatizada en un servidor Linux nuevo:
+
+```bash
+# 1. Descargar y ejecutar el script de instalación
+curl -fsSL https://raw.githubusercontent.com/mimarumo25/iglesia-region-survey/main/install-server.sh | bash
+
+# O descargar primero y luego ejecutar:
+wget https://raw.githubusercontent.com/mimarumo25/iglesia-region-survey/main/install-server.sh
+chmod +x install-server.sh
+./install-server.sh
+```
+
+**¿Qué hace este script?**
+- ✅ Instala Docker y Docker Compose automáticamente
+- ✅ Instala Git y otras dependencias necesarias
+- ✅ Crea el directorio del proyecto en `/opt/iglesia-region-survey`
+- ✅ Clona el repositorio desde GitHub
+- ✅ Configura el servicio systemd para inicio automático
+- ✅ Ejecuta el primer deployment
+- ✅ La aplicación queda disponible en `http://IP_DEL_SERVIDOR:8080`
+
+### 📦 Deploy Manual con Docker
+
+Si prefieres hacer el deploy manual paso a paso:
+
+#### 1. Preparar el Servidor
+
+```bash
+# Actualizar sistema
+sudo apt update
+
+# Instalar Docker
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+
+# Instalar Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+# Reiniciar sesión para aplicar permisos de Docker
+exit
+# (volver a conectar por SSH)
+```
+
+#### 2. Clonar y Desplegar
+
+```bash
+# Crear directorio del proyecto
+sudo mkdir -p /opt/iglesia-region-survey
+sudo chown $USER:$USER /opt/iglesia-region-survey
+
+# Clonar repositorio
+cd /opt/iglesia-region-survey
+git clone https://github.com/mimarumo25/iglesia-region-survey.git .
+
+# Ejecutar deployment
+./deploy.sh   # Para Linux
+# o en Windows PowerShell: ./deploy.ps1
+```
+
+### 🔄 Actualización Automática desde Git
+
+Una vez instalado, para actualizar la aplicación con la última versión del repositorio:
+
+```bash
+# Actualización completa (recomendado)
+cd /opt/iglesia-region-survey
+./deploy-from-git.sh
+
+# O actualización rápida
+./update.sh
+```
+
+**¿Qué hace el script de actualización?**
+- 🔄 Descarga la última versión desde GitHub (rama main)
+- 🛑 Detiene los contenedores actuales
+- 🔨 Construye nueva imagen con los últimos cambios  
+- ▶️ Reinicia la aplicación
+- ✅ Verifica que todo funcione correctamente
+- 📊 Muestra logs y estado final
+
+### ⚙️ Gestión del Servicio con Systemd
+
+El sistema se instala como un servicio systemd para gestión automática:
+
+```bash
+# Iniciar el servicio
+sudo systemctl start iglesia-survey
+
+# Detener el servicio  
+sudo systemctl stop iglesia-survey
+
+# Reiniciar el servicio
+sudo systemctl restart iglesia-survey
+
+# Ver estado del servicio
+sudo systemctl status iglesia-survey
+
+# Habilitar inicio automático
+sudo systemctl enable iglesia-survey
+
+# Deshabilitar inicio automático
+sudo systemctl disable iglesia-survey
+
+# Ver logs del servicio
+sudo journalctl -u iglesia-survey -f
+```
+
+### 🐳 Comandos Docker Directos
+
+Para gestión directa de los contenedores:
+
+```bash
+cd /opt/iglesia-region-survey
+
+# Ver estado de contenedores
+docker-compose ps
+
+# Ver logs en tiempo real
+docker-compose logs -f
+
+# Reiniciar aplicación
+docker-compose restart
+
+# Detener aplicación  
+docker-compose down
+
+# Iniciar aplicación
+docker-compose up -d
+
+# Reconstruir imagen y reiniciar
+docker-compose build --no-cache
+docker-compose up -d
+
+# Limpiar imágenes antiguas
+docker image prune -f
+```
+
+### 🌐 Configuración de Red y Acceso
+
+#### Puertos Utilizados
+- **Puerto 8080**: Aplicación web principal
+- **Puerto 80/443**: Para configurar con reverse proxy (opcional)
+
+#### Acceso a la Aplicación
+```bash
+# Desde el servidor local
+curl http://localhost:8080
+
+# Desde navegador externo  
+http://IP_DEL_SERVIDOR:8080
+```
+
+#### Configurar Dominio (Opcional)
+
+Para usar un dominio personalizado con Nginx como reverse proxy:
+
+```bash
+# Instalar Nginx
+sudo apt install nginx
+
+# Crear configuración para tu dominio
+sudo nano /etc/nginx/sites-available/iglesia-survey
+
+# Ejemplo de configuración:
+server {
+    listen 80;
+    server_name tu-dominio.com;
+    
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+
+# Habilitar el sitio
+sudo ln -s /etc/nginx/sites-available/iglesia-survey /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 🔍 Resolución de Problemas
+
+#### Verificar que Docker esté funcionando:
+```bash
+docker --version
+docker-compose --version
+sudo systemctl status docker
+```
+
+#### Si el contenedor no inicia:
+```bash
+# Ver logs detallados
+docker-compose logs
+
+# Verificar puertos ocupados
+sudo netstat -tulpn | grep 8080
+
+# Reconstruir imagen completa
+docker-compose build --no-cache --pull
+```
+
+#### Si hay problemas de permisos:
+```bash
+# Agregar usuario al grupo docker
+sudo usermod -aG docker $USER
+newgrp docker
+
+# O ejecutar con sudo
+sudo docker-compose up -d
+```
+
+#### Liberar espacio en disco:
+```bash
+# Limpiar contenedores detenidos
+docker container prune -f
+
+# Limpiar imágenes sin usar
+docker image prune -f
+
+# Limpieza completa (cuidado!)
+docker system prune -af
+```
+
+### 📊 Monitoreo y Logs
+
+#### Ver logs de la aplicación:
+```bash
+# Logs en tiempo real
+docker-compose logs -f
+
+# Últimas 100 líneas
+docker-compose logs --tail=100
+
+# Logs de un período específico
+docker-compose logs --since="2024-01-01T00:00:00"
+
+# Logs solo de errores
+docker-compose logs | grep -i error
+```
+
+#### Verificar salud del contenedor:
+```bash
+# Estado del contenedor
+docker-compose ps
+
+# Recursos utilizados
+docker stats iglesia-survey
+
+# Información detallada
+docker inspect iglesia-survey
+```
+
+### 🔒 Consideraciones de Seguridad
+
+#### Firewall (UFW):
+```bash
+# Permitir solo puerto 8080
+sudo ufw allow 8080
+sudo ufw enable
+
+# O solo desde IPs específicas
+sudo ufw allow from 192.168.1.0/24 to any port 8080
+```
+
+#### Actualización del Sistema:
+```bash
+# Mantener el servidor actualizado
+sudo apt update && sudo apt upgrade -y
+
+# Actualizar Docker
+curl -fsSL https://get.docker.com | sh
+```
+
+### 📁 Estructura de Archivos en Servidor
+
+```
+/opt/iglesia-region-survey/
+├── deploy-from-git.sh      # Script de deploy automático desde Git
+├── deploy.sh              # Script de deploy básico  
+├── update.sh              # Script de actualización rápida
+├── install-server.sh      # Script de instalación inicial
+├── docker-compose.yml     # Configuración de Docker Compose
+├── Dockerfile             # Imagen Docker de la aplicación
+├── nginx.conf             # Configuración del servidor web
+├── iglesia-survey.service # Servicio systemd
+└── ...                    # Resto del código fuente
+```
+
+### 🎯 Resumen de Comandos Principales
+
+```bash
+# ⚡ DEPLOY RÁPIDO (lo que necesitas el 90% del tiempo)
+npm run deploy              # Deploy completo automático
+
+# 🔧 GESTIÓN DIARIA  
+npm run server:logs         # Ver qué está pasando
+npm run server:restart      # Si algo va mal, reiniciar
+npm run server:stop         # Detener todo
+npm run server:start        # Iniciar de nuevo
+
+# 🚀 INSTALACIÓN EN SERVIDOR LINUX (solo una vez)
+curl -fsSL https://raw.githubusercontent.com/mimarumo25/iglesia-region-survey/main/install-server.sh | bash
+
+# 🔄 ACTUALIZACIÓN DESDE GIT (en servidor)
+npm run deploy:server       # o: ./deploy-from-git.sh
+
+# 🧹 LIMPIEZA Y MANTENIMIENTO
+npm run server:clean        # Limpiar espacio en disco
+```
+
+## 📋 **Guía de Comandos NPM Detallada**
+
+### 🚀 **Comandos de Despliegue**
+
+| Comando | Descripción | Cuándo usar |
+|---------|-------------|-------------|
+| `npm run deploy` | **Deploy universal automático** ⭐ | **Uso diario - RECOMENDADO** |
+| `npm run deploy:full` | Deploy con linting y verificaciones extra | Antes de enviar a producción |
+| `npm run deploy:docker` | Solo parte Docker (sin build de React) | Para pruebas rápidas de Docker |
+| `npm run deploy:windows` | Usa script PowerShell específico | Solo en Windows, casos especiales |
+| `npm run deploy:linux` | Usa script Bash específico | Solo en Linux, casos especiales |
+| `npm run deploy:server` | Deploy desde Git en servidor | Actualización en producción |
+
+### 🔧 **Comandos de Gestión del Servidor**
+
+| Comando | Descripción | Cuándo usar |
+|---------|-------------|-------------|
+| `npm run server:start` | Iniciar contenedores | Después de detenerlos |
+| `npm run server:stop` | Detener contenedores | Mantenimiento, cambios de config |
+| `npm run server:restart` | Reiniciar contenedores | Problemas de rendimiento |
+| `npm run server:logs` | Ver logs en tiempo real | Debugging, monitoreo |
+| `npm run server:clean` | Limpiar contenedores/imágenes | Liberar espacio en disco |
+| `npm run server:install` | Instalación completa en servidor | Solo primera vez en Linux |
+
+### 📊 **Comandos de Estado y Monitoreo**
+
+| Comando | Descripción | Información que muestra |
+|---------|-------------|-------------------------|
+| `npm run deploy:status` | Estado actual del deploy | Contenedores activos, URL de acceso |
+| `docker-compose ps` | Estado detallado | ID, nombres, puertos, salud de contenedores |
+| `docker stats iglesia-survey` | Recursos en tiempo real | CPU, RAM, red, disco |
+| `docker-compose logs --tail=50` | Últimos 50 logs | Errores recientes, actividad |
+
+### 🔄 **Comandos de Actualización**
+
+| Comando | Descripción | Proceso |
+|---------|-------------|---------|
+| `npm run update` | Actualización rápida | Git pull + restart rápido |
+| `npm run deploy:server` | Actualización completa desde Git | Git pull + rebuild completo + restart |
+| `npm run deploy` | Actualización local | Build local + Docker rebuild |
+
+## 🎯 **Flujos de Trabajo Recomendados**
+
+### 🚀 **Desarrollo Diario**
+```bash
+# 1. Hacer cambios en el código
+# 2. Probar localmente
+npm run dev
+
+# 3. Deploy a Docker local
+npm run deploy
+
+# 4. Verificar funcionamiento
+# Abrir: http://localhost:8080
+```
+
+### 🔧 **Resolución de Problemas**
+```bash
+# 1. Ver qué está pasando
+npm run server:logs
+
+# 2. Si hay problemas, reiniciar
+npm run server:restart
+
+# 3. Si persiste, limpieza completa
+npm run server:stop
+npm run server:clean
+npm run deploy
+```
+
+### 📦 **Deploy en Producción (Servidor)**
+```bash
+# Solo la primera vez - instalación completa
+curl -fsSL https://raw.githubusercontent.com/mimarumo25/iglesia-region-survey/main/install-server.sh | bash
+
+# Actualizaciones regulares
+cd /opt/iglesia-region-survey
+npm run deploy:server
+# o directamente: ./deploy-from-git.sh
+```
+
+### 🧹 **Mantenimiento Regular**
+```bash
+# Cada semana - limpiar imágenes antiguas
+npm run server:clean
+
+# Cada mes - verificar logs
+npm run server:logs | grep -i error
+
+# Actualizar sistema (en servidor)
+sudo apt update && sudo apt upgrade -y
+```
+
+¡Con estos comandos tendrás control completo del despliegue de manera simple y profesional! 🚀
 
 ## 🎨 Sistema de Diseño
 
