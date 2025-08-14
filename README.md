@@ -652,7 +652,7 @@ npm run server:stop         # Detener todo
 npm run server:start        # Iniciar de nuevo
 
 # 🚀 INSTALACIÓN EN SERVIDOR LINUX (solo una vez)
-curl -fsSL https://raw.githubusercontent.com/mimarumo25/iglesia-region-survey/main/install-server.sh | bash
+curl -fsSL https://raw.githubusercontent.com/mimarumo25/iglesia-region-survey/main/install-server.sh | bashntent.com/mimarumo25/iglesia-region-survey/main/install-server.sh | bash
 
 # 🔄 ACTUALIZACIÓN DESDE GIT (en servidor)
 npm run deploy:server       # o: ./deploy-from-git.sh
