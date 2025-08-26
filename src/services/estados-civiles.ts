@@ -12,8 +12,11 @@ import {
  * Servicio para la gestión de Estados Civiles (Situaciones Civiles)
  * Maneja todas las operaciones CRUD relacionadas con los estados civiles
  */
+
+// URL base para el servicio de estados civiles
+const BASE_URL = '/api/catalog/situaciones-civiles';
+
 export class EstadosCivilesService {
-  private static readonly BASE_URL = '/api/catalog/situaciones-civiles';
 
   /**
    * Obtiene la lista de estados civiles con paginación y filtros
@@ -34,7 +37,7 @@ export class EstadosCivilesService {
     });
 
     const response = await client.get<EstadoCivilResponse>(
-      `${this.BASE_URL}?${params.toString()}`
+      `${BASE_URL}?${params.toString()}`
     );
     return response.data;
   }
@@ -60,7 +63,7 @@ export class EstadosCivilesService {
     });
 
     const response = await client.get<EstadoCivilResponse>(
-      `${this.BASE_URL}?${params.toString()}`
+      `${BASE_URL}?${params.toString()}`
     );
     return response.data;
   }
@@ -79,7 +82,7 @@ export class EstadosCivilesService {
    * Crea un nuevo estado civil
    */
   static async createEstadoCivil(data: EstadoCivilCreate): Promise<EstadoCivilCreateResponse> {
-    const response = await client.post<EstadoCivilCreateResponse>(this.BASE_URL, data);
+    const response = await client.post<EstadoCivilCreateResponse>(BASE_URL, data);
     return response.data;
   }
 
@@ -87,7 +90,7 @@ export class EstadosCivilesService {
    * Actualiza un estado civil existente
    */
   static async updateEstadoCivil(id: number, data: EstadoCivilUpdate): Promise<EstadoCivilUpdateResponse> {
-    const response = await client.put<EstadoCivilUpdateResponse>(`${this.BASE_URL}/${id}`, data);
+    const response = await client.put<EstadoCivilUpdateResponse>(`${BASE_URL}/${id}`, data);
     return response.data;
   }
 
@@ -95,7 +98,7 @@ export class EstadosCivilesService {
    * Elimina un estado civil
    */
   static async deleteEstadoCivil(id: number): Promise<EstadoCivilDeleteResponse> {
-    const response = await client.delete<EstadoCivilDeleteResponse>(`${this.BASE_URL}/${id}`);
+    const response = await client.delete<EstadoCivilDeleteResponse>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -103,7 +106,7 @@ export class EstadosCivilesService {
    * Obtiene un estado civil por ID
    */
   static async getEstadoCivilById(id: number): Promise<{ status: 'success'; data: any }> {
-    const response = await client.get(`${this.BASE_URL}/${id}`);
+    const response = await client.get(`${BASE_URL}/${id}`);
     return response.data;
   }
 }

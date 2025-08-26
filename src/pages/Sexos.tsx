@@ -49,11 +49,18 @@ const SexosPage = () => {
   const deleteMutation = sexosHook.useDeleteSexoMutation();
 
   const sexos = searchTerm 
-    ? (searchResponse?.data?.sexos || []) 
-    : (sexosResponse?.data?.sexos || []);
-  const pagination = searchTerm 
-    ? (searchResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false }) 
-    : (sexosResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false });
+    ? (searchResponse?.data?.data || []) 
+    : (sexosResponse?.data?.data || []);
+  const total = searchTerm 
+    ? (searchResponse?.data?.total || 0) 
+    : (sexosResponse?.data?.total || 0);
+  const pagination = {
+    currentPage: page,
+    totalPages: Math.ceil(total / limit),
+    totalCount: total,
+    hasNext: page < Math.ceil(total / limit),
+    hasPrev: page > 1
+  };
 
   const loading = sexosLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
@@ -127,7 +134,7 @@ const SexosPage = () => {
 
   // Funciones para abrir diálogos
   const handleOpenCreateDialog = () => {
-    setFormData({ nombre: '', descripcion: '', activo: true });
+    setFormData({ nombre: '', codigo: '', descripcion: '' });
     openCreateDialog();
   };
 

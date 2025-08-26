@@ -1,4 +1,4 @@
-# 🏛️ Sistema Parroquial - Caracterización Poblacional
+# 🚀 MIA - Sistema de Gestión Integral
 
 ## 📋 Descripción
 
@@ -1066,6 +1066,6 @@ Para dudas sobre implementación, personalización o despliegue del sistema:
 
 ---
 
-**Sistema Parroquial v2.0** - Desarrollado con ❤️ para las comunidades católicas de Colombia
+**MIA v2.0** - Desarrollado con ❤️ para la gestión integral de comunidades
 
 *Última actualización: Enero 2025*

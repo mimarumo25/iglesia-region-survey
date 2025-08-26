@@ -40,8 +40,8 @@ const ComunidadesCulturalesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Queries de React Query
-  const { data: comunidadesResponse, isLoading: comunidadesLoading, refetch: refetchComunidades } = comunidadesCulturalesHook.useComunidadesCulturalesQuery(page, limit, sortBy, sortOrder);
-  const { data: searchResponse, isLoading: searchLoading } = comunidadesCulturalesHook.useSearchComunidadesCulturalesQuery(searchTerm, page, limit);
+  const { data: comunidadesResponse, isLoading: comunidadesLoading, refetch: refetchComunidades, error: comunidadesError } = comunidadesCulturalesHook.useComunidadesCulturalesQuery(page, limit, sortBy, sortOrder);
+  const { data: searchResponse, isLoading: searchLoading, error: searchError } = comunidadesCulturalesHook.useSearchComunidadesCulturalesQuery(searchTerm, page, limit);
 
   // Mutaciones de React Query
   const createMutation = comunidadesCulturalesHook.useCreateComunidadCulturalMutation();
@@ -56,6 +56,7 @@ const ComunidadesCulturalesPage = () => {
     : (comunidadesResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false });
 
   const loading = comunidadesLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const hasError = comunidadesError || searchError;
 
   // Estados para diálogos y formularios
   const {
@@ -163,6 +164,11 @@ const ComunidadesCulturalesPage = () => {
     return new Date(dateString).toLocaleDateString('es-ES');
   };
 
+  // Obtener fecha de creación considerando ambos formatos
+  const getCreationDate = (comunidad: ComunidadCultural) => {
+    return comunidad.createdAt || comunidad.created_at;
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       {/* Header */}
@@ -256,7 +262,22 @@ const ComunidadesCulturalesPage = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {hasError ? (
+            <div className="text-center py-8">
+              <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <p className="text-red-600 mb-2">Error al cargar comunidades culturales</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                {(hasError as any)?.response?.data?.message || (hasError as any)?.message || 'Ha ocurrido un error inesperado'}
+              </p>
+              <Button 
+                onClick={() => refetchComunidades()}
+                variant="outline"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Intentar de nuevo
+              </Button>
+            </div>
+          ) : loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
               <span className="ml-2 text-muted-foreground">Cargando comunidades culturales...</span>
@@ -314,7 +335,7 @@ const ComunidadesCulturalesPage = () => {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {formatDate(comunidad.created_at)}
+                          {formatDate(getCreationDate(comunidad))}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">

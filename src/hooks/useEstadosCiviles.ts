@@ -6,6 +6,9 @@ import {
   EstadoCivilCreate,
   EstadoCivilUpdate,
   EstadoCivilResponse,
+  EstadoCivilCreateResponse,
+  EstadoCivilUpdateResponse,
+  EstadoCivilDeleteResponse,
 } from '@/types/estados-civiles';
 
 export const useEstadosCiviles = () => {
@@ -106,10 +109,10 @@ export const useEstadosCiviles = () => {
 
   // Mutación para crear un nuevo estado civil
   const useCreateEstadoCivilMutation = () => {
-    return useMutation<EstadoCivil, Error, EstadoCivilCreate>({
+    return useMutation<EstadoCivilCreateResponse, Error, EstadoCivilCreate>({
       mutationFn: estadosCivilesService.createEstadoCivil,
       onSuccess: () => {
-        queryClient.invalidateQueries(['estadosCiviles']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['estadosCiviles'] });
         toast({
           title: "Éxito",
           description: "Estado civil creado correctamente",
@@ -128,10 +131,10 @@ export const useEstadosCiviles = () => {
 
   // Mutación para actualizar un estado civil existente
   const useUpdateEstadoCivilMutation = () => {
-    return useMutation<EstadoCivil, Error, { id: number; data: EstadoCivilUpdate }>({
+    return useMutation<EstadoCivilUpdateResponse, Error, { id: number; data: EstadoCivilUpdate }>({
       mutationFn: ({ id, data }) => estadosCivilesService.updateEstadoCivil(id, data),
       onSuccess: () => {
-        queryClient.invalidateQueries(['estadosCiviles']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['estadosCiviles'] });
         toast({
           title: "Éxito",
           description: "Estado civil actualizado correctamente",
@@ -150,10 +153,10 @@ export const useEstadosCiviles = () => {
 
   // Mutación para eliminar un estado civil
   const useDeleteEstadoCivilMutation = () => {
-    return useMutation<void, Error, number>({
+    return useMutation<EstadoCivilDeleteResponse, Error, number>({
       mutationFn: estadosCivilesService.deleteEstadoCivil,
       onSuccess: () => {
-        queryClient.invalidateQueries(['estadosCiviles']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['estadosCiviles'] });
         toast({
           title: "Éxito",
           description: "Estado civil eliminado correctamente",

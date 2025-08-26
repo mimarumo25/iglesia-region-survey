@@ -8,6 +8,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      '/api': {
+        target: 'http://206.62.139.100:3000',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   },
   plugins: [
     react(),
@@ -27,5 +34,10 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
+  },
+  // Configuración para SPA - redirigir todas las rutas al index.html
+  preview: {
+    host: "::",
+    port: 8080,
   },
 }));

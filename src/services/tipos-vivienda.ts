@@ -53,25 +53,22 @@ class TiposViviendaService {
         }
       );
 
-      // Transformar la respuesta de la API al formato esperado
-      const apiResponse: ServerResponse<ApiTiposViviendaResponse> = response.data;
-      
-      // Calcular paginación basada en el total y los parámetros
-      const totalCount = apiResponse.data.total;
+      // La API devuelve: { status: "success", data: { data: [...], total: X } }
+      const tiposVivienda = response.data.data.data;
+      const totalCount = response.data.data.total;
       const totalPages = Math.ceil(totalCount / limit);
-      const currentPage = page;
       
       const transformedResponse: ServerResponse<TiposViviendaResponse> = {
-        status: apiResponse.status,
-        message: apiResponse.message,
+        status: response.data.status,
+        message: response.data.message,
         data: {
-          tiposVivienda: apiResponse.data.tipos, // Mapear "tipos" a "tiposVivienda"
+          tiposVivienda: tiposVivienda,
           pagination: {
-            currentPage,
-            totalPages,
-            totalCount,
-            hasNext: currentPage < totalPages,
-            hasPrev: currentPage > 1,
+            currentPage: page,
+            totalPages: totalPages,
+            totalCount: totalCount,
+            hasNext: page < totalPages,
+            hasPrev: page > 1,
           }
         }
       };
@@ -90,7 +87,15 @@ class TiposViviendaService {
       const response = await client.get(
         `/api/catalog/tipos-vivienda/${id}`
       );
-      return response.data;
+      
+      // La API podría devolver la estructura anidada o directa, manejamos ambos casos
+      const tipoVivienda = response.data.data?.data || response.data.data || response.data;
+      
+      return {
+        status: response.data.status || 'success',
+        message: response.data.message || 'Tipo de vivienda obtenido correctamente',
+        data: tipoVivienda
+      };
     } catch (error) {
       console.error('Error al obtener tipo de vivienda por ID:', error);
       throw error;
@@ -105,7 +110,15 @@ class TiposViviendaService {
         `/api/catalog/tipos-vivienda`,
         tipoVivienda
       );
-      return response.data;
+      
+      // La API podría devolver la estructura anidada o directa, manejamos ambos casos
+      const newTipoVivienda = response.data.data?.data || response.data.data || response.data;
+      
+      return {
+        status: response.data.status || 'success',
+        message: response.data.message || 'Tipo de vivienda creado correctamente',
+        data: newTipoVivienda
+      };
     } catch (error) {
       console.error('Error al crear tipo de vivienda:', error);
       throw error;
@@ -120,7 +133,15 @@ class TiposViviendaService {
         `/api/catalog/tipos-vivienda/${id}`,
         tipoVivienda
       );
-      return response.data;
+      
+      // La API podría devolver la estructura anidada o directa, manejamos ambos casos
+      const updatedTipoVivienda = response.data.data?.data || response.data.data || response.data;
+      
+      return {
+        status: response.data.status || 'success',
+        message: response.data.message || 'Tipo de vivienda actualizado correctamente',
+        data: updatedTipoVivienda
+      };
     } catch (error) {
       console.error('Error al actualizar tipo de vivienda:', error);
       throw error;
@@ -163,25 +184,22 @@ class TiposViviendaService {
         }
       );
 
-      // Transformar la respuesta de la API al formato esperado
-      const apiResponse: ServerResponse<ApiTiposViviendaResponse> = response.data;
-      
-      // Calcular paginación basada en el total y los parámetros
-      const totalCount = apiResponse.data.total;
+      // La API devuelve: { status: "success", data: { data: [...], total: X } }
+      const tiposVivienda = response.data.data.data || [];
+      const totalCount = response.data.data.total || 0;
       const totalPages = Math.ceil(totalCount / limit);
-      const currentPage = page;
       
       const transformedResponse: ServerResponse<TiposViviendaResponse> = {
-        status: apiResponse.status,
-        message: apiResponse.message,
+        status: response.data.status,
+        message: response.data.message,
         data: {
-          tiposVivienda: apiResponse.data.tipos, // Mapear "tipos" a "tiposVivienda"
+          tiposVivienda: tiposVivienda,
           pagination: {
-            currentPage,
-            totalPages,
-            totalCount,
-            hasNext: currentPage < totalPages,
-            hasPrev: currentPage > 1,
+            currentPage: page,
+            totalPages: totalPages,
+            totalCount: totalCount,
+            hasNext: page < totalPages,
+            hasPrev: page > 1,
           }
         }
       };
@@ -215,25 +233,22 @@ class TiposViviendaService {
         }
       );
 
-      // Transformar la respuesta de la API al formato esperado
-      const apiResponse: ServerResponse<ApiTiposViviendaResponse> = response.data;
-      
-      // Calcular paginación basada en el total y los parámetros
-      const totalCount = apiResponse.data.total;
+      // La API devuelve: { status: "success", data: { data: [...], total: X } }
+      const tiposVivienda = response.data.data.data || [];
+      const totalCount = response.data.data.total || 0;
       const totalPages = Math.ceil(totalCount / limit);
-      const currentPage = page;
       
       const transformedResponse: ServerResponse<TiposViviendaResponse> = {
-        status: apiResponse.status,
-        message: apiResponse.message,
+        status: response.data.status,
+        message: response.data.message,
         data: {
-          tiposVivienda: apiResponse.data.tipos, // Mapear "tipos" a "tiposVivienda"
+          tiposVivienda: tiposVivienda,
           pagination: {
-            currentPage,
-            totalPages,
-            totalCount,
-            hasNext: currentPage < totalPages,
-            hasPrev: currentPage > 1,
+            currentPage: page,
+            totalPages: totalPages,
+            totalCount: totalCount,
+            hasNext: page < totalPages,
+            hasPrev: page > 1,
           }
         }
       };

@@ -1,15 +1,19 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useTransition } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { PrivateRoute, PublicRoute } from "@/components/auth/PrivateRoute";
 import Layout from "@/components/Layout";
 import { Loader2 } from "lucide-react";
 import { useGlobalTypography } from "@/hooks/useTypography";
+import Logo from "@/components/ui/logo";
+import LoaderSkeleton from "@/components/ui/LoaderSkeleton";
+import { RouteTransition } from "@/components/ui/RouteTransition";
+import { getSkeletonType } from "@/config/routes";
 
 // Lazy-loaded page components
 const Login = React.lazy(() => import("./pages/Login"));
@@ -24,12 +28,8 @@ const Reports = React.lazy(() => import("./pages/Reports"));
 const Users = React.lazy(() => import("./pages/Users"));
 const SettingsWrapper = React.lazy(() => import("./pages/SettingsWrapper"));
 const Parroquias = React.lazy(() => import("./pages/Parroquias"));
-const EnfermedadesPage = React.lazy(() => import("./pages/Enfermedades"));
 const SurveyForm = React.lazy(() => import("@/components/SurveyForm"));
 const NewSurveyWithHierarchy = React.lazy(() => import("./pages/NewSurveyWithHierarchy"));
-const TestHierarchicalForm = React.lazy(() => import("./pages/TestHierarchicalForm"));
-const TestServices = React.lazy(() => import("./pages/TestServices"));
-const DemoPage = React.lazy(() => import("./pages/DemoPage"));
 const Profile = React.lazy(() => import("./pages/Profile"));
 const TallasPage = React.lazy(() => import("./pages/Tallas"));
 // const NoPermissions = React.lazy(() => import("@/components/ui/no-permissions"));
@@ -58,11 +58,16 @@ const App = () => (
           <AuthProvider>
             <Toaster />
             <Sonner />
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_relativeSplatPath: true }}>
             <Suspense fallback={
-              <div className="flex items-center justify-center min-h-screen">
-                <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                <span className="ml-2 text-muted-foreground">Cargando aplicación...</span>
+              <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-green-100">
+                <div className="mb-6">
+                  <Logo size="xl" showText={false} className="w-24 h-24 animate-pulse" />
+                </div>
+                <div className="flex items-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-green-600 mr-3" />
+                  <span className="text-green-800 font-medium text-lg">Cargando MIA...</span>
+                </div>
               </div>
             }>
               <Routes>
@@ -148,31 +153,6 @@ const App = () => (
                         <NewSurveyWithHierarchy />
                       </Layout>
                     </PrivateRoute>
-                  } 
-                />
-
-                <Route 
-                  path="/test-hierarchy" 
-                  element={
-                    <PrivateRoute>
-                      <TestHierarchicalForm />
-                    </PrivateRoute>
-                  } 
-                />
-
-                <Route 
-                  path="/test-services" 
-                  element={
-                    <PrivateRoute>
-                      <TestServices />
-                    </PrivateRoute>
-                  } 
-                />
-
-                <Route 
-                  path="/demo" 
-                  element={
-                    <DemoPage />
                   } 
                 />
                 
@@ -402,17 +382,6 @@ const App = () => (
                 />
 
                 <Route 
-                  path="/settings/situaciones-civiles" 
-                  element={
-                    <PrivateRoute requiredRole={["admin"]}>
-                      <Layout>
-                        <SettingsWrapper />
-                      </Layout>
-                    </PrivateRoute>
-                  } 
-                />
-
-                <Route 
                   path="/settings/departamentos" 
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
@@ -466,12 +435,6 @@ const App = () => (
                 <Route 
                   path="/veredas" 
                   element={<Navigate to="/settings/veredas" replace />} 
-                />
-
-                {/* Ruta temporal de prueba para enfermedades */}
-                <Route 
-                  path="/test-enfermedades" 
-                  element={<EnfermedadesPage />} 
                 />
                 
                 {/* Página de no autorizado */}

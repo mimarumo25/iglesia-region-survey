@@ -139,18 +139,18 @@ export const UserModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white to-gray-50/80 border-0 shadow-2xl">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-card to-background dark:from-card dark:to-background border-border dark:border-border shadow-2xl dark:shadow-2xl dark:shadow-black/20">
         {/* Header mejorado */}
-        <DialogHeader className="space-y-4 pb-6 border-b border-gray-200/50">
+        <DialogHeader className="space-y-4 pb-6 border-b border-border/50 dark:border-border/30">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary dark:from-primary dark:to-secondary rounded-xl flex items-center justify-center shadow-lg">
               <User className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1">
-              <DialogTitle className="text-2xl font-bold text-gray-900 mb-1">
+              <DialogTitle className="text-2xl font-bold text-foreground dark:text-foreground mb-1">
                 {mode === 'create' ? 'Crear Nuevo Usuario' : 'Editar Usuario'}
               </DialogTitle>
-              <DialogDescription className="text-sm text-gray-600">
+              <DialogDescription className="text-sm text-muted-foreground dark:text-muted-foreground">
                 {mode === 'create' 
                   ? 'Complete la información para agregar un nuevo usuario al sistema.'
                   : 'Modifique los datos del usuario seleccionado.'
@@ -164,12 +164,12 @@ export const UserModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 pt-6">
             {/* Información Personal - Card */}
-            <div className="bg-white/60 rounded-2xl p-6 border border-gray-200/50 shadow-sm">
+            <div className="bg-card/60 dark:bg-card/60 rounded-2xl p-6 border border-border/50 dark:border-border/30 shadow-sm">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <User className="w-4 h-4 text-blue-600" />
+                <div className="w-8 h-8 bg-primary/10 dark:bg-primary/20 rounded-lg flex items-center justify-center">
+                  <User className="w-4 h-4 text-primary dark:text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">Información Personal</h3>
+                <h3 className="text-lg font-semibold text-foreground dark:text-foreground">Información Personal</h3>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -179,16 +179,16 @@ export const UserModal = ({
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-700">Nombre</FormLabel>
+                      <FormLabel className="text-sm font-medium text-foreground dark:text-foreground">Nombre</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           placeholder="Ingrese el nombre"
                           disabled={isLoading}
-                          className="h-12 bg-white/80 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                          className="h-12 bg-background/80 dark:bg-background/80 border-input dark:border-input rounded-xl focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/50 focus:border-primary dark:focus:border-primary transition-all duration-200"
                         />
                       </FormControl>
-                      <FormMessage className="text-red-500 text-xs" />
+                      <FormMessage className="text-destructive dark:text-destructive text-xs" />
                     </FormItem>
                   )}
                 />
@@ -199,16 +199,16 @@ export const UserModal = ({
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-700">Apellido</FormLabel>
+                      <FormLabel className="text-sm font-medium text-foreground dark:text-foreground">Apellido</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           placeholder="Ingrese el apellido"
                           disabled={isLoading}
-                          className="h-12 bg-white/80 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                          className="h-12 bg-background/80 dark:bg-background/80 border-input dark:border-input rounded-xl focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/50 focus:border-primary dark:focus:border-primary transition-all duration-200"
                         />
                       </FormControl>
-                      <FormMessage className="text-red-500 text-xs" />
+                      <FormMessage className="text-destructive dark:text-destructive text-xs" />
                     </FormItem>
                   )}
                 />
@@ -216,12 +216,12 @@ export const UserModal = ({
             </div>
 
             {/* Credenciales - Card */}
-            <div className="bg-white/60 rounded-2xl p-6 border border-gray-200/50 shadow-sm">
+            <div className="bg-card/60 dark:bg-card/60 rounded-2xl p-6 border border-border/50 dark:border-border/30 shadow-sm">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Mail className="w-4 h-4 text-green-600" />
+                <div className="w-8 h-8 bg-primary/10 dark:bg-primary/20 rounded-lg flex items-center justify-center">
+                  <Mail className="w-4 h-4 text-primary dark:text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">Credenciales de Acceso</h3>
+                <h3 className="text-lg font-semibold text-foreground dark:text-foreground">Credenciales de Acceso</h3>
               </div>
               
               <div className="space-y-4">
@@ -231,20 +231,20 @@ export const UserModal = ({
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-700">Email</FormLabel>
+                      <FormLabel className="text-sm font-medium text-foreground dark:text-foreground">Email</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground dark:text-muted-foreground" />
                           <Input
                             {...field}
                             type="email"
                             placeholder="usuario@ejemplo.com"
                             disabled={isLoading}
-                            className="h-12 pl-10 bg-white/80 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                            className="h-12 pl-10 bg-background/80 dark:bg-background/80 border-input dark:border-input rounded-xl focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/50 focus:border-primary dark:focus:border-primary transition-all duration-200"
                           />
                         </div>
                       </FormControl>
-                      <FormMessage className="text-red-500 text-xs" />
+                      <FormMessage className="text-destructive dark:text-destructive text-xs" />
                     </FormItem>
                   )}
                 />
@@ -256,21 +256,21 @@ export const UserModal = ({
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium text-gray-700">Contraseña</FormLabel>
+                        <FormLabel className="text-sm font-medium text-foreground dark:text-foreground">Contraseña</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground dark:text-muted-foreground" />
                             <Input
                               {...field}
                               type={showPassword ? "text" : "password"}
                               placeholder="••••••••"
                               disabled={isLoading}
-                              className="h-12 pl-10 bg-white/80 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                              className="h-12 pl-10 bg-background/80 dark:bg-background/80 border-input dark:border-input rounded-xl focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/50 focus:border-primary dark:focus:border-primary transition-all duration-200"
                             />
                           </div>
                         </FormControl>
-                        <FormMessage className="text-red-500 text-xs" />
-                        <p className="text-xs text-gray-500 mt-1">
+                        <FormMessage className="text-destructive dark:text-destructive text-xs" />
+                        <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
                           Mínimo 8 caracteres, incluya mayúsculas, minúsculas, números y símbolos
                         </p>
                       </FormItem>
@@ -281,12 +281,12 @@ export const UserModal = ({
             </div>
 
             {/* Permisos - Card */}
-            <div className="bg-white/60 rounded-2xl p-6 border border-gray-200/50 shadow-sm">
+            <div className="bg-card/60 dark:bg-card/60 rounded-2xl p-6 border border-border/50 dark:border-border/30 shadow-sm">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Shield className="w-4 h-4 text-purple-600" />
+                <div className="w-8 h-8 bg-primary/10 dark:bg-primary/20 rounded-lg flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-primary dark:text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">Permisos y Rol</h3>
+                <h3 className="text-lg font-semibold text-foreground dark:text-foreground">Permisos y Rol</h3>
               </div>
               
               {/* Rol */}

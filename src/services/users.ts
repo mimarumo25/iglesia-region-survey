@@ -1,8 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 import { TokenManager } from '@/utils/cookies';
-
-// Configuración base de la API
-const API_BASE_URL = import.meta.env.VITE_BASE_URL_SERVICES;
+import { API_BASE_URL, API_ENDPOINTS, AXIOS_CONFIG } from '@/config/api';
 
 // Tipos para el usuario
 export interface CreateUserRequest {
@@ -59,15 +57,7 @@ export interface UsersApiResponse {
 }
 
 // Instancia de axios configurada para usuarios
-const usersApi = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'Accept-Language': 'es-ES,es;q=0.8',
-  },
-});
+const usersApi = axios.create(AXIOS_CONFIG);
 
 // Interceptor para añadir el token de autorización
 usersApi.interceptors.request.use(
@@ -93,7 +83,7 @@ export class UsersService {
    */
   static async getUsers(): Promise<UserResponse[]> {
     try {
-      const response: AxiosResponse<ApiResponse<UsersApiResponse>> = await usersApi.get('/api/users');
+      const response: AxiosResponse<ApiResponse<UsersApiResponse>> = await usersApi.get(API_ENDPOINTS.USERS);
       
       if (response.data.status === 'success') {
         // Extraer el array de usuarios de la estructura anidada
@@ -126,7 +116,7 @@ export class UsersService {
    */
   static async getUserById(id: string): Promise<UserResponse> {
     try {
-      const response: AxiosResponse<ApiResponse<UserResponse>> = await usersApi.get(`/api/users/${id}`);
+      const response: AxiosResponse<ApiResponse<UserResponse>> = await usersApi.get(`${API_ENDPOINTS.USERS}/${id}`);
       
       if (response.data.status === 'success') {
         return response.data.data;
@@ -167,7 +157,7 @@ export class UsersService {
    */
   static async updateUser(id: string, userData: UpdateUserRequest): Promise<UserResponse> {
     try {
-      const response: AxiosResponse<ApiResponse<UserResponse>> = await usersApi.put(`/api/users/${id}`, userData);
+      const response: AxiosResponse<ApiResponse<UserResponse>> = await usersApi.put(`${API_ENDPOINTS.USERS}/${id}`, userData);
       
       if (response.data.status === 'success') {
         return response.data.data;
@@ -187,7 +177,7 @@ export class UsersService {
    */
   static async deleteUser(id: string): Promise<void> {
     try {
-      const response: AxiosResponse<ApiResponse> = await usersApi.delete(`/api/users/${id}`);
+      const response: AxiosResponse<ApiResponse> = await usersApi.delete(`${API_ENDPOINTS.USERS}/${id}`);
       
       if (response.data.status !== 'success') {
         throw new Error(response.data.message || 'Error al eliminar usuario');

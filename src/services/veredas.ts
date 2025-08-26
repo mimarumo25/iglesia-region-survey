@@ -100,14 +100,17 @@ class VeredasService {
         }
       );
       
-      // Transformar la respuesta del backend al formato esperado por el frontend
-      const backendData = response.data.data;
+      // La API devuelve: { success: true, data: { data: [...], total: X } }
+      const veredas = response.data.data.data;
+      const totalCount = response.data.data.total;
+      const totalPages = Math.ceil(totalCount / limit);
+      
       return {
-        data: backendData.veredas || [],
-        total: backendData.pagination?.totalCount || 0,
-        page: backendData.pagination?.currentPage || page,
+        data: veredas,
+        total: totalCount,
+        page: page,
         limit: limit,
-        totalPages: backendData.pagination?.totalPages || 0,
+        totalPages: totalPages,
       };
     } catch (error) {
       console.error('Error al obtener veredas:', error);
@@ -191,14 +194,17 @@ class VeredasService {
         }
       );
       
-      // Transformar la respuesta del backend al formato esperado por el frontend
-      const backendData = response.data.data;
+      // La API devuelve: { success: true, data: { data: [...], total: X } }
+      const veredas = response.data.data.data || [];
+      const totalCount = response.data.data.total || 0;
+      const totalPages = Math.ceil(totalCount / limit);
+      
       return {
-        data: backendData.veredas || [],
-        total: backendData.pagination?.totalCount || 0,
-        page: backendData.pagination?.currentPage || page,
+        data: veredas,
+        total: totalCount,
+        page: page,
         limit: limit,
-        totalPages: backendData.pagination?.totalPages || 0,
+        totalPages: totalPages,
       };
     } catch (error) {
       console.error('Error al buscar veredas:', error);
@@ -224,14 +230,17 @@ class VeredasService {
         }
       );
       
-      // Transformar la respuesta del backend al formato esperado por el frontend
-      const backendData = response.data.data;
+      // La API devuelve: { success: true, data: { data: [...], total: X } }
+      const veredas = response.data.data.data || [];
+      const totalCount = response.data.data.total || 0;
+      const totalPages = Math.ceil(totalCount / limit);
+      
       return {
-        data: backendData.veredas || [],
-        total: backendData.pagination?.totalCount || 0,
-        page: backendData.pagination?.currentPage || page,
+        data: veredas,
+        total: totalCount,
+        page: page,
         limit: limit,
-        totalPages: backendData.pagination?.totalPages || 0,
+        totalPages: totalPages,
       };
     } catch (error) {
       console.error('Error al obtener veredas por municipio:', error);

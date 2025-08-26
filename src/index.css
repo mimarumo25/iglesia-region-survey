@@ -1,9 +1,12 @@
+/* Import route transitions styles */
+@import './styles/route-transitions.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL - Parroquial Design System
+/* Definition of the MIA Design System - Inspired by the MIA logo colors
+All colors MUST be HSL - MIA Verde y Azul Temático
 */
 
 @layer base {
@@ -12,61 +15,62 @@ All colors MUST be HSL - Parroquial Design System
     --radius: 0.75rem;
 
     /* Base colors - High contrast for accessibility */
-    --background: 0 0% 90%; /* Fondo gris del 90% */
+    --background: 0 0% 96%; /* Fondo muy claro para contraste */
     --foreground: 0 0% 3.9%;
 
     /* Card components */
-    --card: 0 0% 90%; /* Cards con fondo gris del 90% */
+    --card: 0 0% 98%; /* Cards con fondo casi blanco */
     --card-foreground: 0 0% 3.9%;
 
     /* Popover elements */
-    --popover: 0 0% 90%;
+    --popover: 0 0% 98%;
     --popover-foreground: 0 0% 3.9%;
 
-    /* Primary - Catholic blue más suave y profesional */
-    --primary: 213 70% 50%;
+    /* Primary - Verde MIA (inspirado en el logo) */
+    --primary: 142 76% 36%; /* Verde MIA principal */
     --primary-foreground: 0 0% 98%;
-    --primary-light: 213 70% 60%;
-    --primary-dark: 213 70% 40%;
-    --primary-hover: 213 70% 55%;
+    --primary-light: 142 76% 46%; /* Verde más claro */
+    --primary-dark: 142 76% 26%; /* Verde más oscuro */
+    --primary-hover: 142 76% 41%; /* Verde hover */
 
-    /* Secondary - Liturgical gold accent más suave */
-    --secondary: 32 70% 55%;
+    /* Secondary - Azul complementario MIA */
+    --secondary: 197 71% 52%; /* Azul complementario */
     --secondary-foreground: 0 0% 98%;
-    --secondary-light: 32 70% 65%;
-    --secondary-hover: 32 70% 60%;
+    --secondary-light: 197 71% 62%; /* Azul más claro */
+    --secondary-hover: 197 71% 57%; /* Azul hover */
 
-    /* Muted backgrounds - más neutros con gris del 90% */
-    --muted: 0 0% 90%;
+    /* Muted backgrounds - tonos neutros */
+    --muted: 0 0% 92%;
     --muted-foreground: 215.4 16.3% 35%; /* Texto más oscuro para mejor contraste */
 
-    /* Accent colors - más neutros con gris del 90% */
-    --accent: 0 0% 90%;
+    /* Accent colors - tonos neutros complementarios */
+    --accent: 0 0% 94%;
     --accent-foreground: 0 0% 3.9%;
 
-    /* Status colors */
+    /* Status colors - usando verdes y azules de MIA */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --success: 142 76% 36%;
+    --success: 142 76% 36%; /* Verde MIA para success */
     --success-foreground: 0 0% 98%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 98%;
 
-    /* Form elements */
+    /* Form elements - tonos neutros claros */
     --border: 214.3 31.8% 91.4%;
-    --input: 0 0% 90%; /* Input con fondo gris del 90% */
-    --input-border: 214.3 31.8% 91.4%;
-    --ring: 213 70% 50%; /* Usar el primary ajustado */
+    --input: 0 0% 96%; /* Input con fondo muy claro */
+    --input-border: 142 20% 85%; /* Borde sutil verde */
+    --ring: 142 76% 36%; /* Ring verde MIA */
 
-    /* Gradientes más sutiles con gris del 90% */
+    /* Gradientes MIA - Verde y Azul temáticos */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-light)) 50%, hsl(var(--primary-hover)) 100%);
     --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--secondary-light)) 50%, hsl(var(--secondary-hover)) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 90%) 0%, hsl(0 0% 85%) 100%); /* Gradiente sutil con gris del 90% */
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 90%) 0%, hsl(0 0% 87%) 100%); /* Card con gris del 90% */
-    --gradient-glow: radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 70%); /* Más sutil */
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 96%) 0%, hsl(0 0% 92%) 100%); /* Gradiente sutil muy claro */
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 98%) 0%, hsl(0 0% 94%) 100%); /* Card muy claro */
+    --gradient-glow: radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 70%);
     --gradient-animated: linear-gradient(-45deg, hsl(var(--primary)), hsl(var(--primary-light)), hsl(var(--secondary)), hsl(var(--primary-hover)));
     --gradient-sidebar: linear-gradient(180deg, hsl(var(--sidebar-background)) 0%, hsl(var(--sidebar-primary)) 100%);
     --gradient-hover: linear-gradient(135deg, hsl(var(--primary-hover)) 0%, hsl(var(--secondary-hover)) 100%);
+    --gradient-mia: linear-gradient(135deg, hsl(142 76% 36%) 0%, hsl(197 71% 52%) 100%); /* Gradiente MIA específico */
 
     /* Sombras más suaves y menos dramáticas */
     --shadow-sm: 0 1px 2px 0 hsl(var(--foreground) / 0.02);
@@ -85,15 +89,15 @@ All colors MUST be HSL - Parroquial Design System
     --transition-elastic: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     --transition-spring: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
-    /* Sidebar actualizada para tema parroquial */
-    --sidebar-background: 213 70% 35%; /* Más oscuro para mejor contraste */
+    /* Sidebar MIA - usando verde oscuro del tema */
+    --sidebar-background: 142 76% 26%; /* Verde MIA oscuro */
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 213 70% 25%; /* Más oscuro que sidebar-background */
+    --sidebar-primary: 142 76% 20%; /* Verde MIA más oscuro */
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 213 70% 45%; /* Más claro que sidebar-background */
+    --sidebar-accent: 142 76% 36%; /* Verde MIA principal */
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 213 70% 30%;
-    --sidebar-ring: 213 70% 50%;
+    --sidebar-border: 142 76% 22%; /* Verde MIA borde */
+    --sidebar-ring: 142 76% 36%; /* Verde MIA ring */
   }
 
   .dark {
@@ -419,6 +423,118 @@ All colors MUST be HSL - Parroquial Design System
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background-color: hsl(var(--sidebar-border) / 0.6);
+}
+
+/* Optimización para layout fijo del sidebar */
+.sidebar-dynamic-width {
+  position: relative;
+  flex-shrink: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Scrollbar personalizado para el contenido principal */
+.main-content-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+
+.main-content-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.main-content-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.main-content-scroll::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--border) / 0.3);
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.main-content-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--border) / 0.5);
+}
+
+/* Prevenir FOUC (Flash of Unstyled Content) y CLS (Cumulative Layout Shift) */
+.sidebar-dynamic-width * {
+  /* Suprimir transiciones CSS hasta que el componente esté completamente montado */
+  --sidebar-transition-enabled: enabled;
+}
+
+/* Estabilidad visual avanzada durante el montaje */
+.sidebar-dynamic-width {
+  /* Preparar transformaciones y reducir repaints */
+  will-change: auto;
+  transform: translateZ(0); /* Activar aceleración de hardware */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Optimizar el renderizado inicial */
+.sidebar-dynamic-width[class*="opacity-0"] {
+  /* Usar visibility en lugar de opacity para mejores optimizaciones */
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* Mejoras para evitar cambios bruscos de layout durante el montaje */
+[data-sidebar] {
+  contain: layout style;
+  /* Preparar el elemento para transiciones suaves */
+  will-change: transform, opacity, width;
+  /* Forzar un nuevo contexto de apilamiento para evitar repaints */
+  transform: translateZ(0);
+}
+
+/* Prevenir saltos durante los cambios de tamaño */
+.sidebar-dynamic-width [data-sidebar="sidebar"] {
+  /* Prevenir jumps durante cambios de estado */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* Optimizar para GPU */
+  transform: translateZ(0);
+  /* Contener las repaintings */
+  contain: layout style paint;
+}
+
+/* Asegurar que el contenido del sidebar no cause reflujo */
+.sidebar-text-wrapper {
+  /* Contener el layout para elementos de texto */
+  contain: layout;
+  /* Optimización de renderizado de texto */
+  text-rendering: optimizeSpeed;
+}
+
+/* Mejorar la estabilidad visual del contenido colapsable */
+[data-radix-collapsible-content] {
+  /* Suprimir animaciones iniciales bruscas */
+  contain: layout;
+  /* Preparar para animaciones suaves */
+  will-change: height;
+}
+
+/* Prevenir flash de contenido no estilizado en iconos */
+.lucide {
+  /* Mantener las dimensiones estables */
+  min-width: 1rem;
+  min-height: 1rem;
+  /* Optimizar renderizado SVG */
+  shape-rendering: optimizeSpeed;
+}
+
+/* Optimización específica para el menú de navegación */
+.sidebar-dynamic-width .active-menu-item {
+  /* Asegurar que los elementos activos tengan prioridad de renderizado */
+  transform: translateZ(0);
+  contain: layout style;
+}
+
+/* Optimización de hover states para evitar repaints innecesarios */
+.sidebar-dynamic-width [class*="hover:"]:hover {
+  /* Contener los efectos hover */
+  contain: style paint;
 }
 
 /* Mejoras para el texto truncado */

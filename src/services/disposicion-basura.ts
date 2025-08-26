@@ -12,8 +12,11 @@ import {
  * Servicio para la gestión de Disposición de Basura
  * Maneja todas las operaciones CRUD relacionadas con los tipos de disposición de basura
  */
+
+// URL base para el servicio de disposición de basura
+const BASE_URL = '/api/catalog/disposicion-basura/tipos';
+
 export class DisposicionBasuraService {
-  private static readonly BASE_URL = '/api/catalog/disposicion-basura/tipos';
 
   /**
    * Obtiene la lista de tipos de disposición de basura con paginación y filtros
@@ -32,7 +35,7 @@ export class DisposicionBasuraService {
     });
 
     const response = await client.get<DisposicionBasuraResponse>(
-      `${this.BASE_URL}?${params.toString()}`
+      `${BASE_URL}?${params.toString()}`
     );
     return response.data;
   }
@@ -56,7 +59,7 @@ export class DisposicionBasuraService {
     });
 
     const response = await client.get<DisposicionBasuraResponse>(
-      `${this.BASE_URL}?${params.toString()}`
+      `${BASE_URL}?${params.toString()}`
     );
     return response.data;
   }
@@ -65,7 +68,7 @@ export class DisposicionBasuraService {
    * Crea un nuevo tipo de disposición de basura
    */
   static async createDisposicionBasura(data: DisposicionBasuraCreate): Promise<DisposicionBasuraCreateResponse> {
-    const response = await client.post<DisposicionBasuraCreateResponse>(this.BASE_URL, data);
+    const response = await client.post<DisposicionBasuraCreateResponse>(BASE_URL, data);
     return response.data;
   }
 
@@ -73,7 +76,7 @@ export class DisposicionBasuraService {
    * Actualiza un tipo de disposición de basura existente
    */
   static async updateDisposicionBasura(id: string, data: DisposicionBasuraUpdate): Promise<DisposicionBasuraUpdateResponse> {
-    const response = await client.put<DisposicionBasuraUpdateResponse>(`${this.BASE_URL}/${id}`, data);
+    const response = await client.put<DisposicionBasuraUpdateResponse>(`${BASE_URL}/${id}`, data);
     return response.data;
   }
 
@@ -81,7 +84,7 @@ export class DisposicionBasuraService {
    * Elimina un tipo de disposición de basura
    */
   static async deleteDisposicionBasura(id: string): Promise<DisposicionBasuraDeleteResponse> {
-    const response = await client.delete<DisposicionBasuraDeleteResponse>(`${this.BASE_URL}/${id}`);
+    const response = await client.delete<DisposicionBasuraDeleteResponse>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -89,7 +92,7 @@ export class DisposicionBasuraService {
    * Obtiene un tipo de disposición de basura por ID
    */
   static async getDisposicionBasuraById(id: string): Promise<{ status: 'success'; data: any }> {
-    const response = await client.get(`${this.BASE_URL}/${id}`);
+    const response = await client.get(`${BASE_URL}/${id}`);
     return response.data;
   }
 }

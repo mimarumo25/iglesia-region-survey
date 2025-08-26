@@ -40,7 +40,7 @@ const ParentescosPage = () => {
   const [includeInactive, setIncludeInactive] = useState(false);
 
   // Queries de React Query
-  const { data: parentescosResponse, isLoading: parentescosLoading, refetch: refetchParentescos } = parentescosHook.useParentescosQuery(page, limit, includeInactive);
+  const { data: parentescosData, isLoading: parentescosLoading, refetch: refetchParentescos } = parentescosHook.useParentescosQuery(page, limit, includeInactive);
   const { data: searchResponse, isLoading: searchLoading } = parentescosHook.useSearchParentescosQuery(searchTerm, page, limit, includeInactive);
 
   // Mutaciones de React Query
@@ -48,8 +48,16 @@ const ParentescosPage = () => {
   const updateMutation = parentescosHook.useUpdateParentescoMutation();
   const deleteMutation = parentescosHook.useDeleteParentescoMutation();
 
-  const parentescos = searchTerm ? (searchResponse?.data?.parentescos || []) : (parentescosResponse?.data?.parentescos || []);
-  const pagination = searchTerm ? (searchResponse?.data?.pagination || { currentPage: 1, totalPages: 1, totalCount: 0 }) : (parentescosResponse?.data?.pagination || { currentPage: 1, totalPages: 1, totalCount: 0 });
+  const parentescos = searchTerm ? (searchResponse || []) : (parentescosData || []);
+  const totalCount = Array.isArray(parentescos) ? parentescos.length : 0;
+  
+  // Crear paginación local ya que la API no maneja paginación del lado del servidor
+  const pagination = {
+    currentPage: 1,
+    totalPages: 1, 
+    totalCount: totalCount,
+    limit: limit
+  };
 
   const loading = parentescosLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
@@ -292,7 +300,7 @@ const ParentescosPage = () => {
               <Loader2 className="w-8 h-8 text-muted-foreground" />
               <span className="ml-2 text-muted-foreground">Cargando parentescos...</span>
             </div>
-          ) : parentescos.length === 0 ? (
+          ) : !Array.isArray(parentescos) || parentescos.length === 0 ? (
             <div className="text-center py-8">
               <Users className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4 " />
               <p className="text-muted-foreground">No se encontraron parentescos</p>
@@ -316,7 +324,7 @@ const ParentescosPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {parentescos.map((parentesco, index) => (
+                  {Array.isArray(parentescos) && parentescos.map((parentesco, index) => (
                     <TableRow 
                       key={parentesco.id_parentesco}
                       className="hover:bg-muted/50 "
@@ -338,7 +346,7 @@ const ParentescosPage = () => {
                       </TableCell>
                       <TableCell>
                         {parentesco.activo ? (
-                          <Badge variant="success" className="">
+                          <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
                             <Eye className="w-3 h-3 mr-1" /> Activo
                           </Badge>
                         ) : (
@@ -377,39 +385,7 @@ const ParentescosPage = () => {
                 </TableBody>
               </Table>
 
-              {/* Paginación con diseño mejorado */}
-              {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <p className="text-sm text-muted-foreground">
-                    Mostrando {parentescos.length} de {pagination.totalCount} parentescos
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={pagination.currentPage === 1}
-                      className=""
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Anterior
-                    </Button>
-                    <span className="flex items-center px-3 text-sm font-medium text-muted-foreground bg-primary/10 rounded-md">
-                      Página {pagination.currentPage} de {pagination.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={pagination.currentPage === pagination.totalPages}
-                      className=""
-                    >
-                      Siguiente
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              {/* Sin paginación ya que la API devuelve todos los datos */}
             </>
           )}
         </CardContent>

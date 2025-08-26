@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import {
   Table,
   TableBody,
@@ -25,8 +24,6 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  CheckCircle2,
-  XCircle,
 } from 'lucide-react';
 
 const DepartamentosPage = () => {
@@ -73,43 +70,40 @@ const DepartamentosPage = () => {
   const [selectedDepartamento, setSelectedDepartamento] = useState<Departamento | null>(null);
   const [formData, setFormData] = useState<DepartamentoFormData>({
     nombre: '',
-    descripcion: '',
-    activo: true,
+    codigo_dane: '',
   });
 
   // Manejo del formulario
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nombre.trim()) return;
+    if (!formData.nombre.trim() || !formData.codigo_dane.trim()) return;
 
     createMutation.mutate({
       nombre: formData.nombre.trim(),
-      descripcion: formData.descripcion?.trim() || undefined,
-      activo: formData.activo,
+      codigo_dane: formData.codigo_dane.trim(),
     }, {
       onSuccess: () => {
         setShowCreateDialog(false);
-        setFormData({ nombre: '', descripcion: '', activo: true });
+        setFormData({ nombre: '', codigo_dane: '' });
       }
     });
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedDepartamento || !formData.nombre.trim()) return;
+    if (!selectedDepartamento || !formData.nombre.trim() || !formData.codigo_dane.trim()) return;
 
     updateMutation.mutate({
       id: selectedDepartamento.id_departamento,
       data: {
         nombre: formData.nombre.trim(),
-        descripcion: formData.descripcion?.trim() || undefined,
-        activo: formData.activo,
+        codigo_dane: formData.codigo_dane.trim(),
       }
     }, {
       onSuccess: () => {
         setShowEditDialog(false);
         setSelectedDepartamento(null);
-        setFormData({ nombre: '', descripcion: '', activo: true });
+        setFormData({ nombre: '', codigo_dane: '' });
       }
     });
   };
@@ -127,7 +121,7 @@ const DepartamentosPage = () => {
 
   // Funciones para abrir diálogos
   const handleOpenCreateDialog = () => {
-    setFormData({ nombre: '', descripcion: '', activo: true });
+    setFormData({ nombre: '', codigo_dane: '' });
     openCreateDialog();
   };
 
@@ -135,8 +129,7 @@ const DepartamentosPage = () => {
     setSelectedDepartamento(departamento);
     setFormData({
       nombre: departamento.nombre,
-      descripcion: departamento.descripcion || '',
-      activo: departamento.activo,
+      codigo_dane: departamento.codigo_dane,
     });
     openEditDialog();
   };
@@ -278,8 +271,7 @@ const DepartamentosPage = () => {
                   <TableRow>
                     <TableHead>ID</TableHead>
                     <TableHead>Nombre</TableHead>
-                    <TableHead>Descripción</TableHead>
-                    <TableHead>Estado</TableHead>
+                    <TableHead>Código DANE</TableHead>
                     <TableHead>Fecha Creación</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
@@ -295,22 +287,9 @@ const DepartamentosPage = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {departamento.descripcion || 'N/A'}
+                        <span className="text-sm font-mono bg-muted px-2 py-1 rounded">
+                          {departamento.codigo_dane}
                         </span>
-                      </TableCell>
-                      <TableCell>
-                        {departamento.activo ? (
-                          <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Activo
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
-                            <XCircle className="w-3 h-3 mr-1" />
-                            Inactivo
-                          </Badge>
-                        )}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
@@ -397,22 +376,13 @@ const DepartamentosPage = () => {
           required
         />
         <ConfigFormField
-          id="descripcion"
-          label="Descripción"
-          placeholder="Descripción opcional del departamento"
-          value={formData.descripcion}
-          onChange={(value) => setFormData({ ...formData, descripcion: value })}
+          id="codigo_dane"
+          label="Código DANE"
+          placeholder="Ej: 25"
+          value={formData.codigo_dane}
+          onChange={(value) => setFormData({ ...formData, codigo_dane: value })}
+          required
         />
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="activo"
-            checked={formData.activo}
-            onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
-          />
-          <label htmlFor="activo" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Activo
-          </label>
-        </div>
       </ConfigModal>
 
       {/* Modal de Editar Departamento */}
@@ -436,22 +406,13 @@ const DepartamentosPage = () => {
           required
         />
         <ConfigFormField
-          id="edit-descripcion"
-          label="Descripción"
-          placeholder="Descripción opcional del departamento"
-          value={formData.descripcion}
-          onChange={(value) => setFormData({ ...formData, descripcion: value })}
+          id="edit-codigo_dane"
+          label="Código DANE"
+          placeholder="Ej: 25"
+          value={formData.codigo_dane}
+          onChange={(value) => setFormData({ ...formData, codigo_dane: value })}
+          required
         />
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="edit-activo"
-            checked={formData.activo}
-            onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
-          />
-          <label htmlFor="edit-activo" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Activo
-          </label>
-        </div>
       </ConfigModal>
 
       {/* Modal de Eliminar Departamento */}

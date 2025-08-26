@@ -4,49 +4,65 @@
 
 export interface Talla {
   id_talla: string;
-  nombre: string;
-  descripcion?: string | null;
-  tipo?: string; // ej: "camisa", "pantalon", "calzado"
+  tipo_prenda: string;
+  talla: string;
+  genero?: string;
+  descripcion?: string;
+  equivalencia_numerica?: string;
   activo: boolean;
   created_at?: string;
   updated_at?: string;
 }
 
 export interface TallaFormData {
-  nombre: string;
-  descripcion: string;
-  tipo: string;
+  tipo_prenda: string;
+  talla: string;
+  genero?: string;
+  descripcion?: string;
+  equivalencia_numerica?: string;
   activo: boolean;
 }
 
 export interface TallaCreate {
-  nombre: string;
-  descripcion?: string | null;
-  tipo?: string;
+  tipo_prenda: string;
+  talla: string;
+  genero?: string;
+  descripcion?: string;
+  equivalencia_numerica?: string;
   activo?: boolean;
 }
 
 export interface TallaUpdate {
-  nombre?: string;
-  descripcion?: string | null;
-  tipo?: string;
+  tipo_prenda?: string;
+  talla?: string;
+  genero?: string;
+  descripcion?: string;
+  equivalencia_numerica?: string;
   activo?: boolean;
 }
 
-export interface TallasResponse {
-  tallas: Talla[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasNext: boolean;
-    hasPrev: boolean;
+// Respuesta de la API para tallas (estructura anidada)
+export interface TallasApiResponse {
+  success: boolean;
+  message: string;
+  data: {
+    status: string;
+    data: Talla[];
+    total: number;
+    message: string;
   };
+  timestamp: string;
 }
 
 export interface ServerResponse<T> {
-  status: string;
-  data: T;
-  message?: string;
-  timestamp?: string;
+  success: boolean;
+  timestamp: string;
+  data?: T;
+}
+
+export interface TallasStatsResponse {
+  total_tallas: number;
+  tallas_activas: number;
+  tallas_inactivas: number;
+  ultimo_registro?: string;
 }

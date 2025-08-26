@@ -58,7 +58,7 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
   };
   const [settings, setSettings] = useState({
     // Configuración General
-    siteName: "Sistema Parroquial",
+    siteName: "MIA",
     siteDescription: "Sistema de caracterización familiar",
     timezone: "America/Bogota",
     language: "es",
@@ -68,7 +68,7 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
     emailPort: "587",
     emailUser: "sistema@parroquia.com",
     emailPassword: "",
-    emailFromName: "Sistema Parroquial",
+    emailFromName: "MIA System",
     
     // Configuración de Notificaciones
     emailNotifications: true,
@@ -151,7 +151,7 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
             <Settings className="w-8 h-8 text-gray-600" />
             Configuración del Sistema
           </h1>
-          <p className="text-gray-600">Personaliza y configura el sistema parroquial</p>
+          <p className="text-gray-600">Personaliza y configura el sistema MIA</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleBackup}>

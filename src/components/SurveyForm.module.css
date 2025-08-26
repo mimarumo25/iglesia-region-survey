@@ -1,50 +1,50 @@
-/* Estilos específicos para el componente SurveyForm */
+/* Estilos específicos para el componente SurveyForm con soporte para tema oscuro */
 /* Solo afectan a este componente sin alterar el resto del diseño */
 
 .parishCard {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background: var(--gradient-card);
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-card);
   transition: all 0.3s ease;
 }
 
 .parishCard:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-hover);
 }
 
 .parishInput {
   transition: all 0.3s ease;
-  border: 2px solid #d1d5db;
-  background-color: #f9fafb;
-  color: #111827;
+  border: 2px solid hsl(var(--input-border));
+  background-color: hsl(var(--input));
+  color: hsl(var(--foreground));
   font-weight: 500;
 }
 
 .parishInput:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  background-color: #ffffff;
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.1);
+  background-color: hsl(var(--background));
 }
 
 .parishInput:hover {
-  border-color: #9ca3af;
-  background-color: #ffffff;
+  border-color: hsl(var(--border));
+  background-color: hsl(var(--background));
 }
 
 .parishInput::placeholder {
-  color: #6b7280;
+  color: hsl(var(--muted-foreground));
   font-weight: 400;
 }
 
 .parishButtonPrimary {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: var(--gradient-primary);
   transition: all 0.3s ease;
 }
 
 .parishButtonPrimary:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  background: var(--gradient-hover);
   transform: translateY(-1px);
-  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-hover);
 }
 
 .parishProgressBar {

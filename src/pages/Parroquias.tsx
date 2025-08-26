@@ -12,8 +12,11 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
+import { AutocompleteWithLoading } from '@/components/ui/autocomplete-with-loading';
 import { useParroquias } from '@/hooks/useParroquias';
+import { useMunicipios } from '@/hooks/useMunicipios';
 import { Parroquia, ParroquiaFormData } from '@/types/parroquias';
+import { municipiosToOptions, formatDate } from '@/lib/utils';
 import {
   Church,
   Plus,
@@ -28,6 +31,7 @@ import {
 
 const ParroquiasPage = () => {
   const parroquiasHook = useParroquias();
+  const municipiosHook = useMunicipios();
 
   // Estados para paginación y filtros
   const [page, setPage] = useState(1);
@@ -39,11 +43,17 @@ const ParroquiasPage = () => {
   // Queries de React Query
   const { data: parroquiasResponse, isLoading: parroquiasLoading, refetch: refetchParroquias } = parroquiasHook.useParroquiasQuery(page, limit, sortBy, sortOrder);
   const { data: searchResponse, isLoading: searchLoading } = parroquiasHook.useSearchParroquiasQuery(searchTerm, page, limit);
+  
+  // Query para obtener todos los municipios para el autocomplete
+  const { data: municipios, isLoading: municipiosLoading, error: municipiosError } = municipiosHook.useAllMunicipiosQuery();
 
   // Mutaciones de React Query
   const createMutation = parroquiasHook.useCreateParroquiaMutation();
   const updateMutation = parroquiasHook.useUpdateParroquiaMutation();
   const deleteMutation = parroquiasHook.useDeleteParroquiaMutation();
+
+  // Preparar opciones de municipios para el autocomplete
+  const municipiosOptions = municipiosToOptions((municipios as any) || [], true);
 
   const parroquias = searchTerm 
     ? (searchResponse?.data?.parroquias || []) 
@@ -335,7 +345,7 @@ const ParroquiasPage = () => {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                          {formatDate(parroquia.created_at)}
+                          {formatDate(parroquia.fecha_creacion)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -443,14 +453,24 @@ const ParroquiasPage = () => {
           value={formData.email}
           onChange={(value) => setFormData({ ...formData, email: value })}
         />
-        <ConfigFormField
-          id="id_municipio"
-          label="ID Municipio"
-          placeholder="Ej: 1 (Medellín)"
-          value={formData.id_municipio}
-          onChange={(value) => setFormData({ ...formData, id_municipio: value })}
-          required
-        />
+        
+        {/* Campo de Municipio con Autocomplete */}
+        <div className="space-y-2">
+          <label htmlFor="municipio" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Municipio <span className="text-red-500">*</span>
+          </label>
+          <AutocompleteWithLoading
+            options={municipiosOptions}
+            value={formData.id_municipio}
+            onValueChange={(value) => setFormData({ ...formData, id_municipio: value })}
+            placeholder="Seleccionar municipio..."
+            searchPlaceholder="Buscar municipio..."
+            emptyText="No se encontraron municipios"
+            isLoading={municipiosLoading}
+            error={municipiosError}
+            errorText="Error al cargar municipios"
+          />
+        </div>
       </ConfigModal>
 
       {/* Modal de Editar Parroquia */}
@@ -495,14 +515,24 @@ const ParroquiasPage = () => {
           value={formData.email}
           onChange={(value) => setFormData({ ...formData, email: value })}
         />
-        <ConfigFormField
-          id="edit-id_municipio"
-          label="ID Municipio"
-          placeholder="Ej: 1 (Medellín)"
-          value={formData.id_municipio}
-          onChange={(value) => setFormData({ ...formData, id_municipio: value })}
-          required
-        />
+        
+        {/* Campo de Municipio con Autocomplete para Edición */}
+        <div className="space-y-2">
+          <label htmlFor="edit-municipio" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Municipio <span className="text-red-500">*</span>
+          </label>
+          <AutocompleteWithLoading
+            options={municipiosOptions}
+            value={formData.id_municipio}
+            onValueChange={(value) => setFormData({ ...formData, id_municipio: value })}
+            placeholder="Seleccionar municipio..."
+            searchPlaceholder="Buscar municipio..."
+            emptyText="No se encontraron municipios"
+            isLoading={municipiosLoading}
+            error={municipiosError}
+            errorText="Error al cargar municipios"
+          />
+        </div>
       </ConfigModal>
 
       {/* Modal de Eliminar Parroquia */}

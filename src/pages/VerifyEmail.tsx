@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Church, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import Logo from "@/components/ui/logo";
 import { useToast } from "@/hooks/use-toast";
 import { AuthService } from "@/services/auth";
 
@@ -101,13 +102,13 @@ const VerifyEmail = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-transparent to-transparent" />
             </div>
-            <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-secondary rounded-full flex items-center justify-center shadow-xl">
-              <Church className="w-12 h-12 text-white" />
+            <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-xl">
+              <Logo size="md" showText={false} className="w-12 h-12" />
             </div>
           </div>
           <div className="text-center max-w-md">
-            <h2 className="text-3xl font-bold text-foreground mb-2">Gestión Parroquial</h2>
-            <p className="text-muted-foreground text-lg">Sistema integral para la caracterización y seguimiento de las comunidades católicas</p>
+            <h2 className="text-3xl font-bold text-foreground mb-2">MIA</h2>
+            <p className="text-muted-foreground text-lg">Sistema integral de gestión y seguimiento</p>
           </div>
         </div>
 
@@ -115,11 +116,11 @@ const VerifyEmail = () => {
         <div className="w-full max-w-md mx-auto space-y-8">
           {/* Logo y título para móviles */}
           <div className="lg:hidden text-center space-y-4">
-            <div className="mx-auto w-20 h-20 bg-primary rounded-full flex items-center justify-center shadow-lg">
-              <Church className="w-10 h-10 text-white" />
+            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+              <Logo size="md" showText={false} className="w-10 h-10" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">Sistema Parroquial</h1>
+              <h1 className="text-4xl font-bold text-foreground mb-2">MIA</h1>
               <p className="text-muted-foreground text-lg">Verificación de Email</p>
             </div>
           </div>

@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
 import { useTallas } from '@/hooks/useTallas';
-import { Talla, TallaFormData, ServerResponse, TallasResponse } from '@/types/tallas';
+import { Talla, TallaFormData, TallasApiResponse } from '@/types/tallas';
 import {
   Shirt,
   Plus,
@@ -37,11 +37,21 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
-// Opciones para el tipo de talla
-const TIPOS_TALLA = [
-  { value: 'camisa', label: 'Camisa/Blusa' },
+// Opciones para el tipo de prenda (actualizadas según la API)
+const TIPOS_PRENDA = [
+  { value: 'camisa', label: 'Camisa' },
+  { value: 'blusa', label: 'Blusa' },
   { value: 'pantalon', label: 'Pantalón' },
-  { value: 'calzado', label: 'Calzado' },
+  { value: 'falda', label: 'Falda' },
+  { value: 'zapato', label: 'Zapato/Calzado' },
+  { value: 'vestido', label: 'Vestido' },
+];
+
+// Opciones para el género (actualizadas según la API)
+const GENEROS = [
+  { value: 'masculino', label: 'Masculino' },
+  { value: 'femenino', label: 'Femenino' },
+  { value: 'unisex', label: 'Unisex' },
 ];
 
 const TallasPage = () => {
@@ -50,52 +60,35 @@ const TallasPage = () => {
   // Estados para paginación y filtros
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [sortBy, setSortBy] = useState('nombre');
+  const [sortBy, setSortBy] = useState('talla');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState('');
-  const [activoOnly, setActivoOnly] = useState(false);
 
   // Queries de React Query
   const { data: tallasResponse, isLoading: tallasLoading, refetch: refetchTallas } = tallasHook.useTallasQuery(page, limit, sortBy, sortOrder);
-  const { data: searchResponse, isLoading: searchLoading } = tallasHook.useSearchTallasQuery(searchTerm, page, limit, sortBy, sortOrder);
-  const { data: activasResponse, isLoading: activasLoading } = tallasHook.useTallasActivasQuery(page, limit, sortBy, sortOrder);
+  const { data: searchResponse, isLoading: searchLoading } = tallasHook.useSearchTallasQuery(searchTerm, page, limit);
 
   // Mutaciones de React Query
   const createMutation = tallasHook.useCreateTallaMutation();
   const updateMutation = tallasHook.useUpdateTallaMutation();
   const deleteMutation = tallasHook.useDeleteTallaMutation();
 
-  let tallas: Talla[] = [];
-  let pagination = {
-    currentPage: 1,
-    totalPages: 1,
-    totalCount: 0,
-    hasNext: false,
-    hasPrev: false,
+  // Extraer los datos correctamente de la respuesta anidada de la API
+  const currentResponse = searchTerm ? searchResponse : tallasResponse;
+  const tallas = Array.isArray(currentResponse?.data?.data) 
+    ? currentResponse.data.data 
+    : [];
+    
+  // Adaptar la respuesta de la API al formato esperado por el frontend
+  const pagination = {
+    currentPage: page,
+    totalPages: Math.ceil((currentResponse?.data?.total || 0) / limit),
+    totalCount: currentResponse?.data?.total || 0,
+    hasNext: page < Math.ceil((currentResponse?.data?.total || 0) / limit),
+    hasPrev: page > 1,
   };
 
-  // Determinar qué datos y paginación usar
-  if (activoOnly && activasResponse) {
-    const responseData = activasResponse as ServerResponse<TallasResponse>;
-    if (responseData.status === 'success') {
-      tallas = responseData?.data?.tallas || [];
-      pagination = responseData?.data?.pagination || pagination;
-    }
-  } else if (searchTerm && searchResponse) {
-    const responseData = searchResponse as ServerResponse<TallasResponse>;
-    if (responseData.status === 'success') {
-      tallas = responseData?.data?.tallas || [];
-      pagination = responseData?.data?.pagination || pagination;
-    }
-  } else if (tallasResponse) {
-    const responseData = tallasResponse as ServerResponse<TallasResponse>;
-    if (responseData.status === 'success') {
-      tallas = responseData?.data?.tallas || [];
-      pagination = responseData?.data?.pagination || pagination;
-    }
-  }
-
-  const loading = tallasLoading || searchLoading || activasLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const loading = tallasLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios
   const {
@@ -112,47 +105,67 @@ const TallasPage = () => {
   
   const [selectedTalla, setSelectedTalla] = useState<Talla | null>(null);
   const [formData, setFormData] = useState<TallaFormData>({
-    nombre: '',
+    tipo_prenda: '',
+    talla: '',
+    genero: '',
     descripcion: '',
-    tipo: '',
+    equivalencia_numerica: '',
     activo: true,
   });
 
   // Manejo del formulario
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nombre.trim()) return;
+    if (!formData.talla.trim() || !formData.tipo_prenda.trim()) return;
 
     createMutation.mutate({
-      nombre: formData.nombre.trim(),
+      tipo_prenda: formData.tipo_prenda.trim(),
+      talla: formData.talla.trim(),
+      genero: formData.genero?.trim() || undefined,
       descripcion: formData.descripcion?.trim() || null,
-      tipo: formData.tipo?.trim() || undefined,
+      equivalencia_numerica: formData.equivalencia_numerica?.trim() || undefined,
       activo: formData.activo,
     }, {
       onSuccess: () => {
         setShowCreateDialog(false);
-        setFormData({ nombre: '', descripcion: '', tipo: '', activo: true });
+        setFormData({ 
+          tipo_prenda: '', 
+          talla: '', 
+          genero: '', 
+          descripcion: '', 
+          equivalencia_numerica: '', 
+          activo: true 
+        });
       }
     });
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTalla || !formData.nombre.trim()) return;
+    if (!selectedTalla || !formData.talla.trim() || !formData.tipo_prenda.trim()) return;
 
     updateMutation.mutate({
       id: selectedTalla.id_talla,
       data: {
-        nombre: formData.nombre.trim(),
+        tipo_prenda: formData.tipo_prenda.trim(),
+        talla: formData.talla.trim(),
+        genero: formData.genero?.trim() || undefined,
         descripcion: formData.descripcion?.trim() || null,
-        tipo: formData.tipo?.trim() || undefined,
+        equivalencia_numerica: formData.equivalencia_numerica?.trim() || undefined,
         activo: formData.activo,
       }
     }, {
       onSuccess: () => {
         setShowEditDialog(false);
         setSelectedTalla(null);
-        setFormData({ nombre: '', descripcion: '', tipo: '', activo: true });
+        setFormData({ 
+          tipo_prenda: '', 
+          talla: '', 
+          genero: '', 
+          descripcion: '', 
+          equivalencia_numerica: '', 
+          activo: true 
+        });
       }
     });
   };
@@ -170,16 +183,25 @@ const TallasPage = () => {
 
   // Funciones para abrir diálogos
   const handleOpenCreateDialog = () => {
-    setFormData({ nombre: '', descripcion: '', tipo: '', activo: true });
+    setFormData({ 
+      tipo_prenda: '', 
+      talla: '', 
+      genero: '', 
+      descripcion: '', 
+      equivalencia_numerica: '', 
+      activo: true 
+    });
     openCreateDialog();
   };
 
   const handleOpenEditDialog = (talla: Talla) => {
     setSelectedTalla(talla);
     setFormData({
-      nombre: talla.nombre,
+      tipo_prenda: talla.tipo_prenda,
+      talla: talla.talla,
+      genero: talla.genero || '',
       descripcion: talla.descripcion || '',
-      tipo: talla.tipo || '',
+      equivalencia_numerica: talla.equivalencia_numerica || '',
       activo: talla.activo,
     });
     openEditDialog();
@@ -194,7 +216,6 @@ const TallasPage = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1); // Resetear paginación al buscar
-    setActivoOnly(false); // Desactivar filtro de activos
     // searchTerm ya está actualizado por el onChange del Input
   };
 
@@ -203,37 +224,36 @@ const TallasPage = () => {
     setPage(newPage);
   };
 
-  // Manejo del filtro de activos
-  const handleActivoOnlyChange = (checked: boolean) => {
-    setActivoOnly(checked);
-    setSearchTerm(''); // Limpiar búsqueda
-    setPage(1); // Resetear paginación al cambiar filtro
-  };
-
   // Formatear fecha
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('es-ES');
   };
 
-  // Obtener icono según el tipo de talla
-  const getTipoIcon = (tipo?: string) => {
-    switch (tipo) {
+  // Obtener icono según el tipo de prenda
+  const getTipoIcon = (tipo_prenda?: string) => {
+    switch (tipo_prenda?.toLowerCase()) {
       case 'camisa':
+      case 'blusa':
         return <Shirt className="w-4 h-4" />;
       case 'pantalon':
         return <div className="w-4 h-4 border-2 border-current rounded-sm" />;
+      case 'falda':
+        return <div className="w-4 h-4 border-2 border-current rounded-b-full" />;
+      case 'zapato':
       case 'calzado':
         return <div className="w-4 h-4 border-2 border-current rounded-full" />;
+      case 'vestido':
+        return <div className="w-4 h-4 border-2 border-current rounded-t-sm rounded-b-full" />;
       default:
         return <Shirt className="w-4 h-4 opacity-50" />;
     }
   };
 
   // Obtener label del tipo
-  const getTipoLabel = (tipo?: string) => {
-    const tipoObj = TIPOS_TALLA.find(t => t.value === tipo);
-    return tipoObj?.label || tipo || 'No especificado';
+  const getTipoLabel = (tipo_prenda?: string) => {
+    const tipoObj = TIPOS_PRENDA.find(t => t.value.toLowerCase() === tipo_prenda?.toLowerCase());
+    return tipoObj?.label || tipo_prenda || 'No especificado';
   };
 
   return (
@@ -273,21 +293,11 @@ const TallasPage = () => {
               {/* Búsqueda por texto */}
               <div className="flex-1">
                 <Input
-                  placeholder="Buscar por nombre, descripción o tipo..."
+                  placeholder="Buscar por talla, descripción o tipo..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="border-input-border focus:ring-primary"
                 />
-              </div>
-              
-              {/* Solo activos */}
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="activo-only"
-                  checked={activoOnly}
-                  onCheckedChange={handleActivoOnlyChange}
-                />
-                <Label htmlFor="activo-only">Solo Activos</Label>
               </div>
 
               {/* Botones de acción */}
@@ -299,13 +309,12 @@ const TallasPage = () => {
                   <Search className="w-4 h-4 mr-2" />
                   Buscar
                 </Button>
-                {(searchTerm || activoOnly) && (
+                {searchTerm && (
                   <Button
                     type="button"
                     variant="ghost"
                     onClick={() => {
                       setSearchTerm('');
-                      setActivoOnly(false);
                       setPage(1);
                     }}
                   >
@@ -350,7 +359,7 @@ const TallasPage = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Activas</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {tallas.filter(t => t.activo).length}
+                  {Array.isArray(tallas) ? tallas.filter(t => t.activo).length : 0}
                 </p>
               </div>
               <Eye className="w-8 h-8 text-green-500 opacity-70" />
@@ -377,11 +386,18 @@ const TallasPage = () => {
             <div className="text-center py-8">
               <Shirt className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
               <p className="text-muted-foreground">No se encontraron tallas</p>
-              {(searchTerm || activoOnly) && (
+              {searchTerm && (
                 <p className="text-sm text-muted-foreground/70">
-                  Intenta con otros términos de búsqueda o filtros
+                  Intenta con otros términos de búsqueda
                 </p>
               )}
+              <div className="mt-4 text-xs text-muted-foreground/70 bg-muted p-2 rounded">
+                <p>Debug Info:</p>
+                <p>Response: {currentResponse ? 'Sí' : 'No'}</p>
+                <p>Data array: {Array.isArray(currentResponse?.data?.data) ? 'Sí' : 'No'}</p>
+                <p>Array length: {currentResponse?.data?.data?.length || 0}</p>
+                <p>Total: {currentResponse?.data?.total || 0}</p>
+              </div>
             </div>
           ) : (
             <>
@@ -389,11 +405,12 @@ const TallasPage = () => {
                 <TableHeader>
                   <TableRow className="hover:bg-muted/50">
                     <TableHead className="font-semibold">ID</TableHead>
-                    <TableHead className="font-semibold">Nombre</TableHead>
-                    <TableHead className="font-semibold">Tipo</TableHead>
+                    <TableHead className="font-semibold">Talla</TableHead>
+                    <TableHead className="font-semibold">Tipo Prenda</TableHead>
+                    <TableHead className="font-semibold">Género</TableHead>
+                    <TableHead className="font-semibold">Equivalencia</TableHead>
                     <TableHead className="font-semibold">Descripción</TableHead>
                     <TableHead className="font-semibold">Estado</TableHead>
-                    <TableHead className="font-semibold">Fecha Creación</TableHead>
                     <TableHead className="text-right font-semibold text-muted-foreground">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -409,16 +426,30 @@ const TallasPage = () => {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Shirt className="w-4 h-4 text-muted-foreground" />
-                          <span className="font-medium">{talla.nombre}</span>
+                          <span className="font-medium">{talla.talla}</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          {getTipoIcon(talla.tipo)}
+                          {getTipoIcon(talla.tipo_prenda)}
                           <Badge variant="outline" className="text-xs">
-                            {getTipoLabel(talla.tipo)}
+                            {getTipoLabel(talla.tipo_prenda)}
                           </Badge>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {talla.genero && (
+                          <Badge variant="secondary" className="text-xs">
+                            {talla.genero.charAt(0).toUpperCase() + talla.genero.slice(1)}
+                          </Badge>
+                        ) || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        {talla.equivalencia_numerica && (
+                          <Badge variant="outline" className="text-xs">
+                            {talla.equivalencia_numerica}
+                          </Badge>
+                        ) || 'N/A'}
                       </TableCell>
                       <TableCell>
                         {talla.descripcion || 'N/A'}
@@ -520,24 +551,24 @@ const TallasPage = () => {
         submitText="Crear Talla"
       >
         <ConfigFormField
-          id="nombre"
-          label="Nombre de la Talla"
+          id="talla"
+          label="Talla"
           placeholder="Ej: S, M, L, XL, 36, 38, etc."
-          value={formData.nombre}
-          onChange={(value) => setFormData({ ...formData, nombre: value })}
+          value={formData.talla}
+          onChange={(value) => setFormData({ ...formData, talla: value })}
           required
         />
         <div className="space-y-2">
-          <Label htmlFor="tipo">Tipo de Talla</Label>
+          <Label htmlFor="tipo_prenda">Tipo de Prenda</Label>
           <Select
-            value={formData.tipo}
-            onValueChange={(value) => setFormData({ ...formData, tipo: value })}
+            value={formData.tipo_prenda}
+            onValueChange={(value) => setFormData({ ...formData, tipo_prenda: value })}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Seleccionar tipo de talla..." />
+              <SelectValue placeholder="Seleccionar tipo de prenda..." />
             </SelectTrigger>
             <SelectContent>
-              {TIPOS_TALLA.map((tipo) => (
+              {TIPOS_PRENDA.map((tipo) => (
                 <SelectItem key={tipo.value} value={tipo.value}>
                   <div className="flex items-center gap-2">
                     {getTipoIcon(tipo.value)}
@@ -548,6 +579,31 @@ const TallasPage = () => {
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="genero">Género</Label>
+          <Select
+            value={formData.genero}
+            onValueChange={(value) => setFormData({ ...formData, genero: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Seleccionar género..." />
+            </SelectTrigger>
+            <SelectContent>
+              {GENEROS.map((genero) => (
+                <SelectItem key={genero.value} value={genero.value}>
+                  {genero.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <ConfigFormField
+          id="equivalencia_numerica"
+          label="Equivalencia Numérica"
+          placeholder="Ej: 34-36, 90-95, etc."
+          value={formData.equivalencia_numerica}
+          onChange={(value) => setFormData({ ...formData, equivalencia_numerica: value })}
+        />
         <ConfigFormField
           id="descripcion"
           label="Descripción"
@@ -578,24 +634,24 @@ const TallasPage = () => {
         submitText="Guardar Cambios"
       >
         <ConfigFormField
-          id="edit-nombre"
-          label="Nombre de la Talla"
+          id="edit-talla"
+          label="Talla"
           placeholder="Ej: S, M, L, XL, 36, 38, etc."
-          value={formData.nombre}
-          onChange={(value) => setFormData({ ...formData, nombre: value })}
+          value={formData.talla}
+          onChange={(value) => setFormData({ ...formData, talla: value })}
           required
         />
         <div className="space-y-2">
-          <Label htmlFor="edit-tipo">Tipo de Talla</Label>
+          <Label htmlFor="edit-tipo_prenda">Tipo de Prenda</Label>
           <Select
-            value={formData.tipo}
-            onValueChange={(value) => setFormData({ ...formData, tipo: value })}
+            value={formData.tipo_prenda}
+            onValueChange={(value) => setFormData({ ...formData, tipo_prenda: value })}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Seleccionar tipo de talla..." />
+              <SelectValue placeholder="Seleccionar tipo de prenda..." />
             </SelectTrigger>
             <SelectContent>
-              {TIPOS_TALLA.map((tipo) => (
+              {TIPOS_PRENDA.map((tipo) => (
                 <SelectItem key={tipo.value} value={tipo.value}>
                   <div className="flex items-center gap-2">
                     {getTipoIcon(tipo.value)}
@@ -606,6 +662,31 @@ const TallasPage = () => {
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="edit-genero">Género</Label>
+          <Select
+            value={formData.genero}
+            onValueChange={(value) => setFormData({ ...formData, genero: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Seleccionar género..." />
+            </SelectTrigger>
+            <SelectContent>
+              {GENEROS.map((genero) => (
+                <SelectItem key={genero.value} value={genero.value}>
+                  {genero.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <ConfigFormField
+          id="edit-equivalencia_numerica"
+          label="Equivalencia Numérica"
+          placeholder="Ej: 34-36, 90-95, etc."
+          value={formData.equivalencia_numerica}
+          onChange={(value) => setFormData({ ...formData, equivalencia_numerica: value })}
+        />
         <ConfigFormField
           id="edit-descripcion"
           label="Descripción"
@@ -633,7 +714,7 @@ const TallasPage = () => {
         icon={Trash2}
         loading={deleteMutation.isPending}
         onConfirm={handleDelete}
-        entityName={selectedTalla?.nombre}
+        entityName={selectedTalla?.talla}
         submitText="Eliminar Talla"
       />
     </div>

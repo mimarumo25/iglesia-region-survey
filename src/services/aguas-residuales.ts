@@ -7,18 +7,10 @@ import {
   AguasResidualesResponse,
   ServerResponse 
 } from '@/types/aguas-residuales';
-
-const API_BASE_URL = import.meta.env.VITE_BASE_URL_SERVICES || 'http://206.62.139.100:3000';
+import { AXIOS_CONFIG, API_ENDPOINTS } from '@/config/api';
 
 // Cliente básico sin autenticación para modo desarrollo
-const basicClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-});
+const basicClient = axios.create(AXIOS_CONFIG);
 
 // Función para obtener el cliente correcto
 const getApiClient = () => {
@@ -41,7 +33,7 @@ class AguasResidualesService {
     try {
       const client = getApiClient();
       const response = await client.get(
-        `/api/catalog/aguas-residuales`,
+        API_ENDPOINTS.CATALOG.AGUAS_RESIDUALES,
         {
           params: {
             page,
@@ -51,7 +43,30 @@ class AguasResidualesService {
           },
         }
       );
-      return response.data;
+      
+      // La API devuelve: { success: true, data: { data: [...], total: X } }
+      const aguasResiduales = response.data.data.data;
+      const totalCount = response.data.data.total;
+      const totalPages = Math.ceil(totalCount / limit);
+      
+      // Transformar al formato esperado por el frontend
+      const transformedResponse: ServerResponse<AguasResidualesResponse> = {
+        success: response.data.success,
+        message: response.data.message,
+        timestamp: response.data.timestamp,
+        data: {
+          tiposAguasResiduales: aguasResiduales,
+          pagination: {
+            currentPage: page,
+            totalPages: totalPages,
+            totalCount: totalCount,
+            hasNext: page < totalPages,
+            hasPrev: page > 1,
+          }
+        }
+      };
+      
+      return transformedResponse;
     } catch (error) {
       console.error('Error al obtener tipos de aguas residuales:', error);
       throw error;
@@ -65,7 +80,16 @@ class AguasResidualesService {
       const response = await client.get(
         `/api/catalog/aguas-residuales/${id}`
       );
-      return response.data;
+      
+      // La API podría devolver la estructura anidada o directa, manejamos ambos casos
+      const aguaResidual = response.data.data?.data || response.data.data || response.data;
+      
+      return {
+        success: response.data.success || true,
+        message: response.data.message || 'Tipo de agua residual obtenido correctamente',
+        timestamp: response.data.timestamp || new Date().toISOString(),
+        data: aguaResidual
+      };
     } catch (error) {
       console.error('Error al obtener tipo de agua residual por ID:', error);
       throw error;
@@ -80,7 +104,16 @@ class AguasResidualesService {
         `/api/catalog/aguas-residuales`,
         aguaResidual
       );
-      return response.data;
+      
+      // La API podría devolver la estructura anidada o directa, manejamos ambos casos
+      const newAguaResidual = response.data.data?.data || response.data.data || response.data;
+      
+      return {
+        success: response.data.success || true,
+        message: response.data.message || 'Tipo de agua residual creado correctamente',
+        timestamp: response.data.timestamp || new Date().toISOString(),
+        data: newAguaResidual
+      };
     } catch (error) {
       console.error('Error al crear tipo de agua residual:', error);
       throw error;
@@ -95,7 +128,16 @@ class AguasResidualesService {
         `/api/catalog/aguas-residuales/${id}`,
         aguaResidual
       );
-      return response.data;
+      
+      // La API podría devolver la estructura anidada o directa, manejamos ambos casos
+      const updatedAguaResidual = response.data.data?.data || response.data.data || response.data;
+      
+      return {
+        success: response.data.success || true,
+        message: response.data.message || 'Tipo de agua residual actualizado correctamente',
+        timestamp: response.data.timestamp || new Date().toISOString(),
+        data: updatedAguaResidual
+      };
     } catch (error) {
       console.error('Error al actualizar tipo de agua residual:', error);
       throw error;
@@ -137,7 +179,30 @@ class AguasResidualesService {
           },
         }
       );
-      return response.data;
+      
+      // La API devuelve: { success: true, data: { data: [...], total: X } }
+      const aguasResiduales = response.data.data.data || [];
+      const totalCount = response.data.data.total || 0;
+      const totalPages = Math.ceil(totalCount / limit);
+      
+      // Transformar al formato esperado por el frontend
+      const transformedResponse: ServerResponse<AguasResidualesResponse> = {
+        success: response.data.success,
+        message: response.data.message,
+        timestamp: response.data.timestamp,
+        data: {
+          tiposAguasResiduales: aguasResiduales,
+          pagination: {
+            currentPage: page,
+            totalPages: totalPages,
+            totalCount: totalCount,
+            hasNext: page < totalPages,
+            hasPrev: page > 1,
+          }
+        }
+      };
+      
+      return transformedResponse;
     } catch (error) {
       console.error('Error al buscar tipos de aguas residuales:', error);
       throw error;

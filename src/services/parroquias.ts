@@ -52,22 +52,50 @@ class ParroquiasService {
         }
       );
 
-      // Transformar la respuesta de la API al formato esperado
-      const apiResponse: ServerResponse<ApiParroquiasResponse> = response.data;
+      // La API devuelve: { success: true, message: "...", data: {...} }
+      const apiResponse = response.data;
       
-      // La API ya devuelve la paginación completa, no necesitamos calcularla
+      // Determinar estructura de datos - puede que la API devuelva data directamente como array o como objeto
+      let parroquiasData: Parroquia[] = [];
+      let totalCount = 0;
+      
+      if (apiResponse.data) {
+        if (Array.isArray(apiResponse.data)) {
+          // Estructura: { success: true, data: [...], total: 48 }
+          parroquiasData = apiResponse.data;
+          totalCount = apiResponse.total || apiResponse.data.length;
+        } else if (apiResponse.data.data && Array.isArray(apiResponse.data.data)) {
+          // Estructura: { success: true, data: { status: "success", data: [...], total: 3 } }
+          parroquiasData = apiResponse.data.data;
+          totalCount = apiResponse.data.total || apiResponse.data.data.length;
+        } else if (apiResponse.data.parroquias) {
+          // Estructura: { success: true, data: { parroquias: [...], total: 48 } }
+          parroquiasData = apiResponse.data.parroquias;
+          totalCount = apiResponse.data.total || apiResponse.data.parroquias.length;
+        } else {
+          // Estructura desconocida, try to extract data
+          parroquiasData = [];
+          totalCount = 0;
+        }
+      }
+      
+      const totalPages = Math.ceil(totalCount / limit);
+      const hasNext = page < totalPages;
+      const hasPrev = page > 1;
+
+      // Transformar al formato esperado por el frontend
       const transformedResponse: ServerResponse<ParroquiasResponse> = {
-        success: apiResponse.success,
+        status: apiResponse.success ? 'success' : 'error',
         message: apiResponse.message,
-        timestamp: apiResponse.timestamp,
+        total: totalCount,
         data: {
-          parroquias: apiResponse.data.parroquias || [],
-          pagination: apiResponse.data.pagination || {
+          parroquias: parroquiasData,
+          pagination: {
             currentPage: page,
-            totalPages: 0,
-            totalCount: 0,
-            hasNext: false,
-            hasPrev: false,
+            totalPages: totalPages,
+            totalCount: totalCount,
+            hasNext: hasNext,
+            hasPrev: hasPrev,
           }
         }
       };
@@ -159,22 +187,28 @@ class ParroquiasService {
         }
       );
       
-      // Transformar la respuesta de la API al formato esperado
-      const apiResponse: ServerResponse<ApiParroquiasResponse> = response.data;
+      // La API devuelve: { status: "success", data: [...], total: 48, message: "..." }
+      const apiResponse = response.data;
       
-      // La API ya devuelve la paginación completa
+      // Calcular paginación basándose en el total y la página actual
+      const totalCount = apiResponse.total || 0;
+      const totalPages = Math.ceil(totalCount / limit);
+      const hasNext = page < totalPages;
+      const hasPrev = page > 1;
+
+      // Transformar al formato esperado por el frontend
       const transformedResponse: ServerResponse<ParroquiasResponse> = {
-        success: apiResponse.success,
+        status: apiResponse.status,
         message: apiResponse.message,
-        timestamp: apiResponse.timestamp,
+        total: totalCount,
         data: {
-          parroquias: apiResponse.data.parroquias || [],
-          pagination: apiResponse.data.pagination || {
+          parroquias: apiResponse.data || [],
+          pagination: {
             currentPage: page,
-            totalPages: 0,
-            totalCount: 0,
-            hasNext: false,
-            hasPrev: false,
+            totalPages: totalPages,
+            totalCount: totalCount,
+            hasNext: hasNext,
+            hasPrev: hasPrev,
           }
         }
       };
@@ -208,22 +242,28 @@ class ParroquiasService {
         }
       );
 
-      // Transformar la respuesta de la API al formato esperado
-      const apiResponse: ServerResponse<ApiParroquiasResponse> = response.data;
+      // La API devuelve: { status: "success", data: [...], total: 48, message: "..." }
+      const apiResponse = response.data;
       
-      // La API ya devuelve la paginación completa
+      // Calcular paginación basándose en el total y la página actual
+      const totalCount = apiResponse.total || 0;
+      const totalPages = Math.ceil(totalCount / limit);
+      const hasNext = page < totalPages;
+      const hasPrev = page > 1;
+
+      // Transformar al formato esperado por el frontend
       const transformedResponse: ServerResponse<ParroquiasResponse> = {
-        success: apiResponse.success,
+        status: apiResponse.status,
         message: apiResponse.message,
-        timestamp: apiResponse.timestamp,
+        total: totalCount,
         data: {
-          parroquias: apiResponse.data.parroquias || [],
-          pagination: apiResponse.data.pagination || {
+          parroquias: apiResponse.data || [],
+          pagination: {
             currentPage: page,
-            totalPages: 0,
-            totalCount: 0,
-            hasNext: false,
-            hasPrev: false,
+            totalPages: totalPages,
+            totalCount: totalCount,
+            hasNext: hasNext,
+            hasPrev: hasPrev,
           }
         }
       };

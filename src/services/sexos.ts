@@ -1,5 +1,13 @@
 import { apiClient } from '@/interceptors/axios';
 import axios from 'axios';
+import { 
+  Sexo, 
+  SexoCreate, 
+  SexoUpdate, 
+  SexosResponse, 
+  ServerResponse, 
+  ApiSexosResponse 
+} from '@/types/sexos';
 
 const API_BASE_URL = import.meta.env.VITE_BASE_URL_SERVICES || 'http://206.62.139.100:3000';
 
@@ -21,57 +29,6 @@ const getApiClient = () => {
   return apiClient;
 };
 
-// Interfaces
-export interface Sexo {
-  id_sexo: string;
-  nombre: string;
-  descripcion?: string;
-  activo: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface SexoCreate {
-  nombre: string;
-  descripcion?: string;
-  activo: boolean;
-}
-
-export interface SexoUpdate {
-  nombre: string;
-  descripcion?: string;
-  activo: boolean;
-}
-
-export interface SexosResponse {
-  sexos: Sexo[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-}
-
-export interface ServerResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-  timestamp: string;
-}
-
-export interface ApiSexosResponse {
-  sexos: Sexo[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-}
-
 class SexosService {
   // Obtener todos los sexos con paginación
   async getSexos(
@@ -79,7 +36,7 @@ class SexosService {
     limit: number = 10,
     sortBy: string = 'id_sexo',
     sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ): Promise<ServerResponse<SexosResponse>> {
+  ): Promise<SexosResponse> {
     try {
       const client = getApiClient();
       const response = await client.get(
@@ -94,25 +51,7 @@ class SexosService {
         }
       );
 
-      const apiResponse: ServerResponse<ApiSexosResponse> = response.data;
-      
-      const transformedResponse: ServerResponse<SexosResponse> = {
-        success: apiResponse.success,
-        message: apiResponse.message,
-        timestamp: apiResponse.timestamp,
-        data: {
-          sexos: apiResponse.data.sexos || [],
-          pagination: apiResponse.data.pagination || {
-            currentPage: page,
-            totalPages: 0,
-            totalCount: 0,
-            hasNext: false,
-            hasPrev: false,
-          }
-        }
-      };
-
-      return transformedResponse;
+      return response.data;
     } catch (error) {
       console.error('Error al obtener sexos:', error);
       throw error;
@@ -183,7 +122,7 @@ class SexosService {
     limit: number = 10,
     sortBy: string = 'nombre',
     sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ): Promise<ServerResponse<SexosResponse>> {
+  ): Promise<SexosResponse> {
     try {
       const client = getApiClient();
       const response = await client.get(
@@ -199,25 +138,7 @@ class SexosService {
         }
       );
       
-      const apiResponse: ServerResponse<ApiSexosResponse> = response.data;
-      
-      const transformedResponse: ServerResponse<SexosResponse> = {
-        success: apiResponse.success,
-        message: apiResponse.message,
-        timestamp: apiResponse.timestamp,
-        data: {
-          sexos: apiResponse.data.sexos || [],
-          pagination: apiResponse.data.pagination || {
-            currentPage: page,
-            totalPages: 0,
-            totalCount: 0,
-            hasNext: false,
-            hasPrev: false,
-          }
-        }
-      };
-
-      return transformedResponse;
+      return response.data;
     } catch (error) {
       console.error('Error al buscar sexos:', error);
       throw error;
@@ -230,7 +151,7 @@ class SexosService {
     limit: number = 10,
     sortBy: string = 'nombre',
     sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ): Promise<ServerResponse<SexosResponse>> {
+  ): Promise<SexosResponse> {
     // Simplemente llamar a getSexos ya que no hay filtro de activo
     return this.getSexos(page, limit, sortBy, sortOrder);
   }

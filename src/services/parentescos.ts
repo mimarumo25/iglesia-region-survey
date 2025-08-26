@@ -50,9 +50,9 @@ class ParentescosService {
         }
       );
       
-      // La API devuelve {status: "success", data: [...]}
-      if (response.data?.status === 'success' && Array.isArray(response.data.data)) {
-        return response.data.data;
+      // La API devuelve {success: true, message: {data: [...], total: X}}
+      if (response.data?.success && response.data?.message && Array.isArray(response.data.message.data)) {
+        return response.data.message.data;
       }
       
       return [];
@@ -69,7 +69,15 @@ class ParentescosService {
       const response = await client.get(
         `/api/catalog/parentescos/${id}`
       );
-      return response.data;
+      
+      // La API podría tener estructura anidada, manejamos ambos casos
+      const parentesco = response.data?.message?.data || response.data?.data || response.data;
+      
+      return {
+        status: response.data?.success ? 'success' : 'error',
+        message: response.data?.data || 'Parentesco obtenido correctamente',
+        data: parentesco
+      };
     } catch (error) {
       console.error('Error al obtener parentesco por ID:', error);
       throw error;
@@ -87,7 +95,15 @@ class ParentescosService {
           activo: parentesco.activo !== undefined ? parentesco.activo : true
         }
       );
-      return response.data;
+      
+      // La API devuelve {success: true, message: {parentesco_data}, data: "mensaje"}
+      const newParentesco = response.data?.message;
+      
+      return {
+        status: response.data?.success ? 'success' : 'error',
+        message: response.data?.data || 'Parentesco creado correctamente',
+        data: newParentesco
+      };
     } catch (error) {
       console.error('Error al crear parentesco:', error);
       throw error;
@@ -102,7 +118,15 @@ class ParentescosService {
         `/api/catalog/parentescos/${id}`,
         parentesco
       );
-      return response.data;
+      
+      // La API podría tener estructura anidada, manejamos ambos casos
+      const updatedParentesco = response.data?.message?.data || response.data?.data || response.data;
+      
+      return {
+        status: response.data?.success ? 'success' : 'error',
+        message: response.data?.data || 'Parentesco actualizado correctamente',
+        data: updatedParentesco
+      };
     } catch (error) {
       console.error('Error al actualizar parentesco:', error);
       throw error;
@@ -143,9 +167,9 @@ class ParentescosService {
         }
       );
       
-      // La API devuelve {status: "success", data: [...]}
-      if (response.data?.status === 'success' && Array.isArray(response.data.data)) {
-        return response.data.data;
+      // La API devuelve {success: true, message: {data: [...], total: X}}
+      if (response.data?.success && response.data?.message && Array.isArray(response.data.message.data)) {
+        return response.data.message.data;
       }
       
       return [];
@@ -173,9 +197,9 @@ class ParentescosService {
         }
       );
       
-      // La API devuelve {status: "success", data: [...]}
-      if (response.data?.status === 'success' && Array.isArray(response.data.data)) {
-        return response.data.data;
+      // La API devuelve {success: true, message: {data: [...], total: X}}
+      if (response.data?.success && response.data?.message && Array.isArray(response.data.message.data)) {
+        return response.data.message.data;
       }
       
       return [];

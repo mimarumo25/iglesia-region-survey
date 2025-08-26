@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Eye, EyeOff, Church, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthContext } from "@/context/AuthContext";
 import { LoginCredentials } from "@/types/auth";
 import { AuthService } from "@/services/auth";
+import Logo from "@/components/ui/logo";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -190,26 +191,22 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 dark:from-background dark:via-background dark:to-muted/5 flex items-center justify-center p-4">
       <div className="relative w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
         {/* Columna de imagen */}
         <div className="hidden lg:flex flex-col items-center justify-center space-y-6">
           <div className="relative group">
-            <div className="w-[500px] h-[500px] rounded-3xl overflow-hidden shadow-2xl border-4 border-white/20 hover-lift">
+            <div className="w-[500px] h-[500px] rounded-3xl overflow-hidden shadow-2xl border-4 border-border/50 dark:border-border/30 hover-lift bg-gradient-to-br from-card to-background dark:from-card dark:to-background flex items-center justify-center">
               <img 
-                src="https://images.unsplash.com/photo-1520637836862-4d197d17c13a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                alt="Iglesia parroquial" 
-                className="w-full h-full object-cover"
+                src="/logo_mia.png" 
+                alt="MIA - Sistema de Gestión Integral" 
+                className="w-[400px] h-[400px] object-contain"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-transparent to-transparent" />
-            </div>
-            <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-secondary rounded-full flex items-center justify-center shadow-xl">
-              <Church className="w-12 h-12 text-white" />
             </div>
           </div>
           <div className="text-center max-w-md">
-            <h2 className="text-3xl font-bold text-foreground mb-2">Gestión Parroquial</h2>
-            <p className="text-muted-foreground text-lg">Sistema integral para la caracterización y seguimiento de las comunidades católicas</p>
+            <h2 className="text-3xl font-bold text-foreground dark:text-foreground mb-2">MIA</h2>
+            <p className="text-muted-foreground dark:text-muted-foreground text-lg">Sistema integral de gestión y seguimiento</p>
           </div>
         </div>
 
@@ -217,25 +214,25 @@ const Login = () => {
         <div className="w-full max-w-md mx-auto space-y-8">
           {/* Logo y título para móviles */}
           <div className="lg:hidden text-center space-y-4">
-            <div className="mx-auto w-20 h-20 bg-primary rounded-full flex items-center justify-center shadow-lg">
-              <Church className="w-10 h-10 text-white" />
+            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-card to-background dark:from-card dark:to-background rounded-2xl flex items-center justify-center shadow-lg border-2 border-border dark:border-border">
+              <Logo iconOnly size="lg" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">Sistema Parroquial</h1>
-              <p className="text-muted-foreground text-lg">Caracterización Poblacional</p>
+              <h1 className="text-4xl font-bold text-foreground dark:text-foreground mb-2">MIA</h1>
+              <p className="text-muted-foreground dark:text-muted-foreground text-lg">Iniciar Sesión</p>
             </div>
           </div>
 
           {/* Formulario de login o recuperación */}
-          <Card className="card-enhanced hover-lift click-effect rounded-3xl border-2">
+          <Card className="card-enhanced hover-lift click-effect rounded-3xl border-2 bg-card dark:bg-card border-border dark:border-border shadow-2xl dark:shadow-2xl dark:shadow-black/20">
             <CardHeader className="space-y-1 text-center pb-8">
-              <div className="inline-block bg-primary/10 rounded-2xl px-6 py-3 mb-4">
-                <CardTitle className="text-3xl text-foreground">
+              <div className="inline-block bg-primary/10 dark:bg-primary/20 rounded-2xl px-6 py-3 mb-4">
+                <CardTitle className="text-3xl text-foreground dark:text-foreground">
                   {showDevLogin ? "Modo Desarrollo" : 
                    showForgotPassword ? "Recuperar Contraseña" : "Iniciar Sesión"}
                 </CardTitle>
               </div>
-              <CardDescription className="text-muted-foreground text-lg">
+              <CardDescription className="text-muted-foreground dark:text-muted-foreground text-lg">
                 {showDevLogin 
                   ? "Sesión cerrada correctamente en modo desarrollo"
                   : showForgotPassword 
@@ -249,7 +246,9 @@ const Login = () => {
                 // Interfaz especial para modo desarrollo después del logout
                 <div className="space-y-6">
                   <Alert className="border-green-500/50 bg-green-50 dark:bg-green-950/20">
-                    <Church className="h-5 w-5 text-green-600" />
+                    <div className="w-5 h-5 text-green-600 bg-white rounded p-1 border border-green-200">
+                      <Logo iconOnly size="sm" />
+                    </div>
                     <AlertDescription className="text-green-800 dark:text-green-200">
                       <strong>Logout exitoso:</strong> Ha cerrado sesión correctamente del sistema. 
                       En modo desarrollo puede volver a ingresar sin credenciales.
@@ -260,7 +259,9 @@ const Login = () => {
                     onClick={handleDevLogin}
                     className="w-full h-14 parish-button-primary text-lg font-semibold rounded-2xl"
                   >
-                    <Church className="w-5 h-5 mr-2" />
+                    <div className="w-5 h-5 mr-2 bg-white rounded p-1">
+                      <Logo iconOnly size="sm" />
+                    </div>
                     Volver a Ingresar (Modo Dev)
                   </Button>
                   
@@ -274,24 +275,24 @@ const Login = () => {
                 // Formulario de recuperación de contraseña
                 <form onSubmit={handleRecoverySubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="recovery-email" className="text-sm font-medium">Correo Electrónico</Label>
+                    <Label htmlFor="recovery-email" className="text-sm font-medium text-foreground dark:text-foreground">Correo Electrónico</Label>
                     <div className="relative group">
-                      <Mail className="absolute left-4 top-4 h-5 w-5 text-muted-foreground" />
+                      <Mail className="absolute left-4 top-4 h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
                       <Input
                         id="recovery-email"
                         type="email"
                         placeholder="correo@parroquia.com"
                         value={forgotPasswordEmail}
                         onChange={(e) => handleRecoveryEmailChange(e.target.value)}
-                        className={`pl-12 h-14 parish-input rounded-2xl text-lg ${
-                          errors.recoveryEmail ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                        className={`pl-12 h-14 parish-input rounded-2xl text-lg bg-background dark:bg-background border-input dark:border-input text-foreground dark:text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground ${
+                          errors.recoveryEmail ? 'border-red-500 dark:border-red-500 focus:border-red-500 dark:focus:border-red-500 focus:ring-red-500/20 dark:focus:ring-red-500/20' : ''
                         }`}
                         required
                       />
                     </div>
                     {errors.recoveryEmail && (
-                      <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
-                        <span className="w-4 h-4 text-red-500">⚠</span>
+                      <p className="text-sm text-red-500 dark:text-red-400 mt-1 flex items-center gap-1">
+                        <span className="w-4 h-4 text-red-500 dark:text-red-400">⚠</span>
                         {errors.recoveryEmail}
                       </p>
                     )}
@@ -327,55 +328,55 @@ const Login = () => {
                 // Formulario de login normal
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium">Correo Electrónico</Label>
+                    <Label htmlFor="email" className="text-sm font-medium text-foreground dark:text-foreground">Correo Electrónico</Label>
                     <div className="relative group">
-                      <Mail className="absolute left-4 top-4 h-5 w-5 text-muted-foreground" />
+                      <Mail className="absolute left-4 top-4 h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
                       <Input
                         id="email"
                         type="email"
                         placeholder="correo@parroquia.com"
                         value={formData.email}
                         onChange={(e) => handleEmailChange(e.target.value)}
-                        className={`pl-12 h-14 parish-input hover-lift transition-all duration-300 focus:scale-[1.02] rounded-2xl text-lg ${
-                          errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                        className={`pl-12 h-14 parish-input hover-lift transition-all duration-300 focus:scale-[1.02] rounded-2xl text-lg bg-background dark:bg-background border-input dark:border-input text-foreground dark:text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground ${
+                          errors.email ? 'border-red-500 dark:border-red-500 focus:border-red-500 dark:focus:border-red-500 focus:ring-red-500/20 dark:focus:ring-red-500/20' : ''
                         }`}
                         required
                       />
                     </div>
                     {errors.email && (
-                      <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
-                        <span className="w-4 h-4 text-red-500">⚠</span>
+                      <p className="text-sm text-red-500 dark:text-red-400 mt-1 flex items-center gap-1">
+                        <span className="w-4 h-4 text-red-500 dark:text-red-400">⚠</span>
                         {errors.email}
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium">Contraseña</Label>
+                    <Label htmlFor="password" className="text-sm font-medium text-foreground dark:text-foreground">Contraseña</Label>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-4 h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+                      <Lock className="absolute left-4 top-4 h-5 w-5 text-muted-foreground dark:text-muted-foreground group-hover:text-primary dark:group-hover:text-primary transition-colors duration-300" />
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         value={formData.password}
                         onChange={(e) => handlePasswordChange(e.target.value)}
-                        className={`pl-12 pr-14 h-14 parish-input hover-lift transition-all duration-300 focus:scale-[1.02] rounded-2xl text-lg ${
-                          errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                        className={`pl-12 pr-14 h-14 parish-input hover-lift transition-all duration-300 focus:scale-[1.02] rounded-2xl text-lg bg-background dark:bg-background border-input dark:border-input text-foreground dark:text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground ${
+                          errors.password ? 'border-red-500 dark:border-red-500 focus:border-red-500 dark:focus:border-red-500 focus:ring-red-500/20 dark:focus:ring-red-500/20' : ''
                         }`}
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-4 h-6 w-6 text-muted-foreground hover:text-primary transition-all duration-300 hover:scale-110 click-effect"
+                        className="absolute right-4 top-4 h-6 w-6 text-muted-foreground dark:text-muted-foreground hover:text-primary dark:hover:text-primary transition-all duration-300 hover:scale-110 click-effect"
                       >
                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </button>
                     </div>
                     {errors.password && (
-                      <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
-                        <span className="w-4 h-4 text-red-500">⚠</span>
+                      <p className="text-sm text-red-500 dark:text-red-400 mt-1 flex items-center gap-1">
+                        <span className="w-4 h-4 text-red-500 dark:text-red-400">⚠</span>
                         {errors.password}
                       </p>
                     )}
@@ -403,7 +404,7 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={handleForgotPassword}
-                    className="text-sm text-primary hover:text-primary-hover transition-all duration-300 underline hover:scale-105 click-effect font-medium rounded-xl px-4 py-2"
+                    className="text-sm text-primary dark:text-primary hover:text-primary-hover dark:hover:text-primary-hover transition-all duration-300 underline hover:scale-105 click-effect font-medium rounded-xl px-4 py-2"
                   >
                     ¿Olvidó su contraseña?
                   </button>
@@ -413,8 +414,8 @@ const Login = () => {
           </Card>
 
           {/* Información de contacto */}
-          <div className="text-center text-sm text-muted-foreground">
-            <div className="p-6 rounded-2xl bg-card/50 border border-border/50 hover-lift transition-all duration-300">
+          <div className="text-center text-sm text-muted-foreground dark:text-muted-foreground">
+            <div className="p-6 rounded-2xl bg-card/50 dark:bg-card/50 border border-border/50 dark:border-border/30 hover-lift transition-all duration-300">
               <p className="font-medium">¿Necesita ayuda?</p>
               <p className="mt-1">Contacte al administrador del sistema</p>
             </div>

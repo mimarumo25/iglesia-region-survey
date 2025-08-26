@@ -8,19 +8,13 @@ import {
   VerifyEmailResponse 
 } from '@/types/auth';
 import { TokenManager } from '@/utils/cookies';
-
-// Configuración base de la API
-const API_BASE_URL = import.meta.env.VITE_BASE_URL_SERVICES;
+import { API_BASE_URL, API_TIMEOUTS, DEFAULT_HEADERS, DEV_CONFIG, API_ENDPOINTS } from '@/config/api';
 
 // Instancia de axios configurada para autenticación
 const authApi = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'Accept-Language': 'es-ES,es;q=0.8',
-  },
+  timeout: API_TIMEOUTS.AUTH,
+  headers: DEFAULT_HEADERS,
 });
 
 /**
@@ -80,7 +74,7 @@ export class AuthService {
    */
   static async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
-      const response: AxiosResponse<LoginResponse> = await authApi.post('/api/auth/login', {
+      const response: AxiosResponse<LoginResponse> = await authApi.post(API_ENDPOINTS.AUTH.LOGIN, {
         correo_electronico: credentials.email,
         contrasena: credentials.password,
       }, {
@@ -135,7 +129,7 @@ export class AuthService {
         throw new Error('No hay refresh token disponible');
       }
 
-      const response: AxiosResponse<RefreshTokenResponse> = await authApi.post('/api/auth/refresh-token', {
+      const response: AxiosResponse<RefreshTokenResponse> = await authApi.post(API_ENDPOINTS.AUTH.REFRESH, {
         refreshToken: refreshToken,
       });
 
@@ -213,7 +207,7 @@ export class AuthService {
    */
   static isAuthenticated(): boolean {
     // En modo desarrollo, permitir acceso sin tokens
-    if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
+    if (DEV_CONFIG.IS_DEVELOPMENT && DEV_CONFIG.SKIP_AUTH) {
       return true;
     }
     return TokenManager.hasValidTokens();
@@ -234,7 +228,7 @@ export class AuthService {
       // Opcional: llamar endpoint de logout en el servidor
       const accessToken = this.getAccessToken();
       if (accessToken) {
-        await authApi.post('/api/auth/logout', {}, {
+        await authApi.post(API_ENDPOINTS.AUTH.LOGOUT, {}, {
           headers: {
             'Accept-Language': 'es,es-ES;q=0.9',
             'Authorization': `Bearer ${accessToken}`,
@@ -262,7 +256,7 @@ export class AuthService {
    */
   static async forgotPassword(email: string): Promise<ForgotPasswordResponse> {
     try {
-      const response: AxiosResponse<ForgotPasswordResponse> = await authApi.post('/api/auth/forgot-password', {
+      const response: AxiosResponse<ForgotPasswordResponse> = await authApi.post(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, {
         email,
       }, {
         headers: {
@@ -290,7 +284,7 @@ export class AuthService {
    */
   static async resetPassword(token: string, newPassword: string): Promise<ResetPasswordResponse> {
     try {
-      const response: AxiosResponse<ResetPasswordResponse> = await authApi.post('/api/auth/reset-password', {
+      const response: AxiosResponse<ResetPasswordResponse> = await authApi.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
         token,
         newPassword,
       }, {
@@ -318,7 +312,7 @@ export class AuthService {
    */
   static async verifyEmail(token: string): Promise<VerifyEmailResponse> {
     try {
-      const response: AxiosResponse<VerifyEmailResponse> = await authApi.get(`/api/auth/verify-email?token=${token}`, {
+      const response: AxiosResponse<VerifyEmailResponse> = await authApi.get(`${API_ENDPOINTS.AUTH.VERIFY_EMAIL}?token=${token}`, {
         headers: {
           'Accept': 'application/json',
           'Accept-Language': 'es,es-ES;q=0.9',

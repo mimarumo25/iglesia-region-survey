@@ -49,11 +49,25 @@ const SectoresPage = () => {
   const deleteMutation = sectoresHook.useDeleteSectorMutation();
 
   const sectores = searchTerm 
-    ? (searchResponse?.data?.sectores || []) 
-    : (sectoresResponse?.data?.sectores || []);
+    ? (searchResponse?.data?.data || []) 
+    : (sectoresResponse?.data?.data || []);
+    
+  // Adaptar la respuesta de la API al formato esperado por el frontend
   const pagination = searchTerm 
-    ? (searchResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false }) 
-    : (sectoresResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false });
+    ? {
+        currentPage: page,
+        totalPages: Math.ceil((searchResponse?.data?.total || 0) / limit),
+        totalCount: searchResponse?.data?.total || 0,
+        hasNext: page < Math.ceil((searchResponse?.data?.total || 0) / limit),
+        hasPrev: page > 1,
+      }
+    : {
+        currentPage: page,
+        totalPages: Math.ceil((sectoresResponse?.data?.total || 0) / limit),
+        totalCount: sectoresResponse?.data?.total || 0,
+        hasNext: page < Math.ceil((sectoresResponse?.data?.total || 0) / limit),
+        hasPrev: page > 1,
+      };
 
   const loading = sectoresLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 

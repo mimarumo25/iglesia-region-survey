@@ -5,18 +5,21 @@ export interface Parroquia {
   telefono?: string;
   email?: string;
   id_municipio?: string;
+  descripcion?: string;
+  activo?: boolean;
+  fecha_creacion?: string;
+  fecha_actualizacion?: string;
   municipio?: {
     id_municipio: string;
     nombre_municipio: string;
     codigo_dane: string;
+    id_departamento: string;
     departamento?: {
       id_departamento: string;
       nombre: string;
       codigo_dane: string;
     };
   };
-  created_at?: string;
-  updated_at?: string;
 }
 
 export interface ParroquiaCreate {
@@ -49,22 +52,18 @@ export interface ParroquiasResponse {
 
 // Respuesta del servidor (formato real de la API)
 export interface ServerResponse<T> {
-  success: boolean;  // La API devuelve "success" boolean
+  status: string;  // La API devuelve "success" string
   message: string;
   data: T;
-  timestamp: string; // La API incluye timestamp
+  total: number; // La API incluye total
 }
 
-// Estructura real que devuelve la API para parroquias
+// Estructura real que devuelve la API para parroquias (según la documentación)
 export interface ApiParroquiasResponse {
-  parroquias: Parroquia[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
+  status: string;
+  data: Parroquia[];
+  total: number;
+  message: string;
 }
 
 export interface ParroquiaFormData {

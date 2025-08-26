@@ -1,16 +1,20 @@
 // Interfaces para Situaciones Civiles
 export interface SituacionCivil {
-  id_situacion_civil: string;
+  id: number; // La API devuelve id como número
   nombre: string;
   descripcion?: string;
+  codigo?: string;
+  orden?: number;
   activo: boolean;
-  created_at?: string;
-  updated_at?: string;
+  createdAt?: string; // La API usa camelCase
+  updatedAt?: string; // La API usa camelCase
 }
 
 export interface SituacionCivilFormData {
   nombre: string;
   descripcion?: string;
+  codigo?: string;
+  orden?: number;
   activo: boolean;
 }
 
@@ -27,6 +31,12 @@ export interface SituacionesCivilesResponse {
   };
 }
 
+// Estructura real que devuelve la API para situaciones civiles
+export interface ApiSituacionesCivilesResponse {
+  data: SituacionCivil[];  // La API devuelve "data" directamente
+  total?: number;          // La API podría devolver "total" 
+}
+
 export interface SituacionesCivilesStatsResponse {
   total_situaciones_civiles: number;
   situaciones_civiles_activas: number;
@@ -36,7 +46,7 @@ export interface SituacionesCivilesStatsResponse {
 
 // Tipo para el wrapper de respuesta del servidor
 export interface ServerResponse<T> {
-  success: boolean;
-  timestamp: string;
-  data?: T;
+  status: string;  // La API devuelve "status": "success"
+  message: string;
+  data: T;
 }

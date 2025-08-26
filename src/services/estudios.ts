@@ -1,130 +1,201 @@
+import { apiClient } from '@/interceptors/axios';
 import axios from 'axios';
+import { 
+  Estudio, 
+  EstudioFormData, 
+  EstudioUpdateData, 
+  EstudiosResponse,
+  ApiEstudiosResponse
+} from '@/types/estudios';
 
-// Interfaces para Estudios
-export interface Estudio {
-  id_estudio: string;
-  nombre: string;
-  descripcion?: string;
-  activo: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
+const API_BASE_URL = import.meta.env.VITE_BASE_URL_SERVICES || 'http://206.62.139.100:3000';
 
-export interface EstudioFormData {
-  nombre: string;
-  descripcion?: string;
-  activo: boolean;
-}
-
-export interface EstudioUpdateData extends EstudioFormData {}
-
-export interface EstudiosResponse {
-  estudios: Estudio[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-}
-
-export interface ServerResponse<T> {
-  success: boolean;
-  timestamp: string;
-  data?: T;
-}
-
-export interface EstudiosStatsResponse {
-  total_estudios: number;
-  estudios_activos: number;
-  estudios_inactivos: number;
-  ultimo_registro?: string;
-}
-
-// Servicios para Estudios
-export const estudiosService = {
-  // Obtener todos los estudios con paginación
-  getEstudios: async (
-    page: number = 1, 
-    limit: number = 10, 
-    sortBy: string = 'id_estudio', 
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ): Promise<ServerResponse<EstudiosResponse>> => {
-    const response = await axios.get('/api/catalog/estudios', {
-      params: { page, limit, sortBy, sortOrder }
-    });
-    return response.data;
+// Cliente básico sin autenticación para modo desarrollo
+const basicClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
+});
+
+// Función para obtener el cliente correcto
+const getApiClient = () => {
+  // En modo desarrollo y con SKIP_AUTH, usar cliente básico
+  if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
+    return basicClient;
+  }
+  return apiClient;
+};
+
+class EstudiosService {
+  // Obtener todos los estudios con paginación
+  async getEstudios(
+    page: number = 1,
+    limit: number = 10,
+    sortBy: string = 'id',
+    sortOrder: 'ASC' | 'DESC' = 'ASC'
+  ): Promise<EstudiosResponse> {
+    try {
+      const client = getApiClient();
+      const response = await client.get<ApiEstudiosResponse>(
+        `/api/catalog/estudios`,
+        {
+          params: {
+            page,
+            limit,
+            sortBy,
+            sortOrder,
+          },
+        }
+      );
+
+      // La API devuelve la estructura: { success: true, message: { data: [...], total: 1 } }
+      const apiResponse = response.data;
+      
+      let estudiosData: Estudio[] = [];
+      let totalCount = 0;
+      
+      if (apiResponse.message && apiResponse.message.data) {
+        estudiosData = apiResponse.message.data;
+        totalCount = apiResponse.message.total || apiResponse.message.data.length;
+      }
+
+      // Transformar al formato esperado por el frontend
+      return {
+        estudios: estudiosData,
+        total: totalCount,
+        message: apiResponse.message?.message || "Estudios obtenidos exitosamente"
+      };
+    } catch (error) {
+      console.error('Error al obtener estudios:', error);
+      throw error;
+    }
+  }
 
   // Buscar estudios
-  searchEstudios: async (
-    search: string,
+  async searchEstudios(
+    searchTerm: string,
     page: number = 1,
     limit: number = 10
-  ): Promise<ServerResponse<EstudiosResponse>> => {
-    const response = await axios.get('/api/catalog/estudios/search', {
-      params: { search, page, limit }
-    });
-    return response.data;
-  },
+  ): Promise<EstudiosResponse> {
+    try {
+      const client = getApiClient();
+      const response = await client.get<ApiEstudiosResponse>(
+        `/api/catalog/estudios/search`,
+        {
+          params: {
+            search: searchTerm,
+            page,
+            limit,
+          },
+        }
+      );
+
+      const apiResponse = response.data;
+      
+      let estudiosData: Estudio[] = [];
+      let totalCount = 0;
+      
+      if (apiResponse.message && apiResponse.message.data) {
+        estudiosData = apiResponse.message.data;
+        totalCount = apiResponse.message.total || apiResponse.message.data.length;
+      }
+
+      return {
+        estudios: estudiosData,
+        total: totalCount,
+        message: apiResponse.message?.message || "Búsqueda completada exitosamente"
+      };
+    } catch (error) {
+      console.error('Error al buscar estudios:', error);
+      throw error;
+    }
+  }
 
   // Obtener un estudio por ID
-  getEstudioById: async (id: string): Promise<ServerResponse<Estudio>> => {
-    const response = await axios.get(`/api/catalog/estudios/${id}`);
-    return response.data;
-  },
+  async getEstudioById(id: string): Promise<Estudio> {
+    try {
+      const client = getApiClient();
+      const response = await client.get(`/api/catalog/estudios/${id}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error al obtener estudio por ID:', error);
+      throw error;
+    }
+  }
 
   // Crear nuevo estudio
-  createEstudio: async (data: EstudioFormData): Promise<ServerResponse<Estudio>> => {
-    const response = await axios.post('/api/catalog/estudios', data);
-    return response.data;
-  },
+  async createEstudio(estudio: EstudioFormData): Promise<Estudio> {
+    try {
+      const client = getApiClient();
+      const response = await client.post(`/api/catalog/estudios`, estudio);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error al crear estudio:', error);
+      throw error;
+    }
+  }
 
-  // Actualizar estudio
-  updateEstudio: async (id: string, data: EstudioUpdateData): Promise<ServerResponse<Estudio>> => {
-    const response = await axios.put(`/api/catalog/estudios/${id}`, data);
-    return response.data;
-  },
+  // Actualizar estudio existente
+  async updateEstudio(id: string, estudio: EstudioUpdateData): Promise<Estudio> {
+    try {
+      const client = getApiClient();
+      const response = await client.put(`/api/catalog/estudios/${id}`, estudio);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error al actualizar estudio:', error);
+      throw error;
+    }
+  }
 
   // Eliminar estudio
-  deleteEstudio: async (id: string): Promise<ServerResponse<void>> => {
-    const response = await axios.delete(`/api/catalog/estudios/${id}`);
-    return response.data;
-  },
+  async deleteEstudio(id: string): Promise<void> {
+    try {
+      const client = getApiClient();
+      await client.delete(`/api/catalog/estudios/${id}`);
+    } catch (error) {
+      console.error('Error al eliminar estudio:', error);
+      throw error;
+    }
+  }
 
   // Obtener estudios activos
-  getActiveEstudios: async (): Promise<ServerResponse<Estudio[]>> => {
-    const response = await axios.get('/api/catalog/estudios/active');
-    return response.data;
-  },
+  async getActiveEstudios(): Promise<Estudio[]> {
+    try {
+      const response = await this.getEstudios(1, 1000); // Obtener todos
+      return response.estudios.filter(estudio => estudio.activo);
+    } catch (error) {
+      console.error('Error al obtener estudios activos:', error);
+      return [];
+    }
+  }
 
   // Obtener estadísticas de estudios
-  getEstudiosStats: async (): Promise<ServerResponse<EstudiosStatsResponse>> => {
-    const response = await axios.get('/api/catalog/estudios/stats');
-    return response.data;
-  },
+  async getEstudiosStats(): Promise<any> {
+    try {
+      const client = getApiClient();
+      const response = await client.get(`/api/catalog/estudios/stats`);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener estadísticas:', error);
+      throw error;
+    }
+  }
 
   // Alternar estado de estudio
-  toggleEstudioStatus: async (id: string): Promise<ServerResponse<Estudio>> => {
-    const response = await axios.patch(`/api/catalog/estudios/${id}/toggle-status`);
-    return response.data;
-  },
-
-  // Búsqueda avanzada con filtros
-  searchEstudiosAdvanced: async (
-    filters: {
-      nombre?: string;
-      activo?: boolean;
-      sortBy?: string;
-      sortOrder?: 'ASC' | 'DESC';
-      page?: number;
-      limit?: number;
+  async toggleEstudioStatus(id: string): Promise<Estudio> {
+    try {
+      const client = getApiClient();
+      const response = await client.patch(`/api/catalog/estudios/${id}/toggle-status`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error al cambiar estado:', error);
+      throw error;
     }
-  ): Promise<ServerResponse<EstudiosResponse>> => {
-    const response = await axios.get('/api/catalog/estudios/advanced-search', {
-      params: filters
-    });
-    return response.data;
-  },
-};
+  }
+}
+
+export const estudiosService = new EstudiosService();
+export default estudiosService;

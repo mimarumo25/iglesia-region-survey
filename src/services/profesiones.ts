@@ -29,8 +29,10 @@ export interface ProfesionesResponse {
 
 // Respuesta real de la API (diferente estructura)
 export interface ProfesionesApiResponse {
-  profesiones: Profesion[];
+  status: string;
+  data: Profesion[];
   total: number;
+  message: string;
 }
 
 export interface ServerResponse<T> {
@@ -54,7 +56,7 @@ export const profesionesService = {
     limit: number = 10, 
     sortBy: string = 'id_profesion', 
     sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ): Promise<ServerResponse<ProfesionesApiResponse>> => {
+  ): Promise<ProfesionesApiResponse> => {
     const response = await apiClient.get('/api/catalog/profesiones', {
       params: { page, limit, sortBy, sortOrder }
     });
@@ -66,7 +68,7 @@ export const profesionesService = {
     search: string,
     page: number = 1,
     limit: number = 10
-  ): Promise<ServerResponse<ProfesionesApiResponse>> => {
+  ): Promise<ProfesionesApiResponse> => {
     const response = await apiClient.get('/api/catalog/profesiones/search', {
       params: { search, page, limit }
     });
@@ -125,7 +127,7 @@ export const profesionesService = {
       page?: number;
       limit?: number;
     }
-  ): Promise<ServerResponse<ProfesionesApiResponse>> => {
+  ): Promise<ProfesionesApiResponse> => {
     const response = await apiClient.get('/api/catalog/profesiones/advanced-search', {
       params: filters
     });

@@ -35,7 +35,7 @@ const SituacionesCivilesPage = () => {
   // Estados para paginación y filtros
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [sortBy, setSortBy] = useState('id_situacion_civil');
+  const [sortBy, setSortBy] = useState('id');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -74,6 +74,8 @@ const SituacionesCivilesPage = () => {
   const [formData, setFormData] = useState<SituacionCivilFormData>({
     nombre: '',
     descripcion: '',
+    codigo: '',
+    orden: 1,
     activo: true,
   });
 
@@ -85,11 +87,13 @@ const SituacionesCivilesPage = () => {
     createMutation.mutate({
       nombre: formData.nombre.trim(),
       descripcion: formData.descripcion?.trim() || undefined,
+      codigo: formData.codigo?.trim() || undefined,
+      orden: formData.orden || 1,
       activo: formData.activo,
     }, {
       onSuccess: () => {
         setShowCreateDialog(false);
-        setFormData({ nombre: '', descripcion: '', activo: true });
+        setFormData({ nombre: '', descripcion: '', codigo: '', orden: 1, activo: true });
       }
     });
   };
@@ -99,17 +103,19 @@ const SituacionesCivilesPage = () => {
     if (!selectedSituacion || !formData.nombre.trim()) return;
 
     updateMutation.mutate({
-      id: selectedSituacion.id_situacion_civil,
+      id: selectedSituacion.id,
       data: {
         nombre: formData.nombre.trim(),
         descripcion: formData.descripcion?.trim() || undefined,
+        codigo: formData.codigo?.trim() || undefined,
+        orden: formData.orden || 1,
         activo: formData.activo,
       }
     }, {
       onSuccess: () => {
         setShowEditDialog(false);
         setSelectedSituacion(null);
-        setFormData({ nombre: '', descripcion: '', activo: true });
+        setFormData({ nombre: '', descripcion: '', codigo: '', orden: 1, activo: true });
       }
     });
   };
@@ -117,7 +123,7 @@ const SituacionesCivilesPage = () => {
   const handleDelete = async () => {
     if (!selectedSituacion) return;
 
-    deleteMutation.mutate(selectedSituacion.id_situacion_civil, {
+    deleteMutation.mutate(selectedSituacion.id, {
       onSuccess: () => {
         setShowDeleteDialog(false);
         setSelectedSituacion(null);
@@ -127,7 +133,7 @@ const SituacionesCivilesPage = () => {
 
   // Funciones para abrir diálogos
   const handleOpenCreateDialog = () => {
-    setFormData({ nombre: '', descripcion: '', activo: true });
+    setFormData({ nombre: '', descripcion: '', codigo: '', orden: 1, activo: true });
     openCreateDialog();
   };
 
@@ -136,6 +142,8 @@ const SituacionesCivilesPage = () => {
     setFormData({
       nombre: situacion.nombre,
       descripcion: situacion.descripcion || '',
+      codigo: situacion.codigo || '',
+      orden: situacion.orden || 1,
       activo: situacion.activo,
     });
     openEditDialog();
@@ -278,6 +286,8 @@ const SituacionesCivilesPage = () => {
                   <TableRow>
                     <TableHead>ID</TableHead>
                     <TableHead>Nombre</TableHead>
+                    <TableHead>Código</TableHead>
+                    <TableHead>Orden</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Fecha Creación</TableHead>
@@ -293,6 +303,16 @@ const SituacionesCivilesPage = () => {
                           <Scale className="w-4 h-4 text-primary" />
                           <span className="font-medium">{situacion.nombre}</span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-mono">
+                          {situacion.codigo || 'N/A'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          {situacion.orden || 'N/A'}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <span className="text-sm text-muted-foreground">
@@ -403,6 +423,20 @@ const SituacionesCivilesPage = () => {
           value={formData.descripcion}
           onChange={(value) => setFormData({ ...formData, descripcion: value })}
         />
+        <ConfigFormField
+          id="codigo"
+          label="Código"
+          placeholder="Ej: SL, CS, DP"
+          value={formData.codigo}
+          onChange={(value) => setFormData({ ...formData, codigo: value })}
+        />
+        <ConfigFormField
+          id="orden"
+          label="Orden"
+          placeholder="1"
+          value={formData.orden?.toString() || '1'}
+          onChange={(value) => setFormData({ ...formData, orden: parseInt(value) || 1 })}
+        />
         <div className="flex items-center space-x-2">
           <Switch
             id="activo"
@@ -441,6 +475,20 @@ const SituacionesCivilesPage = () => {
           placeholder="Descripción opcional de la situación civil"
           value={formData.descripcion}
           onChange={(value) => setFormData({ ...formData, descripcion: value })}
+        />
+        <ConfigFormField
+          id="edit-codigo"
+          label="Código"
+          placeholder="Ej: SL, CS, DP"
+          value={formData.codigo}
+          onChange={(value) => setFormData({ ...formData, codigo: value })}
+        />
+        <ConfigFormField
+          id="edit-orden"
+          label="Orden"
+          placeholder="1"
+          value={formData.orden?.toString() || '1'}
+          onChange={(value) => setFormData({ ...formData, orden: parseInt(value) || 1 })}
         />
         <div className="flex items-center space-x-2">
           <Switch

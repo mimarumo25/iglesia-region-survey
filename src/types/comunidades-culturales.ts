@@ -4,6 +4,8 @@ export interface ComunidadCultural {
   nombre: string;
   descripcion?: string;
   activo: boolean;
+  createdAt?: string;
+  updatedAt?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -34,9 +36,18 @@ export interface ComunidadesCulturalesStatsResponse {
   ultimo_registro?: string;
 }
 
+// Tipo para la respuesta de la API real (estructura anidada)
+export interface ApiComunidadesCulturalesData {
+  status: string;
+  data: ComunidadCultural[];
+  total: number;
+  message: string;
+}
+
 // Tipo para el wrapper de respuesta del servidor
 export interface ServerResponse<T> {
   success: boolean;
+  message: string;
+  data: T;
   timestamp: string;
-  data?: T;
 }

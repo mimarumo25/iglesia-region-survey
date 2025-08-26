@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -19,13 +19,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import Logo from "@/components/ui/logo";
 import {
   LayoutDashboard,
   FileText,
   Users,
   BarChart3,
   Settings,
-  Church,
   UserCheck,
   MapPin,
   Calendar,
@@ -46,6 +46,8 @@ import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuthContext } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useRouteTransition, useRoutePreloader } from "@/hooks/useRouteTransition";
+import { lazyRoutes, getPreloadPriority } from "@/config/routes";
 
 const navigationItems = [
   {
@@ -87,12 +89,6 @@ const navigationItems = [
     requiredRoles: ["admin"] // Solo administradores
   },
   {
-    title: "Mi Perfil",
-    url: "/profile",
-    icon: User,
-    description: "Ver y editar mi perfil"
-  },
-  {
     title: "Configuración",
     icon: Settings,
     description: "Configuración del sistema",
@@ -107,7 +103,7 @@ const navigationItems = [
       {
         title: "Parroquias",
         url: "/settings/parroquias",
-        icon: Church,
+        icon: MapPin,
         description: "Gestión de parroquias",
         requiredRoles: ["admin"]
       },
@@ -190,13 +186,6 @@ const navigationItems = [
         requiredRoles: ["admin"]
       },
       {
-        title: "Situaciones Civiles",
-        url: "/settings/situaciones-civiles",
-        icon: Heart,
-        description: "Estados de situación civil",
-        requiredRoles: ["admin"]
-      },
-      {
         title: "Departamentos",
         url: "/settings/departamentos",
         icon: MapPin,
@@ -233,10 +222,20 @@ const AppSidebar = () => {
   const { user, logout } = useAuthContext(); // Agregar logout del contexto
   const { canManageUsers } = usePermissions(); // Usar el hook de permisos
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
   const [activeItem, setActiveItem] = useState(currentPath);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  
+  // Hooks para transiciones y preloading
+  const { navigateWithTransition, isPending } = useRouteTransition();
+  const { preloadRoute } = useRoutePreloader();
+  
+  // Estados para controlar la estabilidad visual y prevenir CLS
+  const [isInitialMount, setIsInitialMount] = useState(true);
+  const [isLayoutReady, setIsLayoutReady] = useState(false);
+  const [shouldRenderContent, setShouldRenderContent] = useState(false);
 
   // Filtrar elementos del menú según permisos del usuario
   const filteredNavigationItems = navigationItems.filter(item => {
@@ -276,6 +275,44 @@ const AppSidebar = () => {
     });
   }, [currentPath]);
 
+  // Efecto avanzado para estabilidad visual y prevención de CLS
+  useEffect(() => {
+    // Primera fase: preparar el layout
+    const prepareLayout = () => {
+      setIsLayoutReady(true);
+    };
+
+    // Segunda fase: renderizar contenido
+    const renderContent = () => {
+      setShouldRenderContent(true);
+    };
+
+    // Tercera fase: habilitar transiciones
+    const enableTransitions = () => {
+      setIsInitialMount(false);
+    };
+
+    // Usar requestAnimationFrame para sincronizar con el ciclo de renderizado del navegador
+    const firstFrame = requestAnimationFrame(() => {
+      prepareLayout();
+      
+      const secondFrame = requestAnimationFrame(() => {
+        renderContent();
+        
+        // Usar un timeout corto para la habilitación de transiciones
+        const timer = setTimeout(() => {
+          enableTransitions();
+        }, 150); // Aumentar el delay para mejor estabilidad
+
+        return () => clearTimeout(timer);
+      });
+
+      return () => cancelAnimationFrame(secondFrame);
+    });
+
+    return () => cancelAnimationFrame(firstFrame);
+  }, []);
+
   const isActive = (path: string) => {
     // Para rutas exactas
     if (path === '/settings') {
@@ -287,11 +324,60 @@ const AppSidebar = () => {
 
   const handleNavClick = (path: string) => {
     setActiveItem(path);
-    // Cerrar el menú en móvil después de seleccionar
-    if (isMobile) {
+    // Usar navegación con transición en lugar de navegación regular
+    navigateWithTransition(path);
+    // Solo cerrar el menú en móvil después de seleccionar, y únicamente si está abierto
+    if (isMobile && state === "expanded") {
       setTimeout(() => setOpenMobile(false), 150);
     }
   };
+
+  /**
+   * Función para precargar componente cuando el usuario hace hover
+   */
+  const handleLinkHover = async (path: string) => {
+    // Solo precargar si la ruta existe en nuestro catálogo
+    if (lazyRoutes[path as keyof typeof lazyRoutes]) {
+      try {
+        await preloadRoute(path, lazyRoutes[path as keyof typeof lazyRoutes]);
+      } catch (error) {
+        console.warn(`Error precargando ruta ${path}:`, error);
+      }
+    }
+  };
+
+  /**
+   * Precarga automática de rutas de alta prioridad
+   */
+  useEffect(() => {
+    const preloadHighPriorityRoutes = async () => {
+      const highPriorityRoutes = Object.keys(lazyRoutes).filter(route => 
+        getPreloadPriority(route) === 'high'
+      );
+
+      // Usar requestIdleCallback si está disponible, sino setTimeout
+      const schedulePreload = (callback: () => void) => {
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(callback);
+        } else {
+          setTimeout(callback, 100);
+        }
+      };
+
+      schedulePreload(() => {
+        highPriorityRoutes.forEach(async (route) => {
+          if (route !== currentPath) { // No precargar la ruta actual
+            await handleLinkHover(route);
+          }
+        });
+      });
+    };
+
+    // Solo ejecutar después de que el componente esté completamente montado
+    if (shouldRenderContent && !isInitialMount) {
+      preloadHighPriorityRoutes();
+    }
+  }, [shouldRenderContent, isInitialMount, currentPath]);
 
   const toggleExpanded = (itemTitle: string) => {
     setExpandedItems(prev => 
@@ -329,14 +415,14 @@ const AppSidebar = () => {
   const getNavCls = (path?: string, isSubItem: boolean = false) => {
     const baseClasses = `
       flex items-center gap-3 px-4 py-3 w-full rounded-xl
-      transition-all duration-300 ease-out relative overflow-hidden
-      hover-lift click-effect group min-h-[56px]
+      relative overflow-hidden group min-h-[56px]
       ${isSubItem ? 'ml-3 py-2 min-h-[48px] px-5' : ''}
+      ${shouldRenderContent && !isInitialMount ? 'transition-all duration-300 ease-out hover-lift click-effect' : ''}
     `;
     
     // Solo marcar como activo si la ruta coincide exactamente
     if (path && isActive(path)) {
-      return `${baseClasses} active-menu-item animate-slide-in-right`;
+      return `${baseClasses} active-menu-item`;
     }
     
     return `${baseClasses} 
@@ -353,19 +439,14 @@ const AppSidebar = () => {
       // El contexto de autenticación se encargará de la redirección
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
-      // Fallback: redirección manual si el logout falla
-      window.location.href = "/login";
+      // Usar navigate en lugar de window.location
+      navigate("/login", { replace: true });
     }
   };
 
   // Verificar si el menú de configuración está expandido
   const isConfigExpanded = isExpanded("Configuración");
   
-  // Log para debugging (remover en producción)
-  useEffect(() => {
-    console.log('Configuración expandida:', isConfigExpanded);
-  }, [isConfigExpanded]);
-
   return (
     <div
       style={{
@@ -373,26 +454,32 @@ const AppSidebar = () => {
         '--sidebar-width': isConfigExpanded ? '22rem' : '16rem',
         '--sidebar-width-mobile': isConfigExpanded ? '24rem' : '18rem',
       } as React.CSSProperties}
-      className="sidebar-dynamic-width"
+      className={cn(
+        "sidebar-dynamic-width h-screen",
+        // Aplicar clase de preparación visual durante el montaje
+        !isLayoutReady && "opacity-0"
+      )}
     >
       <Sidebar
-        className="bg-gradient-sidebar border-r border-sidebar-border shadow-lg flex flex-col h-screen transition-all duration-300"
+        className={cn(
+          "bg-gradient-sidebar border-r border-sidebar-border shadow-lg flex flex-col h-full",
+          shouldRenderContent && !isInitialMount && 'transition-all duration-300',
+          !shouldRenderContent && "opacity-0"
+        )}
         collapsible="icon"
         variant="sidebar"
       >
       {/* Header */}
       <SidebarHeader className="p-6 border-b border-sidebar-border/50">
-        <div className="flex items-center gap-3 animate-bounce-in">
-          <div className="w-12 h-12 bg-gradient-hover rounded-xl flex items-center justify-center shadow-md hover-glow animate-float">
-            <Church className="w-7 h-7 text-white" />
+        <div className="flex flex-col items-center justify-center space-y-3">
+          <div className="w-20 h-20 bg-white/95 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-md hover:shadow-lg transition-shadow duration-300 border border-white/20">
+            <Logo size="lg" showText={false} className="w-16 h-16" />
           </div>
           {!isCollapsed && (
-            <div className="animate-slide-in-right">
-              <h2 className="font-bold text-sidebar-foreground text-lg">Sistema Parroquial</h2>
-              <p className="text-sm text-sidebar-foreground/70 flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                Caracterización
-              </p>
+            <div className="text-center">
+              <h2 className="text-white font-bold text-lg leading-tight">
+                Sistema MIA
+              </h2>
             </div>
           )}
         </div>
@@ -415,10 +502,9 @@ const AppSidebar = () => {
                     <SidebarMenuItem 
                       key={item.title} 
                       className={cn(
-                        "transition-all duration-300 rounded-xl",
-                        isMobile && state === "expanded" ? "staggered-fade-in" : "animate-slide-in-left"
+                        "rounded-xl",
+                        shouldRenderContent && !isInitialMount && 'transition-all duration-300'
                       )} 
-                      style={{ animationDelay: `${index * (isMobile ? 0.05 : 0.1)}s` }}
                     >
                       {item.isExpandable && item.subItems ? (
                         // Menú expandible con sub-items
@@ -436,23 +522,38 @@ const AppSidebar = () => {
                               )}
                             >
                               <item.icon className={`
-                                w-5 h-5 flex-shrink-0 transition-all duration-300
-                                group-hover:scale-110
+                                w-5 h-5 flex-shrink-0
+                                ${shouldRenderContent && !isInitialMount ? 'transition-all duration-300 group-hover:scale-110' : ''}
                               `} />
                               {!isCollapsed && (
                                 <>
-                                  <div className="flex-1 transition-all duration-300 min-w-0 sidebar-text-wrapper">
-                                    <span className="font-medium block transition-all duration-300 truncate text-sm text-sidebar-foreground">
+                                  <div className={cn(
+                                    "flex-1 min-w-0 sidebar-text-wrapper",
+                                    shouldRenderContent && !isInitialMount && 'transition-all duration-300'
+                                  )}>
+                                    <span className={cn(
+                                      "font-medium block truncate text-sm text-sidebar-foreground",
+                                      shouldRenderContent && !isInitialMount && 'transition-all duration-300'
+                                    )}>
                                       {item.title}
                                     </span>
-                                    <p className="text-[10px] leading-3 opacity-90 transition-all duration-300 truncate text-sidebar-foreground/80 sidebar-description">
+                                    <p className={cn(
+                                      "text-[10px] leading-3 opacity-90 truncate text-sidebar-foreground/80 sidebar-description",
+                                      shouldRenderContent && !isInitialMount && 'transition-all duration-300'
+                                    )}>
                                       {item.description}
                                     </p>
                                   </div>
                                   {isExpanded(item.title) ? (
-                                    <ChevronDown className="w-4 h-4 transition-transform duration-200" />
+                                    <ChevronDown className={cn(
+                                      "w-4 h-4",
+                                      shouldRenderContent && !isInitialMount && 'transition-transform duration-200'
+                                    )} />
                                   ) : (
-                                    <ChevronRight className="w-4 h-4 transition-transform duration-200" />
+                                    <ChevronRight className={cn(
+                                      "w-4 h-4", 
+                                      shouldRenderContent && !isInitialMount && 'transition-transform duration-200'
+                                    )} />
                                   )}
                                 </>
                               )}
@@ -470,27 +571,34 @@ const AppSidebar = () => {
                                         className={getNavCls(subItem.url, true)}
                                         title={isCollapsed ? subItem.title : undefined}
                                         onClick={() => handleNavClick(subItem.url)}
+                                        onMouseEnter={() => handleLinkHover(subItem.url)}
                                       >
                                         <subItem.icon className={`
-                                          w-4 h-4 flex-shrink-0 transition-all duration-300
-                                          ${isActive(subItem.url) ? 'text-white animate-pulse-glow' : 'group-hover:scale-110'}
+                                          w-4 h-4 flex-shrink-0
+                                          ${shouldRenderContent && !isInitialMount ? 'transition-all duration-300' : ''}
+                                          ${isActive(subItem.url) ? 'text-white' : (shouldRenderContent && !isInitialMount ? 'group-hover:scale-105' : '')}
                                         `} />
-                                        <div className="flex-1 transition-all duration-300 min-w-0 sidebar-text-wrapper">
-                                          <span className={`
-                                            font-medium block transition-all duration-300 truncate text-sm text-sidebar-foreground
-                                            ${isActive(subItem.url) ? 'text-white font-semibold' : ''}
-                                          `}>
+                                        <div className={cn(
+                                          "flex-1 min-w-0 sidebar-text-wrapper",
+                                          shouldRenderContent && !isInitialMount && 'transition-all duration-300'
+                                        )}>
+                                          <span className={cn(
+                                            "font-medium block truncate text-sm text-sidebar-foreground",
+                                            isActive(subItem.url) ? 'text-white font-semibold' : '',
+                                            shouldRenderContent && !isInitialMount && 'transition-all duration-300'
+                                          )}>
                                             {subItem.title}
                                           </span>
-                                          <p className={`
-                                            text-[10px] leading-3 opacity-90 transition-all duration-300 truncate sidebar-description
-                                            ${isActive(subItem.url) ? 'text-white/90' : 'text-sidebar-foreground/80'}
-                                          `}>
+                                          <p className={cn(
+                                            "text-[10px] leading-3 opacity-90 truncate sidebar-description",
+                                            isActive(subItem.url) ? 'text-white/90' : 'text-sidebar-foreground/80',
+                                            shouldRenderContent && !isInitialMount && 'transition-all duration-300'
+                                          )}>
                                             {subItem.description}
                                           </p>
                                         </div>
                                         {isActive(subItem.url) && (
-                                          <div className="absolute right-2 w-2 h-2 bg-secondary rounded-full animate-pulse-glow" />
+                                          <div className="absolute right-2 w-2 h-2 bg-secondary rounded-full" />
                                         )}
                                       </NavLink>
                                     </SidebarMenuSubButton>
@@ -509,29 +617,36 @@ const AppSidebar = () => {
                             className={getNavCls(item.url)}
                             title={isCollapsed ? item.title : undefined}
                             onClick={() => handleNavClick(item.url!)}
+                            onMouseEnter={() => handleLinkHover(item.url!)}
                           >
                             <item.icon className={`
-                              w-5 h-5 flex-shrink-0 transition-all duration-300
-                              ${isActive(item.url!) ? 'text-white animate-pulse-glow' : 'group-hover:scale-110'}
+                              w-5 h-5 flex-shrink-0
+                              ${shouldRenderContent && !isInitialMount ? 'transition-all duration-300' : ''}
+                              ${isActive(item.url!) ? 'text-white' : (shouldRenderContent && !isInitialMount ? 'group-hover:scale-105' : '')}
                             `} />
                             {!isCollapsed && (
-                              <div className="flex-1 transition-all duration-300 min-w-0 sidebar-text-wrapper">
-                                <span className={`
-                                  font-medium block transition-all duration-300 truncate text-sm text-sidebar-foreground
-                                  ${isActive(item.url!) ? 'text-white font-semibold' : ''}
-                                `}>
+                              <div className={cn(
+                                "flex-1 min-w-0 sidebar-text-wrapper",
+                                shouldRenderContent && !isInitialMount && 'transition-all duration-300'
+                              )}>
+                                <span className={cn(
+                                  "font-medium block truncate text-sm text-sidebar-foreground",
+                                  isActive(item.url!) ? 'text-white font-semibold' : '',
+                                  shouldRenderContent && !isInitialMount && 'transition-all duration-300'
+                                )}>
                                   {item.title}
                                 </span>
-                                <p className={`
-                                  text-[10px] leading-3 opacity-90 transition-all duration-300 truncate sidebar-description
-                                  ${isActive(item.url!) ? 'text-white/90' : 'text-sidebar-foreground/80'}
-                                `}>
+                                <p className={cn(
+                                  "text-[10px] leading-3 opacity-90 truncate sidebar-description",
+                                  isActive(item.url!) ? 'text-white/90' : 'text-sidebar-foreground/80',
+                                  shouldRenderContent && !isInitialMount && 'transition-all duration-300'
+                                )}>
                                   {item.description}
                                 </p>
                               </div>
                             )}
                             {isActive(item.url!) && (
-                              <div className="absolute right-2 w-2 h-2 bg-secondary rounded-full animate-pulse-glow" />
+                              <div className="absolute right-2 w-2 h-2 bg-secondary rounded-full" />
                             )}
                           </NavLink>
                         </SidebarMenuButton>
@@ -547,24 +662,22 @@ const AppSidebar = () => {
         {/* User Profile Section - Fixed at bottom */}
         <div className="flex-shrink-0 pt-4 border-t border-sidebar-border/50 mt-4">
           <div 
-            className="flex items-center gap-3 p-4 rounded-2xl bg-white/90 hover:bg-white hover-lift card-enhanced mb-4 shadow-sm border border-gray-200/50 cursor-pointer transition-all duration-200"
-            onClick={() => window.location.href = '/profile'}
+            className={cn(
+              "flex items-center gap-3 p-4 rounded-2xl bg-white/90 hover:bg-white mb-4 shadow-sm border border-gray-200/50 cursor-pointer",
+              shouldRenderContent && !isInitialMount && 'hover-lift card-enhanced transition-all duration-200'
+            )}
+            onClick={() => navigate('/profile')}
             title="Ver perfil"
           >
-            <Avatar className="w-10 h-10 hover-scale flex-shrink-0">
+            <Avatar className="w-10 h-10 flex-shrink-0">
               <AvatarFallback className="bg-gradient-hover text-white text-sm font-semibold shadow-md rounded-xl">
                 {user?.firstName?.[0]?.toUpperCase()}{user?.lastName?.[0]?.toUpperCase()}
               </AvatarFallback>
             </Avatar>
             {!isCollapsed && (
-              <div className="flex-1 animate-slide-in-right min-w-0">
+              <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-800 text-sm truncate">
                   {user?.firstName} {user?.lastName}
-                </p>
-                <p className="text-xs text-gray-600 truncate capitalize">
-                  {user?.role === 'admin' ? 'Administrador' : 
-                   user?.role === 'coordinator' ? 'Coordinador' : 
-                   user?.role === 'surveyor' ? 'Encuestador' : user?.role}
                 </p>
               </div>
             )}
@@ -574,7 +687,10 @@ const AppSidebar = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-2xl transition-all duration-300 hover-lift click-effect h-11 bg-white/50 border border-gray-200/30"
+              className={cn(
+                "w-full justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-2xl h-11 bg-white/50 border border-gray-200/30",
+                shouldRenderContent && !isInitialMount && 'hover-lift click-effect transition-all duration-300'
+              )}
               onClick={handleLogout}
             >
               <LogOut className="w-4 h-4 mr-2 flex-shrink-0" />

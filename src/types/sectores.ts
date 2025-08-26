@@ -3,7 +3,15 @@ export interface Sector {
   id_sector: string;
   nombre: string;
   descripcion?: string;
-  activo: boolean;
+  codigo?: string;
+  estado?: string;
+  activo?: boolean;
+  id_municipio?: string | number;
+  municipio?: {
+    id_municipio: string | number;
+    nombre: string;
+    nombre_municipio?: string;
+  } | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -11,20 +19,53 @@ export interface Sector {
 export interface SectorFormData {
   nombre: string;
   descripcion?: string;
-  activo: boolean;
+  id_municipio: number;
+  codigo?: string;
+  estado?: string;
 }
 
 export interface SectorUpdateData extends SectorFormData {}
 
-export interface SectoresResponse {
-  sectores: Sector[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasNext: boolean;
-    hasPrev: boolean;
+// Interface para municipios disponibles
+export interface MunicipioDisponible {
+  id_municipio: number;
+  nombre_municipio: string;
+  codigo_dane?: string;
+  departamento?: {
+    id_departamento: string;
+    nombre: string;
   };
+}
+
+// Respuesta del endpoint de municipios disponibles
+export interface MunicipiosDisponiblesApiResponse {
+  status: string;
+  data: MunicipioDisponible[];
+  total: number;
+  message: string;
+}
+
+export interface MunicipiosDisponiblesResponse {
+  success: boolean;
+  message: string;
+  data: MunicipiosDisponiblesApiResponse;
+  timestamp: string;
+}
+
+// Respuesta interna de la API (el data.data)
+export interface ApiSectoresResponse {
+  status: string;
+  data: Sector[];
+  total: number;
+  message: string;
+}
+
+// Respuesta completa del servidor
+export interface SectoresResponse {
+  success: boolean;
+  message: string;
+  data: ApiSectoresResponse;
+  timestamp: string;
 }
 
 export interface SectoresStatsResponse {

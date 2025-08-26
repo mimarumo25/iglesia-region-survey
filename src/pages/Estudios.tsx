@@ -35,7 +35,7 @@ const EstudiosPage = () => {
   // Estados para paginación y filtros
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [sortBy, setSortBy] = useState('id_estudio');
+  const [sortBy, setSortBy] = useState('id');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -49,11 +49,11 @@ const EstudiosPage = () => {
   const deleteMutation = estudiosHook.useDeleteEstudioMutation();
 
   const estudios = searchTerm 
-    ? (searchResponse?.data?.estudios || []) 
-    : (estudiosResponse?.data?.estudios || []);
-  const pagination = searchTerm 
-    ? (searchResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false }) 
-    : (estudiosResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false });
+    ? (searchResponse?.estudios || []) 
+    : (estudiosResponse?.estudios || []);
+  const totalCount = searchTerm 
+    ? (searchResponse?.total || 0) 
+    : (estudiosResponse?.total || 0);
 
   const loading = estudiosLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
@@ -72,44 +72,47 @@ const EstudiosPage = () => {
   
   const [selectedEstudio, setSelectedEstudio] = useState<Estudio | null>(null);
   const [formData, setFormData] = useState<EstudioFormData>({
-    nombre: '',
+    nivel: '',
     descripcion: '',
+    ordenNivel: 1,
     activo: true,
   });
 
   // Manejo del formulario
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nombre.trim()) return;
+    if (!formData.nivel.trim()) return;
 
     createMutation.mutate({
-      nombre: formData.nombre.trim(),
+      nivel: formData.nivel.trim(),
       descripcion: formData.descripcion?.trim() || undefined,
+      ordenNivel: formData.ordenNivel || 1,
       activo: formData.activo,
     }, {
       onSuccess: () => {
         setShowCreateDialog(false);
-        setFormData({ nombre: '', descripcion: '', activo: true });
+        setFormData({ nivel: '', descripcion: '', ordenNivel: 1, activo: true });
       }
     });
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedEstudio || !formData.nombre.trim()) return;
+    if (!selectedEstudio || !formData.nivel.trim()) return;
 
     updateMutation.mutate({
-      id: selectedEstudio.id_estudio,
+      id: selectedEstudio.id,
       data: {
-        nombre: formData.nombre.trim(),
+        nivel: formData.nivel.trim(),
         descripcion: formData.descripcion?.trim() || undefined,
+        ordenNivel: formData.ordenNivel || 1,
         activo: formData.activo,
       }
     }, {
       onSuccess: () => {
         setShowEditDialog(false);
         setSelectedEstudio(null);
-        setFormData({ nombre: '', descripcion: '', activo: true });
+        setFormData({ nivel: '', descripcion: '', ordenNivel: 1, activo: true });
       }
     });
   };
@@ -117,7 +120,7 @@ const EstudiosPage = () => {
   const handleDelete = async () => {
     if (!selectedEstudio) return;
 
-    deleteMutation.mutate(selectedEstudio.id_estudio, {
+    deleteMutation.mutate(selectedEstudio.id, {
       onSuccess: () => {
         setShowDeleteDialog(false);
         setSelectedEstudio(null);
@@ -127,15 +130,16 @@ const EstudiosPage = () => {
 
   // Funciones para abrir diálogos
   const handleOpenCreateDialog = () => {
-    setFormData({ nombre: '', descripcion: '', activo: true });
+    setFormData({ nivel: '', descripcion: '', ordenNivel: 1, activo: true });
     openCreateDialog();
   };
 
   const handleOpenEditDialog = (estudio: Estudio) => {
     setSelectedEstudio(estudio);
     setFormData({
-      nombre: estudio.nombre,
+      nivel: estudio.nivel,
       descripcion: estudio.descripcion || '',
+      ordenNivel: estudio.ordenNivel || 1,
       activo: estudio.activo,
     });
     openEditDialog();
@@ -227,7 +231,7 @@ const EstudiosPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Estudios</p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalCount}</p>
+                <p className="text-2xl font-bold text-foreground">{totalCount}</p>
               </div>
               <GraduationCap className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -238,8 +242,8 @@ const EstudiosPage = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Páginas</p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalPages}</p>
+                <p className="text-sm text-muted-foreground">Estudios Mostrados</p>
+                <p className="text-2xl font-bold text-foreground">{estudios.length}</p>
               </div>
               <GraduationCap className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -277,8 +281,9 @@ const EstudiosPage = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>ID</TableHead>
-                    <TableHead>Nombre</TableHead>
+                    <TableHead>Nivel</TableHead>
                     <TableHead>Descripción</TableHead>
+                    <TableHead>Orden</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Fecha Creación</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
@@ -286,18 +291,23 @@ const EstudiosPage = () => {
                 </TableHeader>
                 <TableBody>
                   {estudios.map((estudio) => (
-                    <TableRow key={estudio.id_estudio}>
-                      <TableCell className="font-medium">{estudio.id_estudio}</TableCell>
+                    <TableRow key={estudio.id}>
+                      <TableCell className="font-medium">{estudio.id}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <GraduationCap className="w-4 h-4 text-primary" />
-                          <span className="font-medium">{estudio.nombre}</span>
+                          <span className="font-medium">{estudio.nivel}</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <span className="text-sm text-muted-foreground">
                           {estudio.descripcion || 'N/A'}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {estudio.ordenNivel}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         {estudio.activo ? (
@@ -314,7 +324,7 @@ const EstudiosPage = () => {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {formatDate(estudio.created_at)}
+                          {formatDate(estudio.createdAt)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -340,37 +350,12 @@ const EstudiosPage = () => {
                 </TableBody>
               </Table>
 
-              {/* Paginación */}
-              {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <p className="text-sm text-muted-foreground">
-                    Mostrando {estudios.length} de {pagination.totalCount} estudios
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={pagination.currentPage === 1}
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Anterior
-                    </Button>
-                    <span className="flex items-center px-3 text-sm font-medium text-primary bg-primary/10 rounded-md">
-                      Página {pagination.currentPage} de {pagination.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={pagination.currentPage === pagination.totalPages}
-                    >
-                      Siguiente
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              {/* Información simple sin paginación ya que la API no la proporciona */}
+              <div className="flex items-center justify-center pt-4 border-t border-border">
+                <p className="text-sm text-muted-foreground">
+                  Mostrando {estudios.length} de {totalCount} estudios
+                </p>
+              </div>
             </>
           )}
         </CardContent>
@@ -389,11 +374,11 @@ const EstudiosPage = () => {
         submitText="Crear Estudio"
       >
         <ConfigFormField
-          id="nombre"
-          label="Nombre del Estudio"
-          placeholder="Ej: Primaria Completa"
-          value={formData.nombre}
-          onChange={(value) => setFormData({ ...formData, nombre: value })}
+          id="nivel"
+          label="Nivel de Estudio"
+          placeholder="Ej: Educación Primaria"
+          value={formData.nivel}
+          onChange={(value) => setFormData({ ...formData, nivel: value })}
           required
         />
         <ConfigFormField
@@ -402,6 +387,13 @@ const EstudiosPage = () => {
           placeholder="Descripción opcional del nivel de estudio"
           value={formData.descripcion}
           onChange={(value) => setFormData({ ...formData, descripcion: value })}
+        />
+        <ConfigFormField
+          id="ordenNivel"
+          label="Orden del Nivel"
+          placeholder="1"
+          value={formData.ordenNivel?.toString() || '1'}
+          onChange={(value) => setFormData({ ...formData, ordenNivel: parseInt(value) || 1 })}
         />
         <div className="flex items-center space-x-2">
           <Switch
@@ -428,11 +420,11 @@ const EstudiosPage = () => {
         submitText="Guardar Cambios"
       >
         <ConfigFormField
-          id="edit-nombre"
-          label="Nombre del Estudio"
-          placeholder="Ej: Primaria Completa"
-          value={formData.nombre}
-          onChange={(value) => setFormData({ ...formData, nombre: value })}
+          id="edit-nivel"
+          label="Nivel de Estudio"
+          placeholder="Ej: Educación Primaria"
+          value={formData.nivel}
+          onChange={(value) => setFormData({ ...formData, nivel: value })}
           required
         />
         <ConfigFormField
@@ -441,6 +433,13 @@ const EstudiosPage = () => {
           placeholder="Descripción opcional del nivel de estudio"
           value={formData.descripcion}
           onChange={(value) => setFormData({ ...formData, descripcion: value })}
+        />
+        <ConfigFormField
+          id="edit-ordenNivel"
+          label="Orden del Nivel"
+          placeholder="1"
+          value={formData.ordenNivel?.toString() || '1'}
+          onChange={(value) => setFormData({ ...formData, ordenNivel: parseInt(value) || 1 })}
         />
         <div className="flex items-center space-x-2">
           <Switch
@@ -464,7 +463,7 @@ const EstudiosPage = () => {
         icon={Trash2}
         loading={deleteMutation.isPending}
         onConfirm={handleDelete}
-        entityName={selectedEstudio?.nombre}
+        entityName={selectedEstudio?.nivel}
         submitText="Eliminar Estudio"
       />
     </div>

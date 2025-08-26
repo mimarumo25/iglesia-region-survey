@@ -64,6 +64,16 @@ export const useSectores = () => {
     });
   };
 
+  // Query para obtener municipios disponibles para sectores
+  const useMunicipiosDisponiblesQuery = () => {
+    return useQuery({
+      queryKey: ['municipios-disponibles-sectores'],
+      queryFn: () => sectoresService.getMunicipiosDisponibles(),
+      staleTime: 1000 * 60 * 15, // 15 minutos para datos de configuración
+      refetchOnWindowFocus: false,
+    });
+  };
+
   // Mutación para crear sector
   const useCreateSectorMutation = () => {
     return useMutation({
@@ -185,6 +195,7 @@ export const useSectores = () => {
     useSectorByIdQuery,
     useActiveSectoresQuery,
     useSectoresStatsQuery,
+    useMunicipiosDisponiblesQuery,
     
     // Mutations
     useCreateSectorMutation,

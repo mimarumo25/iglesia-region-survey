@@ -37,8 +37,10 @@ export interface DisposicionBasuraResponse {
   status: 'success';
   message: string;
   data: {
-    tipos: DisposicionBasura[];
-    pagination: DisposicionBasuraPagination;
+    status: 'success';
+    data: DisposicionBasura[];
+    total: number;
+    message: string;
   };
 }
 

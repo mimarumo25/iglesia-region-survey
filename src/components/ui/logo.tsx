@@ -1,4 +1,3 @@
-import { Church } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LogoProps {
@@ -23,13 +22,6 @@ const Logo = ({
     xl: "w-20 h-20"
   };
 
-  const iconSizes = {
-    sm: "w-4 h-4",
-    md: "w-6 h-6",
-    lg: "w-8 h-8", 
-    xl: "w-10 h-10"
-  };
-
   const textSizes = {
     sm: "text-lg",
     md: "text-xl",
@@ -39,11 +31,15 @@ const Logo = ({
   if (iconOnly) {
     return (
       <div className={cn(
-        "bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-lg",
+        "rounded-lg flex items-center justify-center",
         sizeClasses[size],
         className
       )}>
-        <Church className={cn("text-white", iconSizes[size])} />
+        <img 
+          src="/logo_mia.png" 
+          alt="MIA Logo" 
+          className="w-full h-full object-contain"
+        />
       </div>
     );
   }
@@ -51,10 +47,14 @@ const Logo = ({
   return (
     <div className={cn("flex items-center gap-3", className)}>
       <div className={cn(
-        "bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow",
+        "rounded-lg flex items-center justify-center hover:shadow-xl transition-shadow",
         sizeClasses[size]
       )}>
-        <Church className={cn("text-white", iconSizes[size])} />
+        <img 
+          src="/logo_mia.png" 
+          alt="MIA Logo" 
+          className="w-full h-full object-contain"
+        />
       </div>
       {showText && (
         <div>
@@ -62,10 +62,10 @@ const Logo = ({
             "font-bold text-foreground",
             textSizes[textSize]
           )}>
-            Sistema Parroquial
+            MIA
           </h2>
           <p className="text-sm text-muted-foreground">
-            Caracterización
+            Gestión Integral
           </p>
         </div>
       )}

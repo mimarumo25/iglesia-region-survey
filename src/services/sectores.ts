@@ -5,7 +5,11 @@ export interface Sector {
   id_sector: string;
   nombre: string;
   descripcion?: string;
-  activo: boolean;
+  id_municipio?: string | null;
+  municipio?: {
+    id_municipio: string;
+    nombre: string;
+  } | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -13,21 +17,53 @@ export interface Sector {
 export interface SectorFormData {
   nombre: string;
   descripcion?: string;
-  activo: boolean;
+  id_municipio: number;
+  codigo?: string;
+  estado?: string;
 }
 
 export interface SectorUpdateData extends SectorFormData {}
 
-export interface SectoresResponse {
-  sectors: Sector[];
-  pagination: {
-    totalItems: number;
-    totalPages: number;
-    currentPage: number;
-    itemsPerPage: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
+// Interface para municipios disponibles
+export interface MunicipioDisponible {
+  id_municipio: number;
+  nombre_municipio: string;
+  codigo_dane?: string;
+  departamento?: {
+    id_departamento: string;
+    nombre: string;
   };
+}
+
+// Respuesta del endpoint de municipios disponibles
+export interface MunicipiosDisponiblesApiResponse {
+  status: string;
+  data: MunicipioDisponible[];
+  total: number;
+  message: string;
+}
+
+export interface MunicipiosDisponiblesResponse {
+  success: boolean;
+  message: string;
+  data: MunicipiosDisponiblesApiResponse;
+  timestamp: string;
+}
+
+// Respuesta interna de la API (el data.data)
+export interface ApiSectoresResponse {
+  status: string;
+  data: Sector[];
+  total: number;
+  message: string;
+}
+
+// Respuesta completa del servidor
+export interface SectoresResponse {
+  success: boolean;
+  message: string;
+  data: ApiSectoresResponse;
+  timestamp: string;
 }
 
 export interface ServerResponse<T> {
@@ -52,7 +88,7 @@ export const sectoresService = {
     limit: number = 10, 
     sortBy: string = 'id_sector', 
     sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ): Promise<ServerResponse<SectoresResponse>> => {
+  ): Promise<SectoresResponse> => {
     const response = await apiClient.get('/api/catalog/sectors', {
       params: { page, limit, sortBy, sortOrder }
     });
@@ -64,7 +100,7 @@ export const sectoresService = {
     search: string,
     page: number = 1,
     limit: number = 10
-  ): Promise<ServerResponse<SectoresResponse>> => {
+  ): Promise<SectoresResponse> => {
     const response = await apiClient.get('/api/catalog/sectors/search', {
       params: { search, page, limit }
     });
@@ -118,6 +154,32 @@ export const sectoresService = {
     return response.data;
   },
 
+  // Obtener municipios disponibles para sectores (alternativo usando endpoint regular de municipios)
+  getMunicipiosDisponibles: async (): Promise<MunicipiosDisponiblesResponse> => {
+    try {
+      // Intentar primero el endpoint específico de sectores
+      const response = await apiClient.get('/api/catalog/sectors/municipios');
+      return response.data;
+    } catch (error) {
+      // Si falla, usar el endpoint regular de municipios como alternativa
+      console.warn('Endpoint /api/catalog/sectors/municipios no disponible, usando endpoint de municipios regular');
+      const response = await apiClient.get('/api/catalog/municipios');
+      
+      // Transformar la respuesta del endpoint regular al formato esperado
+      return {
+        success: response.data.success || true,
+        message: response.data.message || 'Municipios obtenidos exitosamente',
+        data: {
+          status: 'success',
+          data: response.data.data?.municipios || response.data.data || [],
+          total: response.data.data?.total || response.data.total || 0,
+          message: 'Municipios disponibles para sectores'
+        },
+        timestamp: response.data.timestamp || new Date().toISOString()
+      };
+    }
+  },
+
   // Búsqueda avanzada con filtros
   searchSectoresAdvanced: async (
     filters: {
@@ -128,7 +190,7 @@ export const sectoresService = {
       page?: number;
       limit?: number;
     }
-  ): Promise<ServerResponse<SectoresResponse>> => {
+  ): Promise<SectoresResponse> => {
     const response = await apiClient.get('/api/catalog/sectors/advanced-search', {
       params: filters
     });

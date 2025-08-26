@@ -90,8 +90,52 @@ export class MunicipiosService {
         searchParams.append('search', search);
       }
 
-      const response = await apiGet<MunicipiosResponse>(`${this.baseUrl}?${searchParams}`);
-      return response.data;
+      const response = await apiGet<any>(`${this.baseUrl}?${searchParams}`);
+      
+      // La API devuelve: { success: true, message: "...", data: {...} }
+      const apiResponse = response.data;
+      
+      // Manejar la estructura anidada de datos similar a parroquias
+      let municipiosData = [];
+      let totalCount = 0;
+      
+      if (apiResponse.data) {
+        if (Array.isArray(apiResponse.data)) {
+          // Estructura: { success: true, data: [...], total: 48 }
+          municipiosData = apiResponse.data;
+          totalCount = apiResponse.total || apiResponse.data.length;
+        } else if (apiResponse.data.data && Array.isArray(apiResponse.data.data)) {
+          // Estructura: { success: true, data: { status: "success", data: [...], total: 3 } }
+          municipiosData = apiResponse.data.data;
+          totalCount = apiResponse.data.total || apiResponse.data.data.length;
+        } else if (apiResponse.data.municipios) {
+          // Estructura: { success: true, data: { municipios: [...], total: 48 } }
+          municipiosData = apiResponse.data.municipios;
+          totalCount = apiResponse.data.total || apiResponse.data.municipios.length;
+        }
+      }
+      
+      const totalPages = Math.ceil(totalCount / limit);
+      const hasNext = page < totalPages;
+      const hasPrev = page > 1;
+      
+      const transformedResponse: MunicipiosResponse = {
+        success: apiResponse.success || true,
+        message: apiResponse.message || "Municipios retrieved successfully",
+        data: {
+          municipios: municipiosData,
+          pagination: {
+            currentPage: page,
+            totalPages: totalPages,
+            totalCount: totalCount,
+            hasNext: hasNext,
+            hasPrev: hasPrev,
+          }
+        },
+        timestamp: apiResponse.timestamp || new Date().toISOString()
+      };
+      
+      return transformedResponse;
     } catch (error: any) {
       console.error('Error al obtener municipios:', error);
       throw new Error(error.response?.data?.message || 'Error al obtener municipios');

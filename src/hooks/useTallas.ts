@@ -1,89 +1,74 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { tallasService } from '@/services/tallas';
-import {
-  Talla,
-  TallaFormData,
-  TallaCreate,
-  TallaUpdate,
-  TallasResponse,
-  ServerResponse
-} from '@/types/tallas';
+import { TallaFormData, TallaCreate, TallaUpdate } from '@/types/tallas';
 
+// Hook personalizado para todas las operaciones de tallas
 export const useTallas = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // ===== QUERIES =====
-
-  // Query para obtener todas las tallas con paginación y filtros
+  // Query para obtener tallas con paginación
   const useTallasQuery = (
-    page: number = 1,
-    limit: number = 10,
-    sortBy: string = 'nombre',
+    page: number = 1, 
+    limit: number = 10, 
+    sortBy: string = 'talla', 
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ) => {
-    return useQuery<ServerResponse<TallasResponse>, Error>({
-      queryKey: ['tallas', { page, limit, sortBy, sortOrder }],
-      queryFn: () => tallasService.getTallasWithPagination(page, limit, sortBy, sortOrder),
+    return useQuery({
+      queryKey: ['tallas', page, limit, sortBy, sortOrder],
+      queryFn: () => tallasService.getTallas(page, limit, sortBy, sortOrder),
+      staleTime: 1000 * 60 * 5, // 5 minutos
+      refetchOnWindowFocus: false,
     });
   };
 
-  // Query para buscar tallas por término de búsqueda
-  const useSearchTallasQuery = (
-    searchTerm: string,
-    page: number = 1,
-    limit: number = 10,
-    sortBy: string = 'nombre',
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ) => {
-    return useQuery<ServerResponse<TallasResponse>, Error>({
-      queryKey: ['tallas', 'search', { searchTerm, page, limit, sortBy, sortOrder }],
-      queryFn: () => tallasService.searchTallasWithPagination(searchTerm, page, limit, sortBy, sortOrder),
-      enabled: !!searchTerm.trim(), // Solo se ejecuta si hay un searchTerm
-    });
-  };
-
-  // Query para obtener tallas activas solamente
-  const useTallasActivasQuery = (
-    page: number = 1,
-    limit: number = 10,
-    sortBy: string = 'nombre',
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ) => {
-    return useQuery<ServerResponse<TallasResponse>, Error>({
-      queryKey: ['tallas', 'activas', { page, limit, sortBy, sortOrder }],
-      queryFn: () => tallasService.getTallasActivasWithPagination(page, limit, sortBy, sortOrder),
-    });
-  };
-
-  // Query para obtener tallas por tipo
-  const useTallasPorTipoQuery = (
-    tipo: string,
-    page: number = 1,
-    limit: number = 10
-  ) => {
-    return useQuery<Talla[], Error>({
-      queryKey: ['tallas', 'tipo', tipo, { page, limit }],
-      queryFn: () => tallasService.getTallasPorTipo(tipo, limit, page),
-      enabled: !!tipo, // Solo se ejecuta si hay un tipo
+  // Query para buscar tallas
+  const useSearchTallasQuery = (search: string, page: number = 1, limit: number = 10) => {
+    return useQuery({
+      queryKey: ['tallas-search', search, page, limit],
+      queryFn: () => tallasService.searchTallas(search, page, limit),
+      enabled: search.length > 0,
+      staleTime: 1000 * 60 * 2, // 2 minutos para búsquedas
+      refetchOnWindowFocus: false,
     });
   };
 
   // Query para obtener una talla por ID
   const useTallaByIdQuery = (id: string) => {
-    return useQuery<ServerResponse<Talla>, Error>({
+    return useQuery({
       queryKey: ['talla', id],
       queryFn: () => tallasService.getTallaById(id),
-      enabled: !!id, // Solo se ejecuta si hay un ID
+      enabled: !!id,
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
     });
   };
 
-  // ===== MUTATIONS =====
+  // Query para obtener estadísticas
+  const useTallasStatsQuery = () => {
+    return useQuery({
+      queryKey: ['tallas-stats'],
+      queryFn: () => tallasService.getTallasStats(),
+      staleTime: 1000 * 60 * 15, // 15 minutos para estadísticas
+      refetchOnWindowFocus: false,
+    });
+  };
+
+  // Query para obtener tallas por tipo
+  const useTallasPorTipoQuery = (tipo: string) => {
+    return useQuery({
+      queryKey: ['tallas-tipo', tipo],
+      queryFn: () => tallasService.getTallasPorTipo(tipo),
+      enabled: !!tipo,
+      staleTime: 1000 * 60 * 10,
+      refetchOnWindowFocus: false,
+    });
+  };
 
   // Mutación para crear una nueva talla
   const useCreateTallaMutation = () => {
-    return useMutation<ServerResponse<Talla>, Error, TallaCreate>({
+    return useMutation({
       mutationFn: tallasService.createTalla,
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['tallas'] });
@@ -105,8 +90,9 @@ export const useTallas = () => {
 
   // Mutación para actualizar una talla existente
   const useUpdateTallaMutation = () => {
-    return useMutation<ServerResponse<Talla>, Error, { id: string; data: TallaUpdate }>({
-      mutationFn: ({ id, data }) => tallasService.updateTalla(id, data),
+    return useMutation({
+      mutationFn: ({ id, data }: { id: string; data: TallaUpdate }) => 
+        tallasService.updateTalla(id, data),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['tallas'] });
         toast({
@@ -127,7 +113,7 @@ export const useTallas = () => {
 
   // Mutación para eliminar una talla
   const useDeleteTallaMutation = () => {
-    return useMutation<void, Error, string>({
+    return useMutation({
       mutationFn: tallasService.deleteTalla,
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['tallas'] });
@@ -150,9 +136,9 @@ export const useTallas = () => {
   return {
     useTallasQuery,
     useSearchTallasQuery,
-    useTallasActivasQuery,
-    useTallasPorTipoQuery,
     useTallaByIdQuery,
+    useTallasStatsQuery,
+    useTallasPorTipoQuery,
     useCreateTallaMutation,
     useUpdateTallaMutation,
     useDeleteTallaMutation,

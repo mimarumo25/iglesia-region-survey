@@ -68,7 +68,7 @@ const EstadosCivilesPage = () => {
     nombre: '',
     descripcion: '',
     codigo: '',
-    orden: 0,
+    orden: 1,
     activo: true,
   });
 
@@ -86,7 +86,7 @@ const EstadosCivilesPage = () => {
     }, {
       onSuccess: () => {
         setShowCreateDialog(false);
-        setFormData({ nombre: '', descripcion: '', codigo: '', orden: 0, activo: true });
+        setFormData({ nombre: '', descripcion: '', codigo: '', orden: 1, activo: true });
       }
     });
   };
@@ -108,7 +108,7 @@ const EstadosCivilesPage = () => {
       onSuccess: () => {
         setShowEditDialog(false);
         setSelectedEstadoCivil(null);
-        setFormData({ nombre: '', descripcion: '', codigo: '', orden: 0, activo: true });
+        setFormData({ nombre: '', descripcion: '', codigo: '', orden: 1, activo: true });
       }
     });
   };
@@ -126,7 +126,7 @@ const EstadosCivilesPage = () => {
 
   // Funciones para abrir diálogos
   const handleOpenCreateDialog = () => {
-    setFormData({ nombre: '', descripcion: '', codigo: '', orden: 0, activo: true });
+    setFormData({ nombre: '', descripcion: '', codigo: '', orden: 1, activo: true });
     openCreateDialog();
   };
 
@@ -430,11 +430,19 @@ const EstadosCivilesPage = () => {
           onChange={(value) => setFormData({ ...formData, descripcion: value })}
         />
         <ConfigFormField
+          id="codigo"
+          label="Código"
+          placeholder="Ej: SL, CS, DP"
+          value={formData.codigo}
+          onChange={(value) => setFormData({ ...formData, codigo: value })}
+          required
+        />
+        <ConfigFormField
           id="orden"
           label="Orden"
           placeholder="Ej: 1"
           value={formData.orden.toString()}
-          onChange={(value) => setFormData({ ...formData, orden: parseInt(value) || 0 })}
+          onChange={(value) => setFormData({ ...formData, orden: parseInt(value) || 1 })}
           type="text"
           required
         />
@@ -476,11 +484,19 @@ const EstadosCivilesPage = () => {
           onChange={(value) => setFormData({ ...formData, descripcion: value })}
         />
         <ConfigFormField
+          id="edit-codigo"
+          label="Código"
+          placeholder="Ej: SL, CS, DP"
+          value={formData.codigo}
+          onChange={(value) => setFormData({ ...formData, codigo: value })}
+          required
+        />
+        <ConfigFormField
           id="edit-orden"
           label="Orden"
           placeholder="Ej: 1"
           value={formData.orden.toString()}
-          onChange={(value) => setFormData({ ...formData, orden: parseInt(value) || 0 })}
+          onChange={(value) => setFormData({ ...formData, orden: parseInt(value) || 1 })}
           type="text"
           required
         />

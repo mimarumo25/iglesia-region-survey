@@ -1,16 +1,19 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, ChevronRight, Save, FileDown, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Save, FileDown, Loader2, Send } from "lucide-react";
 import SurveyHeader from "./survey/SurveyHeader";
-import FormField from "./survey/FormField";
-import EnhancedFormField from "./survey/EnhancedFormField";
+import StandardFormField from "./survey/StandardFormField";
 import FamilyGrid from "./survey/FamilyGrid";
 import DeceasedGrid from "./survey/DeceasedGrid";
 import SurveyControls from "./survey/SurveyControls";
-import { FamilyMember, DeceasedFamilyMember, FormField as FormFieldType, FormStage } from "@/types/survey";
+import { FamilyMember, DeceasedFamilyMember, FormStage } from "@/types/survey";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
+import { getAutocompleteOptions, getLoadingState, getErrorState } from "@/utils/formFieldHelpers";
+import { transformFormDataToSurveySession, saveSurveyToLocalStorage } from "@/utils/sessionDataTransformer";
+import { SurveySubmissionService } from "@/services/surveySubmission";
 
 // Definición de las etapas del formulario basado en la encuesta parroquial
 const formStages: FormStage[] = [
@@ -73,6 +76,7 @@ const formStages: FormStage[] = [
 ];
 
 const SurveyForm = () => {
+  const navigate = useNavigate();
   const [currentStage, setCurrentStage] = useState(1);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
@@ -86,37 +90,100 @@ const SurveyForm = () => {
   const currentStageData = formStages.find(stage => stage.id === currentStage);
   const progress = (currentStage / formStages.length) * 100;
 
-  // Auto-guardado cuando cambia la etapa
+  // Auto-guardado cuando cambia la etapa (solo nueva estructura)
   useEffect(() => {
     if (Object.keys(formData).length > 0 || familyMembers.length > 0 || deceasedMembers.length > 0) {
-      localStorage.setItem('parish-survey-draft', JSON.stringify({
-        stage: currentStage,
-        data: formData,
-        familyMembers: familyMembers,
-        deceasedMembers: deceasedMembers,
-        timestamp: new Date().toISOString()
-      }));
+      // Crear estructura de borrador con datos organizados
+      const draftStructuredData = transformFormDataToSurveySession(
+        formData,
+        familyMembers,
+        deceasedMembers,
+        configurationData
+      );
+      
+      // Actualizar metadata del borrador
+      draftStructuredData.metadata.completed = false;
+      draftStructuredData.metadata.currentStage = currentStage;
+      
+      // Guardar borrador solo con nueva estructura
+      saveSurveyToLocalStorage(draftStructuredData, 'parish-survey-draft');
     }
-  }, [currentStage, formData, familyMembers, deceasedMembers]);
+  }, [currentStage, formData, familyMembers, deceasedMembers, configurationData]);
 
-  // Cargar borrador al iniciar
+  // Cargar borrador al iniciar (nueva estructura)
   useEffect(() => {
     const draft = localStorage.getItem('parish-survey-draft');
     if (draft) {
-      const { stage, data, familyMembers: savedFamilyMembers, deceasedMembers: savedDeceasedMembers } = JSON.parse(draft);
-      setCurrentStage(stage);
-      setFormData(data);
-      if (savedFamilyMembers) {
-        setFamilyMembers(savedFamilyMembers);
+      try {
+        const draftData = JSON.parse(draft);
+        
+        // Verificar si es la nueva estructura (tiene metadata y versión)
+        if (draftData.metadata && draftData.informacionGeneral) {
+          // Nueva estructura SurveySessionData
+          setCurrentStage(draftData.metadata.currentStage || 1);
+          
+          // Convertir la estructura nueva de vuelta al formato del formulario actual
+          const legacyFormData: Record<string, any> = {
+            municipio: draftData.informacionGeneral.municipio?.id || '',
+            parroquia: draftData.informacionGeneral.parroquia?.id || '',
+            sector: draftData.informacionGeneral.sector?.id || '',
+            vereda: draftData.informacionGeneral.vereda?.id || '',
+            fecha: draftData.informacionGeneral.fecha,
+            apellido_familiar: draftData.informacionGeneral.apellido_familiar,
+            direccion: draftData.informacionGeneral.direccion,
+            telefono: draftData.informacionGeneral.telefono,
+            numero_contrato_epm: draftData.informacionGeneral.numero_contrato_epm,
+            tipo_vivienda: draftData.vivienda.tipo_vivienda?.id || '',
+            basuras_recolector: draftData.vivienda.disposicion_basuras.recolector,
+            basuras_quemada: draftData.vivienda.disposicion_basuras.quemada,
+            basuras_enterrada: draftData.vivienda.disposicion_basuras.enterrada,
+            basuras_recicla: draftData.vivienda.disposicion_basuras.recicla,
+            basuras_aire_libre: draftData.vivienda.disposicion_basuras.aire_libre,
+            basuras_no_aplica: draftData.vivienda.disposicion_basuras.no_aplica,
+            sistema_acueducto: draftData.servicios_agua.sistema_acueducto?.id || '',
+            aguas_residuales: draftData.servicios_agua.aguas_residuales?.id || '',
+            pozo_septico: draftData.servicios_agua.pozo_septico,
+            letrina: draftData.servicios_agua.letrina,
+            campo_abierto: draftData.servicios_agua.campo_abierto,
+            sustento_familia: draftData.observaciones.sustento_familia,
+            observaciones_encuestador: draftData.observaciones.observaciones_encuestador,
+            autorizacion_datos: draftData.observaciones.autorizacion_datos,
+          };
+          
+          setFormData(legacyFormData);
+          setFamilyMembers(draftData.familyMembers || []);
+          setDeceasedMembers(draftData.deceasedMembers || []);
+        } else {
+          // Estructura legacy (por compatibilidad temporal)
+          const { stage, data, familyMembers: savedFamilyMembers, deceasedMembers: savedDeceasedMembers } = draftData;
+          setCurrentStage(stage);
+          setFormData(data);
+          if (savedFamilyMembers) {
+            setFamilyMembers(savedFamilyMembers);
+          }
+          if (savedDeceasedMembers) {
+            setDeceasedMembers(savedDeceasedMembers);
+          }
+        }
+
+        toast({
+          title: "Borrador recuperado",
+          description: "Se ha recuperado un borrador guardado anteriormente.",
+        });
+      } catch (error) {
+        console.error('Error al cargar borrador:', error);
+        // Si hay error, limpiar el borrador corrupto
+        localStorage.removeItem('parish-survey-draft');
       }
-      if (savedDeceasedMembers) {
-        setDeceasedMembers(savedDeceasedMembers);
-      }
-      toast({
-        title: "Borrador recuperado",
-        description: "Se ha recuperado un borrador guardado anteriormente.",
-      });
     }
+  }, []);
+
+  // Asegurar que el campo 'fecha' siempre tenga la fecha actual
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      fecha: new Date()
+    }));
   }, []);
 
   const handleFieldChange = (fieldId: string, value: any) => {
@@ -176,36 +243,93 @@ const SurveyForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Crear objeto con todos los datos de la encuesta
-      const surveyData = {
-        informacionGeneral: formData,
-        familyMembers: familyMembers,
-        deceasedMembers: deceasedMembers,
-        timestamp: new Date().toISOString(),
-        completed: true
-      };
+      // Transformar datos del formulario actual a estructura organizada por sesiones
+      const structuredSurveyData = transformFormDataToSurveySession(
+        formData,
+        familyMembers,
+        deceasedMembers,
+        configurationData
+      );
 
-      // Aquí puedes agregar la lógica para enviar a tu API
-      
-      // Simular envío a servidor
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Limpiar borrador
-      localStorage.removeItem('parish-survey-draft');
-      
-      toast({
-        title: "Encuesta completada",
-        description: "La encuesta ha sido enviada exitosamente.",
-        variant: "default"
-      });
+      // Marcar como completado
+      structuredSurveyData.metadata.completed = true;
+      structuredSurveyData.metadata.currentStage = formStages.length;
 
-      // Aquí puedes redirigir al dashboard o mostrar página de confirmación
-      // window.location.href = '/dashboard';
+      // Guardar con nueva estructura en localStorage antes del envío
+      saveSurveyToLocalStorage(structuredSurveyData, 'parish-survey-completed');
+      
+      // **ENVÍO AL SERVIDOR USANDO LA NUEVA ESTRUCTURA**
+      const response = await SurveySubmissionService.submitSurvey(structuredSurveyData);
+      
+      if (response.success) {
+        
+        // Limpiar borrador tras envío exitoso
+        SurveySubmissionService.clearStorageAfterSubmission();
+        
+        toast({
+          title: "✅ Encuesta enviada al servidor",
+          description: `${response.message} ${response.surveyId ? `(ID: ${response.surveyId})` : ''}`,
+          variant: "default"
+        });
+
+        // Redirigir al dashboard después de un momento
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 3000);
+        
+      } else {
+        console.error('❌ Error en el envío:', response);
+        
+        toast({
+          title: "❌ Error al enviar al servidor",
+          description: response.message + " - Los datos se guardaron localmente.",
+          variant: "destructive"
+        });
+      }
       
     } catch (error) {
+      console.error('❌ Error inesperado durante el envío:', error);
       toast({
-        title: "Error",
-        description: "Hubo un problema al enviar la encuesta. Inténtelo nuevamente.",
+        title: "❌ Error inesperado",
+        description: "Hubo un problema durante el envío. Los datos se guardaron localmente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Función adicional para enviar desde localStorage
+  const handleSubmitFromStorage = async () => {
+    setIsSubmitting(true);
+    
+    try {
+      const response = await SurveySubmissionService.submitSurveyFromStorage('parish-survey-completed');
+      
+      if (response.success) {
+        SurveySubmissionService.clearStorageAfterSubmission('parish-survey-completed');
+        
+        toast({
+          title: "✅ Datos enviados",
+          description: response.message || "Los datos almacenados se enviaron correctamente.",
+          variant: "default"
+        });
+        
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2000);
+      } else {
+        toast({
+          title: "❌ Error en el envío",
+          description: response.message || "No se pudieron enviar los datos.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "❌ Error inesperado", 
+        description: "Problema al procesar los datos almacenados.",
         variant: "destructive"
       });
     } finally {
@@ -243,7 +367,7 @@ const SurveyForm = () => {
   if (!currentStageData) return null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 lg:py-8 bg-gray-50 min-h-screen">
+    <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 lg:py-8 bg-background dark:bg-background min-h-screen">
       {/* Header con progreso usando componente refactorizado */}
       <SurveyHeader 
         title="Caracterización Poblacional"
@@ -255,34 +379,34 @@ const SurveyForm = () => {
 
       {/* Indicador de carga de servicios */}
       {configurationData.isAnyLoading && (
-        <Card className="mb-6 border-amber-200 bg-amber-50">
+        <Card className="mb-6 border-warning/20 bg-warning/10 dark:bg-warning/10 dark:border-warning/20">
           <CardContent className="p-4">
-            <div className="flex items-center gap-3 text-sm text-amber-800">
+            <div className="flex items-center gap-3 text-sm text-warning-foreground">
               <Loader2 className="w-4 h-4 animate-spin" />
               <span className="font-medium">Cargando datos de configuración...</span>
               <div className="flex items-center gap-2 text-xs">
-                {configurationData.sectoresLoading && <span className="bg-amber-200 px-2 py-1 rounded">Sectores</span>}
-                {configurationData.parroquiasLoading && <span className="bg-amber-200 px-2 py-1 rounded">Parroquias</span>}
-                {configurationData.municipiosLoading && <span className="bg-amber-200 px-2 py-1 rounded">Municipios</span>}
-                {configurationData.tiposViviendaLoading && <span className="bg-amber-200 px-2 py-1 rounded">Tipos de Vivienda</span>}
-                {configurationData.disposicionBasuraLoading && <span className="bg-amber-200 px-2 py-1 rounded">Disposición de Basura</span>}
-                {configurationData.aguasResidualesLoading && <span className="bg-amber-200 px-2 py-1 rounded">Aguas Residuales</span>}
+                {configurationData.sectoresLoading && <span className="bg-warning/20 text-warning-foreground px-2 py-1 rounded">Sectores</span>}
+                {configurationData.parroquiasLoading && <span className="bg-warning/20 text-warning-foreground px-2 py-1 rounded">Parroquias</span>}
+                {configurationData.municipiosLoading && <span className="bg-warning/20 text-warning-foreground px-2 py-1 rounded">Municipios</span>}
+                {configurationData.tiposViviendaLoading && <span className="bg-warning/20 text-warning-foreground px-2 py-1 rounded">Tipos de Vivienda</span>}
+                {configurationData.disposicionBasuraLoading && <span className="bg-warning/20 text-warning-foreground px-2 py-1 rounded">Disposición de Basura</span>}
+                {configurationData.aguasResidualesLoading && <span className="bg-warning/20 text-warning-foreground px-2 py-1 rounded">Aguas Residuales</span>}
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Formulario actual con Tailwind CSS */}
-      <Card className="shadow-lg border-gray-200 rounded-xl bg-white">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-xl border-b border-gray-200">
+      {/* Formulario actual con Tailwind CSS compatible con tema oscuro */}
+      <Card className="shadow-lg border-border rounded-xl bg-card dark:bg-card dark:border-border">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-xl border-b border-border dark:border-border">
           <CardTitle className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold text-lg shadow-lg">
               {currentStage}
             </div>
-            <span className="text-2xl font-bold text-gray-800">{currentStageData.title}</span>
+            <span className="text-2xl font-bold text-foreground dark:text-foreground">{currentStageData.title}</span>
           </CardTitle>
-          <CardDescription className="text-base text-gray-600 pl-14 font-medium">
+          <CardDescription className="text-base text-muted-foreground pl-14 font-medium dark:text-muted-foreground">
             {currentStageData.description}
           </CardDescription>
         </CardHeader>
@@ -298,125 +422,18 @@ const SurveyForm = () => {
               setDeceasedMembers={setDeceasedMembers}
             />
           ) : (
-            currentStageData.fields?.map((field) => {
-              // Función helper para obtener las opciones de autocomplete
-              const getAutocompleteOptions = (field: FormFieldType) => {
-                if ((field.type !== 'autocomplete' && field.type !== 'multiple-checkbox') || !field.configKey) return [];
-                
-                // Mapear configKey a las opciones del hook de configuración
-                switch (field.configKey) {
-                  case 'sectorOptions':
-                    return configurationData.sectorOptions;
-                  case 'parroquiaOptions':
-                    return configurationData.parroquiaOptions;
-                  case 'municipioOptions':
-                    return configurationData.municipioOptions;
-                  case 'veredaOptions':
-                    return configurationData.veredaOptions;
-                  case 'tipoViviendaOptions':
-                    return configurationData.tipoViviendaOptions;
-                  case 'disposicionBasuraOptions':
-                    return configurationData.disposicionBasuraOptions;
-                  case 'aguasResidualesOptions':
-                    return configurationData.aguasResidualesOptions;
-                  case 'sistemasAcueductoOptions':
-                    return configurationData.sistemasAcueductoOptions;
-                  case 'estadoCivilOptions':
-                    return configurationData.estadoCivilOptions;
-                  case 'sexoOptions':
-                    return configurationData.sexoOptions;
-                  case 'userOptions':
-                    return configurationData.userOptions;
-                  default:
-                    return [];
-                }
-              };
-
-              // Función helper para obtener el estado de loading
-              const getLoadingState = (field: FormFieldType) => {
-                if ((field.type !== 'autocomplete' && field.type !== 'multiple-checkbox') || !field.configKey) return false;
-                
-                switch (field.configKey) {
-                  case 'sectorOptions':
-                    return configurationData.sectoresLoading;
-                  case 'parroquiaOptions':
-                    return configurationData.parroquiasLoading;
-                  case 'municipioOptions':
-                    return configurationData.municipiosLoading;
-                  case 'veredaOptions':
-                    return configurationData.veredasLoading;
-                  case 'tipoViviendaOptions':
-                    return configurationData.tiposViviendaLoading;
-                  case 'disposicionBasuraOptions':
-                    return configurationData.disposicionBasuraLoading;
-                  case 'aguasResidualesOptions':
-                    return configurationData.aguasResidualesLoading;
-                  case 'sistemasAcueductoOptions':
-                    return configurationData.sistemasAcueductoLoading;
-                  case 'estadoCivilOptions':
-                    return configurationData.estadosCivilesLoading;
-                  case 'sexoOptions':
-                    return configurationData.sexosLoading;
-                  case 'userOptions':
-                    return configurationData.usersLoading;
-                  default:
-                    return false;
-                }
-              };
-
-              // Función helper para obtener el estado de error
-              const getErrorState = (field: FormFieldType) => {
-                if ((field.type !== 'autocomplete' && field.type !== 'multiple-checkbox') || !field.configKey) return null;
-                
-                switch (field.configKey) {
-                  case 'sectorOptions':
-                    return configurationData.sectoresError;
-                  case 'parroquiaOptions':
-                    return configurationData.parroquiasError;
-                  case 'municipioOptions':
-                    return configurationData.municipiosError;
-                  case 'veredaOptions':
-                    return configurationData.veredasError;
-                  case 'tipoViviendaOptions':
-                    return configurationData.tiposViviendaError;
-                  case 'disposicionBasuraOptions':
-                    return configurationData.disposicionBasuraError;
-                  case 'aguasResidualesOptions':
-                    return configurationData.aguasResidualesError;
-                  case 'sistemasAcueductoOptions':
-                    return configurationData.sistemasAcueductoError;
-                  case 'estadoCivilOptions':
-                    return configurationData.estadosCivilesError;
-                  case 'sexoOptions':
-                    return configurationData.sexosError;
-                  case 'userOptions':
-                    return configurationData.usersError;
-                  default:
-                    return null;
-                }
-              };
-
-              return (
-                <div key={field.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-200">
-                  {field.type === 'autocomplete' || field.type === 'multiple-checkbox' ? (
-                    <EnhancedFormField
-                      field={field}
-                      value={formData[field.id]}
-                      onChange={handleFieldChange}
-                      autocompleteOptions={getAutocompleteOptions(field)}
-                      isLoading={getLoadingState(field)}
-                      error={getErrorState(field)}
-                    />
-                  ) : (
-                    <FormField
-                      field={field}
-                      value={formData[field.id]}
-                      onChange={handleFieldChange}
-                    />
-                  )}
-                </div>
-              );
-            })
+            currentStageData.fields?.map((field) => (
+              <div key={field.id} className="p-4 bg-muted/50 rounded-xl border border-border hover:border-ring hover:shadow-sm transition-all duration-200 dark:bg-muted/50 dark:border-border dark:hover:border-ring">
+                <StandardFormField
+                  field={field}
+                  value={formData[field.id]}
+                  onChange={handleFieldChange}
+                  autocompleteOptions={getAutocompleteOptions(field, configurationData)}
+                  isLoading={getLoadingState(field, configurationData)}
+                  error={getErrorState(field, configurationData)}
+                />
+              </div>
+            ))
           )}
         </CardContent>
       </Card>
@@ -430,6 +447,7 @@ const SurveyForm = () => {
         onNext={handleNext}
         onSubmit={handleSubmit}
         onExport={handleExportData}
+        onSubmitFromStorage={handleSubmitFromStorage}
       />
     </div>
   );

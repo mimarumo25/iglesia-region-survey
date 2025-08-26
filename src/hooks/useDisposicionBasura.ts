@@ -14,7 +14,7 @@ export const useDisposicionBasura = () => {
 
   // ===== QUERIES =====
 
-  // Query para obtener todos los tipos de disposición de basura con paginación y ordenamiento
+  // Query para obtener todos los tipos de disposición de basura con paginación y filtros
   const useDisposicionBasuraQuery = (
     page: number = 1,
     limit: number = 10,
@@ -24,15 +24,7 @@ export const useDisposicionBasura = () => {
     return useQuery<DisposicionBasuraResponse, Error>({
       queryKey: ['disposicionBasura', { page, limit, sortBy, sortOrder }],
       queryFn: () => disposicionBasuraService.getDisposicionBasura(limit, page, sortBy, sortOrder),
-      keepPreviousData: true, // Mantiene los datos anteriores mientras se carga la nueva página
-      onError: (error: any) => {
-        console.error('Error loading disposicion basura:', error);
-        toast({
-          title: "Error",
-          description: error.response?.data?.message || "Error al cargar los tipos de disposición de basura",
-          variant: "destructive",
-        });
-      },
+      placeholderData: (previousData) => previousData,
     });
   };
 
@@ -47,16 +39,8 @@ export const useDisposicionBasura = () => {
     return useQuery<DisposicionBasuraResponse, Error>({
       queryKey: ['disposicionBasura', { searchTerm, page, limit, sortBy, sortOrder }],
       queryFn: () => disposicionBasuraService.searchDisposicionBasura(searchTerm, limit, page, sortBy, sortOrder),
-      enabled: !!searchTerm, // Solo se ejecuta si hay un searchTerm
-      keepPreviousData: true,
-      onError: (error: any) => {
-        console.error('Error searching disposicion basura:', error);
-        toast({
-          title: "Error",
-          description: error.response?.data?.message || "Error al buscar tipos de disposición de basura",
-          variant: "destructive",
-        });
-      },
+      enabled: !!searchTerm,
+      placeholderData: (previousData) => previousData,
     });
   };
 
@@ -64,10 +48,10 @@ export const useDisposicionBasura = () => {
 
   // Mutación para crear un nuevo tipo de disposición de basura
   const useCreateDisposicionBasuraMutation = () => {
-    return useMutation<DisposicionBasura, Error, DisposicionBasuraCreate>({
+    return useMutation({
       mutationFn: disposicionBasuraService.createDisposicionBasura,
       onSuccess: () => {
-        queryClient.invalidateQueries(['disposicionBasura']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['disposicionBasura'] });
         toast({
           title: "Éxito",
           description: "Tipo de disposición de basura creado correctamente",
@@ -86,10 +70,11 @@ export const useDisposicionBasura = () => {
 
   // Mutación para actualizar un tipo de disposición de basura existente
   const useUpdateDisposicionBasuraMutation = () => {
-    return useMutation<DisposicionBasura, Error, { id: string; data: DisposicionBasuraUpdate }>({
-      mutationFn: ({ id, data }) => disposicionBasuraService.updateDisposicionBasura(id, data),
+    return useMutation({
+      mutationFn: ({ id, data }: { id: string; data: DisposicionBasuraUpdate }) => 
+        disposicionBasuraService.updateDisposicionBasura(id, data),
       onSuccess: () => {
-        queryClient.invalidateQueries(['disposicionBasura']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['disposicionBasura'] });
         toast({
           title: "Éxito",
           description: "Tipo de disposición de basura actualizado correctamente",
@@ -108,10 +93,10 @@ export const useDisposicionBasura = () => {
 
   // Mutación para eliminar un tipo de disposición de basura
   const useDeleteDisposicionBasuraMutation = () => {
-    return useMutation<void, Error, string>({
+    return useMutation({
       mutationFn: disposicionBasuraService.deleteDisposicionBasura,
       onSuccess: () => {
-        queryClient.invalidateQueries(['disposicionBasura']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['disposicionBasura'] });
         toast({
           title: "Éxito",
           description: "Tipo de disposición de basura eliminado correctamente",

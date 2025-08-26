@@ -85,7 +85,7 @@ export const useParroquias = () => {
     return useMutation({
       mutationFn: async (parroquia: ParroquiaCreate) => {
         const response = await parroquiasService.createParroquia(parroquia);
-        return response.data;
+        return response;
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['parroquias'] }); // Invalida y refetch los datos de la lista
@@ -111,7 +111,7 @@ export const useParroquias = () => {
     return useMutation({
       mutationFn: async ({ id, data }: { id: string; data: ParroquiaUpdate }) => {
         const response = await parroquiasService.updateParroquia(id, data);
-        return response.data;
+        return response;
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['parroquias'] }); // Invalida y refetch los datos de la lista

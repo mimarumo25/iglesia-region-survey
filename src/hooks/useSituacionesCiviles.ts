@@ -11,7 +11,7 @@ export const useSituacionesCiviles = () => {
   const useSituacionesCivilesQuery = (
     page: number = 1, 
     limit: number = 10, 
-    sortBy: string = 'id_situacion_civil', 
+    sortBy: string = 'id', 
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ) => {
     return useQuery({

@@ -102,6 +102,7 @@ export default {
 				'gradient-animated': 'var(--gradient-animated)',
 				'gradient-hover': 'var(--gradient-hover)',
 				'gradient-sidebar': 'var(--gradient-sidebar)',
+				'gradient-mia': 'var(--gradient-mia)',
 			},
 			boxShadow: {
 				'sm': 'var(--shadow-sm)',

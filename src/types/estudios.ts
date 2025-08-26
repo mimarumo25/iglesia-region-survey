@@ -1,16 +1,19 @@
-// Interfaces para Estudios
+// Interfaces para Estudios - Alineadas con la respuesta real de la API
 export interface Estudio {
-  id_estudio: string;
-  nombre: string;
+  id: string;
+  nivel: string;
   descripcion?: string;
+  ordenNivel: number;
   activo: boolean;
-  created_at?: string;
-  updated_at?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
 }
 
 export interface EstudioFormData {
-  nombre: string;
+  nivel: string;
   descripcion?: string;
+  ordenNivel?: number;
   activo: boolean;
 }
 
@@ -18,12 +21,23 @@ export interface EstudioUpdateData extends EstudioFormData {}
 
 export interface EstudiosResponse {
   estudios: Estudio[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasNext: boolean;
-    hasPrev: boolean;
+  total: number;
+  message: string;
+}
+
+// Estructura de respuesta real de la API
+export interface ApiEstudiosResponse {
+  success: boolean;
+  message: {
+    status: string;
+    data: Estudio[];
+    total: number;
+    message: string;
+  };
+  data: string;
+  timestamp: string;
+  meta: {
+    hasSearch: boolean;
   };
 }
 
@@ -34,7 +48,7 @@ export interface EstudiosStatsResponse {
   ultimo_registro?: string;
 }
 
-// Tipo para el wrapper de respuesta del servidor
+// Tipo para el wrapper de respuesta del servidor - simplificado
 export interface ServerResponse<T> {
   success: boolean;
   timestamp: string;

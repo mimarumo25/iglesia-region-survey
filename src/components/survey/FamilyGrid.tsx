@@ -20,6 +20,23 @@ import { useConfigurationData } from "@/hooks/useConfigurationData";
 import { cn } from "@/lib/utils";
 import { FamilyMember } from "@/types/survey";
 
+// Estilos estandarizados para FamilyGrid con soporte de tema oscuro
+const FAMILY_GRID_STYLES = {
+  dialogContent: "max-w-6xl max-h-[90vh] overflow-y-auto bg-card border-2 border-border rounded-2xl shadow-2xl dark:bg-card dark:border-border",
+  formItem: "space-y-2 p-4 bg-card/50 rounded-xl border border-border shadow-sm dark:bg-card/50 dark:border-border",
+  formLabel: "text-foreground font-bold text-sm dark:text-foreground",
+  input: "bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 h-12 dark:bg-input dark:border-input-border dark:text-foreground dark:focus:bg-accent dark:focus:border-primary",
+  dialogHeader: "p-6 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-2xl border-b border-border dark:border-border",
+  dialogFooter: "p-6 bg-muted/30 rounded-b-2xl border-t border-border dark:bg-muted/30 dark:border-border",
+  checkbox: "h-5 w-5 accent-primary scale-110 rounded-md",
+  checkboxLabel: "text-foreground font-semibold cursor-pointer select-none dark:text-foreground",
+  checkboxContainer: "flex items-center space-x-3 p-4 bg-card/50 rounded-xl border border-border shadow-sm dark:bg-card/50 dark:border-border",
+  sectionContainer: "p-6 bg-success/5 rounded-xl border border-success/20 dark:bg-success/5 dark:border-success/20",
+  gridContainer: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-muted/20 rounded-xl dark:bg-muted/20",
+  tableCard: "border-border bg-card dark:bg-card dark:border-border",
+  tableHeader: "bg-muted/50 dark:bg-muted/50"
+} as const;
+
 interface FamilyGridProps {
   familyMembers: FamilyMember[];
   setFamilyMembers: React.Dispatch<React.SetStateAction<FamilyMember[]>>;
@@ -178,15 +195,15 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
 
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-semibold text-gray-800">Integrantes de la Familia</h3>
-          <p className="text-sm text-gray-600">Agregue la información de cada miembro del hogar</p>
+          <h3 className="text-lg font-semibold text-foreground dark:text-foreground">Integrantes de la Familia</h3>
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">Agregue la información de cada miembro del hogar</p>
         </div>
         
         <Dialog open={showFamilyDialog} onOpenChange={setShowFamilyDialog}>
           <DialogTrigger asChild>
             <Button 
               onClick={() => resetForm()} 
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2.5"
+              className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2.5"
             >
               <Plus className="w-4 h-4" />
               Agregar Miembro
@@ -194,28 +211,28 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
           </DialogTrigger>
           
           <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-white border-2 border-gray-300 rounded-2xl shadow-2xl">
-            <DialogHeader className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-2xl border-b border-gray-200 p-6">
-              <DialogTitle className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <Plus className="w-5 h-5 text-blue-600" />
+            <DialogHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-2xl border-b border-border dark:border-border p-6">
+              <DialogTitle className="text-xl font-bold text-foreground dark:text-foreground flex items-center gap-2">
+                <Plus className="w-5 h-5 text-primary" />
                 {editingFamilyMember ? 'Editar Miembro Familiar' : 'Agregar Miembro Familiar'}
               </DialogTitle>
-              <DialogDescription className="text-gray-600 mt-2">
+              <DialogDescription className="text-muted-foreground dark:text-muted-foreground mt-2">
                 Complete los campos requeridos. Los campos marcados con * son obligatorios.
               </DialogDescription>
             </DialogHeader>
             
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-gray-50 rounded-xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-muted/20 dark:bg-muted/20 rounded-xl">
                   {/* Nombres */}
                   <FormField
                     control={form.control}
                     name="nombres"
                     render={({ field }) => (
-                      <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <FormLabel className="text-gray-800 font-bold text-sm flex items-center gap-1">
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-1">
                           Nombres y Apellidos *
-                          <AlertCircle className="w-3 h-3 text-red-500" />
+                          <AlertCircle className="w-3 h-3 text-destructive" />
                         </FormLabel>
                         <FormControl>
                           <Input 
@@ -224,7 +241,7 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                             placeholder="Ingrese nombres y apellidos completos"
                           />
                         </FormControl>
-                        <FormMessage className="text-red-600 text-xs font-medium" />
+                        <FormMessage className="text-destructive text-xs font-medium" />
                       </FormItem>
                     )}
                   />
@@ -234,8 +251,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     control={form.control}
                     name="fechaNacimiento"
                     render={({ field }) => (
-                      <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <FormLabel className="text-gray-800 font-bold text-sm">Fecha de Nacimiento</FormLabel>
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Fecha de Nacimiento</FormLabel>
                         <FormControl>
                           <ModernDatePicker
                             value={field.value}
@@ -243,7 +260,7 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                             placeholder="Seleccionar fecha de nacimiento"
                           />
                         </FormControl>
-                        <FormMessage className="text-red-600 text-xs font-medium" />
+                        <FormMessage className="text-destructive text-xs font-medium" />
                       </FormItem>
                     )}
                   />
@@ -253,8 +270,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     control={form.control}
                     name="tipoIdentificacion"
                     render={({ field }) => (
-                      <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <FormLabel className="text-gray-800 font-bold text-sm">Tipo de Identificación</FormLabel>
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Tipo de Identificación</FormLabel>
                         <FormControl>
                           <AutocompleteWithLoading
                             options={configurationData.tiposIdentificacionOptions}
@@ -276,8 +293,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     control={form.control}
                     name="sexo"
                     render={({ field }) => (
-                      <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <FormLabel className="text-gray-800 font-bold text-sm">Sexo</FormLabel>
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Sexo</FormLabel>
                         <FormControl>
                           <AutocompleteWithLoading
                             options={configurationData.sexoOptions}
@@ -299,8 +316,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     control={form.control}
                     name="parentesco"
                     render={({ field }) => (
-                      <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <FormLabel className="text-gray-800 font-bold text-sm">Parentesco</FormLabel>
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Parentesco</FormLabel>
                         <FormControl>
                           <AutocompleteWithLoading
                             options={configurationData.parentescosOptions}
@@ -322,8 +339,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     control={form.control}
                     name="situacionCivil"
                     render={({ field }) => (
-                      <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <FormLabel className="text-gray-800 font-bold text-sm">Situación Civil</FormLabel>
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Situación Civil</FormLabel>
                         <FormControl>
                           <AutocompleteWithLoading
                             options={configurationData.situacionesCivilesOptions}
@@ -345,8 +362,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     control={form.control}
                     name="numeroIdentificacion"
                     render={({ field }) => (
-                      <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <FormLabel className="text-gray-800 font-bold text-sm">Número de Identificación</FormLabel>
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Número de Identificación</FormLabel>
                         <FormControl>
                           <Input 
                             {...field} 
@@ -364,8 +381,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     control={form.control}
                     name="estudio"
                     render={({ field }) => (
-                      <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <FormLabel className="text-gray-800 font-bold text-sm">Nivel de Estudios</FormLabel>
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Nivel de Estudios</FormLabel>
                         <FormControl>
                           <AutocompleteWithLoading
                             options={configurationData.estudiosOptions}
@@ -387,8 +404,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     control={form.control}
                     name="comunidadCultural"
                     render={({ field }) => (
-                      <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <FormLabel className="text-gray-800 font-bold text-sm">Comunidad Cultural</FormLabel>
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Comunidad Cultural</FormLabel>
                         <FormControl>
                           <AutocompleteWithLoading
                             options={configurationData.comunidadesCulturalesOptions}
@@ -410,8 +427,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     control={form.control}
                     name="telefono"
                     render={({ field }) => (
-                      <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <FormLabel className="text-gray-800 font-bold text-sm">Teléfono</FormLabel>
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Teléfono</FormLabel>
                         <FormControl>
                           <Input 
                             {...field} 
@@ -429,8 +446,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     control={form.control}
                     name="enQueEresLider"
                     render={({ field }) => (
-                      <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <FormLabel className="text-gray-800 font-bold text-sm">¿En qué eres líder?</FormLabel>
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">¿En qué eres líder?</FormLabel>
                         <FormControl>
                           <Input 
                             {...field} 
@@ -448,8 +465,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     control={form.control}
                     name="habilidadDestreza"
                     render={({ field }) => (
-                      <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <FormLabel className="text-gray-800 font-bold text-sm">Habilidad o Destreza</FormLabel>
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Habilidad o Destreza</FormLabel>
                         <FormControl>
                           <Input 
                             {...field} 
@@ -467,8 +484,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     control={form.control}
                     name="correoElectronico"
                     render={({ field }) => (
-                      <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <FormLabel className="text-gray-800 font-bold text-sm">Correo Electrónico</FormLabel>
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Correo Electrónico</FormLabel>
                         <FormControl>
                           <Input 
                             {...field} 
@@ -487,8 +504,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     control={form.control}
                     name="enfermedad"
                     render={({ field }) => (
-                      <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <FormLabel className="text-gray-800 font-bold text-sm">Enfermedad</FormLabel>
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Enfermedad</FormLabel>
                         <FormControl>
                           <AutocompleteWithLoading
                             options={configurationData.enfermedadesOptions}
@@ -510,8 +527,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                     control={form.control}
                     name="necesidadesEnfermo"
                     render={({ field }) => (
-                      <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <FormLabel className="text-gray-800 font-bold text-sm">Necesidades del Enfermo</FormLabel>
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Necesidades del Enfermo</FormLabel>
                         <FormControl>
                           <Input 
                             {...field} 
@@ -527,7 +544,7 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
 
                 {/* Sección de Tallas */}
                 <div className="p-6 bg-blue-50 rounded-xl border border-blue-200">
-                  <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-4 flex items-center gap-2">
                     <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">T</span>
                     Información de Tallas
                   </h4>
@@ -537,8 +554,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                       control={form.control}
                       name="talla.camisa"
                       render={({ field }) => (
-                        <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                          <FormLabel className="text-gray-800 font-bold text-sm">Camisa/Blusa</FormLabel>
+                        <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                          <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Camisa/Blusa</FormLabel>
                           <FormControl>
                             <AutocompleteWithLoading
                               options={configurationData.tallasOptions.filter(t => t.value.includes('camisa'))}
@@ -560,8 +577,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                       control={form.control}
                       name="talla.pantalon"
                       render={({ field }) => (
-                        <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                          <FormLabel className="text-gray-800 font-bold text-sm">Pantalón</FormLabel>
+                        <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                          <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Pantalón</FormLabel>
                           <FormControl>
                             <AutocompleteWithLoading
                               options={configurationData.tallasOptions.filter(t => t.value.includes('pantalon'))}
@@ -583,8 +600,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                       control={form.control}
                       name="talla.calzado"
                       render={({ field }) => (
-                        <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                          <FormLabel className="text-gray-800 font-bold text-sm">Calzado</FormLabel>
+                        <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                          <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Calzado</FormLabel>
                           <FormControl>
                             <AutocompleteWithLoading
                               options={configurationData.tallasOptions.filter(t => t.value.includes('calzado'))}
@@ -605,7 +622,7 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
 
                 {/* Sección de Profesión y Celebraciones */}
                 <div className="p-6 bg-purple-50 rounded-xl border border-purple-200">
-                  <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-4 flex items-center gap-2">
                     <span className="w-6 h-6 rounded-full bg-purple-600 text-white text-xs flex items-center justify-center">P</span>
                     Profesión y Fechas a Celebrar
                   </h4>
@@ -615,8 +632,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                       control={form.control}
                       name="profesionMotivoFechaCelebrar.profesion"
                       render={({ field }) => (
-                        <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                          <FormLabel className="text-gray-800 font-bold text-sm">Profesión</FormLabel>
+                        <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                          <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Profesión</FormLabel>
                           <FormControl>
                             <AutocompleteWithLoading
                               options={configurationData.profesionesOptions}
@@ -638,8 +655,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                       control={form.control}
                       name="profesionMotivoFechaCelebrar.motivo"
                       render={({ field }) => (
-                        <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                          <FormLabel className="text-gray-800 font-bold text-sm">Motivo de Celebración</FormLabel>
+                        <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                          <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Motivo de Celebración</FormLabel>
                           <FormControl>
                             <Input 
                               {...field} 
@@ -657,8 +674,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                       control={form.control}
                       name="profesionMotivoFechaCelebrar.dia"
                       render={({ field }) => (
-                        <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                          <FormLabel className="text-gray-800 font-bold text-sm">Día</FormLabel>
+                        <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                          <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Día</FormLabel>
                           <FormControl>
                             <Input 
                               {...field} 
@@ -677,8 +694,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                       control={form.control}
                       name="profesionMotivoFechaCelebrar.mes"
                       render={({ field }) => (
-                        <FormItem className="space-y-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                          <FormLabel className="text-gray-800 font-bold text-sm">Mes</FormLabel>
+                        <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                          <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Mes</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger className="bg-gray-100 border-2 border-gray-400 text-gray-900 rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
@@ -708,21 +725,21 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                 </div>
 
                 {/* Solicitud de Comunión en Casa */}
-                <div className="p-6 bg-green-50 rounded-xl border border-green-200">
+                <div className="p-6 bg-success/5 dark:bg-success/5 rounded-xl border border-success/20 dark:border-success/20">
                   <FormField
                     control={form.control}
                     name="solicitudComunionCasa"
                     render={({ field }) => (
-                      <FormItem className="flex items-center space-x-3 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+                      <FormItem className="flex items-center space-x-3 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
                         <FormControl>
                           <input
                             type="checkbox"
                             checked={field.value}
                             onChange={field.onChange}
-                            className="h-5 w-5 accent-green-600 scale-110 rounded-md"
+                            className="h-5 w-5 accent-primary scale-110 rounded-md"
                           />
                         </FormControl>
-                        <FormLabel className="text-gray-800 font-semibold cursor-pointer select-none">
+                        <FormLabel className="text-foreground dark:text-foreground font-semibold cursor-pointer select-none">
                           ¿Solicita Comunión en Casa?
                         </FormLabel>
                         <FormMessage />
@@ -731,18 +748,18 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                   />
                 </div>
                 
-                <DialogFooter className="p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-b-2xl border-t border-gray-200">
+                <DialogFooter className="p-6 bg-muted/30 rounded-b-2xl border-t border-border dark:bg-muted/30 dark:border-border">
                   <Button 
                     type="button"
                     variant="outline" 
                     onClick={resetForm} 
-                    className="rounded-xl border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
+                    className="rounded-xl border-2 border-border hover:border-border hover:bg-muted/20 dark:bg-muted/20 transition-all duration-200"
                   >
                     Cancelar
                   </Button>
                   <Button 
                     type="submit" 
-                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                    className="bg-primary hover:bg-primary/90 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
                     disabled={form.formState.isSubmitting}
                   >
                     {form.formState.isSubmitting 
@@ -778,10 +795,10 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
                 <TableRow 
                   key={member.id} 
                   className={`hover:bg-blue-50 transition-colors duration-200 border-b border-gray-200 ${
-                    index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
+                    index % 2 === 0 ? 'bg-muted/20 dark:bg-muted/20' : 'bg-white'
                   }`}
                 >
-                  <TableCell className="font-medium p-4 text-gray-800">{member.nombres}</TableCell>
+                  <TableCell className="font-medium p-4 text-foreground dark:text-foreground">{member.nombres}</TableCell>
                   <TableCell className="p-4 text-gray-700 text-sm">
                     {member.fechaNacimiento 
                       ? format(member.fechaNacimiento, "dd/MM/yyyy", { locale: es })
@@ -835,7 +852,7 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
           </Table>
         </div>
       ) : (
-        <Card className="border-dashed border-2 border-gray-300 rounded-2xl">
+        <Card className="border-dashed border-2 border-border dark:border-border rounded-2xl">
           <CardContent className="flex flex-col items-center justify-center py-8">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <Plus className="w-8 h-8 text-gray-400" />

@@ -20,18 +20,6 @@ export interface SexoUpdate {
   descripcion?: string;
 }
 
-// Respuestas de la API
-export interface SexosResponse {
-  sexos: Sexo[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-}
-
 // Respuesta del servidor (formato real de la API)
 export interface ServerResponse<T> {
   success: boolean;
@@ -42,14 +30,18 @@ export interface ServerResponse<T> {
 
 // Estructura real que devuelve la API para sexos
 export interface ApiSexosResponse {
-  sexos: Sexo[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
+  status: string;
+  data: Sexo[];
+  total: number;
+  message: string;
+}
+
+// Respuestas de la API
+export interface SexosResponse {
+  success: boolean;
+  message: string;
+  data: ApiSexosResponse;
+  timestamp: string;
 }
 
 // Formularios

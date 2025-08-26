@@ -7,18 +7,10 @@ import {
   SistemasAcueductoResponse,
   ServerResponse 
 } from '@/types/sistemas-acueducto';
-
-const API_BASE_URL = import.meta.env.VITE_BASE_URL_SERVICES || 'http://206.62.139.100:3000';
+import { AXIOS_CONFIG, API_ENDPOINTS } from '@/config/api';
 
 // Cliente básico sin autenticación para modo desarrollo
-const basicClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-});
+const basicClient = axios.create(AXIOS_CONFIG);
 
 // Función para obtener el cliente correcto
 const getApiClient = () => {

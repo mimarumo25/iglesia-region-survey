@@ -11,21 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ConfigModal, ConfigFormField, useConfigModal } from "@/components/ui/config-modal";
+import { useConfigModal } from "@/components/ui/config-modal";
 import { useUsers } from "@/hooks/useUsers";
 import { UserResponse, CreateUserRequest, UpdateUserRequest } from "@/services/users";
 
-// Tipo para el formulario de usuarios
-interface UserFormData {
-  primer_nombre: string;
-  segundo_nombre: string;
-  primer_apellido: string;
-  segundo_apellido: string;
-  correo_electronico: string;
-  password: string;
-  telefono: string;
-  numero_documento: string;
-}
+// Importar modales refactorizados
+import { CreateUserModal, EditUserModal, DeleteUserModal, type UserFormData } from "@/pages/modales/usuarios";
 import {
   User as UserIcon,
   Plus,
@@ -37,8 +28,6 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 
 const UsersPage = () => {
   const usersHook = useUsers();
@@ -202,7 +191,8 @@ const UsersPage = () => {
   };
 
   // Formatear nombre completo
-  const getFullName = (user: UserResponse) => {
+  const getFullName = (user: UserResponse | null) => {
+    if (!user) return 'Usuario no seleccionado';
     const nombres = [user.primer_nombre, user.segundo_nombre].filter(Boolean).join(' ');
     const apellidos = [user.primer_apellido, user.segundo_apellido].filter(Boolean).join(' ');
     return `${nombres} ${apellidos}`.trim();
@@ -454,158 +444,31 @@ const UsersPage = () => {
         </CardContent>
       </Card>
 
-      {/* Modal de Crear Usuario */}
-      <ConfigModal
+      {/* Modales refactorizados */}
+      <CreateUserModal
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
-        type="create"
-        title="Nuevo Usuario"
-        description="Crea un nuevo usuario en el sistema"
-        icon={UserIcon}
-        loading={createMutation.isPending}
+        formData={formData}
+        setFormData={setFormData}
         onSubmit={handleCreateSubmit}
-        submitText="Crear Usuario"
-      >
-        <ConfigFormField
-          id="primer_nombre"
-          label="Primer Nombre"
-          placeholder="Ej: Juan"
-          value={formData.primer_nombre}
-          onChange={(value) => setFormData({ ...formData, primer_nombre: value })}
-          required
-        />
-        <ConfigFormField
-          id="segundo_nombre"
-          label="Segundo Nombre (Opcional)"
-          placeholder="Ej: Carlos"
-          value={formData.segundo_nombre}
-          onChange={(value) => setFormData({ ...formData, segundo_nombre: value })}
-        />
-        <ConfigFormField
-          id="primer_apellido"
-          label="Primer Apellido"
-          placeholder="Ej: Pérez"
-          value={formData.primer_apellido}
-          onChange={(value) => setFormData({ ...formData, primer_apellido: value })}
-          required
-        />
-        <ConfigFormField
-          id="segundo_apellido"
-          label="Segundo Apellido (Opcional)"
-          placeholder="Ej: García"
-          value={formData.segundo_apellido}
-          onChange={(value) => setFormData({ ...formData, segundo_apellido: value })}
-        />
-        <ConfigFormField
-          id="correo_electronico"
-          label="Correo Electrónico"
-          placeholder="Ej: juan.perez@example.com"
-          value={formData.correo_electronico}
-          onChange={(value) => setFormData({ ...formData, correo_electronico: value })}
-          required
-        />
-        <ConfigFormField
-          id="password"
-          label="Contraseña"
-          placeholder="********"
-          value={formData.password}
-          onChange={(value) => setFormData({ ...formData, password: value })}
-          required
-        />
-        <ConfigFormField
-          id="telefono"
-          label="Teléfono (Opcional)"
-          placeholder="Ej: +57 300 123 4567"
-          value={formData.telefono}
-          onChange={(value) => setFormData({ ...formData, telefono: value })}
-        />
-        <ConfigFormField
-          id="numero_documento"
-          label="Número de Documento (Opcional)"
-          placeholder="Ej: 12345678"
-          value={formData.numero_documento}
-          onChange={(value) => setFormData({ ...formData, numero_documento: value })}
-        />
-      </ConfigModal>
+        loading={createMutation.isPending}
+      />
 
-      {/* Modal de Editar Usuario */}
-      <ConfigModal
+      <EditUserModal
         open={showEditDialog}
         onOpenChange={setShowEditDialog}
-        type="edit"
-        title="Editar Usuario"
-        description="Modifica los datos del usuario"
-        icon={Edit2}
-        loading={updateMutation.isPending}
+        formData={formData}
+        setFormData={setFormData}
         onSubmit={handleEditSubmit}
-        submitText="Guardar Cambios"
-      >
-        <ConfigFormField
-          id="edit-primer_nombre"
-          label="Primer Nombre"
-          placeholder="Ej: Juan"
-          value={formData.primer_nombre}
-          onChange={(value) => setFormData({ ...formData, primer_nombre: value })}
-          required
-        />
-        <ConfigFormField
-          id="edit-segundo_nombre"
-          label="Segundo Nombre (Opcional)"
-          placeholder="Ej: Carlos"
-          value={formData.segundo_nombre}
-          onChange={(value) => setFormData({ ...formData, segundo_nombre: value })}
-        />
-        <ConfigFormField
-          id="edit-primer_apellido"
-          label="Primer Apellido"
-          placeholder="Ej: Pérez"
-          value={formData.primer_apellido}
-          onChange={(value) => setFormData({ ...formData, primer_apellido: value })}
-          required
-        />
-        <ConfigFormField
-          id="edit-segundo_apellido"
-          label="Segundo Apellido (Opcional)"
-          placeholder="Ej: García"
-          value={formData.segundo_apellido}
-          onChange={(value) => setFormData({ ...formData, segundo_apellido: value })}
-        />
-        <ConfigFormField
-          id="edit-correo_electronico"
-          label="Correo Electrónico"
-          placeholder="Ej: juan.perez@example.com"
-          value={formData.correo_electronico}
-          onChange={(value) => setFormData({ ...formData, correo_electronico: value })}
-          required
-        />
-        <ConfigFormField
-          id="edit-telefono"
-          label="Teléfono (Opcional)"
-          placeholder="Ej: +57 300 123 4567"
-          value={formData.telefono}
-          onChange={(value) => setFormData({ ...formData, telefono: value })}
-        />
-        <ConfigFormField
-          id="edit-numero_documento"
-          label="Número de Documento (Opcional)"
-          placeholder="Ej: 12345678"
-          value={formData.numero_documento}
-          onChange={(value) => setFormData({ ...formData, numero_documento: value })}
-        />
-      </ConfigModal>
+        loading={updateMutation.isPending}
+      />
 
-      {/* Modal de Eliminar Usuario */}
-      <ConfigModal
+      <DeleteUserModal
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        type="delete"
-        title="¿Estás seguro?"
-        description="Esta acción no se puede deshacer. Se eliminará permanentemente el usuario"
-        icon={Trash2}
-        loading={deleteMutation.isPending}
         onConfirm={handleDelete}
-        entityName={getFullName(selectedUser!)}
-        submitText="Eliminar Usuario"
+        loading={deleteMutation.isPending}
+        selectedUser={selectedUser}
       />
     </div>
   );

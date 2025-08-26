@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, Church, Lock } from "lucide-react";
+import { Eye, EyeOff, Lock } from "lucide-react";
+import Logo from "@/components/ui/logo";
 import { useToast } from "@/hooks/use-toast";
 import { AuthService } from "@/services/auth";
 
@@ -137,12 +138,12 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 dark:from-background dark:via-background dark:to-muted/5 flex items-center justify-center p-4">
       <div className="relative w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
         {/* Columna de imagen */}
         <div className="hidden lg:flex flex-col items-center justify-center space-y-6">
           <div className="relative group">
-            <div className="w-[500px] h-[500px] rounded-3xl overflow-hidden shadow-2xl border-4 border-white/20 hover-lift">
+            <div className="w-[500px] h-[500px] rounded-3xl overflow-hidden shadow-2xl border-4 border-border/50 dark:border-border/30 hover-lift bg-gradient-to-br from-card to-background dark:from-card dark:to-background">
               <img 
                 src="https://images.unsplash.com/photo-1520637836862-4d197d17c13a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
                 alt="Iglesia parroquial" 
@@ -150,13 +151,13 @@ const ResetPassword = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-transparent to-transparent" />
             </div>
-            <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-secondary rounded-full flex items-center justify-center shadow-xl">
-              <Church className="w-12 h-12 text-white" />
+            <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-primary to-secondary dark:from-primary dark:to-secondary rounded-full flex items-center justify-center shadow-xl">
+              <Logo size="md" showText={false} className="w-12 h-12" />
             </div>
           </div>
           <div className="text-center max-w-md">
-            <h2 className="text-3xl font-bold text-foreground mb-2">Gestión Parroquial</h2>
-            <p className="text-muted-foreground text-lg">Sistema integral para la caracterización y seguimiento de las comunidades católicas</p>
+            <h2 className="text-3xl font-bold text-foreground dark:text-foreground mb-2">MIA</h2>
+            <p className="text-muted-foreground dark:text-muted-foreground text-lg">Sistema integral de gestión y seguimiento</p>
           </div>
         </div>
 
@@ -164,31 +165,31 @@ const ResetPassword = () => {
         <div className="w-full max-w-md mx-auto space-y-8">
           {/* Logo y título para móviles */}
           <div className="lg:hidden text-center space-y-4">
-            <div className="mx-auto w-20 h-20 bg-primary rounded-full flex items-center justify-center shadow-lg">
-              <Church className="w-10 h-10 text-white" />
+            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-primary to-secondary dark:from-primary dark:to-secondary rounded-full flex items-center justify-center shadow-lg">
+              <Logo size="md" showText={false} className="w-10 h-10" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">Sistema Parroquial</h1>
-              <p className="text-muted-foreground text-lg">Restablecer Contraseña</p>
+              <h1 className="text-4xl font-bold text-foreground dark:text-foreground mb-2">MIA</h1>
+              <p className="text-muted-foreground dark:text-muted-foreground text-lg">Restablecer Contraseña</p>
             </div>
           </div>
 
           {/* Formulario de restablecimiento */}
-          <Card className="card-enhanced hover-lift click-effect rounded-3xl border-2">
+          <Card className="card-enhanced hover-lift click-effect rounded-3xl border-2 bg-card dark:bg-card border-border dark:border-border shadow-2xl dark:shadow-2xl dark:shadow-black/20">
             <CardHeader className="space-y-1 text-center pb-8">
-              <div className="inline-block bg-primary/10 rounded-2xl px-6 py-3 mb-4">
-                <CardTitle className="text-3xl text-foreground">
+              <div className="inline-block bg-primary/10 dark:bg-primary/20 rounded-2xl px-6 py-3 mb-4">
+                <CardTitle className="text-3xl text-foreground dark:text-foreground">
                   Restablecer Contraseña
                 </CardTitle>
               </div>
-              <CardDescription className="text-muted-foreground text-lg">
+              <CardDescription className="text-muted-foreground dark:text-muted-foreground text-lg">
                 Ingrese su nueva contraseña
               </CardDescription>
             </CardHeader>
             <CardContent className="px-8 pb-8">
               {errors.token ? (
                 <div className="text-center space-y-4">
-                  <p className="text-red-500">{errors.token}</p>
+                  <p className="text-red-500 dark:text-red-400">{errors.token}</p>
                   <Button
                     onClick={() => navigate('/login')}
                     className="w-full h-14 parish-button-primary rounded-2xl"
@@ -199,62 +200,62 @@ const ResetPassword = () => {
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="newPassword" className="text-sm font-medium">Nueva Contraseña</Label>
+                    <Label htmlFor="newPassword" className="text-sm font-medium text-foreground dark:text-foreground">Nueva Contraseña</Label>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-4 h-5 w-5 text-muted-foreground" />
+                      <Lock className="absolute left-4 top-4 h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
                       <Input
                         id="newPassword"
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         value={formData.newPassword}
                         onChange={(e) => handlePasswordChange(e.target.value)}
-                        className={`pl-12 pr-14 h-14 parish-input rounded-2xl text-lg ${
-                          errors.newPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                        className={`pl-12 pr-14 h-14 parish-input rounded-2xl text-lg bg-background dark:bg-background border-input dark:border-input text-foreground dark:text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground ${
+                          errors.newPassword ? 'border-red-500 dark:border-red-500 focus:border-red-500 dark:focus:border-red-500 focus:ring-red-500/20 dark:focus:ring-red-500/20' : ''
                         }`}
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-4 h-6 w-6 text-muted-foreground hover:text-primary"
+                        className="absolute right-4 top-4 h-6 w-6 text-muted-foreground dark:text-muted-foreground hover:text-primary dark:hover:text-primary"
                       >
                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </button>
                     </div>
                     {errors.newPassword && (
-                      <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
-                        <span className="w-4 h-4 text-red-500">⚠</span>
+                      <p className="text-sm text-red-500 dark:text-red-400 mt-1 flex items-center gap-1">
+                        <span className="w-4 h-4 text-red-500 dark:text-red-400">⚠</span>
                         {errors.newPassword}
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirmar Contraseña</Label>
+                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground dark:text-foreground">Confirmar Contraseña</Label>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-4 h-5 w-5 text-muted-foreground" />
+                      <Lock className="absolute left-4 top-4 h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
                       <Input
                         id="confirmPassword"
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="••••••••"
                         value={formData.confirmPassword}
                         onChange={(e) => handleConfirmPasswordChange(e.target.value)}
-                        className={`pl-12 pr-14 h-14 parish-input rounded-2xl text-lg ${
-                          errors.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                        className={`pl-12 pr-14 h-14 parish-input rounded-2xl text-lg bg-background dark:bg-background border-input dark:border-input text-foreground dark:text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground ${
+                          errors.confirmPassword ? 'border-red-500 dark:border-red-500 focus:border-red-500 dark:focus:border-red-500 focus:ring-red-500/20 dark:focus:ring-red-500/20' : ''
                         }`}
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-4 top-4 h-6 w-6 text-muted-foreground hover:text-primary"
+                        className="absolute right-4 top-4 h-6 w-6 text-muted-foreground dark:text-muted-foreground hover:text-primary dark:hover:text-primary"
                       >
                         {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </button>
                     </div>
                     {errors.confirmPassword && (
-                      <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
-                        <span className="w-4 h-4 text-red-500">⚠</span>
+                      <p className="text-sm text-red-500 dark:text-red-400 mt-1 flex items-center gap-1">
+                        <span className="w-4 h-4 text-red-500 dark:text-red-400">⚠</span>
                         {errors.confirmPassword}
                       </p>
                     )}
@@ -297,8 +298,8 @@ const ResetPassword = () => {
           </Card>
 
           {/* Información de seguridad */}
-          <div className="text-center text-sm text-muted-foreground">
-            <div className="p-6 rounded-2xl bg-card/50 border border-border/50">
+          <div className="text-center text-sm text-muted-foreground dark:text-muted-foreground">
+            <div className="p-6 rounded-2xl bg-card/50 dark:bg-card/50 border border-border/50 dark:border-border/30">
               <p className="font-medium">Requisitos de contraseña:</p>
               <ul className="mt-2 space-y-1 text-xs">
                 <li>• Al menos 6 caracteres</li>

@@ -14,8 +14,10 @@ import {
 import { Autocomplete, AutocompleteOption } from '@/components/ui/autocomplete';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
 import { useVeredas } from '@/hooks/useVeredas';
+import { useMunicipios } from '@/hooks/useMunicipios';
 import { Vereda, VeredaFormData, VeredaPagination } from '@/types/veredas';
 import { Municipio } from '@/services/municipios';
+import { municipiosToOptions, formatDate } from '@/lib/utils';
 import {
   MapPin,
   Plus,
@@ -213,17 +215,7 @@ const VeredasPage = () => {
 
   // Convertir municipios a opciones de autocompletado
   const getMunicipiosOptions = (): AutocompleteOption[] => {
-    if (!municipios || municipios.length === 0) return [];
-    return municipios.map((municipio) => ({
-      value: municipio.id_municipio.toString(),
-      label: municipio.nombre_municipio || 'Sin nombre'
-    }));
-  };
-
-  // Formatear fecha
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('es-ES');
+    return municipiosToOptions((municipios as any) || [], false);
   };
 
   return (

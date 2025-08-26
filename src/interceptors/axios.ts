@@ -1,19 +1,10 @@
 import axios, { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { AuthService } from '@/services/auth';
 import { TokenManager } from '@/utils/cookies';
-
-// Configuración base de la API
-const API_BASE_URL = import.meta.env.VITE_BASE_URL_SERVICES;
+import { AXIOS_CONFIG, DEV_CONFIG } from '@/config/api';
 
 // Instancia principal de axios para todas las peticiones autenticadas
-export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-});
+export const apiClient = axios.create(AXIOS_CONFIG);
 
 // Variable para controlar el estado de refresh en progreso
 let isRefreshing = false;
@@ -43,7 +34,7 @@ function onRefreshFailure() {
   refreshSubscribers = [];
   
   // En modo desarrollo con SKIP_AUTH, no limpiar sesión ni redirigir
-  if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
+  if (DEV_CONFIG.IS_DEVELOPMENT && DEV_CONFIG.SKIP_AUTH) {
     return;
   }
   
@@ -91,7 +82,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       
       // En modo desarrollo con SKIP_AUTH, solo logear el error sin procesar
-      if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
+      if (DEV_CONFIG.IS_DEVELOPMENT && DEV_CONFIG.SKIP_AUTH) {
         return Promise.reject(error);
       }
       

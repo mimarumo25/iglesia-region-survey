@@ -27,8 +27,10 @@ export interface ProfesionesResponse {
 
 // Respuesta real de la API (diferente estructura)
 export interface ProfesionesApiResponse {
-  profesiones: Profesion[];
+  status: string;
+  data: Profesion[];
   total: number;
+  message: string;
 }
 
 export interface ProfesionesStatsResponse {

@@ -9,10 +9,22 @@ import EnhancedFormField from "./survey/EnhancedFormField";
 import FamilyGrid from "./survey/FamilyGrid";
 import DeceasedGrid from "./survey/DeceasedGrid";
 import SurveyControls from "./survey/SurveyControls";
-import { FamilyMember, DeceasedFamilyMember, FormField as FormFieldType, FormStage } from "@/types/survey";
+import { FamilyMember, DeceasedFamilyMember, FormField as FormFieldType, FormStage, SurveySessionData, ConfigurationItem } from "@/types/survey";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
 import { useHierarchicalConfiguration } from "@/hooks/useHierarchicalConfiguration";
 import { AutocompleteWithLoading } from "@/components/ui/autocomplete-with-loading";
+import { 
+  initializeSurveySessionData, 
+  updateInformacionGeneral, 
+  updateVivienda, 
+  updateDisposicionBasuras, 
+  updateServiciosAgua, 
+  updateObservaciones,
+  isStageComplete,
+  convertToLegacyFormat,
+  stringToConfigurationItem,
+  configurationItemToString
+} from "@/utils/surveyDataHelpers";
 
 // Definición de las etapas del formulario con soporte jerárquico
 const formStages: FormStage[] = [
@@ -73,7 +85,7 @@ const formStages: FormStage[] = [
 ];
 
 interface SurveyFormProps {
-  onSubmit?: (data: any) => void;
+  onSubmit?: (data: SurveySessionData) => void;
   initialData?: any;
   mode?: 'create' | 'edit';
 }
@@ -83,11 +95,11 @@ const SurveyFormWithHierarchy: React.FC<SurveyFormProps> = ({
   initialData = {}, 
   mode = 'create' 
 }) => {
-  // Estados del formulario
+  // Estados del formulario con nueva estructura
   const [currentStage, setCurrentStage] = useState(1);
-  const [formData, setFormData] = useState(initialData);
-  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(initialData.family_members || []);
-  const [deceasedMembers, setDeceasedMembers] = useState<DeceasedFamilyMember[]>(initialData.deceased_members || []);
+  const [surveyData, setSurveyData] = useState<SurveySessionData>(() => 
+    initializeSurveySessionData(initialData)
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -108,32 +120,88 @@ const SurveyFormWithHierarchy: React.FC<SurveyFormProps> = ({
   } = useHierarchicalConfiguration();
 
   // Configuración general (para otros campos)
-  const { configurationData } = useConfigurationData();
+  const configurationData = useConfigurationData();
 
   // Sincronizar selección de municipio
   useEffect(() => {
-    if (formData.municipio) {
-      setSelectedMunicipio(formData.municipio);
+    const municipioId = configurationItemToString(surveyData.informacionGeneral.municipio);
+    if (municipioId) {
+      setSelectedMunicipio(municipioId);
     }
-  }, [formData.municipio, setSelectedMunicipio]);
+  }, [surveyData.informacionGeneral.municipio, setSelectedMunicipio]);
 
   // Limpiar campos dependientes cuando cambia el municipio
   useEffect(() => {
-    if (selectedMunicipio !== formData.municipio) {
-      setFormData(prev => ({
-        ...prev,
-        parroquia: '',
-        sector: '',
-        vereda: ''
-      }));
+    const currentMunicipioId = configurationItemToString(surveyData.informacionGeneral.municipio);
+    if (selectedMunicipio !== currentMunicipioId) {
+      setSurveyData(prev => updateInformacionGeneral(
+        updateInformacionGeneral(
+          updateInformacionGeneral(prev, 'parroquia', null),
+          'sector', null
+        ),
+        'vereda', null
+      ));
     }
-  }, [selectedMunicipio, formData.municipio]);
+  }, [selectedMunicipio, surveyData.informacionGeneral.municipio]);
 
-  const handleFieldChange = (fieldId: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [fieldId]: value
-    }));
+  // Función para manejar cambios en campos de configuración
+  const handleConfigurationFieldChange = (
+    section: 'informacionGeneral' | 'vivienda' | 'servicios_agua' | 'observaciones',
+    field: string,
+    value: string,
+    items: ConfigurationItem[]
+  ) => {
+    const configItem = stringToConfigurationItem(value, items);
+    
+    switch (section) {
+      case 'informacionGeneral':
+        setSurveyData(prev => updateInformacionGeneral(prev, field as any, configItem));
+        break;
+      case 'vivienda':
+        setSurveyData(prev => updateVivienda(prev, field as any, configItem));
+        break;
+      case 'servicios_agua':
+        setSurveyData(prev => updateServiciosAgua(prev, field as any, configItem));
+        break;
+    }
+  };
+
+  // Función para manejar cambios en campos de texto simple
+  const handleTextFieldChange = (
+    section: 'informacionGeneral' | 'observaciones',
+    field: string,
+    value: string
+  ) => {
+    switch (section) {
+      case 'informacionGeneral':
+        setSurveyData(prev => updateInformacionGeneral(prev, field as any, value));
+        break;
+      case 'observaciones':
+        setSurveyData(prev => updateObservaciones(prev, field as any, value));
+        break;
+    }
+  };
+
+  // Función para manejar cambios en campos boolean
+  const handleBooleanFieldChange = (
+    section: 'vivienda' | 'servicios_agua' | 'observaciones',
+    field: string,
+    value: boolean
+  ) => {
+    switch (section) {
+      case 'vivienda':
+        if (field.startsWith('basuras_')) {
+          const basuraField = field.replace('basuras_', '') as keyof SurveySessionData['vivienda']['disposicion_basuras'];
+          setSurveyData(prev => updateDisposicionBasuras(prev, basuraField, value));
+        }
+        break;
+      case 'servicios_agua':
+        setSurveyData(prev => updateServiciosAgua(prev, field as any, value));
+        break;
+      case 'observaciones':
+        setSurveyData(prev => updateObservaciones(prev, field as any, value));
+        break;
+    }
   };
 
   const renderHierarchicalField = (field: FormFieldType) => {
@@ -156,6 +224,22 @@ const SurveyFormWithHierarchy: React.FC<SurveyFormProps> = ({
     const isDependentField = field.dependsOn === 'municipio';
     const isDisabled = isDependentField && !selectedMunicipio;
 
+    // Obtener valor actual del campo
+    const getCurrentValue = () => {
+      switch (field.id) {
+        case 'municipio':
+          return configurationItemToString(surveyData.informacionGeneral.municipio);
+        case 'parroquia':
+          return configurationItemToString(surveyData.informacionGeneral.parroquia);
+        case 'sector':
+          return configurationItemToString(surveyData.informacionGeneral.sector);
+        case 'vereda':
+          return configurationItemToString(surveyData.informacionGeneral.vereda);
+        default:
+          return '';
+      }
+    };
+
     return (
       <div className="space-y-2" key={field.id}>
         <label className="text-sm font-medium">
@@ -163,8 +247,8 @@ const SurveyFormWithHierarchy: React.FC<SurveyFormProps> = ({
         </label>
         <AutocompleteWithLoading
           options={options}
-          value={formData[field.id] || ''}
-          onValueChange={(value) => handleFieldChange(field.id, value)}
+          value={getCurrentValue()}
+          onValueChange={(value) => handleConfigurationFieldChange('informacionGeneral', field.id, value, configurationData.municipioItems)}
           placeholder={
             isDisabled 
               ? "Primero selecciona un municipio" 

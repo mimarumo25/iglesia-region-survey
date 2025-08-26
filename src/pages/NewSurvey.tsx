@@ -74,22 +74,22 @@ const NewSurvey = () => {
             Volver
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Nueva Encuesta Familiar</h1>
-            <p className="text-gray-600">Completa los datos siguiendo el orden: Municipio → Ubicación → Información Familiar</p>
+            <h1 className="text-2xl font-bold text-foreground dark:text-foreground">Nueva Encuesta Familiar</h1>
+            <p className="text-muted-foreground dark:text-muted-foreground">Completa los datos siguiendo el orden: Municipio → Ubicación → Información Familiar</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <FileText className="h-5 w-5 text-blue-600" />
+          <FileText className="h-5 w-5 text-primary" />
           <Badge variant="outline">Borrador</Badge>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Indicador de Progreso */}
-        <Card className="bg-gradient-to-r from-blue-50 to-green-50 border-blue-200">
+        <Card className="bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20 dark:border-primary/20">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Progreso del Formulario</h3>
+              <h3 className="text-lg font-semibold text-foreground dark:text-foreground">Progreso del Formulario</h3>
               <Badge variant={isFormValid ? "default" : "secondary"}>
                 {isFormValid ? "Listo para enviar" : "En progreso"}
               </Badge>
@@ -97,9 +97,9 @@ const NewSurvey = () => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ${
-                  formData.municipio ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
+                  formData.municipio ? 'bg-success text-success-foreground' : 'bg-muted text-muted-foreground'
                 }`}>1</div>
-                <span className={`text-sm ${formData.municipio ? 'text-green-700 font-medium' : 'text-gray-500'}`}>
+                <span className={`text-sm ${formData.municipio ? 'text-success-foreground font-medium' : 'text-muted-foreground'}`}>
                   Municipio {formData.municipio ? '✓' : ''}
                 </span>
               </div>

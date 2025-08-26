@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from '@/context/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
-import { Church } from 'lucide-react';
+import Logo from '@/components/ui/logo';
 
 interface PrivateRouteProps {
   children: ReactNode;
@@ -13,18 +13,18 @@ interface PrivateRouteProps {
  * Componente de loading para mostrar mientras se verifica la autenticación
  */
 const AuthLoadingSpinner: React.FC = () => (
-  <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-    <Card className="w-full max-w-md mx-auto">
-      <CardContent className="flex flex-col items-center justify-center p-8 space-y-4">
+  <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 dark:from-background dark:via-background dark:to-muted/5 flex items-center justify-center">
+    <Card className="w-full max-w-md mx-auto shadow-xl dark:shadow-2xl dark:shadow-black/20 border-border dark:border-border bg-card dark:bg-card">
+      <CardContent className="flex flex-col items-center justify-center p-8 space-y-6">
         <div className="relative">
-          <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center animate-pulse">
-            <Church className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary dark:from-primary dark:to-secondary rounded-full flex items-center justify-center animate-pulse shadow-lg">
+            <Logo size="sm" showText={false} className="w-10 h-10" />
           </div>
-          <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <div className="absolute inset-0 border-4 border-primary dark:border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-foreground">Verificando sesión...</h3>
-          <p className="text-sm text-muted-foreground">Por favor espere</p>
+          <h3 className="text-lg font-semibold text-foreground dark:text-foreground">Verificando sesión MIA...</h3>
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">Por favor espere</p>
         </div>
       </CardContent>
     </Card>

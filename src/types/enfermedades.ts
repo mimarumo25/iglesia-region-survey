@@ -18,9 +18,11 @@ export interface EnfermedadUpdate {
 
 export interface ApiResponse<T> {
   success: boolean;
+  status: string;
   message: string;
   data: T;
-  timestamp: string;
+  total?: number; // Agregar total opcional para respuestas de listados
+  timestamp?: string;
 }
 
 export interface EnfermedadesData {

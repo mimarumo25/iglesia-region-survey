@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Check, ChevronsUpDown, Search } from "lucide-react"
+import { Check, ChevronsUpDown, Search, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +19,10 @@ import {
 export interface AutocompleteOption {
   value: string
   label: string
+  description?: string
+  category?: string
+  popular?: boolean
+  disabled?: boolean
 }
 
 interface AutocompleteProps {
@@ -45,6 +49,7 @@ export function Autocomplete({
   loading = false,
 }: AutocompleteProps) {
   const [open, setOpen] = React.useState(false)
+  const [searchValue, setSearchValue] = React.useState("")
   const triggerRef = React.useRef<HTMLButtonElement>(null)
   const [triggerWidth, setTriggerWidth] = React.useState<number>(0)
 
@@ -56,6 +61,22 @@ export function Autocomplete({
 
   const selectedOption = options.find((option) => option.value === value)
 
+  // Función para limpiar la selección
+  const clearSelection = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    onValueChange("")
+    setSearchValue("")
+  }
+
+  // Filtrar opciones basado en la búsqueda
+  const filteredOptions = React.useMemo(() => {
+    if (!searchValue) return options
+    return options.filter(option => 
+      option.label.toLowerCase().includes(searchValue.toLowerCase())
+    )
+  }, [options, searchValue])
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -65,56 +86,75 @@ export function Autocomplete({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "w-full justify-between h-12 rounded-xl border-input-border focus:ring-primary",
-            !selectedOption && "text-muted-foreground",
+            "w-full justify-between h-12 bg-gray-100 border-2 border-gray-400 text-gray-900 font-semibold shadow-inner rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 hover:bg-gray-200 hover:border-gray-500 transition-all duration-200",
+            !selectedOption && "text-gray-500",
+            disabled && "opacity-50 cursor-not-allowed",
             className
           )}
           disabled={disabled || loading}
         >
-          <div className="flex items-center gap-2">
-            <Search className="w-4 h-4" />
-            {selectedOption ? selectedOption.label : placeholder}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Search className="w-4 h-4 flex-shrink-0 text-gray-600" />
+            <span className="truncate text-left">
+              {selectedOption ? selectedOption.label : placeholder}
+            </span>
           </div>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {selectedOption && !disabled && (
+              <button
+                type="button"
+                onClick={clearSelection}
+                className="p-1 rounded-md hover:bg-gray-300 transition-colors duration-150"
+                aria-label="Limpiar selección"
+              >
+                <X className="w-3 h-3 text-gray-600" />
+              </button>
+            )}
+            <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+          </div>
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="p-0" 
+        className="p-0 bg-white border-2 border-gray-300 rounded-xl shadow-lg" 
         align="start" 
         side="bottom"
         style={{ width: triggerWidth > 0 ? `${triggerWidth}px` : 'var(--radix-popover-trigger-width)' }}
         sideOffset={4}
       >
-        <Command className="rounded-xl">
+        <Command className="rounded-xl border-0 shadow-lg">
           <CommandInput 
             placeholder={searchPlaceholder} 
-            className="h-12 border-0 focus:ring-0"
+            className="h-12 border-0 focus:ring-0 bg-gray-50 text-gray-900 font-medium placeholder:text-gray-500"
+            value={searchValue}
+            onValueChange={setSearchValue}
           />
-          <CommandList>
-            <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
-              {emptyText}
+          <CommandList className="max-h-60 overflow-auto">
+            <CommandEmpty className="py-6 text-center text-sm text-gray-500">
+              <div className="flex flex-col items-center gap-2">
+                <Search className="w-8 h-8 text-gray-300" />
+                <span>{emptyText}</span>
+              </div>
             </CommandEmpty>
             <CommandGroup>
-              {options.map((option) => (
+              {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.label} // Usar label para la búsqueda en lugar del value
-                  onSelect={(currentValue) => {
-                    // Encontrar la opción por label y devolver su value
-                    const selectedOption = options.find(opt => opt.label.toLowerCase() === currentValue.toLowerCase())
-                    const valueToSet = selectedOption ? selectedOption.value : ""
-                    onValueChange(valueToSet === value ? "" : valueToSet)
+                  value={option.label}
+                  onSelect={() => {
+                    const newValue = value === option.value ? "" : option.value
+                    onValueChange(newValue)
                     setOpen(false)
+                    setSearchValue("")
                   }}
-                  className="cursor-pointer hover:bg-primary/5"
+                  className="cursor-pointer hover:bg-blue-50 px-3 py-3 text-gray-800 rounded-lg transition-colors duration-150 mx-1 my-0.5 flex items-center gap-3"
                 >
                   <Check
                     className={cn(
-                      "mr-2 h-4 w-4",
-                      value === option.value ? "opacity-100" : "opacity-0"
+                      "h-4 w-4 flex-shrink-0",
+                      value === option.value ? "opacity-100 text-blue-600" : "opacity-0"
                     )}
                   />
-                  {option.label}
+                  <span className="flex-1 text-sm font-medium truncate">{option.label}</span>
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -4,11 +4,9 @@ import {
   EnfermedadCreate, 
   EnfermedadUpdate, 
   EnfermedadesResponse,
-  ApiResponse,
-  EnfermedadesData
+  ApiResponse
 } from '@/types/enfermedades';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://206.62.139.100:3000';
+import { API_ENDPOINTS } from '@/config/api';
 
 class EnfermedadesService {
   // Obtener todas las enfermedades con paginación
@@ -19,8 +17,8 @@ class EnfermedadesService {
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ): Promise<EnfermedadesResponse> {
     try {
-      const response = await apiClient.get<ApiResponse<EnfermedadesData>>(
-        `/api/catalog/enfermedades`,
+      const response = await apiClient.get<any>(
+        API_ENDPOINTS.CATALOG.ENFERMEDADES,
         {
           params: {
             sortBy,
@@ -29,7 +27,9 @@ class EnfermedadesService {
         }
       );
       
-      const { enfermedades, totalCount } = response.data.data;
+      // La API devuelve directamente el array de enfermedades en data
+      const enfermedades = response.data.data;
+      const totalCount = response.data.total || enfermedades.length;
       const totalPages = Math.ceil(totalCount / limit);
       
       // Aplicar paginación local si es necesaria
@@ -54,7 +54,7 @@ class EnfermedadesService {
   async getEnfermedadById(id: string): Promise<Enfermedad> {
     try {
       const response = await apiClient.get<ApiResponse<Enfermedad>>(
-        `/api/catalog/enfermedades/${id}`
+        `${API_ENDPOINTS.CATALOG.ENFERMEDADES}/${id}`
       );
       return response.data.data;
     } catch (error) {
@@ -67,7 +67,7 @@ class EnfermedadesService {
   async createEnfermedad(enfermedad: EnfermedadCreate): Promise<Enfermedad> {
     try {
       const response = await apiClient.post<ApiResponse<Enfermedad>>(
-        `/api/catalog/enfermedades`,
+        API_ENDPOINTS.CATALOG.ENFERMEDADES,
         enfermedad
       );
       return response.data.data;
@@ -81,7 +81,7 @@ class EnfermedadesService {
   async updateEnfermedad(id: string, enfermedad: EnfermedadUpdate): Promise<Enfermedad> {
     try {
       const response = await apiClient.put<ApiResponse<Enfermedad>>(
-        `/api/catalog/enfermedades/${id}`,
+        `${API_ENDPOINTS.CATALOG.ENFERMEDADES}/${id}`,
         enfermedad
       );
       return response.data.data;
@@ -94,14 +94,14 @@ class EnfermedadesService {
   // Eliminar enfermedad
   async deleteEnfermedad(id: string): Promise<void> {
     try {
-      await apiClient.delete(`/api/catalog/enfermedades/${id}`);
+      await apiClient.delete(`${API_ENDPOINTS.CATALOG.ENFERMEDADES}/${id}`);
     } catch (error) {
       console.error('Error al eliminar enfermedad:', error);
       throw error;
     }
   }
 
-  // Buscar enfermedades por nombre o categoría (implementación local)
+  // Buscar enfermedades por nombre o descripción (implementación local)
   async searchEnfermedades(
     searchTerm: string,
     page: number = 1,
@@ -112,7 +112,7 @@ class EnfermedadesService {
       const allEnfermedades = await this.getEnfermedades(1, 1000);
       const filteredData = allEnfermedades.data.filter(enfermedad =>
         enfermedad.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        enfermedad.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
+        (enfermedad.descripcion && enfermedad.descripcion.toLowerCase().includes(searchTerm.toLowerCase()))
       );
       
       const totalCount = filteredData.length;
@@ -142,9 +142,11 @@ class EnfermedadesService {
   ): Promise<EnfermedadesResponse> {
     try {
       // Por ahora filtramos localmente hasta que el backend implemente filtrado
+      // Nota: El modelo Enfermedad no tiene campo categoria, se filtra por descripción
       const allEnfermedades = await this.getEnfermedades(1, 1000);
       const filteredData = allEnfermedades.data.filter(enfermedad =>
-        enfermedad.categoria === categoria
+        enfermedad.descripcion?.toLowerCase().includes(categoria.toLowerCase()) ||
+        enfermedad.nombre.toLowerCase().includes(categoria.toLowerCase())
       );
       
       const totalCount = filteredData.length;

@@ -49,23 +49,23 @@ const ProfesionesPage = () => {
   const deleteMutation = profesionesHook.useDeleteProfesionMutation();
 
   const profesiones = searchTerm 
-    ? (searchResponse?.data?.profesiones || []) 
-    : (profesionesResponse?.data?.profesiones || []);
+    ? (searchResponse?.data || []) 
+    : (profesionesResponse?.data || []);
     
   // Adaptar la respuesta de la API al formato esperado por el frontend
   const pagination = searchTerm 
     ? {
         currentPage: page,
-        totalPages: Math.ceil((searchResponse?.data?.total || 0) / limit),
-        totalCount: searchResponse?.data?.total || 0,
-        hasNext: page < Math.ceil((searchResponse?.data?.total || 0) / limit),
+        totalPages: Math.ceil((searchResponse?.total || 0) / limit),
+        totalCount: searchResponse?.total || 0,
+        hasNext: page < Math.ceil((searchResponse?.total || 0) / limit),
         hasPrev: page > 1,
       }
     : {
         currentPage: page,
-        totalPages: Math.ceil((profesionesResponse?.data?.total || 0) / limit),
-        totalCount: profesionesResponse?.data?.total || 0,
-        hasNext: page < Math.ceil((profesionesResponse?.data?.total || 0) / limit),
+        totalPages: Math.ceil((profesionesResponse?.total || 0) / limit),
+        totalCount: profesionesResponse?.total || 0,
+        hasNext: page < Math.ceil((profesionesResponse?.total || 0) / limit),
         hasPrev: page > 1,
       };
 

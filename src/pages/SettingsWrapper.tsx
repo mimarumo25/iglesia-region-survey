@@ -2,18 +2,15 @@ import { useLocation } from 'react-router-dom';
 import SettingsPage from './Settings';
 import Parroquias from './Parroquias';
 import Sectors from './Sectors';
-import EnfermedadesPage from './Enfermedades';
 import VeredasPage from './Veredas';
 import Municipios from './Municipios';
 import AguasResidualesPage from './AguasResiduales';
 import TiposViviendaPage from './TiposVivienda';
 import ParentescosPage from './Parentescos';
 import EstadosCivilesPage from './EstadosCiviles';
-import DisposicionBasuraPage from './DisposicionBasura';
 import SexosPage from './Sexos';
 import ComunidadesCulturalesPage from './ComunidadesCulturales';
 import EstudiosPage from './Estudios';
-import SituacionesCivilesPage from './SituacionesCiviles';
 import DepartamentosPage from './Departamentos';
 import ProfesionesPage from './Profesiones';
 import SectoresConfigPage from './SectoresConfig';
@@ -31,8 +28,6 @@ const SettingsWrapper = () => {
         return <VeredasPage />;
       case '/settings/sectors':
         return <Sectors />;
-      case '/settings/enfermedades':
-        return <EnfermedadesPage />;
       case '/settings/municipios':
         return <Municipios />;
       case '/settings/aguas-residuales':
@@ -43,16 +38,12 @@ const SettingsWrapper = () => {
         return <ParentescosPage />;
       case '/settings/estados-civiles':
         return <EstadosCivilesPage />;
-      case '/settings/disposicion-basura':
-        return <DisposicionBasuraPage />;
       case '/settings/sexos':
         return <SexosPage />;
       case '/settings/comunidades-culturales':
         return <ComunidadesCulturalesPage />;
       case '/settings/estudios':
         return <EstudiosPage />;
-      case '/settings/situaciones-civiles':
-        return <SituacionesCivilesPage />;
       case '/settings/departamentos':
         return <DepartamentosPage />;
       case '/settings/profesiones':

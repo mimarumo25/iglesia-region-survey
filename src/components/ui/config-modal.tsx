@@ -145,7 +145,7 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="sm:max-w-md"
+        className="sm:max-w-2xl max-h-[90vh] overflow-y-auto"
         style={{ borderRadius: '12px', boxShadow: '0 0 25px hsl(var(--primary) / 0.3)' }}
       >
         <DialogHeader className="text-center pb-6">
@@ -164,7 +164,7 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
         </DialogHeader>
         
         <form onSubmit={onSubmit} className="space-y-6">
-          <div className="space-y-4 py-4">
+          <div className="space-y-6 py-4 px-2">
             {children}
           </div>
           

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
 import { useSectores } from '@/hooks/useSectores';
+import { useMunicipios } from '@/hooks/useMunicipios';
 import { Sector, SectorFormData } from '@/types/sectores';
 import {
   Building2,
@@ -31,6 +33,7 @@ import {
 
 const SectoresPage = () => {
   const sectoresHook = useSectores();
+  const municipiosHook = useMunicipios();
 
   // Estados para paginación y filtros
   const [page, setPage] = useState(1);
@@ -42,6 +45,7 @@ const SectoresPage = () => {
   // Queries de React Query
   const { data: sectoresResponse, isLoading: sectoresLoading, refetch: refetchSectores } = sectoresHook.useSectoresQuery(page, limit, sortBy, sortOrder);
   const { data: searchResponse, isLoading: searchLoading } = sectoresHook.useSearchSectoresQuery(searchTerm, page, limit);
+  const { data: municipios, isLoading: municipiosLoading } = municipiosHook.useAllMunicipiosQuery();
 
   // Mutaciones de React Query
   const createMutation = sectoresHook.useCreateSectorMutation();
@@ -49,11 +53,25 @@ const SectoresPage = () => {
   const deleteMutation = sectoresHook.useDeleteSectorMutation();
 
   const sectores = searchTerm 
-    ? (searchResponse?.data?.sectores || []) 
-    : (sectoresResponse?.data?.sectores || []);
+    ? (searchResponse?.data?.data || []) 
+    : (sectoresResponse?.data?.data || []);
+    
+  // Adaptar la respuesta de la API al formato esperado por el frontend
   const pagination = searchTerm 
-    ? (searchResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false }) 
-    : (sectoresResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false });
+    ? {
+        currentPage: page,
+        totalPages: Math.ceil((searchResponse?.data?.total || 0) / limit),
+        totalCount: searchResponse?.data?.total || 0,
+        hasNext: page < Math.ceil((searchResponse?.data?.total || 0) / limit),
+        hasPrev: page > 1,
+      }
+    : {
+        currentPage: page,
+        totalPages: Math.ceil((sectoresResponse?.data?.total || 0) / limit),
+        totalCount: sectoresResponse?.data?.total || 0,
+        hasNext: page < Math.ceil((sectoresResponse?.data?.total || 0) / limit),
+        hasPrev: page > 1,
+      };
 
   const loading = sectoresLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
@@ -73,43 +91,61 @@ const SectoresPage = () => {
   const [selectedSector, setSelectedSector] = useState<Sector | null>(null);
   const [formData, setFormData] = useState<SectorFormData>({
     nombre: '',
+    id_municipio: 0,
     descripcion: '',
-    activo: true,
+    codigo: '',
+    estado: 'activo',
   });
 
   // Manejo del formulario
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nombre.trim()) return;
+    if (!formData.nombre.trim() || formData.id_municipio === 0) return;
 
     createMutation.mutate({
       nombre: formData.nombre.trim(),
-      descripcion: formData.descripcion?.trim() || undefined,
-      activo: formData.activo,
+      id_municipio: formData.id_municipio,
+      descripcion: formData.descripcion?.trim(),
+      codigo: formData.codigo?.trim(),
+      estado: formData.estado,
     }, {
       onSuccess: () => {
         setShowCreateDialog(false);
-        setFormData({ nombre: '', descripcion: '', activo: true });
+        setFormData({ 
+          nombre: '', 
+          id_municipio: 0,
+          descripcion: '', 
+          codigo: '',
+          estado: 'activo' 
+        });
       }
     });
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedSector || !formData.nombre.trim()) return;
+    if (!selectedSector || !formData.nombre.trim() || formData.id_municipio === 0) return;
 
     updateMutation.mutate({
       id: selectedSector.id_sector,
       data: {
         nombre: formData.nombre.trim(),
-        descripcion: formData.descripcion?.trim() || undefined,
-        activo: formData.activo,
+        id_municipio: formData.id_municipio,
+        descripcion: formData.descripcion?.trim(),
+        codigo: formData.codigo?.trim(),
+        estado: formData.estado,
       }
     }, {
       onSuccess: () => {
         setShowEditDialog(false);
         setSelectedSector(null);
-        setFormData({ nombre: '', descripcion: '', activo: true });
+        setFormData({ 
+          nombre: '', 
+          id_municipio: 0,
+          descripcion: '', 
+          codigo: '',
+          estado: 'activo' 
+        });
       }
     });
   };
@@ -127,7 +163,13 @@ const SectoresPage = () => {
 
   // Funciones para abrir diálogos
   const handleOpenCreateDialog = () => {
-    setFormData({ nombre: '', descripcion: '', activo: true });
+    setFormData({ 
+      nombre: '', 
+      id_municipio: 0,
+      descripcion: '', 
+      codigo: '',
+      estado: 'activo' 
+    });
     openCreateDialog();
   };
 
@@ -135,8 +177,16 @@ const SectoresPage = () => {
     setSelectedSector(sector);
     setFormData({
       nombre: sector.nombre,
+      id_municipio: typeof sector.id_municipio === 'string' 
+        ? parseInt(sector.id_municipio) 
+        : (sector.municipio?.id_municipio 
+          ? (typeof sector.municipio.id_municipio === 'string' 
+            ? parseInt(sector.municipio.id_municipio) 
+            : sector.municipio.id_municipio)
+          : (sector.id_municipio || 0)),
       descripcion: sector.descripcion || '',
-      activo: sector.activo,
+      codigo: sector.codigo || '',
+      estado: sector.estado || (sector.activo ? 'activo' : 'inactivo'),
     });
     openEditDialog();
   };
@@ -278,6 +328,8 @@ const SectoresPage = () => {
                   <TableRow>
                     <TableHead>ID</TableHead>
                     <TableHead>Nombre</TableHead>
+                    <TableHead>Código</TableHead>
+                    <TableHead>Municipio</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Fecha Creación</TableHead>
@@ -295,12 +347,22 @@ const SectoresPage = () => {
                         </div>
                       </TableCell>
                       <TableCell>
+                        <Badge variant="outline">
+                          {sector.codigo || 'N/A'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">
+                          {sector.municipio?.nombre_municipio || sector.municipio?.nombre || 'N/A'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
                         <span className="text-sm text-muted-foreground">
                           {sector.descripcion || 'N/A'}
                         </span>
                       </TableCell>
                       <TableCell>
-                        {sector.activo ? (
+                        {(sector.estado === 'activo' || sector.activo) ? (
                           <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
                             <CheckCircle2 className="w-3 h-3 mr-1" />
                             Activo
@@ -391,27 +453,71 @@ const SectoresPage = () => {
         <ConfigFormField
           id="nombre"
           label="Nombre del Sector"
-          placeholder="Ej: Educación"
+          placeholder="Ej: Sector San José"
           value={formData.nombre}
           onChange={(value) => setFormData({ ...formData, nombre: value })}
           required
         />
+        
+        <div className="space-y-2">
+          <label htmlFor="municipio" className="text-sm font-medium">
+            Municipio <span className="text-red-500">*</span>
+          </label>
+          <Select
+            value={formData.id_municipio.toString()}
+            onValueChange={(value) => setFormData({ ...formData, id_municipio: parseInt(value) })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona un municipio" />
+            </SelectTrigger>
+            <SelectContent>
+              {municipios && Array.isArray(municipios) && municipios.map((municipio) => (
+                <SelectItem 
+                  key={municipio.id_municipio} 
+                  value={municipio.id_municipio.toString()}
+                >
+                  {municipio.nombre_municipio}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {municipiosLoading && (
+            <p className="text-xs text-muted-foreground">Cargando municipios...</p>
+          )}
+        </div>
+
+        <ConfigFormField
+          id="codigo"
+          label="Código"
+          placeholder="Ej: SEC001"
+          value={formData.codigo}
+          onChange={(value) => setFormData({ ...formData, codigo: value })}
+        />
+
         <ConfigFormField
           id="descripcion"
           label="Descripción"
-          placeholder="Descripción opcional del sector"
+          placeholder="Descripción del sector"
           value={formData.descripcion}
           onChange={(value) => setFormData({ ...formData, descripcion: value })}
         />
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="activo"
-            checked={formData.activo}
-            onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
-          />
-          <label htmlFor="activo" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Activo
+
+        <div className="space-y-2">
+          <label htmlFor="estado" className="text-sm font-medium">
+            Estado
           </label>
+          <Select
+            value={formData.estado}
+            onValueChange={(value: 'activo' | 'inactivo') => setFormData({ ...formData, estado: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona el estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="activo">Activo</SelectItem>
+              <SelectItem value="inactivo">Inactivo</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </ConfigModal>
 
@@ -430,27 +536,71 @@ const SectoresPage = () => {
         <ConfigFormField
           id="edit-nombre"
           label="Nombre del Sector"
-          placeholder="Ej: Educación"
+          placeholder="Ej: Sector San José"
           value={formData.nombre}
           onChange={(value) => setFormData({ ...formData, nombre: value })}
           required
         />
+        
+        <div className="space-y-2">
+          <label htmlFor="edit-municipio" className="text-sm font-medium">
+            Municipio <span className="text-red-500">*</span>
+          </label>
+          <Select
+            value={formData.id_municipio.toString()}
+            onValueChange={(value) => setFormData({ ...formData, id_municipio: parseInt(value) })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona un municipio" />
+            </SelectTrigger>
+            <SelectContent>
+              {municipios && Array.isArray(municipios) && municipios.map((municipio) => (
+                <SelectItem 
+                  key={municipio.id_municipio} 
+                  value={municipio.id_municipio.toString()}
+                >
+                  {municipio.nombre_municipio}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {municipiosLoading && (
+            <p className="text-xs text-muted-foreground">Cargando municipios...</p>
+          )}
+        </div>
+
+        <ConfigFormField
+          id="edit-codigo"
+          label="Código"
+          placeholder="Ej: SEC001"
+          value={formData.codigo}
+          onChange={(value) => setFormData({ ...formData, codigo: value })}
+        />
+
         <ConfigFormField
           id="edit-descripcion"
           label="Descripción"
-          placeholder="Descripción opcional del sector"
+          placeholder="Descripción del sector"
           value={formData.descripcion}
           onChange={(value) => setFormData({ ...formData, descripcion: value })}
         />
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="edit-activo"
-            checked={formData.activo}
-            onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
-          />
-          <label htmlFor="edit-activo" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Activo
+
+        <div className="space-y-2">
+          <label htmlFor="edit-estado" className="text-sm font-medium">
+            Estado
           </label>
+          <Select
+            value={formData.estado}
+            onValueChange={(value: 'activo' | 'inactivo') => setFormData({ ...formData, estado: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona el estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="activo">Activo</SelectItem>
+              <SelectItem value="inactivo">Inactivo</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </ConfigModal>
 

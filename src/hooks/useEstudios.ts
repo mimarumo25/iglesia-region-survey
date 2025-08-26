@@ -11,25 +11,23 @@ export const useEstudios = () => {
   const useEstudiosQuery = (
     page: number = 1, 
     limit: number = 10, 
-    sortBy: string = 'id_estudio', 
+    sortBy: string = 'id', 
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ) => {
     return useQuery({
-      queryKey: ['estudios', page, limit, sortBy, sortOrder],
+      queryKey: ['estudios', { page, limit, sortBy, sortOrder }],
       queryFn: () => estudiosService.getEstudios(page, limit, sortBy, sortOrder),
-      staleTime: 1000 * 60 * 5, // 5 minutos
-      refetchOnWindowFocus: false,
+      placeholderData: (previousData) => previousData,
     });
   };
 
   // Query para buscar estudios
   const useSearchEstudiosQuery = (search: string, page: number = 1, limit: number = 10) => {
     return useQuery({
-      queryKey: ['estudios-search', search, page, limit],
+      queryKey: ['estudios', { search, page, limit }],
       queryFn: () => estudiosService.searchEstudios(search, page, limit),
-      enabled: search.length > 0,
-      staleTime: 1000 * 60 * 2, // 2 minutos para búsquedas
-      refetchOnWindowFocus: false,
+      enabled: !!search.trim(),
+      placeholderData: (previousData) => previousData,
     });
   };
 
@@ -39,8 +37,6 @@ export const useEstudios = () => {
       queryKey: ['estudio', id],
       queryFn: () => estudiosService.getEstudioById(id),
       enabled: !!id,
-      staleTime: 1000 * 60 * 5,
-      refetchOnWindowFocus: false,
     });
   };
 
