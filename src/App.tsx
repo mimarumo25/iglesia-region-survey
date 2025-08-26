@@ -31,7 +31,6 @@ const Parroquias = React.lazy(() => import("./pages/Parroquias"));
 const SurveyForm = React.lazy(() => import("@/components/SurveyForm"));
 const NewSurveyWithHierarchy = React.lazy(() => import("./pages/NewSurveyWithHierarchy"));
 const Profile = React.lazy(() => import("./pages/Profile"));
-const TallasPage = React.lazy(() => import("./pages/Tallas"));
 // const NoPermissions = React.lazy(() => import("@/components/ui/no-permissions"));
 
 const queryClient = new QueryClient();
@@ -405,17 +404,6 @@ const App = () => (
 
                 <Route 
                   path="/settings/sectores-config" 
-                  element={
-                    <PrivateRoute requiredRole={["admin"]}>
-                      <Layout>
-                        <SettingsWrapper />
-                      </Layout>
-                    </PrivateRoute>
-                  } 
-                />
-
-                <Route 
-                  path="/settings/tallas" 
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>

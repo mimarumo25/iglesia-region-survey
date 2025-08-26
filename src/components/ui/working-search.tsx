@@ -45,7 +45,7 @@ const siteFunctionalities = [
   { id: 'comunidades-culturales', title: 'Comunidades Culturales', subtitle: 'Grupos culturales', route: '/settings/comunidades-culturales', category: 'Social', icon: Globe, keywords: ['cultura', 'comunidad', 'étnico', 'cultural'] },
   { id: 'estudios', title: 'Nivel de Estudios', subtitle: 'Niveles educativos', route: '/settings/estudios', category: 'Social', icon: GraduationCap, keywords: ['educación', 'estudios', 'escolar', 'académico'] },
   { id: 'profesiones', title: 'Profesiones', subtitle: 'Catálogo de profesiones', route: '/settings/profesiones', category: 'Social', icon: User, keywords: ['profesión', 'trabajo', 'ocupación', 'empleo'] },
-  { id: 'tallas', title: 'Tallas', subtitle: 'Clasificación de tallas', route: '/settings/tallas', category: 'Social', icon: User, keywords: ['talla', 'tamaño', 'medida', 'ropa'] }
+  // Tallas removed from quick search
 ];
 
 interface WorkingSearchProps {

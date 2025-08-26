@@ -14,7 +14,8 @@ import EstudiosPage from './Estudios';
 import DepartamentosPage from './Departamentos';
 import ProfesionesPage from './Profesiones';
 import SectoresConfigPage from './SectoresConfig';
-import TallasPage from './Tallas';
+import EnfermedadesPage from './Enfermedades';
+import DisposicionBasuraPage from './DisposicionBasura';
 
 const SettingsWrapper = () => {
   const location = useLocation();
@@ -50,8 +51,10 @@ const SettingsWrapper = () => {
         return <ProfesionesPage />;
       case '/settings/sectores-config':
         return <SectoresConfigPage />;
-      case '/settings/tallas':
-        return <TallasPage />;
+      case '/settings/enfermedades':
+        return <EnfermedadesPage />;
+      case '/settings/disposicion-basura':
+        return <DisposicionBasuraPage />;
       case '/settings':
       default:
         return <SettingsPage initialTab="general" />;

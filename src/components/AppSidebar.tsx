@@ -206,13 +206,7 @@ const navigationItems = [
         description: "Catálogo de sectores del sistema",
         requiredRoles: ["admin"]
       },
-      {
-        title: "Tallas",
-        url: "/settings/tallas",
-        icon: Shirt,
-        description: "Gestión de tallas (Camisa, Pantalón, Calzado)",
-        requiredRoles: ["admin"]
-      }
+  // Tallas removed per request
     ]
   }
 ];

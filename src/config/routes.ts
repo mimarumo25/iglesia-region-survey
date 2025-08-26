@@ -24,7 +24,7 @@ export const lazyRoutes = {
   '/settings/departamentos': () => import('@/pages/SettingsWrapper'),
   '/settings/profesiones': () => import('@/pages/SettingsWrapper'),
   '/settings/sectores-config': () => import('@/pages/SettingsWrapper'),
-  '/settings/tallas': () => import('@/pages/SettingsWrapper'),
+    // '/settings/tallas': () => import('@/pages/SettingsWrapper'),
   
   // Rutas de formularios
   '/survey': () => import('@/components/SurveyForm'),
