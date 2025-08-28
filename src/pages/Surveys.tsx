@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Autocomplete, AutocompleteOption } from "@/components/ui/autocomplete";
 import { AutocompleteWithLoading } from "@/components/ui/autocomplete-with-loading";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { SafeRenderer } from "@/components/ui/SafeRenderer";
 import { useNavigate } from "react-router-dom";
 import {
   FileText,
@@ -40,14 +42,14 @@ const Surveys = () => {
 
   // Hook centralizado para cargar datos de configuración
   const {
-    sectorOptions,
-    sectoresLoading,
+    sectorOptions = [],
+    sectoresLoading = false,
     sectoresError,
-    userOptions: surveyorOptions,
-    usersLoading,
+    userOptions: surveyorOptions = [],
+    usersLoading = false,
     usersError,
-    isAnyLoading
-  } = useConfigurationData();
+    isAnyLoading = false
+  } = useConfigurationData() || {}; // Fallback en caso de error del hook
 
   const surveys = [
     {
@@ -166,9 +168,11 @@ const Surveys = () => {
   };
 
   const filteredSurveys = surveys.filter(survey => {
-    const matchesSearch = survey.familyHead.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         survey.sector.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         survey.surveyor.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!survey) return false; // Verificación adicional de seguridad
+    
+    const matchesSearch = survey.familyHead?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         survey.sector?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         survey.surveyor?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || survey.status === statusFilter;
     
     // Filtro por sector - buscar por nombre ya que sectorFilter contiene el ID
@@ -476,4 +480,42 @@ const Surveys = () => {
   );
 };
 
-export default Surveys;
+// Componente wrapeado con SafeRenderer para máxima protección contra errores de DOM
+const SurveysWithSafeRenderer = () => (
+  <SafeRenderer
+    isolateDOM={true} // Usar aislamiento completo del DOM
+    onError={(error, errorInfo) => {
+      console.error('Error en componente Surveys:', error);
+      console.error('ErrorInfo:', errorInfo);
+      
+      // Registro específico para errores de DOM
+      if (error.message?.includes('removeChild') || error.message?.includes('NotFoundError')) {
+        console.warn('🔧 DOM manipulation error detected and handled by SafeRenderer');
+      }
+    }}
+    fallback={
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-8 h-8 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Cargando Encuestas
+            </h3>
+            <p className="text-gray-600 text-sm mb-4">
+              Preparando el componente de forma segura...
+            </p>
+            <div className="flex items-center justify-center">
+              <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    }
+  >
+    <Surveys />
+  </SafeRenderer>
+);
+
+export default SurveysWithSafeRenderer;

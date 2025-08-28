@@ -1,6 +1,9 @@
 /* Import route transitions styles */
 @import './styles/route-transitions.css';
 
+/* Import datepicker fixes */
+@import './styles/datepicker-fixes.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

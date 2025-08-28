@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ThemeCustomizer from "@/components/ThemeCustomizer";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   Settings,
   Save,
@@ -24,7 +25,12 @@ import {
   Download,
   Upload,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  MapPin,
+  Heart,
+  Droplets,
+  Home,
+  Shirt
 } from "lucide-react";
 
 interface SettingsPageProps {
@@ -34,6 +40,7 @@ interface SettingsPageProps {
 const SettingsPage = ({ initialTab }: SettingsPageProps) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { canManageUsers } = usePermissions();
   
   // Determinar el tab activo basado en la URL
   const getActiveTabFromPath = () => {
@@ -52,10 +59,125 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     // Solo navegar dentro de settings para tabs válidos
-    if (['general', 'email', 'security', 'notifications', 'appearance'].includes(value)) {
+    if (['general', 'email', 'security', 'notifications', 'appearance', 'system'].includes(value)) {
       navigate('/settings');
     }
   };
+
+  // Definir las opciones del sistema con permisos
+  const systemConfigOptions = [
+    {
+      title: "Parroquias",
+      url: "/settings/parroquias",
+      icon: MapPin,
+      description: "Gestión de parroquias",
+      requiredRoles: ["admin"]
+    },
+    {
+      title: "Enfermedades",
+      url: "/settings/enfermedades",
+      icon: Heart,
+      description: "Catálogo de enfermedades",
+      requiredRoles: ["admin"]
+    },
+    {
+      title: "Veredas",
+      url: "/settings/veredas",
+      icon: MapPin,
+      description: "Gestión de veredas",
+      requiredRoles: ["admin"]
+    },
+    {
+      title: "Municipios",
+      url: "/settings/municipios",
+      icon: MapPin,
+      description: "Gestión de municipios",
+      requiredRoles: ["admin"]
+    },
+    {
+      title: "Aguas Residuales",
+      url: "/settings/aguas-residuales",
+      icon: Droplets,
+      description: "Tipos de sistemas de aguas residuales",
+      requiredRoles: ["admin"]
+    },
+    {
+      title: "Tipos de Vivienda",
+      url: "/settings/tipos-vivienda",
+      icon: Home,
+      description: "Tipos de vivienda disponibles",
+      requiredRoles: ["admin"]
+    },
+    {
+      title: "Parentescos",
+      url: "/settings/parentescos",
+      icon: Users,
+      description: "Tipos de relación familiar",
+      requiredRoles: ["admin"]
+    },
+    {
+      title: "Estados Civiles",
+      url: "/settings/estados-civiles",
+      icon: Heart,
+      description: "Tipos de estado civil",
+      requiredRoles: ["admin"]
+    },
+    {
+      title: "Disposición de Basura",
+      url: "/settings/disposicion-basura",
+      icon: Trash2,
+      description: "Tipos de disposición de basura",
+      requiredRoles: ["admin"]
+    },
+    {
+      title: "Sexos",
+      url: "/settings/sexos",
+      icon: Users,
+      description: "Catálogo de sexos",
+      requiredRoles: ["admin"]
+    },
+    {
+      title: "Comunidades Culturales",
+      url: "/settings/comunidades-culturales",
+      icon: Users,
+      description: "Comunidades étnicas y culturales",
+      requiredRoles: ["admin"]
+    },
+    {
+      title: "Estudios",
+      url: "/settings/estudios",
+      icon: Users,
+      description: "Niveles de estudio",
+      requiredRoles: ["admin"]
+    },
+    {
+      title: "Departamentos",
+      url: "/settings/departamentos",
+      icon: MapPin,
+      description: "Departamentos del país",
+      requiredRoles: ["admin"]
+    },
+    {
+      title: "Profesiones",
+      url: "/settings/profesiones",
+      icon: Users,
+      description: "Catálogo de profesiones",
+      requiredRoles: ["admin"]
+    },
+    {
+      title: "Catálogo Sectores",
+      url: "/settings/sectores-config",
+      icon: MapPin,
+      description: "Catálogo de sectores del sistema",
+      requiredRoles: ["admin"]
+    },
+  ];
+
+  // Filtrar opciones según permisos
+  const filteredSystemOptions = systemConfigOptions.filter(option => {
+    if (!option.requiredRoles) return true;
+    return canManageUsers; // Por simplicidad, usar el mismo permiso de admin
+  });
   const [settings, setSettings] = useState({
     // Configuración General
     siteName: "MIA",
@@ -167,10 +289,14 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
 
       {/* Tabs de configuración */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 lg:grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Globe className="w-4 h-4" />
             General
+          </TabsTrigger>
+          <TabsTrigger value="system" className="flex items-center gap-2">
+            <Database className="w-4 h-4" />
+            Sistema
           </TabsTrigger>
           <TabsTrigger value="email" className="flex items-center gap-2">
             <Mail className="w-4 h-4" />
@@ -254,6 +380,56 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
                   </Select>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab de Configuración del Sistema */}
+        <TabsContent value="system">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="w-5 h-5 text-blue-600" />
+                Configuración del Sistema
+              </CardTitle>
+              <CardDescription>
+                Gestiona los catálogos y opciones del sistema MIA
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredSystemOptions.map((option) => (
+                  <Card 
+                    key={option.title}
+                    className="cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 border-2 hover:border-primary/50"
+                    onClick={() => navigate(option.url)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <option.icon className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-base">{option.title}</CardTitle>
+                          <CardDescription className="text-sm">
+                            {option.description}
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
+              
+              {filteredSystemOptions.length === 0 && (
+                <div className="text-center py-8">
+                  <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Sin permisos de configuración</h3>
+                  <p className="text-muted-foreground">
+                    No tienes permisos para acceder a las opciones de configuración del sistema.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

@@ -1,0 +1,311 @@
+/* 
+ * Correcciones específicas para prevenir superposición de textos en datepickers
+ * Archivo creado para solucionar problemas de layout en componentes de calendario
+ */
+
+/* ===== CORRECCIONES GENERALES PARA REACT-DAY-PICKER ===== */
+
+/* Asegurar espaciado adecuado en el caption */
+.rdp-caption {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 40px !important;
+  padding: 8px 0 !important;
+  margin-bottom: 4px !important;
+}
+
+/* Corregir posicionamiento de botones de navegación */
+.rdp-nav_button_previous {
+  position: absolute !important;
+  left: 8px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 10 !important;
+}
+
+.rdp-nav_button_next {
+  position: absolute !important;
+  right: 8px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 10 !important;
+}
+
+/* Asegurar que el label del caption tenga espacio suficiente */
+.rdp-caption_label {
+  margin: 0 auto !important;
+  padding: 0 48px !important; /* Espacio para los botones */
+  text-align: center !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+
+/* Corregir espaciado de dropdowns si están presentes */
+.rdp-caption_dropdowns {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 48px !important; /* Espacio para los botones */
+}
+
+/* ===== CORRECCIONES PARA LA TABLA DEL CALENDARIO ===== */
+
+/* Asegurar que los headers de días tengan espacio adecuado */
+.rdp-head_row {
+  display: flex !important;
+  width: 100% !important;
+  margin-bottom: 8px !important;
+}
+
+.rdp-head_cell {
+  flex: 1 !important;
+  text-align: center !important;
+  padding: 4px 0 !important;
+  font-size: 0.75rem !important;
+  line-height: 1 !important;
+}
+
+/* Corregir espaciado de filas de días */
+.rdp-row {
+  display: flex !important;
+  width: 100% !important;
+  margin-top: 4px !important;
+}
+
+.rdp-cell {
+  flex: 1 !important;
+  position: relative !important;
+  padding: 1px !important;
+  text-align: center !important;
+}
+
+/* Asegurar que los botones de día ocupen todo el espacio disponible */
+.rdp-day {
+  width: 100% !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px !important;
+  font-size: 0.875rem !important;
+  font-weight: normal !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Estados hover y activo para días */
+.rdp-day:hover {
+  background-color: rgb(239 246 255) !important; /* blue-50 */
+  color: rgb(30 58 138) !important; /* blue-900 */
+}
+
+.rdp-day_selected {
+  background-color: rgb(37 99 235) !important; /* blue-600 */
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+.rdp-day_today {
+  background-color: rgb(254 240 138) !important; /* yellow-200 */
+  color: rgb(146 64 14) !important; /* yellow-800 */
+  font-weight: 600 !important;
+  border: 1px solid rgb(217 119 6) !important; /* yellow-600 */
+}
+
+.rdp-day_outside {
+  color: rgb(156 163 175) !important; /* gray-400 */
+  opacity: 0.5 !important;
+}
+
+.rdp-day_disabled {
+  color: rgb(209 213 219) !important; /* gray-300 */
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+}
+
+/* ===== CORRECCIONES ESPECÍFICAS PARA SELECTS ===== */
+
+/* Asegurar que los SelectTrigger tengan altura consistente */
+[data-radix-select-trigger] {
+  min-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 12px !important;
+  line-height: 1.2 !important;
+}
+
+/* Corregir espaciado en SelectContent */
+[data-radix-select-content] {
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  z-index: 50 !important;
+}
+
+[data-radix-select-item] {
+  padding: 8px 12px !important;
+  line-height: 1.3 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* ===== CORRECCIONES PARA POPOVERS ===== */
+
+/* Asegurar que los PopoverContent tengan z-index adecuado */
+[data-radix-popper-content] {
+  z-index: 50 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ===== CORRECCIONES ESPECÍFICAS PARA COMPONENTES CUSTOM ===== */
+
+/* Asegurar que los headers de nuestros componentes no se superpongan */
+.enhanced-date-picker-header {
+  padding: 16px !important;
+  border-bottom: 1px solid rgb(229 231 235) !important; /* gray-200 */
+  margin-bottom: 0 !important;
+}
+
+.enhanced-date-picker-header h4 {
+  margin: 0 !important;
+  line-height: 1.3 !important;
+}
+
+.enhanced-date-picker-header p {
+  margin: 4px 0 0 0 !important;
+  line-height: 1.2 !important;
+}
+
+/* Corregir espaciado en controles de navegación rápida */
+.quick-nav-selects {
+  display: flex !important;
+  gap: 8px !important;
+  margin-top: 12px !important;
+}
+
+.quick-nav-selects > * {
+  flex: 1 !important;
+}
+
+/* Asegurar que los botones de acción no se superpongan */
+.date-picker-actions {
+  padding: 12px !important;
+  border-top: 1px solid rgb(229 231 235) !important; /* gray-200 */
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.date-picker-actions button {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  min-width: 0 !important;
+}
+
+/* ===== CORRECCIONES PARA RESPONSIVIDAD ===== */
+
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 640px) {
+  .rdp-caption_label {
+    font-size: 0.875rem !important;
+    padding: 0 40px !important;
+  }
+  
+  .rdp-nav_button_previous,
+  .rdp-nav_button_next {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  
+  .rdp-day {
+    height: 28px !important;
+    font-size: 0.8rem !important;
+  }
+  
+  .rdp-head_cell {
+    font-size: 0.7rem !important;
+  }
+  
+  .enhanced-date-picker-header {
+    padding: 12px !important;
+  }
+  
+  .quick-nav-selects {
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+}
+
+/* ===== CORRECCIONES PARA MODO OSCURO ===== */
+
+.dark .rdp-day:hover {
+  background-color: rgb(30 58 138) !important; /* blue-900 */
+  color: white !important;
+}
+
+.dark .rdp-day_selected {
+  background-color: rgb(59 130 246) !important; /* blue-500 */
+  color: white !important;
+}
+
+.dark .rdp-day_today {
+  background-color: rgb(120 53 15) !important; /* yellow-800 */
+  color: rgb(254 240 138) !important; /* yellow-200 */
+  border-color: rgb(217 119 6) !important; /* yellow-600 */
+}
+
+/* ===== UTILIDADES ADICIONALES ===== */
+
+/* Prevenir text-overflow en elementos críticos */
+.prevent-text-overflow {
+  overflow: visible !important;
+  white-space: nowrap !important;
+  text-overflow: clip !important;
+}
+
+/* Forzar altura mínima para prevenir colapso */
+.min-height-fix {
+  min-height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Asegurar que los elementos flex no se encojan */
+.flex-no-shrink {
+  flex-shrink: 0 !important;
+}
+
+/* Corregir problemas de z-index específicos */
+.z-index-fix {
+  position: relative !important;
+  z-index: 99999 !important;
+}
+
+/* Asegurar z-index alto para popovers de datepicker */
+[data-radix-popper-content].z-index-fix,
+.enhanced-date-picker-popover {
+  z-index: 99999 !important;
+  position: relative !important;
+}
+
+/* Z-index específico para selectores dentro del datepicker */
+.quick-nav-selects [data-radix-select-content] {
+  z-index: 100000 !important;
+  position: fixed !important;
+}
+
+/* Asegurar que los selectores del datepicker estén por encima */
+.enhanced-date-picker-popover [data-radix-select-content] {
+  z-index: 100001 !important;
+}

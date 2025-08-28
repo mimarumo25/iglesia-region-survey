@@ -21,16 +21,20 @@ export const useMunicipios = () => {
   ) => {
     return useQuery<MunicipiosResponse, Error>({
       queryKey: ['municipios', { page, limit, sortBy, sortOrder, search }],
-      queryFn: () => MunicipiosService.getMunicipios({ page, limit, sortBy, sortOrder, search }),
-      keepPreviousData: true,
-      onError: (error: any) => {
-        console.error('Error al cargar municipios:', error);
-        toast({
-          title: "Error",
-          description: error.message || "No se pudieron cargar los municipios",
-          variant: "destructive"
-        });
+      queryFn: async () => {
+        try {
+          return await MunicipiosService.getMunicipios({ page, limit, sortBy, sortOrder, search });
+        } catch (error: any) {
+          console.error('Error al cargar municipios:', error);
+          toast({
+            title: "Error",
+            description: error.message || "No se pudieron cargar los municipios",
+            variant: "destructive"
+          });
+          throw error;
+        }
       },
+      placeholderData: (previousData) => previousData,
     });
   };
 
@@ -38,16 +42,20 @@ export const useMunicipios = () => {
   const useMunicipioByIdQuery = (id: string) => {
     return useQuery<Municipio, Error>({
       queryKey: ['municipio', id],
-      queryFn: () => MunicipiosService.getMunicipioById(id),
-      enabled: !!id,
-      onError: (error: any) => {
-        console.error('Error al cargar municipio por ID:', error);
-        toast({
-          title: "Error",
-          description: error.message || "No se pudo cargar el municipio",
-          variant: "destructive"
-        });
+      queryFn: async () => {
+        try {
+          return await MunicipiosService.getMunicipioById(id);
+        } catch (error: any) {
+          console.error('Error al cargar municipio por ID:', error);
+          toast({
+            title: "Error",
+            description: error.message || "No se pudo cargar el municipio",
+            variant: "destructive"
+          });
+          throw error;
+        }
       },
+      enabled: !!id,
     });
   };
 
@@ -55,17 +63,21 @@ export const useMunicipios = () => {
   const useAllMunicipiosQuery = () => {
     return useQuery<Municipio[], Error>({
       queryKey: ['allMunicipios'],
-      queryFn: () => MunicipiosService.getAllMunicipios(),
-      staleTime: 1000 * 60 * 5, // 5 minutos
-      cacheTime: 1000 * 60 * 10, // 10 minutos
-      onError: (error: any) => {
-        console.error('Error al cargar todos los municipios:', error);
-        toast({
-          title: "Error",
-          description: error.message || "No se pudieron cargar todos los municipios",
-          variant: "destructive"
-        });
+      queryFn: async () => {
+        try {
+          return await MunicipiosService.getAllMunicipios();
+        } catch (error: any) {
+          console.error('Error al cargar todos los municipios:', error);
+          toast({
+            title: "Error",
+            description: error.message || "No se pudieron cargar todos los municipios",
+            variant: "destructive"
+          });
+          throw error;
+        }
       },
+      staleTime: 1000 * 60 * 5, // 5 minutos
+      gcTime: 1000 * 60 * 10, // 10 minutos (reemplaza cacheTime)
     });
   };
 
@@ -76,7 +88,7 @@ export const useMunicipios = () => {
     return useMutation<Municipio, Error, CreateMunicipioRequest>({
       mutationFn: MunicipiosService.createMunicipio,
       onSuccess: (data, variables) => {
-        queryClient.invalidateQueries(['municipios']); // Invalida y refetch la lista de municipios
+        queryClient.invalidateQueries({ queryKey: ['municipios'] }); // Invalida y refetch la lista de municipios
         toast({
           title: "Municipio creado",
           description: `El municipio "${variables.nombre_municipio}" se ha creado exitosamente`,
@@ -99,8 +111,8 @@ export const useMunicipios = () => {
     return useMutation<Municipio, Error, { id: string; data: UpdateMunicipioRequest }>({
       mutationFn: ({ id, data }) => MunicipiosService.updateMunicipio(id, data),
       onSuccess: (data, variables) => {
-        queryClient.invalidateQueries(['municipios']); // Invalida y refetch la lista de municipios
-        queryClient.invalidateQueries(['municipio', variables.id]); // Invalida el municipio específico
+        queryClient.invalidateQueries({ queryKey: ['municipios'] }); // Invalida y refetch la lista de municipios
+        queryClient.invalidateQueries({ queryKey: ['municipio', variables.id] }); // Invalida el municipio específico
         toast({
           title: "Municipio actualizado",
           description: `El municipio "${variables.data.nombre_municipio}" se ha actualizado exitosamente`,
@@ -123,7 +135,7 @@ export const useMunicipios = () => {
     return useMutation<boolean, Error, string>({
       mutationFn: MunicipiosService.deleteMunicipio,
       onSuccess: () => {
-        queryClient.invalidateQueries(['municipios']); // Invalida y refetch la lista de municipios
+        queryClient.invalidateQueries({ queryKey: ['municipios'] }); // Invalida y refetch la lista de municipios
         toast({
           title: "Municipio eliminado",
           description: "El municipio se ha eliminado exitosamente",

@@ -62,7 +62,7 @@ const ModernDatePicker = ({
 
   // Actualizar selectores cuando cambia el valor externo
   useEffect(() => {
-    if (value) {
+    if (value && value instanceof Date && !isNaN(value.getTime())) {
       setSelectedYear(value.getFullYear().toString());
       setSelectedMonth(value.getMonth().toString());
       setSelectedDay(value.getDate().toString());
@@ -145,14 +145,14 @@ const ModernDatePicker = ({
           disabled={disabled}
           className={cn(
             "w-full justify-between text-left font-normal bg-gray-100 border-2 border-gray-400 text-gray-900 rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 hover:bg-gray-200 hover:border-gray-500 transition-all duration-200 h-11",
-            !value && "text-gray-500",
+            !(value && value instanceof Date && !isNaN(value.getTime())) && "text-gray-500",
             className
           )}
         >
           <div className="flex items-center">
             <CalendarIcon className="mr-3 h-4 w-4 text-gray-600" />
             <span className="flex-1">
-              {value ? format(value, "PPP", { locale: es }) : placeholder}
+              {value && value instanceof Date && !isNaN(value.getTime()) ? format(value, "PPP", { locale: es }) : placeholder}
             </span>
           </div>
           <ChevronDown className="h-4 w-4 text-gray-600 opacity-50" />
@@ -194,30 +194,30 @@ const ModernDatePicker = ({
           {viewMode === 'calendar' ? (
             <Calendar
               mode="single"
-              selected={value || undefined}
+              selected={value && value instanceof Date && !isNaN(value.getTime()) ? value : undefined}
               onSelect={handleDateSelect}
               disabled={(date) =>
                 date > new Date() || date < new Date("1900-01-01")
               }
               initialFocus
               locale={es}
-              defaultMonth={value || new Date()}
+              defaultMonth={value && value instanceof Date && !isNaN(value.getTime()) ? value : new Date()}
               className="rounded-lg"
               classNames={{
                 months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
                 month: "space-y-4",
-                caption: "flex justify-center pt-1 relative items-center",
-                caption_label: "text-sm font-bold text-gray-800",
+                caption: "flex justify-center pt-2 pb-2 relative items-center min-h-[40px]",
+                caption_label: "text-sm font-bold text-gray-800 mx-auto px-8",
                 nav: "space-x-1 flex items-center",
-                nav_button: "h-7 w-7 bg-white border border-gray-300 rounded-md opacity-80 hover:opacity-100 hover:bg-blue-50 transition-all duration-200",
-                nav_button_previous: "absolute left-1",
-                nav_button_next: "absolute right-1",
+                nav_button: "h-7 w-7 bg-white border border-gray-300 rounded-md opacity-80 hover:opacity-100 hover:bg-blue-50 transition-all duration-200 z-10",
+                nav_button_previous: "absolute left-2 top-1/2 transform -translate-y-1/2",
+                nav_button_next: "absolute right-2 top-1/2 transform -translate-y-1/2",
                 table: "w-full border-collapse space-y-1",
-                head_row: "flex",
-                head_cell: "text-gray-600 rounded-md w-9 font-medium text-[0.8rem]",
-                row: "flex w-full mt-2",
-                cell: "h-9 w-9 text-center text-sm p-0 relative hover:bg-blue-50 rounded-md transition-colors duration-200 cursor-pointer",
-                day: "h-8 w-8 p-0 font-normal hover:bg-blue-100 rounded-md transition-all duration-200 flex items-center justify-center",
+                head_row: "flex w-full mb-2",
+                head_cell: "text-gray-600 rounded-md w-9 font-medium text-[0.8rem] text-center flex-1",
+                row: "flex w-full mt-1",
+                cell: "h-9 w-9 text-center text-sm p-0 relative hover:bg-blue-50 rounded-md transition-colors duration-200 cursor-pointer flex-1",
+                day: "h-8 w-8 p-0 font-normal hover:bg-blue-100 rounded-md transition-all duration-200 flex items-center justify-center w-full",
                 day_selected: "bg-blue-600 text-white hover:bg-blue-700 rounded-md shadow-md font-semibold",
                 day_today: "bg-orange-100 text-orange-800 font-bold border border-orange-300 rounded-md",
                 day_outside: "text-gray-400 opacity-50",
@@ -289,7 +289,10 @@ const ModernDatePicker = ({
               {selectedYear && selectedMonth && selectedDay && (
                 <div className="text-center p-2 bg-blue-50 rounded-lg border border-blue-200">
                   <p className="text-sm font-medium text-blue-800">
-                    Fecha seleccionada: {format(createDateFromSelectors() || new Date(), "PPP", { locale: es })}
+                    {(() => {
+                      const date = createDateFromSelectors();
+                      return date ? `Fecha seleccionada: ${format(date, "PPP", { locale: es })}` : 'Fecha inválida';
+                    })()}
                   </p>
                 </div>
               )}

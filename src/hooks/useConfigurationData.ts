@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useEffect } from "react";
 import { AutocompleteOption } from "@/components/ui/autocomplete";
 import { ConfigurationItem } from "@/types/survey";
 
@@ -137,18 +137,43 @@ export interface ConfigurationData {
 
 /**
  * Hook personalizado para cargar y gestionar datos de configuración básicos
- * de la aplicación de manera centralizada
+ * de la aplicación de manera centralizada con manejo mejorado de errores
  */
 export const useConfigurationData = (): ConfigurationData => {
-  // Función auxiliar para convertir opciones a items estructurados
-  const convertToConfigurationItems = (options: AutocompleteOption[]): ConfigurationItem[] => {
-    return options.map(option => ({
-      id: option.value,
-      nombre: option.label
-    }));
-  };
+  // Ref para rastrear si el componente está montado
+  const mountedRef = useRef(true);
   
-  // Hooks de servicios
+  useEffect(() => {
+    mountedRef.current = true;
+    
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // Función auxiliar para convertir opciones a items estructurados de forma segura
+  const convertToConfigurationItems = useMemo(() => 
+    (options: AutocompleteOption[]): ConfigurationItem[] => {
+      if (!mountedRef.current || !Array.isArray(options)) {
+        return [];
+      }
+      
+      return options.map(option => ({
+        id: option.value,
+        nombre: option.label
+      }));
+    }, []);
+  
+  // Función auxiliar para manejo seguro de datos
+  const safeDataExtraction = useMemo(() => 
+    (data: any, defaultValue: any[] = []) => {
+      if (!mountedRef.current || !data) {
+        return defaultValue;
+      }
+      return data;
+    }, []);
+  
+  // Hooks de servicios con manejo de errores mejorado
   const { useActiveSectoresQuery } = useSectores();
   const { useUsersQuery } = useUsers();
   const { useSexosActivosQuery } = useSexos();
@@ -347,13 +372,12 @@ export const useConfigurationData = (): ConfigurationData => {
   }, [parroquiasData]);
 
   const municipioOptions = useMemo((): AutocompleteOption[] => {
-    if (!municipiosData || !Array.isArray(municipiosData)) {
+    if (!mountedRef.current || !municipiosData || !Array.isArray(municipiosData)) {
       return [];
     }
     
-    return municipiosData.map((municipio, index) => {
-      
-      // Asegurarnos de que municipio existe y tiene las propiedades necesarias
+    return municipiosData.map((municipio: any, index) => {
+      // Verificar que municipio existe y tiene las propiedades necesarias
       if (!municipio || typeof municipio !== 'object') {
         console.warn('Municipio inválido encontrado:', municipio);
         return {
@@ -365,14 +389,14 @@ export const useConfigurationData = (): ConfigurationData => {
         };
       }
 
-      // Limpiar cualquier emoji o caracteres especiales del nombre del municipio
-      const rawName = municipio.nombre_municipio || municipio.nombre || 'Sin nombre';
+      // Obtener nombre del municipio de forma segura
+      const rawName = municipio.nombre_municipio || 'Sin nombre';
       
       const cleanName = typeof rawName === 'string' 
         ? rawName.replace(/[🏢🏘️🌆🏙️🌃🗼🏛️🏠🏡🏣🏤🏥🏦🏧🏨🏩🏪🏫🏬🏭🏮🏯🏰🌍🌎🌏📍🎯🌟⭐✨💫🔸🔹🔷🔶⚡🔥💎🎊🎉🏆🥇🎖️🏅★☆✦✧✩✪✫⋆※○◯◎●◆◇◈◉◊⬣⬡⬢⬛⬜]/g, '').trim()
         : 'Sin nombre';
 
-      // Mejorar el manejo de la información del departamento
+      // Manejar información del departamento de forma segura
       let departamentoInfo = 'Colombia';
       if (municipio.departamento) {
         if (typeof municipio.departamento === 'object' && municipio.departamento.nombre) {
@@ -669,110 +693,109 @@ export const useConfigurationData = (): ConfigurationData => {
 
   return {
     // Sectores
-    sectorOptions,
-    sectorItems,
+    sectorOptions: sectorOptions || [],
+    sectorItems: sectorItems || [],
     sectoresLoading,
     sectoresError,
 
     // Usuarios
-    userOptions,
+    userOptions: userOptions || [],
     usersLoading,
     usersError,
 
     // Sexos
-    sexoOptions,
-    sexoItems,
+    sexoOptions: sexoOptions || [],
+    sexoItems: sexoItems || [],
     sexosLoading,
     sexosError,
 
     // Estados civiles
-    estadoCivilOptions,
-    estadoCivilItems: convertToConfigurationItems(estadoCivilOptions),
+    estadoCivilOptions: estadoCivilOptions || [],
+    estadoCivilItems: convertToConfigurationItems(estadoCivilOptions || []),
     situacionesCivilesLoading,
     situacionesCivilesError,
 
     // Tipos de vivienda
-    tipoViviendaOptions,
-    tipoViviendaItems: convertToConfigurationItems(tipoViviendaOptions),
+    tipoViviendaOptions: tipoViviendaOptions || [],
+    tipoViviendaItems: convertToConfigurationItems(tipoViviendaOptions || []),
     tiposViviendaLoading,
     tiposViviendaError,
 
     // Disposición de basura
-    disposicionBasuraOptions,
-    disposicionBasuraItems: convertToConfigurationItems(disposicionBasuraOptions),
+    disposicionBasuraOptions: disposicionBasuraOptions || [],
+    disposicionBasuraItems: convertToConfigurationItems(disposicionBasuraOptions || []),
     disposicionBasuraLoading,
     disposicionBasuraError,
 
     // Aguas residuales
-    aguasResidualesOptions,
-    aguasResidualesItems: convertToConfigurationItems(aguasResidualesOptions),
+    aguasResidualesOptions: aguasResidualesOptions || [],
+    aguasResidualesItems: convertToConfigurationItems(aguasResidualesOptions || []),
     aguasResidualesLoading,
     aguasResidualesError,
 
     // Tipos de identificación
-    tiposIdentificacionOptions,
-    tiposIdentificacionItems: convertToConfigurationItems(tiposIdentificacionOptions),
+    tiposIdentificacionOptions: tiposIdentificacionOptions || [],
+    tiposIdentificacionItems: convertToConfigurationItems(tiposIdentificacionOptions || []),
     tiposIdentificacionLoading,
     tiposIdentificacionError,
 
     // Parentescos
-    parentescosOptions,
-    parentescosItems: convertToConfigurationItems(parentescosOptions),
+    parentescosOptions: parentescosOptions || [],
+    parentescosItems: convertToConfigurationItems(parentescosOptions || []),
     parentescosLoading,
     parentescosError,
 
     // Estudios
-    estudiosOptions,
-    estudiosItems: convertToConfigurationItems(estudiosOptions),
+    estudiosOptions: estudiosOptions || [],
+    estudiosItems: convertToConfigurationItems(estudiosOptions || []),
     estudiosLoading,
     estudiosError,
 
     // Profesiones
-    profesionesOptions,
-    profesionesItems: convertToConfigurationItems(profesionesOptions),
+    profesionesOptions: profesionesOptions || [],
+    profesionesItems: convertToConfigurationItems(profesionesOptions || []),
     profesionesLoading,
     profesionesError,
 
     // Enfermedades
-    enfermedadesOptions,
-    enfermedadesItems: convertToConfigurationItems(enfermedadesOptions),
+    enfermedadesOptions: enfermedadesOptions || [],
+    enfermedadesItems: convertToConfigurationItems(enfermedadesOptions || []),
     enfermedadesLoading,
     enfermedadesError,
 
     // Comunidades culturales
-    comunidadesCulturalesOptions,
-    comunidadesCulturalesItems: convertToConfigurationItems(comunidadesCulturalesOptions),
+    comunidadesCulturalesOptions: comunidadesCulturalesOptions || [],
+    comunidadesCulturalesItems: convertToConfigurationItems(comunidadesCulturalesOptions || []),
     comunidadesCulturalesLoading,
     comunidadesCulturalesError,
 
     // Parroquias
-    parroquiaOptions,
-    parroquiaItems: convertToConfigurationItems(parroquiaOptions),
+    parroquiaOptions: parroquiaOptions || [],
+    parroquiaItems: convertToConfigurationItems(parroquiaOptions || []),
     parroquiasLoading,
     parroquiasError,
 
     // Municipios
-    municipioOptions,
-    municipioItems: convertToConfigurationItems(municipioOptions),
+    municipioOptions: municipioOptions || [],
+    municipioItems: convertToConfigurationItems(municipioOptions || []),
     municipiosLoading,
     municipiosError,
 
     // Veredas
-    veredaOptions,
-    veredaItems: convertToConfigurationItems(veredaOptions),
+    veredaOptions: veredaOptions || [],
+    veredaItems: convertToConfigurationItems(veredaOptions || []),
     veredasLoading,
     veredasError,
 
     // Departamentos
-    departamentoOptions,
-    departamentoItems: convertToConfigurationItems(departamentoOptions),
+    departamentoOptions: departamentoOptions || [],
+    departamentoItems: convertToConfigurationItems(departamentoOptions || []),
     departamentosLoading,
     departamentosError,
 
     // Sistemas de Acueducto
-    // Sistemas de Acueducto
-    sistemasAcueductoOptions,
-    sistemasAcueductoItems: convertToConfigurationItems(sistemasAcueductoOptions),
+    sistemasAcueductoOptions: sistemasAcueductoOptions || [],
+    sistemasAcueductoItems: convertToConfigurationItems(sistemasAcueductoOptions || []),
     sistemasAcueductoLoading,
     sistemasAcueductoError,
 

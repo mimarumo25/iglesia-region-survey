@@ -57,7 +57,7 @@ const SettingsWrapper = () => {
         return <DisposicionBasuraPage />;
       case '/settings':
       default:
-        return <SettingsPage initialTab="general" />;
+        return <SettingsPage initialTab="system" />;
     }
   };
 

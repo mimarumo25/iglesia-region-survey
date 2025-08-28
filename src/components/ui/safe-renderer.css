@@ -1,0 +1,126 @@
+/* SafeRenderer CSS - Optimizations for DOM stability */
+
+.safe-renderer {
+  /* Establish a new stacking context */
+  position: relative;
+  z-index: 0;
+  
+  /* Enable GPU acceleration for smoother rendering */
+  transform: translateZ(0);
+  will-change: auto;
+  
+  /* Optimize layout calculations */
+  contain: layout style paint;
+}
+
+.safe-renderer-isolated {
+  /* Complete isolation from parent DOM context */
+  isolation: isolate;
+  position: relative;
+  
+  /* Enhanced containment for DOM stability */
+  contain: layout style paint;
+  
+  /* Create independent rendering layer */
+  transform: translateZ(0);
+  will-change: auto;
+  
+  /* Prevent layout shift cascades */
+  overflow-anchor: auto;
+}
+
+.safe-renderer-content {
+  /* Ensure content doesn't leak outside container */
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  
+  /* Smooth transitions */
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+
+.safe-content {
+  /* Prevent abrupt DOM changes */
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  
+  /* Optimize for animations */
+  will-change: auto;
+}
+
+/* RouteTransition optimizations */
+.route-transition-container {
+  /* Create stable transition context */
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  
+  /* Establish rendering context */
+  transform: translateZ(0);
+  contain: layout;
+}
+
+.route-transition-content {
+  /* Ensure smooth transitions */
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  
+  /* Prevent layout shift during transitions */
+  width: 100%;
+  min-height: 100%;
+}
+
+/* AutocompleteWithLoading stability */
+.autocomplete-loading-container {
+  /* Prevent DOM manipulation during loading states */
+  contain: layout style paint;
+  transform: translateZ(0);
+}
+
+/* Error boundary enhancements */
+.error-boundary-container {
+  /* Isolate error states from main DOM tree */
+  isolation: isolate;
+  contain: layout style paint;
+  
+  /* Ensure error UI doesn't cause additional DOM issues */
+  transform: translateZ(0);
+  will-change: auto;
+}
+
+/* General DOM stability improvements */
+.dom-stable {
+  /* Apply to any component that needs DOM stability */
+  contain: layout style paint;
+  transform: translateZ(0);
+  will-change: auto;
+  isolation: isolate;
+}
+
+/* Animation optimizations */
+.animate-safe {
+  /* Safe animation class that avoids DOM manipulation conflicts */
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* Prevent specific browser issues */
+.chrome-dom-fix {
+  /* Fix for Chrome-specific DOM manipulation issues */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Accessibility and performance balance */
+@media (prefers-reduced-motion: reduce) {
+  .safe-renderer,
+  .safe-renderer-content,
+  .route-transition-content {
+    transition: none !important;
+    animation: none !important;
+  }
+}

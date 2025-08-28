@@ -27,7 +27,7 @@ export interface AutocompleteOption {
 }
 
 interface EnhancedAutocompleteProps {
-  options: AutocompleteOption[]
+  options?: AutocompleteOption[]
   value?: string
   onValueChange: (value: string) => void
   placeholder?: string
@@ -44,7 +44,7 @@ interface EnhancedAutocompleteProps {
 }
 
 export function EnhancedAutocomplete({
-  options,
+  options = [], // Default to empty array
   value,
   onValueChange,
   placeholder = "Seleccionar opción...",
@@ -70,7 +70,16 @@ export function EnhancedAutocomplete({
     }
   }, [open])
 
-  const selectedOption = options.find((option) => option.value === value)
+  // Defensive programming: ensure options is always an array
+  const safeOptions = React.useMemo(() => {
+    if (!options || !Array.isArray(options)) {
+      console.warn('EnhancedAutocomplete: options prop should be an array, received:', typeof options, options);
+      return [];
+    }
+    return options;
+  }, [options]);
+
+  const selectedOption = safeOptions.find((option) => option.value === value)
 
   // Función para limpiar la selección
   const clearSelection = (e: React.MouseEvent) => {
@@ -82,8 +91,8 @@ export function EnhancedAutocomplete({
 
   // Filtrar y agrupar opciones basado en la búsqueda
   const filteredAndGroupedOptions = React.useMemo(() => {
-    let filtered = options.filter(option => 
-      option.label.toLowerCase().includes(searchValue.toLowerCase()) ||
+    let filtered = safeOptions.filter(option => 
+      option.label && option.label.toLowerCase().includes(searchValue.toLowerCase()) ||
       (option.description && option.description.toLowerCase().includes(searchValue.toLowerCase()))
     )
 
@@ -116,7 +125,7 @@ export function EnhancedAutocomplete({
         return a.label.localeCompare(b.label)
       })
     }]
-  }, [options, searchValue, showCategories])
+  }, [safeOptions, searchValue, showCategories])
 
   const renderOption = (option: AutocompleteOption) => (
     <CommandItem

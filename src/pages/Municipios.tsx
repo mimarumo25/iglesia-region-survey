@@ -3,16 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ConfigurationTable, TableColumn, TableAction, PaginationData } from '@/components/ui/configuration-table';
 import { ConfigModal, ConfigFormField, useConfigModal } from "@/components/ui/config-modal";
 import { useMunicipios } from "@/hooks/useMunicipios";
-import { Municipio } from "@/types/veredas";
+import { useDepartamentos } from "@/hooks/useDepartamentos";
+import { Municipio } from "@/services/municipios";
+import { Departamento } from "@/services/departamentos";
 
 // Tipo local para el formulario
 interface MunicipioFormData {
   nombre_municipio: string;
   codigo_dane: string;
-  id_departamento: number;
+  id_departamento: string; // Mantenerlo como string para el select
 }
 import {
   Building2,
@@ -28,6 +31,7 @@ import {
 
 const MunicipiosPage = () => {
   const municipiosHook = useMunicipios();
+  const departamentosHook = useDepartamentos();
 
   // Estados para paginación y búsqueda
   const [page, setPage] = useState(1);
@@ -38,6 +42,7 @@ const MunicipiosPage = () => {
 
   // Queries de React Query
   const { data: municipiosResponse, isLoading: municipiosLoading, refetch: refetchMunicipios } = municipiosHook.useMunicipiosQuery(page, limit, sortBy, sortOrder, searchTerm);
+  const { data: departamentosResponse, isLoading: departamentosLoading } = departamentosHook.useActiveDepartamentosQuery();
 
   // Mutaciones de React Query
   const createMutation = municipiosHook.useCreateMunicipioMutation();
@@ -53,7 +58,10 @@ const MunicipiosPage = () => {
     hasPrev: false,
   };
 
-  const loading = municipiosLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  // Lista de departamentos para el dropdown
+  const departamentos: Departamento[] = (departamentosResponse as any)?.data || [];
+
+  const loading = municipiosLoading || departamentosLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios
   const {
@@ -72,42 +80,42 @@ const MunicipiosPage = () => {
   const [formData, setFormData] = useState<MunicipioFormData>({
     nombre_municipio: '',
     codigo_dane: '',
-    id_departamento: 0,
+    id_departamento: '', // Valor vacío para el select
   });
 
   // Manejo del formulario
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nombre_municipio.trim() || !formData.codigo_dane.trim() || formData.id_departamento === 0) return;
+    if (!formData.nombre_municipio.trim() || !formData.codigo_dane.trim() || !formData.id_departamento) return;
 
     createMutation.mutate({
       nombre_municipio: formData.nombre_municipio.trim(),
       codigo_dane: formData.codigo_dane.trim(),
-      id_departamento: formData.id_departamento,
+      id_departamento: parseInt(formData.id_departamento),
     }, {
       onSuccess: () => {
         setShowCreateDialog(false);
-        setFormData({ nombre_municipio: '', codigo_dane: '', id_departamento: 0 });
+        setFormData({ nombre_municipio: '', codigo_dane: '', id_departamento: '' });
       }
     });
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedMunicipio || !formData.nombre_municipio.trim() || !formData.codigo_dane.trim() || formData.id_departamento === 0) return;
+    if (!selectedMunicipio || !formData.nombre_municipio.trim() || !formData.codigo_dane.trim() || !formData.id_departamento) return;
 
     updateMutation.mutate({
       id: String(selectedMunicipio.id_municipio),
       data: {
         nombre_municipio: formData.nombre_municipio.trim(),
         codigo_dane: formData.codigo_dane.trim(),
-        id_departamento: formData.id_departamento,
+        id_departamento: parseInt(formData.id_departamento),
       }
     }, {
       onSuccess: () => {
         setShowEditDialog(false);
         setSelectedMunicipio(null);
-        setFormData({ nombre_municipio: '', codigo_dane: '', id_departamento: 0 });
+        setFormData({ nombre_municipio: '', codigo_dane: '', id_departamento: '' });
       }
     });
   };
@@ -125,7 +133,7 @@ const MunicipiosPage = () => {
 
   // Funciones para abrir diálogos
   const handleOpenCreateDialog = () => {
-    setFormData({ nombre_municipio: '', codigo_dane: '', id_departamento: 0 });
+    setFormData({ nombre_municipio: '', codigo_dane: '', id_departamento: '' });
     openCreateDialog();
   };
 
@@ -134,9 +142,7 @@ const MunicipiosPage = () => {
     setFormData({
       nombre_municipio: municipio.nombre_municipio,
       codigo_dane: municipio.codigo_dane,
-      id_departamento: typeof municipio.id_departamento === 'string' 
-        ? parseInt(municipio.id_departamento) 
-        : Number(municipio.id_departamento),
+      id_departamento: String(municipio.id_departamento), // Convertir a string
     });
     openEditDialog();
   };
@@ -384,15 +390,28 @@ const MunicipiosPage = () => {
           onChange={(value) => setFormData({ ...formData, codigo_dane: value })}
           required
         />
-        <ConfigFormField
-          id="id_departamento"
-          label="ID Departamento"
-          placeholder="Ej: 5 (Antioquia)"
-          value={formData.id_departamento.toString()}
-          onChange={(value) => setFormData({ ...formData, id_departamento: parseInt(value) || 0 })}
-          type="text"
-          required
-        />
+        
+        {/* Dropdown para Departamento */}
+        <div className="space-y-2">
+          <label htmlFor="id_departamento" className="text-sm font-medium text-foreground">
+            Departamento <span className="text-red-500">*</span>
+          </label>
+          <Select
+            value={formData.id_departamento}
+            onValueChange={(value) => setFormData({ ...formData, id_departamento: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona un departamento" />
+            </SelectTrigger>
+            <SelectContent>
+              {departamentos.map((dept) => (
+                <SelectItem key={dept.id_departamento} value={String(dept.id_departamento)}>
+                  {dept.nombre} ({dept.codigo_dane})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </ConfigModal>
 
       {/* Modal de Editar Municipio */}
@@ -423,15 +442,28 @@ const MunicipiosPage = () => {
           onChange={(value) => setFormData({ ...formData, codigo_dane: value })}
           required
         />
-        <ConfigFormField
-          id="edit-id_departamento"
-          label="ID Departamento"
-          placeholder="Ej: 5 (Antioquia)"
-          value={formData.id_departamento.toString()}
-          onChange={(value) => setFormData({ ...formData, id_departamento: parseInt(value) || 0 })}
-          type="text"
-          required
-        />
+        
+        {/* Dropdown para Departamento en Edición */}
+        <div className="space-y-2">
+          <label htmlFor="edit-id_departamento" className="text-sm font-medium text-foreground">
+            Departamento <span className="text-red-500">*</span>
+          </label>
+          <Select
+            value={formData.id_departamento}
+            onValueChange={(value) => setFormData({ ...formData, id_departamento: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona un departamento" />
+            </SelectTrigger>
+            <SelectContent>
+              {departamentos.map((dept) => (
+                <SelectItem key={dept.id_departamento} value={String(dept.id_departamento)}>
+                  {dept.nombre} ({dept.codigo_dane})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </ConfigModal>
 
       {/* Modal de Eliminar Municipio */}

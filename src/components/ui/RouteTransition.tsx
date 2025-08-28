@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import { flushSync } from 'react-dom';
 import { cn } from '@/lib/utils';
 
 interface RouteTransitionProps {
@@ -9,7 +10,8 @@ interface RouteTransitionProps {
 
 /**
  * Componente que envuelve las rutas con transiciones CSS suaves
- * Elimina el parpadeo y crea una experiencia fluida sin dependencias externas
+ * Mejorado para prevenir errores de manipulación del DOM durante las transiciones
+ * Compatible con SafeRenderer para máxima estabilidad
  */
 export const RouteTransition: React.FC<RouteTransitionProps> = ({ 
   children, 
@@ -18,19 +20,90 @@ export const RouteTransition: React.FC<RouteTransitionProps> = ({
   const location = useLocation();
   const [isAnimating, setIsAnimating] = useState(false);
   const [currentContent, setCurrentContent] = useState(children);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
+  const locationKeyRef = useRef(location.key);
+  const animationFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // Iniciar animación de salida
-    setIsAnimating(true);
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
-    // Después de la animación de salida, cambiar el contenido
-    const timer = setTimeout(() => {
+  useEffect(() => {
+    // Solo proceder si el componente sigue montado y la ubicación realmente cambió
+    if (!mountedRef.current || locationKeyRef.current === location.key) {
+      return;
+    }
+
+    // Limpiar timeouts y animation frames previos
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    // Actualizar referencia de ubicación
+    locationKeyRef.current = location.key;
+
+    // Usar flushSync para operaciones sincronizadas de DOM
+    if (mountedRef.current) {
+      // Iniciar animación de forma sincronizada
+      animationFrameRef.current = requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          flushSync(() => {
+            setIsAnimating(true);
+          });
+
+          // Programar cambio de contenido
+          timeoutRef.current = setTimeout(() => {
+            if (mountedRef.current) {
+              flushSync(() => {
+                setCurrentContent(children);
+                setIsAnimating(false);
+              });
+            }
+          }, 150);
+        }
+      });
+    }
+
+    // Cleanup function
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+  }, [location.key, children]);
+
+  // Actualizar contenido inmediatamente si no hay animación
+  useEffect(() => {
+    if (!isAnimating && mountedRef.current) {
       setCurrentContent(children);
-      setIsAnimating(false);
-    }, 150); // Duración de la animación de salida
+    }
+  }, [children, isAnimating]);
 
-    return () => clearTimeout(timer);
-  }, [location.pathname]);
+  // Cleanup al desmontar
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className={cn("route-transition-container", className)}>

@@ -1,0 +1,272 @@
+/**
+ * Componente Modal para Agregar/Editar Miembros Difuntos
+ * 
+ * Este componente presenta un formulario completo para capturar información
+ * de familiares difuntos, incluyendo validaciones y manejo de errores.
+ * 
+ * Características:
+ * - Formulario completo con todos los campos necesarios
+ * - Validación en tiempo real con mensajes de error
+ * - Soporte para modo edición y creación
+ * - Integración con datos de configuración (sexo, parentesco)
+ * - Diseño responsive y accesible
+ * - Theming oscuro/claro
+ * - UX optimizada con indicadores visuales
+ * 
+ * Arquitectura:
+ * - Componente puramente presentacional
+ * - Props bien definidas para máxima reutilización
+ * - Integración con React Hook Form
+ * - Uso de shadcn/ui components
+ * - ErrorBoundary para manejo de errores
+ */
+
+import React from "react";
+import { UseFormReturn } from "react-hook-form";
+import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import EnhancedBirthDatePicker from "@/components/ui/enhanced-birth-date-picker";
+import { AutocompleteWithLoading } from "@/components/ui/autocomplete-with-loading";
+import { Plus, AlertCircle, Heart, Users } from "lucide-react";
+import { DeceasedFamilyMember, ConfigurationItem } from "@/types/survey";
+import { useConfigurationData } from "@/hooks/useConfigurationData";
+import { useAutocompleteConfiguration } from "@/hooks/useAutocompleteConfiguration";
+import { DeceasedMemberFormData } from "@/hooks/useDeceasedGrid";
+import ErrorBoundary from "@/components/ui/error-boundary";
+import { 
+  DIALOG_CONFIG, 
+  DIALOG_BUTTONS, 
+  generateDialogTitle, 
+  generateButtonText,
+  DialogFormMode 
+} from "@/utils/dialog-helpers";
+
+interface DeceasedMemberDialogProps {
+  form: UseFormReturn<DeceasedMemberFormData>;
+  onSubmit: (data: DeceasedMemberFormData) => void;
+  onCancel: () => void;
+  editingMember: DeceasedFamilyMember | null;
+}
+
+/**
+ * Diálogo para agregar/editar miembros difuntos
+ * 
+ * @param props - Props del componente
+ * @returns JSX.Element
+ * 
+ * @example
+ * ```tsx
+ * <DeceasedMemberDialog
+ *   isOpen={showDeceasedDialog}
+ *   onOpenChange={setShowDeceasedDialog}
+ *   form={form}
+ *   onSubmit={onSubmit}
+ *   onCancel={resetForm}
+ *   editingMember={editingDeceasedMember}
+ * />
+ * ```
+ */
+const DeceasedMemberDialog: React.FC<DeceasedMemberDialogProps> = ({
+  form,
+  onSubmit,
+  onCancel,
+  editingMember
+}) => {
+  // Hook para datos de configuración
+  const configurationData = useConfigurationData();
+  
+  // Determinar el modo del formulario basado en si hay un miembro siendo editado
+  const formMode: DialogFormMode = editingMember ? 'edit' : 'create';
+  const dialogTitle = generateDialogTitle('Miembro Difunto', formMode);
+  const buttonText = generateButtonText(formMode, form.formState.isSubmitting);
+
+  return (
+    <DialogContent className={DIALOG_CONFIG.content.className}>
+        {/* Header del diálogo */}
+        <DialogHeader className={DIALOG_CONFIG.header.className}>
+          <DialogTitle className={DIALOG_CONFIG.title.className}>
+            <Plus className="w-5 h-5 text-primary" />
+            {dialogTitle}
+          </DialogTitle>
+          <DialogDescription className={DIALOG_CONFIG.description.className}>
+            Complete los campos requeridos. Los campos marcados con * son obligatorios.
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Formulario */}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-6 p-6 bg-muted/20 dark:bg-muted/20 rounded-xl">
+              
+              {/* Nombres */}
+              <FormField
+                control={form.control}
+                name="nombres"
+                render={({ field }) => (
+                  <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                    <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-1">
+                      Nombres y Apellidos *
+                      <AlertCircle className="w-3 h-3 text-destructive" />
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        className="bg-input border-2 border-input-border text-foreground dark:bg-input dark:border-input-border dark:text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 hover:bg-accent hover:border-input-border transition-all duration-200"
+                        placeholder="Ingrese nombres y apellidos completos"
+                      />
+                    </FormControl>
+                    <FormMessage className="text-destructive text-xs font-medium" />
+                  </FormItem>
+                )}
+              />
+
+              {/* Fecha de Fallecimiento */}
+              <FormField
+                control={form.control}
+                name="fechaFallecimiento"
+                render={({ field }) => (
+                  <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                    <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-1">
+                      <Heart className="w-4 h-4 text-red-500" />
+                      Fecha de Fallecimiento
+                    </FormLabel>
+                    <FormControl>
+                      <EnhancedBirthDatePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Seleccionar fecha de fallecimiento"
+                        title="Fecha de Fallecimiento"
+                        description="Selecciona día, mes y año del fallecimiento"
+                      />
+                    </FormControl>
+                    <FormMessage className="text-destructive text-xs font-medium" />
+                  </FormItem>
+                )}
+              />
+
+              {/* Sexo y Parentesco */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Sexo */}
+                <FormField
+                  control={form.control}
+                  name="sexo"
+                  render={({ field }) => {
+                    const { autocompleteProps } = useAutocompleteConfiguration({
+                      options: configurationData.sexoOptions,
+                      isLoading: configurationData.sexosLoading,
+                      error: configurationData.sexosError,
+                      value: field.value as ConfigurationItem | null,
+                      onChange: field.onChange,
+                    });
+
+                    return (
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-1">
+                          <Users className="w-4 h-4 text-blue-500" />
+                          Sexo
+                        </FormLabel>
+                        <FormControl>
+                          <ErrorBoundary>
+                            <AutocompleteWithLoading
+                              {...autocompleteProps}
+                              placeholder="Seleccionar sexo"
+                              emptyText="No se encontraron sexos"
+                              searchPlaceholder="Buscar sexo..."
+                              errorText="Error al cargar sexos"
+                            />
+                          </ErrorBoundary>
+                        </FormControl>
+                        <FormMessage className="text-destructive text-xs font-medium" />
+                      </FormItem>
+                    );
+                  }}
+                />
+
+                {/* Parentesco */}
+                <FormField
+                  control={form.control}
+                  name="parentesco"
+                  render={({ field }) => {
+                    const { autocompleteProps } = useAutocompleteConfiguration({
+                      options: configurationData.parentescosOptions,
+                      isLoading: configurationData.parentescosLoading,
+                      error: configurationData.parentescosError,
+                      value: field.value as ConfigurationItem | null,
+                      onChange: field.onChange,
+                    });
+
+                    return (
+                      <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                        <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-1">
+                          <Users className="w-4 h-4 text-green-500" />
+                          Parentesco
+                        </FormLabel>
+                        <FormControl>
+                          <ErrorBoundary>
+                            <AutocompleteWithLoading
+                              {...autocompleteProps}
+                              placeholder="Seleccionar parentesco"
+                              emptyText="No se encontraron parentescos"
+                              searchPlaceholder="Buscar parentesco..."
+                              errorText="Error al cargar parentescos"
+                            />
+                          </ErrorBoundary>
+                        </FormControl>
+                        <FormMessage className="text-destructive text-xs font-medium" />
+                      </FormItem>
+                    );
+                  }}
+                />
+              </div>
+
+              {/* Causa de Fallecimiento */}
+              <FormField
+                control={form.control}
+                name="causaFallecimiento"
+                render={({ field }) => (
+                  <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                    <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-1">
+                      Causa de Fallecimiento *
+                      <AlertCircle className="w-3 h-3 text-destructive" />
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        className="bg-input border-2 border-input-border text-foreground dark:bg-input dark:border-input-border dark:text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 hover:bg-accent hover:border-input-border transition-all duration-200 min-h-[80px]"
+                        placeholder="Describa la causa de fallecimiento"
+                      />
+                    </FormControl>
+                    <FormMessage className="text-destructive text-xs font-medium" />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Footer con botones de acción */}
+            <DialogFooter className={DIALOG_CONFIG.footer.className}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onCancel}
+                className={DIALOG_BUTTONS.secondary.className}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit"
+                className={DIALOG_BUTTONS.primary.className}
+                disabled={form.formState.isSubmitting}
+              >
+                {buttonText}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+  );
+};
+
+export default DeceasedMemberDialog;

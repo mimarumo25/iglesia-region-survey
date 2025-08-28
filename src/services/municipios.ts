@@ -18,13 +18,13 @@ export interface Municipio {
 export interface CreateMunicipioRequest {
   nombre_municipio: string;
   codigo_dane: string;
-  id_departamento: number;
+  id_departamento: number | string; // Permitir tanto número como string para flexibilidad
 }
 
 export interface UpdateMunicipioRequest {
   nombre_municipio: string;
   codigo_dane: string;
-  id_departamento: number;
+  id_departamento: number | string; // Permitir tanto número como string para flexibilidad
 }
 
 export interface MunicipiosResponse {
@@ -61,6 +61,27 @@ export class MunicipiosService {
   private static baseUrl = '/api/catalog/municipios';
 
   /**
+   * Extraer mensaje de error del backend según diferentes estructuras posibles
+   */
+  private static extractErrorMessage(error: any, defaultMessage: string): string {
+    if (error.response?.data) {
+      // Estructura: { success: false, error: { message: "...", code: "...", timestamp: "..." } }
+      if (error.response.data.error?.message) {
+        return error.response.data.error.message;
+      }
+      // Estructura alternativa: { success: false, message: "..." }
+      else if (error.response.data.message) {
+        return error.response.data.message;
+      }
+      // Estructura simple: string directo
+      else if (typeof error.response.data === 'string') {
+        return error.response.data;
+      }
+    }
+    return defaultMessage;
+  }
+
+  /**
    * Obtener todos los municipios con paginación
    */
   static async getMunicipios(params: {
@@ -90,7 +111,7 @@ export class MunicipiosService {
         searchParams.append('search', search);
       }
 
-      const response = await apiGet<any>(`${this.baseUrl}?${searchParams}`);
+      const response = await apiGet<any>(`${MunicipiosService.baseUrl}?${searchParams}`);
       
       // La API devuelve: { success: true, message: "...", data: {...} }
       const apiResponse = response.data;
@@ -138,7 +159,8 @@ export class MunicipiosService {
       return transformedResponse;
     } catch (error: any) {
       console.error('Error al obtener municipios:', error);
-      throw new Error(error.response?.data?.message || 'Error al obtener municipios');
+      const errorMessage = this.extractErrorMessage(error, 'Error al obtener municipios');
+      throw new Error(errorMessage);
     }
   }
 
@@ -147,11 +169,12 @@ export class MunicipiosService {
    */
   static async getMunicipioById(id: string): Promise<Municipio> {
     try {
-      const response = await apiGet<MunicipioResponse>(`${this.baseUrl}/${id}`);
+      const response = await apiGet<MunicipioResponse>(`${MunicipiosService.baseUrl}/${id}`);
       return response.data.data;
     } catch (error: any) {
       console.error('Error al obtener municipio:', error);
-      throw new Error(error.response?.data?.message || 'Error al obtener municipio');
+      const errorMessage = this.extractErrorMessage(error, 'Error al obtener municipio');
+      throw new Error(errorMessage);
     }
   }
 
@@ -160,11 +183,27 @@ export class MunicipiosService {
    */
   static async createMunicipio(municipio: CreateMunicipioRequest): Promise<Municipio> {
     try {
-      const response = await apiPost<MunicipioResponse>(this.baseUrl, municipio);
+      // Asegurar conversión correcta de tipos antes de enviar
+      const municipioData = {
+        nombre_municipio: String(municipio.nombre_municipio).trim(),
+        codigo_dane: String(municipio.codigo_dane).trim(),
+        id_departamento: Number(municipio.id_departamento)
+      };
+      
+      console.log('🚀 Creando municipio:', municipioData);
+      
+      const response = await apiPost<MunicipioResponse>(MunicipiosService.baseUrl, municipioData);
+      console.log('✅ Municipio creado exitosamente:', response.data);
       return response.data.data;
     } catch (error: any) {
-      console.error('Error al crear municipio:', error);
-      throw new Error(error.response?.data?.message || 'Error al crear municipio');
+      console.error('❌ Error al crear municipio:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      
+      const errorMessage = this.extractErrorMessage(error, 'Error al crear municipio');
+      throw new Error(errorMessage);
     }
   }
 
@@ -173,11 +212,12 @@ export class MunicipiosService {
    */
   static async updateMunicipio(id: string, municipio: UpdateMunicipioRequest): Promise<Municipio> {
     try {
-      const response = await apiPut<MunicipioResponse>(`${this.baseUrl}/${id}`, municipio);
+      const response = await apiPut<MunicipioResponse>(`${MunicipiosService.baseUrl}/${id}`, municipio);
       return response.data.data;
     } catch (error: any) {
       console.error('Error al actualizar municipio:', error);
-      throw new Error(error.response?.data?.message || 'Error al actualizar municipio');
+      const errorMessage = this.extractErrorMessage(error, 'Error al actualizar municipio');
+      throw new Error(errorMessage);
     }
   }
 
@@ -186,11 +226,12 @@ export class MunicipiosService {
    */
   static async deleteMunicipio(id: string): Promise<boolean> {
     try {
-      await apiDelete(`${this.baseUrl}/${id}`);
+      await apiDelete(`${MunicipiosService.baseUrl}/${id}`);
       return true;
     } catch (error: any) {
       console.error('Error al eliminar municipio:', error);
-      throw new Error(error.response?.data?.message || 'Error al eliminar municipio');
+      const errorMessage = this.extractErrorMessage(error, 'Error al eliminar municipio');
+      throw new Error(errorMessage);
     }
   }
 

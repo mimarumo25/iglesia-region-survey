@@ -41,20 +41,21 @@ const EnfermedadesPage = () => {
   const deleteMutation = enfermedadesHook.useDeleteEnfermedadMutation();
 
   const enfermedades = searchTerm
-    ? (searchResponse?.data || [])
-    : (enfermedadesResponse?.data || []);
+    ? ((searchResponse as any)?.data || [])
+    : ((enfermedadesResponse as any)?.data || []);
+    
   const pagination = searchTerm
     ? {
-        totalItems: searchResponse?.total || 0,
-        totalPages: searchResponse?.totalPages || 1,
-        currentPage: searchResponse?.page || 1,
-        itemsPerPage: searchResponse?.limit || 10
+        totalItems: (searchResponse as any)?.total || 0,
+        totalPages: (searchResponse as any)?.totalPages || 1,
+        currentPage: (searchResponse as any)?.page || 1,
+        itemsPerPage: (searchResponse as any)?.limit || 10
       }
     : {
-        totalItems: enfermedadesResponse?.total || 0,
-        totalPages: enfermedadesResponse?.totalPages || 1,
-        currentPage: enfermedadesResponse?.page || 1,
-        itemsPerPage: enfermedadesResponse?.limit || 10
+        totalItems: (enfermedadesResponse as any)?.total || 0,
+        totalPages: (enfermedadesResponse as any)?.totalPages || 1,
+        currentPage: (enfermedadesResponse as any)?.page || 1,
+        itemsPerPage: (enfermedadesResponse as any)?.limit || 10
       };
 
   const loading = enfermedadesLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;

@@ -16,9 +16,10 @@ export interface FamilyMember {
   sexo: ConfigurationItem | null;
   situacionCivil: ConfigurationItem | null;
   parentesco: ConfigurationItem | null;
-  talla_camisa: ConfigurationItem | null;
-  talla_pantalon: ConfigurationItem | null;
-  talla_zapato: ConfigurationItem | null;
+  // Las tallas se almacenan como strings simples para usar con nuestro sistema de tallas
+  talla_camisa: string;
+  talla_pantalon: string;
+  talla_zapato: string;
   estudio: ConfigurationItem | null;
   comunidadCultural: ConfigurationItem | null;
   telefono: string;

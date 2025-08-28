@@ -175,7 +175,7 @@ export const transformFamilyMemberForEdit = (member: any): any => {
     comunidadCultural: transformConfigurationItemToString(member.comunidadCultural),
     enfermedad: transformConfigurationItemToString(member.enfermedad),
     
-    // Las tallas se mantienen como strings
+    // Las tallas ya son strings simples, se pasan directamente
     talla_camisa: member.talla_camisa || '',
     talla_pantalon: member.talla_pantalon || '',
     talla_zapato: member.talla_zapato || '',

@@ -1,4 +1,4 @@
-import React, { StrictMode } from 'react'
+import React from 'react' // Removed StrictMode
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
@@ -8,12 +8,41 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 // Importar interceptor de axios para configurar automáticamente las peticiones
 import '@/interceptors/axios'
 
-// Create a client
-const queryClient = new QueryClient()
+// Create a client with optimized settings for DOM stability
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: (failureCount, error) => {
+        // Reduce retries for DOM-related errors
+        if (error?.message?.includes('removeChild') || 
+            error?.message?.includes('NotFoundError')) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+    },
+  },
+})
 
-// Handler global para errores de extensiones del navegador
+// Enhanced error handling for DOM manipulation errors
+const handleDOMError = (error: any, context: string) => {
+  const isDOMError = error?.message?.includes('removeChild') ||
+                    error?.message?.includes('The node to be removed is not a child') ||
+                    error?.message?.includes('NotFoundError') ||
+                    error?.stack?.includes('commitDeletionEffectsOnFiber');
+  
+  if (isDOMError) {
+    console.warn(`🔧 DOM Error handled in ${context}:`, error.message);
+    // Don't propagate DOM errors to avoid cascading failures
+    return true;
+  }
+  return false;
+};
+
+// Handler global para errores de extensiones del navegador y DOM
 window.addEventListener('error', (event) => {
-  // Filtrar errores que provienen de scripts de extensiones
+  // Handle browser extension errors
   if (event.filename && (
     event.filename.includes('extension://') || 
     event.filename.includes('contentScript.js') ||
@@ -23,25 +52,42 @@ window.addEventListener('error', (event) => {
     event.preventDefault();
     return true;
   }
-});
 
-// Handler para promesas rechazadas (como el error de contentScript)
-window.addEventListener('unhandledrejection', (event) => {
-  if (event.reason && event.reason.message && (
-    event.reason.message.includes('contentScript') ||
-    event.reason.message.includes('reading \'sentence\'') ||
-    event.reason.stack?.includes('extension://')
-  )) {
+  // Handle DOM manipulation errors
+  if (handleDOMError(event.error, 'Global Error Handler')) {
     event.preventDefault();
     return true;
   }
 });
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <App />
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
-  </StrictMode>,
-)
+// Enhanced handler para promesas rechazadas
+window.addEventListener('unhandledrejection', (event) => {
+  // Handle contentScript errors
+  if (event.reason && event.reason.message && (
+    event.reason.message.includes('contentScript') ||
+    event.reason.message.includes('reading \'sentence\'') ||
+    event.reason.stack?.includes('extension://') ||
+    event.reason.message.includes('A listener indicated an asynchronous response by returning true')
+  )) {
+    event.preventDefault();
+    return true;
+  }
+
+  // Handle DOM manipulation promise rejections
+  if (handleDOMError(event.reason, 'Unhandled Promise Rejection')) {
+    event.preventDefault();
+    return true;
+  }
+});
+
+// Add React error boundary fallback at the root level
+const rootElement = document.getElementById('root')!;
+const root = createRoot(rootElement);
+
+// Render without StrictMode to avoid double-mounting issues that can cause DOM errors
+root.render(
+  <QueryClientProvider client={queryClient}>
+    <App />
+    <ReactQueryDevtools initialIsOpen={false} />
+  </QueryClientProvider>
+);

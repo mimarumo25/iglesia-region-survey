@@ -101,8 +101,21 @@ class VeredasService {
       );
       
       // La API devuelve: { success: true, data: { data: [...], total: X } }
-      const veredas = response.data.data.data;
-      const totalCount = response.data.data.total;
+      // Verificar si hay error en el backend (problema de asociación de tablas)
+      if (response.data.data.status === 'error' && response.data.data.message?.includes('not associated')) {
+        console.warn('⚠️ Error de backend detectado:', response.data.data.message);
+        // Retornar respuesta vacía válida cuando hay error de asociación
+        return {
+          data: [],
+          total: 0,
+          page: page,
+          limit: limit,
+          totalPages: 0,
+        };
+      }
+      
+      const veredas = response.data.data.data || [];
+      const totalCount = response.data.data.total || 0;
       const totalPages = Math.ceil(totalCount / limit);
       
       return {
@@ -195,6 +208,19 @@ class VeredasService {
       );
       
       // La API devuelve: { success: true, data: { data: [...], total: X } }
+      // Verificar si hay error en el backend (problema de asociación de tablas)
+      if (response.data.data.status === 'error' && response.data.data.message?.includes('not associated')) {
+        console.warn('⚠️ Error de backend detectado en búsqueda:', response.data.data.message);
+        // Retornar respuesta vacía válida cuando hay error de asociación
+        return {
+          data: [],
+          total: 0,
+          page: page,
+          limit: limit,
+          totalPages: 0,
+        };
+      }
+      
       const veredas = response.data.data.data || [];
       const totalCount = response.data.data.total || 0;
       const totalPages = Math.ceil(totalCount / limit);
@@ -231,6 +257,19 @@ class VeredasService {
       );
       
       // La API devuelve: { success: true, data: { data: [...], total: X } }
+      // Verificar si hay error en el backend (problema de asociación de tablas)
+      if (response.data.data.status === 'error' && response.data.data.message?.includes('not associated')) {
+        console.warn('⚠️ Error de backend detectado por municipio:', response.data.data.message);
+        // Retornar respuesta vacía válida cuando hay error de asociación
+        return {
+          data: [],
+          total: 0,
+          page: page,
+          limit: limit,
+          totalPages: 0,
+        };
+      }
+      
       const veredas = response.data.data.data || [];
       const totalCount = response.data.data.total || 0;
       const totalPages = Math.ceil(totalCount / limit);
