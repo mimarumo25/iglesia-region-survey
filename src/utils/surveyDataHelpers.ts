@@ -38,6 +38,7 @@ export const initializeSurveySessionData = (initialData?: any): SurveySessionDat
       direccion: '',
       telefono: '',
       numero_contrato_epm: '',
+      comunionEnCasa: false, // Campo requerido por API
     },
     vivienda: {
       tipo_vivienda: null,
@@ -230,6 +231,7 @@ export const convertToLegacyFormat = (surveyData: SurveySessionData): any => {
     direccion: surveyData.informacionGeneral.direccion,
     telefono: surveyData.informacionGeneral.telefono,
     numero_contrato_epm: surveyData.informacionGeneral.numero_contrato_epm,
+    comunionEnCasa: surveyData.informacionGeneral.comunionEnCasa, // Campo requerido por API
     
     // Vivienda
     tipo_vivienda: surveyData.vivienda.tipo_vivienda?.id || '',

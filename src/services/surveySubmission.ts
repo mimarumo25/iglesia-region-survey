@@ -5,6 +5,7 @@
 
 import { apiPost } from '@/interceptors/axios';
 import { SurveySessionData } from '@/types/survey';
+import { transformSurveyDataForAPI, validateAPIFormat, logDataDifferences } from '@/utils/surveyAPITransformer';
 
 export interface SurveySubmissionResponse {
   success: boolean;
@@ -25,30 +26,65 @@ export class SurveySubmissionService {
    */
   static async submitSurvey(surveyData: SurveySessionData): Promise<SurveySubmissionResponse> {
     try {
-      const response = await apiPost('/api/encuesta', surveyData);
+      console.log('🚀 Iniciando envío de encuesta...');
+      
+      // Transformar datos al formato esperado por la API
+      const apiData = transformSurveyDataForAPI(surveyData);
+      
+      // Validar formato antes del envío
+      const validation = validateAPIFormat(apiData);
+      if (!validation.isValid) {
+        console.error('❌ Errores de validación:', validation.errors);
+        return {
+          success: false,
+          message: `Errores de validación: ${validation.errors.join(', ')}`
+        };
+      }
+      
+      // Log diferencias para debugging (solo en desarrollo)
+      if (process.env.NODE_ENV === 'development') {
+        logDataDifferences(surveyData, apiData);
+      }
+      
+      console.log('📤 Enviando datos transformados a /api/encuesta:', apiData);
+      
+      const response = await apiPost('/api/encuesta', apiData);
+      
+      console.log('✅ Respuesta exitosa del servidor:', response.data);
       
       return {
         success: true,
         message: 'Encuesta enviada correctamente',
         data: response.data,
-        surveyId: response.data?.id || response.data?.surveyId
+        surveyId: response.data?.id || response.data?.surveyId || response.data?.familia_id
       };
       
     } catch (error: any) {
       console.error('❌ Error al enviar encuesta:', error);
+      console.error('📋 Datos que causaron el error:', surveyData);
       
-      // Extraer información del error
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data?.error || 
-                          error.message || 
-                          'Error desconocido al enviar la encuesta';
+      // Extraer información detallada del error
+      const errorResponse = error.response?.data;
+      let errorMessage = 'Error desconocido al enviar la encuesta';
+      
+      if (errorResponse) {
+        if (errorResponse.message) {
+          errorMessage = errorResponse.message;
+        } else if (errorResponse.errors && Array.isArray(errorResponse.errors)) {
+          errorMessage = errorResponse.errors.join(', ');
+        } else if (errorResponse.error) {
+          errorMessage = errorResponse.error;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
       
       const statusCode = error.response?.status || 500;
       
       return {
         success: false,
         message: `Error ${statusCode}: ${errorMessage}`,
-        data: error.response?.data
+        data: errorResponse
       };
     }
   }
@@ -98,14 +134,15 @@ export class SurveySubmissionService {
    * @returns Datos transformados para el API
    */
   static transformForAPI(surveyData: SurveySessionData): any {
-    // Por ahora enviaremos tal como está
-    // Si el API necesita un formato específico, se puede transformar aquí
+    // Usar el nuevo transformador
+    const transformedData = transformSurveyDataForAPI(surveyData);
     
     return {
-      ...surveyData,
-      // Agregar cualquier transformación necesaria para el API
+      ...transformedData,
+      // Agregar metadata adicional para el API
       submittedAt: new Date().toISOString(),
-      source: 'parish-survey-form'
+      source: 'parish-survey-form',
+      version: '2.0' // Indicar que viene de la nueva estructura
     };
   }
 
@@ -124,17 +161,51 @@ export class SurveySubmissionService {
       if (!surveyData.informacionGeneral.apellido_familiar) {
         errors.push('Falta apellido familiar');
       }
+      if (!surveyData.informacionGeneral.direccion) {
+        errors.push('Falta dirección');
+      }
       if (!surveyData.informacionGeneral.municipio) {
         errors.push('Falta municipio');
       }
-      if (!surveyData.informacionGeneral.parroquia) {
-        errors.push('Falta parroquia');
-      }
+    }
+
+    // Validar vivienda
+    if (!surveyData.vivienda) {
+      errors.push('Falta información de vivienda');
+    } else if (!surveyData.vivienda.tipo_vivienda) {
+      errors.push('Falta tipo de vivienda');
+    }
+
+    // Validar servicios de agua
+    if (!surveyData.servicios_agua) {
+      errors.push('Falta información de servicios de agua');
+    } else if (!surveyData.servicios_agua.sistema_acueducto) {
+      errors.push('Falta sistema de acueducto');
+    }
+
+    // Validar observaciones
+    if (!surveyData.observaciones) {
+      errors.push('Falta información de observaciones');
     }
 
     // Validar metadata
     if (!surveyData.metadata) {
       errors.push('Falta metadata');
+    }
+
+    // Validar que tenga al menos un miembro de familia
+    if (!surveyData.familyMembers || surveyData.familyMembers.length === 0) {
+      errors.push('Debe incluir al menos un miembro de la familia');
+    } else {
+      // Validar cada miembro de familia
+      surveyData.familyMembers.forEach((member, index) => {
+        if (!member.nombres) {
+          errors.push(`Miembro de familia ${index + 1}: falta nombre`);
+        }
+        if (!member.numeroIdentificacion) {
+          errors.push(`Miembro de familia ${index + 1}: falta número de identificación`);
+        }
+      });
     }
 
     return {
