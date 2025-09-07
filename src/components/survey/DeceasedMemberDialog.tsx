@@ -99,55 +99,73 @@ const DeceasedMemberDialog: React.FC<DeceasedMemberDialogProps> = ({
         {/* Formulario */}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-6 p-6 bg-muted/20 dark:bg-muted/20 rounded-xl">
-              
-              {/* Nombres */}
-              <FormField
-                control={form.control}
-                name="nombres"
-                render={({ field }) => (
-                  <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
-                    <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-1">
-                      Nombres y Apellidos *
-                      <AlertCircle className="w-3 h-3 text-destructive" />
-                    </FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        className="bg-input border-2 border-input-border text-foreground dark:bg-input dark:border-input-border dark:text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 hover:bg-accent hover:border-input-border transition-all duration-200"
-                        placeholder="Ingrese nombres y apellidos completos"
-                      />
-                    </FormControl>
-                    <FormMessage className="text-destructive text-xs font-medium" />
-                  </FormItem>
-                )}
-              />
+            {/* SECCIÓN 1: INFORMACIÓN BÁSICA PERSONAL */}
+            <div className="p-6 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-200 dark:border-red-800">
+              <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-4 flex items-center gap-2">
+                <Heart className="w-5 h-5 text-red-500" />
+                Información Básica del Difunto
+              </h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Datos principales del familiar fallecido
+              </p>
+              <div className="space-y-4">
+                {/* Nombres */}
+                <FormField
+                  control={form.control}
+                  name="nombres"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-1">
+                        Nombres y Apellidos *
+                        <AlertCircle className="w-3 h-3 text-destructive" />
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          className="bg-input border-2 border-input-border text-foreground dark:bg-input dark:border-input-border dark:text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 hover:bg-accent hover:border-input-border transition-all duration-200"
+                          placeholder="Ingrese nombres y apellidos completos"
+                        />
+                      </FormControl>
+                      <FormMessage className="text-destructive text-xs font-medium" />
+                    </FormItem>
+                  )}
+                />
 
-              {/* Fecha de Fallecimiento */}
-              <FormField
-                control={form.control}
-                name="fechaFallecimiento"
-                render={({ field }) => (
-                  <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
-                    <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-1">
-                      <Heart className="w-4 h-4 text-red-500" />
-                      Fecha de Fallecimiento
-                    </FormLabel>
-                    <FormControl>
-                      <EnhancedBirthDatePicker
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Seleccionar fecha de fallecimiento"
-                        title="Fecha de Fallecimiento"
-                        description="Selecciona día, mes y año del fallecimiento"
-                      />
-                    </FormControl>
-                    <FormMessage className="text-destructive text-xs font-medium" />
-                  </FormItem>
-                )}
-              />
+                {/* Fecha de Fallecimiento */}
+                <FormField
+                  control={form.control}
+                  name="fechaFallecimiento"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-1">
+                        <Heart className="w-4 h-4 text-red-500" />
+                        Fecha de Fallecimiento
+                      </FormLabel>
+                      <FormControl>
+                        <EnhancedBirthDatePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Seleccionar fecha de fallecimiento"
+                          title="Fecha de Fallecimiento"
+                          description="Selecciona día, mes y año del fallecimiento"
+                        />
+                      </FormControl>
+                      <FormMessage className="text-destructive text-xs font-medium" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
-              {/* Sexo y Parentesco */}
+            {/* SECCIÓN 2: INFORMACIÓN DEMOGRÁFICA */}
+            <div className="p-6 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-800">
+              <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-blue-500" />
+                Información Demográfica
+              </h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Información sobre sexo y parentesco familiar
+              </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Sexo */}
                 <FormField
@@ -221,7 +239,17 @@ const DeceasedMemberDialog: React.FC<DeceasedMemberDialogProps> = ({
                   }}
                 />
               </div>
+            </div>
 
+            {/* SECCIÓN 3: INFORMACIÓN MÉDICA */}
+            <div className="p-6 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-200 dark:border-yellow-800">
+              <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-4 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-yellow-600" />
+                Causa de Fallecimiento
+              </h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Información médica sobre el fallecimiento
+              </p>
               {/* Causa de Fallecimiento */}
               <FormField
                 control={form.control}

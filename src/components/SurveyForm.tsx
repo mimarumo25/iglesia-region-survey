@@ -14,6 +14,7 @@ import { useConfigurationData } from "@/hooks/useConfigurationData";
 import { getAutocompleteOptions, getLoadingState, getErrorState } from "@/utils/formFieldHelpers";
 import { transformFormDataToSurveySession, saveSurveyToLocalStorage } from "@/utils/sessionDataTransformer";
 import { SurveySubmissionService } from "@/services/surveySubmission";
+// Removed storage debugger import - component was cleaned up
 
 // Definición de las etapas del formulario basado en la encuesta parroquial
 const formStages: FormStage[] = [
@@ -263,7 +264,7 @@ const SurveyForm = () => {
       
       if (response.success) {
         
-        // Limpiar borrador tras envío exitoso
+        // Limpiar todos los borradores tras envío exitoso
         SurveySubmissionService.clearStorageAfterSubmission();
         
         toast({
@@ -307,8 +308,7 @@ const SurveyForm = () => {
       const response = await SurveySubmissionService.submitSurveyFromStorage('parish-survey-completed');
       
       if (response.success) {
-        SurveySubmissionService.clearStorageAfterSubmission('parish-survey-completed');
-        
+        // El storage ya fue limpiado automáticamente por submitSurveyFromStorage
         toast({
           title: "✅ Datos enviados",
           description: response.message || "Los datos almacenados se enviaron correctamente.",
@@ -449,6 +449,8 @@ const SurveyForm = () => {
         onExport={handleExportData}
         onSubmitFromStorage={handleSubmitFromStorage}
       />
+
+      {/* Storage debugger component was removed during cleanup */}
     </div>
   );
 };

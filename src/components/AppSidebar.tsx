@@ -79,7 +79,7 @@ const navigationItems = [
     title: "Reportes",
     url: "/reports",
     icon: BarChart3,
-    description: "Estadísticas y análisis"
+    description: "Reportes y estadísticas"
   },
   {
     title: "Usuarios",

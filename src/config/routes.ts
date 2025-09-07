@@ -3,6 +3,7 @@ export const lazyRoutes = {
   // Rutas principales
   '/dashboard': () => import('@/pages/Dashboard'),
   '/surveys': () => import('@/pages/Surveys'),
+  '/surveys/:id': () => import('@/pages/SurveyDetails'),
   '/families': () => import('@/pages/Families'),
   '/sectors': () => import('@/pages/Sectors'),
   '/reports': () => import('@/pages/Reports'),
@@ -61,6 +62,11 @@ export const routeMetadata: Record<string, {
     priority: 'high',
     preloadTrigger: 'hover',
     dependencies: ['/survey']
+  },
+  '/surveys/:id': {
+    skeletonType: 'generic',
+    priority: 'high',
+    preloadTrigger: 'hover'
   },
   '/families': {
     skeletonType: 'table',

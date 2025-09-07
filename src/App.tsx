@@ -22,6 +22,7 @@ const VerifyEmail = React.lazy(() => import("./pages/VerifyEmail"));
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const Surveys = React.lazy(() => import("./pages/Surveys"));
+const SurveyDetails = React.lazy(() => import("./pages/SurveyDetails"));
 const Families = React.lazy(() => import("./pages/Families"));
 const Sectors = React.lazy(() => import("./pages/Sectors"));
 const Reports = React.lazy(() => import("./pages/Reports"));
@@ -141,6 +142,17 @@ const App = () => (
                     <PrivateRoute>
                       <Layout>
                         <Surveys />
+                      </Layout>
+                    </PrivateRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/surveys/:id" 
+                  element={
+                    <PrivateRoute>
+                      <Layout>
+                        <SurveyDetails />
                       </Layout>
                     </PrivateRoute>
                   } 

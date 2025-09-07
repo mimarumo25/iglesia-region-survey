@@ -1,6 +1,31 @@
 import { useMemo, useRef, useEffect } from "react";
 import { AutocompleteOption } from "@/components/ui/autocomplete";
 import { ConfigurationItem } from "@/types/survey";
+import type { Municipio } from "@/services/municipios";
+import type { Departamento } from "@/services/departamentos";
+import type { SistemaAcueducto } from "@/types/sistemas-acueducto";
+import type { DisposicionBasura } from "@/types/disposicion-basura";
+import type { AguaResidual } from "@/types/aguas-residuales";
+
+// Tipo para errores de API
+type ApiError = string | null | Error | { message: string };
+
+// Tipos específicos para los datos de API
+interface SituacionCivil {
+  id: number;
+  id_situacion_civil?: number;
+  nombre: string;
+  descripcion?: string;
+  activo: boolean;
+}
+
+interface TipoVivienda {
+  id: number;
+  id_tipo_vivienda?: number;
+  nombre: string;
+  descripcion?: string;
+  activo?: boolean;
+}
 
 // Importar hooks de servicios disponibles
 import { useSectores } from "@/hooks/useSectores";
@@ -27,108 +52,108 @@ export interface ConfigurationData {
   sectorOptions: AutocompleteOption[];
   sectorItems: ConfigurationItem[];
   sectoresLoading: boolean;
-  sectoresError: any;
+  sectoresError: ApiError;
 
   // Usuarios
   userOptions: AutocompleteOption[];
   usersLoading: boolean;
-  usersError: any;
+  usersError: ApiError;
 
   // Sexos - con objetos ConfigurationItem
   sexoOptions: AutocompleteOption[];
   sexoItems: ConfigurationItem[];
   sexosLoading: boolean;
-  sexosError: any;
+  sexosError: ApiError;
 
   // Estados civiles - con objetos ConfigurationItem
   estadoCivilOptions: AutocompleteOption[];
   estadoCivilItems: ConfigurationItem[];
   situacionesCivilesLoading: boolean;
-  situacionesCivilesError: any;
+  situacionesCivilesError: ApiError;
 
   // Tipos de vivienda - con objetos ConfigurationItem
   tipoViviendaOptions: AutocompleteOption[];
   tipoViviendaItems: ConfigurationItem[];
   tiposViviendaLoading: boolean;
-  tiposViviendaError: any;
+  tiposViviendaError: ApiError;
 
   // Disposición de basura - con objetos ConfigurationItem
   disposicionBasuraOptions: AutocompleteOption[];
   disposicionBasuraItems: ConfigurationItem[];
   disposicionBasuraLoading: boolean;
-  disposicionBasuraError: any;
+  disposicionBasuraError: ApiError;
 
   // Aguas residuales - con objetos ConfigurationItem
   aguasResidualesOptions: AutocompleteOption[];
   aguasResidualesItems: ConfigurationItem[];
   aguasResidualesLoading: boolean;
-  aguasResidualesError: any;
+  aguasResidualesError: ApiError;
 
   // Tipos de identificación - con objetos ConfigurationItem
   tiposIdentificacionOptions: AutocompleteOption[];
   tiposIdentificacionItems: ConfigurationItem[];
   tiposIdentificacionLoading: boolean;
-  tiposIdentificacionError: any;
+  tiposIdentificacionError: ApiError;
 
   // Parentescos - con objetos ConfigurationItem
   parentescosOptions: AutocompleteOption[];
   parentescosItems: ConfigurationItem[];
   parentescosLoading: boolean;
-  parentescosError: any;
+  parentescosError: ApiError;
 
   // Estudios - con objetos ConfigurationItem
   estudiosOptions: AutocompleteOption[];
   estudiosItems: ConfigurationItem[];
   estudiosLoading: boolean;
-  estudiosError: any;
+  estudiosError: ApiError;
 
   // Profesiones - con objetos ConfigurationItem
   profesionesOptions: AutocompleteOption[];
   profesionesItems: ConfigurationItem[];
   profesionesLoading: boolean;
-  profesionesError: any;
+  profesionesError: ApiError;
 
   // Enfermedades - con objetos ConfigurationItem
   enfermedadesOptions: AutocompleteOption[];
   enfermedadesItems: ConfigurationItem[];
   enfermedadesLoading: boolean;
-  enfermedadesError: any;
+  enfermedadesError: ApiError;
 
   // Comunidades culturales - con objetos ConfigurationItem
   comunidadesCulturalesOptions: AutocompleteOption[];
   comunidadesCulturalesItems: ConfigurationItem[];
   comunidadesCulturalesLoading: boolean;
-  comunidadesCulturalesError: any;
+  comunidadesCulturalesError: ApiError;
 
   // Parroquias - con objetos ConfigurationItem
   parroquiaOptions: AutocompleteOption[];
   parroquiaItems: ConfigurationItem[];
   parroquiasLoading: boolean;
-  parroquiasError: any;
+  parroquiasError: ApiError;
 
   // Municipios - con objetos ConfigurationItem
   municipioOptions: AutocompleteOption[];
   municipioItems: ConfigurationItem[];
   municipiosLoading: boolean;
-  municipiosError: any;
+  municipiosError: ApiError;
 
   // Veredas - con objetos ConfigurationItem
   veredaOptions: AutocompleteOption[];
   veredaItems: ConfigurationItem[];
   veredasLoading: boolean;
-  veredasError: any;
+  veredasError: ApiError;
 
   // Departamentos - con objetos ConfigurationItem
   departamentoOptions: AutocompleteOption[];
   departamentoItems: ConfigurationItem[];
   departamentosLoading: boolean;
-  departamentosError: any;
+  departamentosError: ApiError;
 
   // Sistemas de Acueducto - con objetos ConfigurationItem
   sistemasAcueductoOptions: AutocompleteOption[];
   sistemasAcueductoItems: ConfigurationItem[];
   sistemasAcueductoLoading: boolean;
-  sistemasAcueductoError: any;
+  sistemasAcueductoError: ApiError;
 
   // Estado general de carga
   isAnyLoading: boolean;
@@ -166,11 +191,11 @@ export const useConfigurationData = (): ConfigurationData => {
   
   // Función auxiliar para manejo seguro de datos
   const safeDataExtraction = useMemo(() => 
-    (data: any, defaultValue: any[] = []) => {
+    <T>(data: T | null | undefined, defaultValue: T[] = [] as T[]): T[] => {
       if (!mountedRef.current || !data) {
         return defaultValue;
       }
-      return data;
+      return Array.isArray(data) ? data : defaultValue;
     }, []);
   
   // Hooks de servicios con manejo de errores mejorado
@@ -301,16 +326,20 @@ export const useConfigurationData = (): ConfigurationData => {
 
   const estadoCivilOptions = useMemo((): AutocompleteOption[] => {
     // Verificamos la estructura de datos que devuelve la API de situaciones civiles con paginación
-    const data = situacionesCivilesData as any;
+    const data = situacionesCivilesData as { 
+      data?: { 
+        situaciones_civiles?: SituacionCivil[]
+      } | SituacionCivil[] 
+    };
     
     // Caso 1: Estructura SituacionesCivilesResponse {status, message, data: {situaciones_civiles: Array, pagination}}
-    if (data?.data?.situaciones_civiles && Array.isArray(data.data.situaciones_civiles)) {
+    if (data?.data && 'situaciones_civiles' in data.data && Array.isArray(data.data.situaciones_civiles)) {
       return data.data.situaciones_civiles
-        .filter((situacion: any) => situacion.activo) // Filtrar solo activos
-        .map((situacion: any) => ({
-          value: situacion.id?.toString() || situacion.id_situacion_civil?.toString() || '',
+        .filter((situacion: SituacionCivil) => situacion.activo) // Filtrar solo activos
+        .map((situacion: SituacionCivil) => ({
+          value: situacion.id?.toString() || '',
           label: situacion.nombre || 'Sin nombre',
-          description: situacion.descripcion || `Situación civil: ${situacion.nombre}`,
+          description: `Situación civil: ${situacion.nombre}`,
           category: 'Estado Civil',
           popular: false
         }));
@@ -319,11 +348,11 @@ export const useConfigurationData = (): ConfigurationData => {
     // Caso 2: Estructura ServerResponse<SituacionCivil[]> {status, message, data: Array}
     if (data?.data && Array.isArray(data.data)) {
       return data.data
-        .filter((situacion: any) => situacion.activo) // Filtrar solo activos
-        .map((situacion: any) => ({
-          value: situacion.id?.toString() || situacion.id_situacion_civil?.toString() || '',
+        .filter((situacion: SituacionCivil) => situacion.activo) // Filtrar solo activos
+        .map((situacion: SituacionCivil) => ({
+          value: situacion.id?.toString() || '',
           label: situacion.nombre || 'Sin nombre',
-          description: situacion.descripcion || `Situación civil: ${situacion.nombre}`,
+          description: `Situación civil: ${situacion.nombre}`,
           category: 'Estado Civil',
           popular: false
         }));
@@ -332,9 +361,9 @@ export const useConfigurationData = (): ConfigurationData => {
     // Caso 3: Array directo
     if (Array.isArray(data)) {
       return data
-        .filter((situacion: any) => situacion.activo) // Filtrar solo activos
-        .map((situacion: any) => ({
-          value: situacion.id?.toString() || situacion.id_situacion_civil?.toString() || '',
+        .filter((situacion: SituacionCivil) => situacion.activo) // Filtrar solo activos
+        .map((situacion: SituacionCivil) => ({
+          value: situacion.id?.toString() || '',
           label: situacion.nombre || 'Sin nombre',
           description: situacion.descripcion || `Situación civil: ${situacion.nombre}`,
           category: 'Estado Civil',
@@ -347,12 +376,16 @@ export const useConfigurationData = (): ConfigurationData => {
 
   const tipoViviendaOptions = useMemo((): AutocompleteOption[] => {
     // Verificamos la estructura de datos que devuelve la API: ServerResponse<TiposViviendaResponse>
-    const data = tiposViviendaData as any;
+    const data = tiposViviendaData as { 
+      data?: { 
+        tiposVivienda?: TipoVivienda[] 
+      } 
+    };
     if (!data?.data?.tiposVivienda || !Array.isArray(data.data.tiposVivienda)) {
       return [];
     }
-    return data.data.tiposVivienda.map((tipo: any) => ({
-      value: tipo.id_tipo_vivienda?.toString() || '',
+    return data.data.tiposVivienda.map((tipo: TipoVivienda) => ({
+      value: tipo.id_tipo_vivienda?.toString() || tipo.id?.toString() || '',
       label: tipo.nombre || 'Sin nombre',
       description: tipo.descripcion || `Tipo de vivienda: ${tipo.nombre}`,
       category: 'Vivienda'
@@ -376,7 +409,7 @@ export const useConfigurationData = (): ConfigurationData => {
       return [];
     }
     
-    return municipiosData.map((municipio: any, index) => {
+    return municipiosData.map((municipio: Municipio, index) => {
       // Verificar que municipio existe y tiene las propiedades necesarias
       if (!municipio || typeof municipio !== 'object') {
         console.warn('Municipio inválido encontrado:', municipio);
@@ -393,7 +426,7 @@ export const useConfigurationData = (): ConfigurationData => {
       const rawName = municipio.nombre_municipio || 'Sin nombre';
       
       const cleanName = typeof rawName === 'string' 
-        ? rawName.replace(/[🏢🏘️🌆🏙️🌃🗼🏛️🏠🏡🏣🏤🏥🏦🏧🏨🏩🏪🏫🏬🏭🏮🏯🏰🌍🌎🌏📍🎯🌟⭐✨💫🔸🔹🔷🔶⚡🔥💎🎊🎉🏆🥇🎖️🏅★☆✦✧✩✪✫⋆※○◯◎●◆◇◈◉◊⬣⬡⬢⬛⬜]/g, '').trim()
+        ? rawName.replace(/[🏢🏘️🌆🏙️🌃🗼🏛️🏠🏡🏣🏤🏥🏦🏧🏨🏩🏪🏫🏬🏭🏮🏯🏰🌍🌎🌏📍🎯🌟⭐✨💫🔸🔹🔷🔶⚡🔥💎🎊🎉🏆🥇🎖️🏅★☆✦✧✩✪✫⋆※○◯◎●◆◇◈◉◊⬣⬡⬢⬛⬜]/gu, '').trim()
         : 'Sin nombre';
 
       // Manejar información del departamento de forma segura
@@ -402,9 +435,6 @@ export const useConfigurationData = (): ConfigurationData => {
         if (typeof municipio.departamento === 'object' && municipio.departamento.nombre) {
           // Si departamento es un objeto con nombre
           departamentoInfo = municipio.departamento.nombre;
-        } else if (typeof municipio.departamento === 'string') {
-          // Si departamento es una cadena, limpiar caracteres extraños
-          departamentoInfo = municipio.departamento.replace(/Actualizado/g, '').trim();
         }
       }
       
@@ -417,7 +447,7 @@ export const useConfigurationData = (): ConfigurationData => {
       // Crear descripción limpia
       const description = `Municipio del departamento de ${departamentoInfo}`;
 
-      const option = {
+      const option: AutocompleteOption = {
         value: municipio.id_municipio?.toString() || `temp-${index}`,
         label: cleanName,
         description: description,
@@ -443,7 +473,7 @@ export const useConfigurationData = (): ConfigurationData => {
     if (!departamentosData?.data || !Array.isArray(departamentosData.data)) {
       return [];
     }
-    return departamentosData.data.map((departamento: any) => ({
+    return departamentosData.data.map((departamento: Departamento) => ({
       value: departamento.id_departamento?.toString() || '',
       label: departamento.nombre || 'Sin nombre',
       description: `Departamento de Colombia`,
@@ -456,7 +486,7 @@ export const useConfigurationData = (): ConfigurationData => {
     if (!sistemasAcueductoData || !Array.isArray(sistemasAcueductoData)) {
       return [];
     }
-    return sistemasAcueductoData.map((sistema: any) => ({
+    return sistemasAcueductoData.map((sistema: SistemaAcueducto) => ({
       value: sistema.id_sistema_acueducto?.toString() || '',
       label: sistema.nombre || 'Sin nombre',
       description: `Sistema de abastecimiento de agua`,
@@ -467,14 +497,18 @@ export const useConfigurationData = (): ConfigurationData => {
 
   const disposicionBasuraOptions = useMemo((): AutocompleteOption[] => {
     // Verificamos la estructura de datos que devuelve la API: DisposicionBasuraResponse
-    const data = disposicionBasuraData as any;
+    const data = disposicionBasuraData as { 
+      data?: { 
+        data?: DisposicionBasura[] 
+      } | DisposicionBasura[] 
+    };
     
     // Caso 1: Estructura DisposicionBasuraResponse completa: {status, message, data: {status, data: Array, total, message}}
-    if (data?.data?.data && Array.isArray(data.data.data)) {
-      const options = data.data.data.map((tipo: any) => ({
-        value: tipo.id_tipo_disposicion_basura?.toString() || tipo.id?.toString() || '',
+    if (data?.data && 'data' in data.data && Array.isArray(data.data.data)) {
+      const options = data.data.data.map((tipo: DisposicionBasura) => ({
+        value: tipo.id_tipo_disposicion_basura?.toString() || '',
         label: tipo.nombre || 'Sin nombre',
-        description: `${tipo.descripcion || 'Tipo de disposición de basura'}`,
+        description: tipo.descripcion || `Tipo de disposición de basura`,
         category: 'Manejo de Basura',
         popular: false
       }));
@@ -483,10 +517,10 @@ export const useConfigurationData = (): ConfigurationData => {
     
     // Caso 2: Estructura {data: Array} directamente
     if (data?.data && Array.isArray(data.data)) {
-      const options = data.data.map((tipo: any) => ({
-        value: tipo.id_tipo_disposicion_basura?.toString() || tipo.id?.toString() || '',
+      const options = data.data.map((tipo: DisposicionBasura) => ({
+        value: tipo.id_tipo_disposicion_basura?.toString() || '',
         label: tipo.nombre || 'Sin nombre',
-        description: `${tipo.descripcion || 'Tipo de disposición de basura'}`,
+        description: tipo.descripcion || `Tipo de disposición de basura`,
         category: 'Manejo de Basura',
         popular: false
       }));
@@ -495,10 +529,10 @@ export const useConfigurationData = (): ConfigurationData => {
     
     // Caso 3: Array directo
     if (Array.isArray(data)) {
-      const options = data.map((tipo: any) => ({
-        value: tipo.id_tipo_disposicion_basura?.toString() || tipo.id?.toString() || '',
+      const options = data.map((tipo: DisposicionBasura) => ({
+        value: tipo.id_tipo_disposicion_basura?.toString() || '',
         label: tipo.nombre || 'Sin nombre',
-        description: `${tipo.descripcion || 'Tipo de disposición de basura'}`,
+        description: tipo.descripcion || 'Tipo de disposición de basura',
         category: 'Manejo de Basura',
         popular: false
       }));
@@ -510,11 +544,15 @@ export const useConfigurationData = (): ConfigurationData => {
 
   const aguasResidualesOptions = useMemo((): AutocompleteOption[] => {
     // Verificamos la estructura de datos que devuelve la API: AguasResidualesResponse
-    const data = aguasResidualesData as any;
+    const data = aguasResidualesData as {
+      data?: {
+        tiposAguasResiduales?: AguaResidual[]
+      }
+    };
     if (!data?.data?.tiposAguasResiduales || !Array.isArray(data.data.tiposAguasResiduales)) {
       return [];
     }
-    return data.data.tiposAguasResiduales.map((tipo: any) => ({
+    return data.data.tiposAguasResiduales.map((tipo: AguaResidual) => ({
       value: tipo.id_tipo_aguas_residuales?.toString() || '',
       label: tipo.nombre || 'Sin nombre'
     }));

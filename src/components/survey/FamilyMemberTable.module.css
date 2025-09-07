@@ -1,0 +1,64 @@
+/* Estilos para asegurar interactividad de la tabla de miembros familiares */
+
+.familyMemberTable {
+  position: relative;
+  z-index: 10;
+  pointer-events: auto !important;
+}
+
+.familyMemberTable * {
+  pointer-events: auto !important;
+}
+
+.familyMemberTableContainer {
+  position: relative;
+  z-index: 10;
+  pointer-events: auto !important;
+  isolation: isolate;
+}
+
+.tableRow {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto !important;
+}
+
+.tableRow:hover {
+  background-color: rgba(59, 130, 246, 0.05) !important;
+}
+
+.actionButtons {
+  position: relative;
+  z-index: 20;
+  pointer-events: auto !important;
+}
+
+.actionButtons button {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative;
+  z-index: 21;
+}
+
+.actionButtons button:hover {
+  transform: scale(1.05);
+}
+
+/* Override any global styles that might block interaction */
+.familyMemberTable .table-cell,
+.familyMemberTable .table-row,
+.familyMemberTable .table-header,
+.familyMemberTable .table-body {
+  pointer-events: auto !important;
+}
+
+/* Ensure no overlay blocks interaction */
+.familyMemberTable::before,
+.familyMemberTable::after {
+  display: none !important;
+}
+
+/* Fix for any backdrop filters that might interfere */
+.familyMemberTableContainer .backdrop-blur {
+  display: none !important;
+}

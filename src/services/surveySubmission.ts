@@ -1,6 +1,28 @@
 /**
- * Servicio para envío de encuestas al servidor
- * Maneja el envío de la estructura de datos nueva al endpoint de surveys
+ * 📤 Servicio de Envío de Encuestas - Sistema MIA
+ * 
+ * Maneja el envío completo de encuestas al servidor con las siguientes características:
+ * 
+ * ✨ **Funcionalidades Principales:**
+ * - Transformación automática de datos al formato API
+ * - Validación de datos antes del envío
+ * - Envío asíncrono con manejo de errores robusto
+ * - Limpieza automática del localStorage tras envío exitoso
+ * - Logging detallado para debugging
+ * 
+ * 🔧 **Características Técnicas:**
+ * - Compatible con React Hook Form y formularios del sistema
+ * - Soporte para encuestas completas con miembros de familia y fallecidos
+ * - Validación de integridad de datos antes del envío
+ * - Manejo de errores HTTP con mensajes descriptivos
+ * 
+ * 🧹 **Gestión del Storage:**
+ * - Limpieza automática del localStorage después del envío exitoso
+ * - Previene acumulación de borradores antiguos
+ * - Mantiene la sincronización entre datos locales y del servidor
+ * 
+ * @version 2.0
+ * @since Sistema MIA v1.0
  */
 
 import { apiPost } from '@/interceptors/axios';
@@ -90,11 +112,15 @@ export class SurveySubmissionService {
   }
 
   /**
-   * Envía encuesta desde localStorage
+   * Envía encuesta desde localStorage y limpia el storage si es exitoso
    * @param storageKey - Clave del localStorage (por defecto 'parish-survey-draft')
+   * @param autoCleanup - Si debe limpiar automáticamente el storage tras envío exitoso (por defecto true)
    * @returns Respuesta del servidor
    */
-  static async submitSurveyFromStorage(storageKey: string = 'parish-survey-draft'): Promise<SurveySubmissionResponse> {
+  static async submitSurveyFromStorage(
+    storageKey: string = 'parish-survey-draft', 
+    autoCleanup: boolean = true
+  ): Promise<SurveySubmissionResponse> {
     try {
       // Obtener datos del localStorage
       const storedData = localStorage.getItem(storageKey);
@@ -117,7 +143,15 @@ export class SurveySubmissionService {
       }
 
       // Enviar la encuesta
-      return await this.submitSurvey(surveyData);
+      const result = await this.submitSurvey(surveyData);
+      
+      // Si fue exitoso y autoCleanup está habilitado, limpiar storage
+      if (result.success && autoCleanup) {
+        this.clearStorageAfterSubmission();
+        console.log('🧹 Storage limpiado automáticamente después del envío exitoso');
+      }
+      
+      return result;
       
     } catch (error) {
       console.error('❌ Error al procesar datos del localStorage:', error);
@@ -215,12 +249,57 @@ export class SurveySubmissionService {
   }
 
   /**
-   * Limpia el localStorage después del envío exitoso
-   * @param storageKey - Clave del localStorage a limpiar
+   * 🧹 Limpia el localStorage después del envío exitoso de una encuesta
+   * 
+   * Esta funcionalidad automáticamente remueve los datos temporales del navegador
+   * una vez que la encuesta se ha guardado exitosamente en el servidor.
+   * 
+   * **Beneficios:**
+   * - ✅ Libera espacio de almacenamiento en el navegador
+   * - ✅ Evita confusión entre borradores antiguos y nuevos
+   * - ✅ Mantiene el localStorage limpio y organizado
+   * - ✅ Previene problemas de sincronización de datos
+   * 
+   * **Claves por defecto que se limpian:**
+   * - `parish-survey-draft` - Borrador de la encuesta en progreso
+   * - `parish-survey-completed` - Encuesta completada pendiente de envío
+   * - `survey-session-data` - Datos de sesión temporal
+   * 
+   * @param {...string} storageKeys - Clave(s) específica(s) del localStorage a limpiar. 
+   *                                  Si no se proporciona ninguna, limpia todas las claves de encuesta por defecto
+   * 
+   * @example
+   * ```typescript
+   * // Limpiar todas las claves por defecto
+   * SurveySubmissionService.clearStorageAfterSubmission();
+   * 
+   * // Limpiar claves específicas
+   * SurveySubmissionService.clearStorageAfterSubmission('custom-draft', 'temp-data');
+   * 
+   * // Limpiar solo el borrador principal
+   * SurveySubmissionService.clearStorageAfterSubmission('parish-survey-draft');
+   * ```
+   * 
+   * @since v1.2.0
    */
-  static clearStorageAfterSubmission(storageKey: string = 'parish-survey-draft'): void {
+  static clearStorageAfterSubmission(...storageKeys: string[]): void {
     try {
-      localStorage.removeItem(storageKey);
+      // Si no se proporcionan claves específicas, limpiar todas las claves relacionadas con encuestas
+      if (storageKeys.length === 0) {
+        const defaultKeys = ['parish-survey-draft', 'parish-survey-completed', 'survey-session-data'];
+        storageKeys = defaultKeys;
+      }
+
+      // Limpiar cada clave especificada
+      storageKeys.forEach(key => {
+        if (localStorage.getItem(key)) {
+          console.log(`🧹 Limpiando localStorage: ${key}`);
+          localStorage.removeItem(key);
+        }
+      });
+
+      console.log('✅ localStorage limpiado exitosamente después del envío');
+      
     } catch (error) {
       console.error('❌ Error al limpiar localStorage:', error);
     }
@@ -232,16 +311,28 @@ export class SurveySubmissionService {
  */
 export function useSurveySubmission() {
   const submitSurvey = async (surveyData: SurveySessionData) => {
-    return await SurveySubmissionService.submitSurvey(surveyData);
+    const result = await SurveySubmissionService.submitSurvey(surveyData);
+    
+    // Si fue exitoso, limpiar storage automáticamente
+    if (result.success) {
+      SurveySubmissionService.clearStorageAfterSubmission();
+    }
+    
+    return result;
   };
 
-  const submitFromStorage = async (storageKey?: string) => {
-    return await SurveySubmissionService.submitSurveyFromStorage(storageKey);
+  const submitFromStorage = async (storageKey?: string, autoCleanup: boolean = true) => {
+    return await SurveySubmissionService.submitSurveyFromStorage(storageKey, autoCleanup);
+  };
+
+  const clearStorage = (...storageKeys: string[]) => {
+    SurveySubmissionService.clearStorageAfterSubmission(...storageKeys);
   };
 
   return {
     submitSurvey,
     submitFromStorage,
+    clearStorage,
     validateSurveyData: SurveySubmissionService.validateSurveyData
   };
 }

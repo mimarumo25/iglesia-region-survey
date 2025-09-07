@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { Plus } from "lucide-react";
 import { FamilyMember } from "@/types/survey";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
@@ -33,6 +34,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
     editingFamilyMember,
     form,
     resetForm,
+    closeDialog,
+    openDialogForNew,
     onSubmit,
     handleEdit,
     handleDelete
@@ -42,8 +45,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
   const configurationData = useConfigurationData();
 
   const handleAddFirst = () => {
-    resetForm();
-    setShowFamilyDialog(true);
+    console.log('🎯 handleAddFirst llamado - usando openDialogForNew');
+    openDialogForNew();
   };
 
   return (
@@ -62,10 +65,26 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
           </p>
         </div>
         
-        <Dialog open={showFamilyDialog} onOpenChange={setShowFamilyDialog}>
+        <Dialog 
+          open={showFamilyDialog} 
+          onOpenChange={(open) => {
+            if (!open) {
+              // Llamar closeDialog cuando se cierre el diálogo
+              setTimeout(() => {
+                closeDialog();
+              }, 100);
+            } else {
+              // Abrir el diálogo
+              setShowFamilyDialog(open);
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button 
-              onClick={resetForm} 
+              onClick={() => {
+                console.log('🎯 Botón Agregar Miembro clickeado - usando openDialogForNew');
+                openDialogForNew();
+              }}
               className={DIALOG_BUTTONS.trigger.className}
             >
               <Plus className="w-4 h-4" />
@@ -77,19 +96,44 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
           <FamilyMemberDialog
             form={form}
             onSubmit={onSubmit}
-            onCancel={resetForm}
+            onCancel={closeDialog}
             editingMember={editingFamilyMember}
           />
         </Dialog>
       </div>
 
-      {/* Tabla de miembros familiares */}
-      <FamilyMemberTable
-        familyMembers={familyMembers}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onAddFirst={handleAddFirst}
-      />
+      {/* Tabla de miembros familiares con protección de error boundary */}
+      <ErrorBoundary
+        fallback={
+          <div className="border-2 border-red-200 rounded-xl p-6 bg-red-50 text-center">
+            <h4 className="text-lg font-semibold text-red-700 mb-2">Error en la tabla</h4>
+            <p className="text-red-600 mb-4">Hubo un problema al mostrar la tabla de miembros familiares.</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="outline"
+              className="border-red-300 text-red-700 hover:bg-red-100"
+            >
+              Recargar página
+            </Button>
+          </div>
+        }
+        onError={(error, errorInfo) => {
+          console.error('Error en FamilyMemberTable:', error);
+          console.error('ErrorInfo:', errorInfo);
+          
+          // Logging específico para errores de DOM
+          if (error.message?.includes('removeChild') || error.message?.includes('NotFoundError')) {
+            console.warn('🔧 DOM manipulation error en tabla familiar - aplicando recovery automático');
+          }
+        }}
+      >
+        <FamilyMemberTable
+          familyMembers={familyMembers}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onAddFirst={handleAddFirst}
+        />
+      </ErrorBoundary>
     </div>
   );
 };

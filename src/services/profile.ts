@@ -95,7 +95,7 @@ export class ProfileService {
   static async updateProfile(profileData: ProfileUpdateRequest): Promise<User> {
     try {
       // Obtener el ID del usuario actual
-      const currentUser = await this.getProfile();
+      const currentUser = await ProfileService.getProfile();
       const userId = currentUser.id;
 
       // Transformar los datos al formato esperado por el backend
@@ -174,7 +174,7 @@ export class ProfileService {
   static async changePassword(passwordData: ChangePasswordRequest): Promise<boolean> {
     try {
       // Obtener el ID del usuario actual
-      const currentUser = await this.getProfile();
+      const currentUser = await ProfileService.getProfile();
       const userId = currentUser.id;
 
       // Hacer la petición al endpoint de cambio de contraseña
@@ -243,7 +243,7 @@ export class ProfileService {
   static async uploadProfilePicture(file: File): Promise<string> {
     try {
       // Obtener el ID del usuario actual
-      const currentUser = await this.getProfile();
+      const currentUser = await ProfileService.getProfile();
       const userId = currentUser.id;
 
       const formData = new FormData();

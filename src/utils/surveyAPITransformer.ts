@@ -319,15 +319,26 @@ export function validateAPIFormat(data: APIEncuestaFormat): { isValid: boolean; 
     errors.push('servicios_agua.sistema_acueducto.id es requerido');
   }
 
-  // Validar miembros de familia
-  data.familyMembers.forEach((member, index) => {
-    if (!member.nombres) {
-      errors.push(`familyMembers[${index}].nombres es requerido`);
-    }
-    if (!member.numeroIdentificacion) {
-      errors.push(`familyMembers[${index}].numeroIdentificacion es requerido`);
-    }
-  });
+  // Validar miembros de familia - Validación mejorada
+  if (!data.familyMembers || data.familyMembers.length === 0) {
+    errors.push('Debe incluir al menos un miembro de la familia');
+  } else {
+    data.familyMembers.forEach((member, index) => {
+      if (!member.nombres || member.nombres.trim() === '') {
+        errors.push(`familyMembers[${index}].nombres es requerido`);
+      }
+      if (!member.numeroIdentificacion || member.numeroIdentificacion.trim() === '') {
+        errors.push(`familyMembers[${index}].numeroIdentificacion es requerido`);
+      }
+      if (!member.tipoIdentificacion?.id) {
+        errors.push(`familyMembers[${index}].tipoIdentificacion es requerido`);
+      }
+      // Validaciones adicionales que podrían ser útiles
+      if (member.numeroIdentificacion && member.numeroIdentificacion.length < 5) {
+        errors.push(`familyMembers[${index}].numeroIdentificacion debe tener al menos 5 caracteres`);
+      }
+    });
+  }
 
   return {
     isValid: errors.length === 0,

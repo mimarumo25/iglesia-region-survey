@@ -1,0 +1,83 @@
+/* Global fixes to ensure family member table interactivity */
+
+/* Remove any global pointer events blocking */
+* {
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+}
+
+/* Ensure all elements in family member section are interactive */
+[class*="familyMemberTable"],
+[class*="familyMemberTableContainer"],
+[class*="actionButtons"] {
+  pointer-events: auto !important;
+  cursor: auto !important;
+}
+
+/* Override any global overlay or backdrop that might block interaction */
+.familyMemberTableContainer::before,
+.familyMemberTableContainer::after,
+.familyMemberTable::before,
+.familyMemberTable::after {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* Ensure buttons are always clickable */
+button[class*="Button"],
+.actionButtons button,
+[role="button"] {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative;
+  z-index: 999 !important;
+}
+
+/* Override any backdrop blur that might interfere */
+.backdrop-blur {
+  pointer-events: none !important;
+}
+
+/* Ensure table rows and cells are interactive */
+[role="row"],
+[role="cell"],
+[role="columnheader"],
+tbody tr,
+thead tr,
+td, th {
+  pointer-events: auto !important;
+}
+
+/* Remove any transform or filter that might block interaction */
+.familyMemberTableContainer,
+.familyMemberTable {
+  transform: none !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+}
+
+/* Fix for any overlay that might be blocking */
+.mobile-menu-overlay,
+[class*="overlay"],
+[class*="backdrop"] {
+  pointer-events: none !important;
+}
+
+/* Ensure specific z-index hierarchy */
+.familyMemberTableContainer {
+  z-index: 50 !important;
+  position: relative;
+  isolation: isolate;
+}
+
+.actionButtons {
+  z-index: 100 !important;
+  position: relative;
+}
+
+.actionButtons button {
+  z-index: 101 !important;
+  position: relative;
+}
