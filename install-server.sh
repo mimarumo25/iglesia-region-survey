@@ -101,13 +101,42 @@ echo "🐳 Asegurando que Docker esté corriendo..."
 $SUDO systemctl start docker
 $SUDO systemctl enable docker
 
+# Hacer ejecutable el script de diagnóstico
+chmod +x diagnostico-servidor.sh
+
 # Ejecutar el primer despliegue
 echo "🚀 Ejecutando primer despliegue..."
-./deploy-from-git.sh
+if [ -f "deploy-from-git.sh" ]; then
+    ./deploy-from-git.sh
+else
+    echo "⚠️  Script deploy-from-git.sh no encontrado, usando deploy.sh..."
+    chmod +x deploy.sh
+    ./deploy.sh
+fi
 
-# Iniciar el servicio
+# Verificar que el contenedor esté corriendo
+echo "🔍 Verificando estado del contenedor..."
+sleep 10
+if docker ps | grep -q "iglesia-survey"; then
+    echo "✅ Contenedor está corriendo correctamente"
+else
+    echo "❌ Problema con el contenedor, verificando..."
+    docker-compose logs --tail=20
+fi
+
+# Iniciar el servicio systemd
 echo "▶️ Iniciando servicio systemd..."
 $SUDO systemctl start $SERVICE_NAME
+
+# Verificar conectividad
+echo "🌐 Verificando conectividad..."
+sleep 5
+if curl -s http://localhost:8080 >/dev/null 2>&1; then
+    echo "✅ Aplicación responde correctamente"
+else
+    echo "⚠️  Aplicación no responde, ejecutando diagnóstico..."
+    ./diagnostico-servidor.sh
+fi
 
 echo ""
 echo "🎉 ¡Instalación completada!"
