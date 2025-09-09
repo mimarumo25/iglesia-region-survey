@@ -21,13 +21,38 @@ import { useTheme } from "@/context/ThemeContext";
  * Componente de menú de usuario con opciones de perfil y logout
  */
 export const UserMenu: React.FC = () => {
-  const { user, logout } = useAuthContext();
+  const { user, logout, isAuthenticated } = useAuthContext();
   const { currentTheme, setTheme, themePresets, isDarkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
 
-  if (!user) {
+  // Debug en desarrollo
+  if (import.meta.env.DEV) {
+    console.log('🔍 UserMenu Debug:', { 
+      user, 
+      hasUser: !!user, 
+      isAuthenticated,
+      skipAuth: import.meta.env.VITE_SKIP_AUTH 
+    });
+  }
+
+  // Si no hay usuario y no estamos en modo skip auth, no mostrar nada
+  if (!user && import.meta.env.VITE_SKIP_AUTH !== 'true') {
     return null;
   }
+
+  // En modo desarrollo con skip auth, mostrar indicador si no hay usuario
+  if (!user && import.meta.env.VITE_SKIP_AUTH === 'true') {
+    return (
+      <Button variant="ghost" className="relative h-10 w-10 rounded-full bg-orange-100 border border-orange-300">
+        <span className="text-orange-600 text-xs font-bold" title="No User - Dev Mode">
+          NU
+        </span>
+      </Button>
+    );
+  }
+
+  // Si llegamos aquí, tenemos un usuario válido
+  console.log('🔍 UserMenu: Renderizando con usuario válido:', user.firstName, user.lastName);
 
   // Obtener iniciales del usuario con validación
   const getInitials = (firstName?: string, lastName?: string): string => {
@@ -72,21 +97,37 @@ export const UserMenu: React.FC = () => {
   };
 
   const handleProfileClick = () => {
-    navigate('/profile');
+    console.log('🔍 UserMenu: Navegando al perfil...');
+    try {
+      navigate('/profile');
+      console.log('✅ UserMenu: Navegación al perfil iniciada');
+    } catch (error) {
+      console.error('❌ UserMenu: Error al navegar al perfil:', error);
+    }
   };
 
   const fullName = getFullName();
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={(open) => {
+      console.log('🔍 UserMenu: DropdownMenu onOpenChange:', open);
+    }}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10">
+        <Button 
+          variant="ghost" 
+          className="relative h-10 w-10 rounded-full hover:bg-primary/10 transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-primary/20"
+          title={`Menú de ${fullName}`}
+          onClick={() => {
+            console.log('🔍 UserMenu: Button onClick disparado');
+          }}
+        >
+          <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-sm">
             <AvatarImage 
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`}
+              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0066cc&color=ffffff&bold=true`}
               alt={fullName}
+              className="object-cover"
             />
-            <AvatarFallback>
+            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white font-semibold text-sm">
               {getInitials(user.firstName, user.lastName)}
             </AvatarFallback>
           </Avatar>
@@ -115,12 +156,23 @@ export const UserMenu: React.FC = () => {
         
         <DropdownMenuSeparator />
         
-        <DropdownMenuItem className="cursor-pointer" onClick={handleProfileClick}>
+        <DropdownMenuItem 
+          className="cursor-pointer hover:bg-primary/10 focus:bg-primary/10 transition-colors" 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔍 UserMenu: Click en Perfil detectado');
+            handleProfileClick();
+          }}
+        >
           <User className="mr-2 h-4 w-4" />
-          <span>Perfil</span>
+          <span>Mi Perfil</span>
         </DropdownMenuItem>
         
-        <DropdownMenuItem className="cursor-pointer">
+        <DropdownMenuItem 
+          className="cursor-pointer hover:bg-primary/10 focus:bg-primary/10 transition-colors"
+          onClick={() => navigate('/settings')}
+        >
           <Settings className="mr-2 h-4 w-4" />
           <span>Configuración</span>
         </DropdownMenuItem>

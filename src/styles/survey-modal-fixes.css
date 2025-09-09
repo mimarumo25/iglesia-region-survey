@@ -1,0 +1,87 @@
+/**
+ * 🎨 Mejoras de CSS para el Modal de Detalles de Encuesta
+ * 
+ * Estas reglas eliminan el flickering/parpadeo en las pestañas
+ * y mejoran la experiencia visual del usuario
+ */
+
+/* Optimización para tabs del modal */
+.survey-detail-modal [data-radix-tabs-content] {
+  /* Evitar flickering en el contenido de tabs */
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+  will-change: auto !important;
+}
+
+/* Suavizar solo las transiciones de estado de las pestañas */
+.survey-detail-modal [data-radix-tabs-trigger] {
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease !important;
+  /* Evitar transiciones complejas que causen flickering */
+  transform: none !important;
+  will-change: auto !important;
+}
+
+/* Optimización del contenedor de scroll */
+.survey-detail-modal [data-radix-scroll-area-viewport] {
+  /* Deshabilitar aceleración GPU que puede causar flickering */
+  transform: none !important;
+  will-change: auto !important;
+  /* Scroll suave pero sin afectar el render inicial */
+  scroll-behavior: smooth;
+}
+
+/* Prevenir parpadeo en el estado inicial del modal */
+.survey-detail-modal .tabs-skeleton {
+  animation: none !important;
+  /* Usar opacidad estable para skeleton */
+  opacity: 1 !important;
+}
+
+/* Optimización específica para el componente Dialog */
+.survey-detail-modal [data-radix-dialog-content] {
+  /* Renderizado estable */
+  transform: none !important;
+  animation: none !important;
+  /* Solo permitir la animación de entrada del modal */
+  transition: opacity 0.2s ease !important;
+}
+
+/* Mejorar la estabilidad visual de los badges en las pestañas */
+.survey-detail-modal .tab-badge {
+  transition: background-color 0.15s ease, color 0.15s ease !important;
+  transform: none !important;
+}
+
+/* Forzar renderizado estable para iconos */
+.survey-detail-modal .tab-icon {
+  transition: color 0.15s ease !important;
+  transform: none !important;
+  will-change: auto !important;
+}
+
+/* Optimización para el contenido lazy-loaded (ya no aplica pero por si acaso) */
+.survey-detail-modal .tab-content {
+  /* Renderizado estable */
+  contain: layout style !important;
+  /* Evitar cambios de layout que causen reflow */
+  min-height: 0 !important;
+}
+
+/* Prevenir cualquier animación automática en skeletons */
+.survey-detail-modal .skeleton {
+  animation: none !important;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%) !important;
+  background-size: 200% 100% !important;
+}
+
+/* Estabilizar el scroll area completamente */
+.survey-detail-modal [data-radix-scroll-area-root] {
+  contain: layout style paint !important;
+}
+
+/* Asegurar que no hay transiciones en elementos críticos durante la carga inicial */
+.survey-detail-modal.loading * {
+  transition: none !important;
+  animation: none !important;
+}

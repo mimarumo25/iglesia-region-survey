@@ -59,13 +59,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // MODO DESARROLLO: Permitir acceso sin autenticación para pruebas
     if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
-      auth.setUserData({
-        id: 1,
-        firstName: 'Usuario',
-        lastName: 'Prueba',
-        email: 'test@example.com',
-        role: 'admin'
-      });
+      console.log('🔧 AuthContext: Modo desarrollo SKIP_AUTH activado');
+      const devUser = {
+        id: 'dev-user-123',
+        firstName: 'Diego',
+        lastName: 'García',
+        secondName: 'Carlos',
+        secondLastName: 'López',
+        email: 'admin@parroquia.com',
+        role: 'admin',
+        phone: '+57 300 456 7890',
+        active: true,
+        emailVerified: true,
+        roles: ['Administrador']
+      };
+      console.log('🔧 AuthContext: Estableciendo usuario de desarrollo:', devUser);
+      auth.setUserData(devUser);
       return;
     }
     

@@ -309,17 +309,6 @@ export const encuestasService = {
     try {
       console.log('🔍 Obteniendo encuestas con filtros:', filters);
       
-      // 🧪 MODO DESARROLLO: Usar datos mock temporalmente
-      if (process.env.NODE_ENV === 'development') {
-        const { mockEncuestasResponse } = await import('@/data/mockEncuestas');
-        
-        // Simular delay de red
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        console.log('🧪 Usando datos mock para desarrollo');
-        return encuestasService.processEncuestasResponse(mockEncuestasResponse);
-      }
-      
       const params = new URLSearchParams();
       
       // Paginación
@@ -368,28 +357,6 @@ export const encuestasService = {
   async getEncuestaById(id: number): Promise<EncuestaDetailResponse> {
     try {
       console.log(`🔍 Obteniendo encuesta con ID: ${id}`);
-      
-      // 🧪 MODO DESARROLLO: Usar datos mock temporalmente
-      if (process.env.NODE_ENV === 'development') {
-        const { getMockEncuestaById } = await import('@/data/mockEncuestas');
-        
-        // Simular delay de red
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const mockData = getMockEncuestaById(id);
-        
-        if (!mockData) {
-          throw new Error(`Encuesta con ID ${id} no encontrada`);
-        }
-        
-        console.log('🧪 Usando datos mock para desarrollo:', mockData);
-        
-        return {
-          success: true,
-          message: 'Encuesta obtenida exitosamente',
-          data: mockData as any
-        };
-      }
       
       const response = await apiClient.get(`/api/encuesta/${id}`);
       
@@ -446,14 +413,6 @@ export const encuestasService = {
     cancelled: number;
   }> {
     try {
-      // 🧪 MODO DESARROLLO: Usar datos mock temporalmente
-      if (process.env.NODE_ENV === 'development') {
-        const { mockEncuestasStats } = await import('@/data/mockEncuestas');
-        
-        console.log('🧪 Usando estadísticas mock para desarrollo:', mockEncuestasStats);
-        return mockEncuestasStats;
-      }
-      
       // Obtener una muestra grande para calcular estadísticas
       const response = await this.getEncuestas({ limit: 1000 });
       

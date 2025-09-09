@@ -44,45 +44,22 @@ export class ProfileService {
   
   /**
    * Obtener el perfil completo del usuario actual
+   * Como el endpoint /api/auth/me no existe, obtenemos los datos del usuario
+   * desde el almacenamiento local o forzamos que la página dependa del contexto de auth
    */
   static async getProfile(): Promise<User> {
     try {
-      // Usar el endpoint correcto /api/auth/profile
-      const response = await apiGet<ApiResponse<{ user: any }>>('/api/auth/profile');
+      // Primero, intentar obtener los datos del usuario desde el almacenamiento local
+      const userData = AuthService.getUserData();
       
-      if (response.data.status === 'success') {
-        // Transformar los datos del usuario del formato del backend al frontend
-        const serverUserData = response.data.data.user;
-        
-        // Obtener roles del usuario (por ahora usar un rol por defecto ya que no viene en la respuesta)
-        const userRole = 'admin'; // Asumiendo que es admin basado en los datos previos
-        
-        const transformedUser: User = {
-          id: serverUserData.id,
-          firstName: serverUserData.primer_nombre || serverUserData.firstName,
-          lastName: serverUserData.primer_apellido || serverUserData.lastName,
-          email: serverUserData.correo_electronico || serverUserData.email,
-          role: userRole,
-          // Información adicional
-          secondName: serverUserData.segundo_nombre,
-          secondLastName: serverUserData.segundo_apellido,
-          phone: serverUserData.telefono,
-          active: serverUserData.activo,
-          emailVerified: serverUserData.email_verificado,
-          // Campos adicionales del perfil (pueden venir null del servidor)
-          birthDate: serverUserData.fecha_nacimiento || undefined,
-          sector: serverUserData.sector || undefined,
-          address: serverUserData.direccion || undefined,
-          emergencyContact: serverUserData.contacto_emergencia || undefined,
-          emergencyPhone: serverUserData.telefono_emergencia || undefined,
-          bio: serverUserData.biografia || undefined,
-          profilePictureUrl: serverUserData.foto_perfil_url || undefined,
-        };
-        
-        return transformedUser;
+      if (userData) {
+        // Los datos ya están en el formato correcto desde AuthService
+        return userData;
       }
       
-      throw new Error(response.data.message || 'Error al obtener el perfil');
+      // Si no hay datos almacenados, lanzar error para que la página use el contexto
+      throw new Error('No hay datos de usuario disponibles. Use el contexto de autenticación.');
+      
     } catch (error) {
       console.error('Error al obtener perfil:', error);
       throw error;

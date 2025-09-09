@@ -10,6 +10,9 @@
 /* Import family member interaction fixes */
 @import './styles/family-member-interaction-fix.css';
 
+/* Import survey modal flickering fixes */
+@import './styles/survey-modal-fixes.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

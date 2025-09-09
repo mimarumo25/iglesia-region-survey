@@ -35,8 +35,9 @@ button[class*="Button"],
   z-index: 999 !important;
 }
 
-/* Override any backdrop blur that might interfere */
-.backdrop-blur {
+/* Override any backdrop blur that might interfere with family member table ONLY */
+.familyMemberTableContainer .backdrop-blur,
+.familyMemberTable .backdrop-blur {
   pointer-events: none !important;
 }
 
@@ -58,10 +59,11 @@ td, th {
   -webkit-filter: none !important;
 }
 
-/* Fix for any overlay that might be blocking */
-.mobile-menu-overlay,
-[class*="overlay"],
-[class*="backdrop"] {
+/* Fix for any overlay that might be blocking family member table ONLY */
+.familyMemberTableContainer .mobile-menu-overlay,
+.familyMemberTableContainer [class*="overlay"]:not([class*="backdrop"]),
+.familyMemberTable .mobile-menu-overlay,
+.familyMemberTable [class*="overlay"]:not([class*="backdrop"]) {
   pointer-events: none !important;
 }
 

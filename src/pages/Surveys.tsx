@@ -46,6 +46,9 @@ import {
 import { useConfigurationData } from "@/hooks/useConfigurationData";
 import { encuestasService, useEncuestas, EncuestaListItem, EncuestasFilters } from "@/services/encuestas";
 
+// Importar modal de detalles
+import { SurveyDetailModal } from "@/components/modales/SurveyDetailModal";
+
 const Surveys = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -78,6 +81,11 @@ const Surveys = () => {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<EncuestaListItem | null>(null);
+
+  // Estados para modal de detalles
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedSurveyId, setSelectedSurveyId] = useState<string | null>(null);
+  const [selectedSurveyData, setSelectedSurveyData] = useState<Partial<EncuestaListItem> | undefined>(undefined);
 
   // Hook centralizado para cargar datos de configuración
   const {
@@ -123,9 +131,9 @@ const Surveys = () => {
 
       // Aplicar filtros geográficos (si están disponibles en el futuro)
       if (sectorFilter) {
-        const sectorOption = sectorOptions.find(s => s.nombre === sectorFilter);
+        const sectorOption = sectorOptions.find(s => s.value === sectorFilter);
         if (sectorOption) {
-          currentFilters.sector_id = sectorOption.id;
+          currentFilters.sector_id = parseInt(sectorOption.value);
         }
       }
 
@@ -237,7 +245,22 @@ const Surveys = () => {
    * Navegación a detalles
    */
   const handleViewDetails = (id: number) => {
-    navigate(`/surveys/${id}`);
+    // navigate(`/surveys/${id}`);
+    
+    // Usar modal en lugar de navegación
+    const encuesta = encuestas.find(e => parseInt(e.id_encuesta) === id);
+    setSelectedSurveyId(id.toString());
+    setSelectedSurveyData(encuesta);
+    setDetailModalOpen(true);
+  };
+
+  /**
+   * Cerrar modal de detalles
+   */
+  const handleCloseDetailModal = () => {
+    setDetailModalOpen(false);
+    setSelectedSurveyId(null);
+    setSelectedSurveyData(undefined);
   };
 
   /**
@@ -784,6 +807,14 @@ const Surveys = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal de detalles de encuesta */}
+      <SurveyDetailModal
+        isOpen={detailModalOpen}
+        onClose={handleCloseDetailModal}
+        surveyId={selectedSurveyId}
+        initialData={selectedSurveyData}
+      />
     </div>
   );
 };

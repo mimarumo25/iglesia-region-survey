@@ -4,7 +4,7 @@ import { Bell, Search, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { UserMenu } from "@/components/auth/UserMenu";
+import { UserMenuWorking } from "@/components/auth/UserMenuWorking";
 import { WorkingSearch } from "@/components/ui/working-search";
 import { RouteSuspenseWrapper } from "@/components/ui/RouteSuspenseWrapper";
 
@@ -91,12 +91,13 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
             </div>
             
             {/* Right side controls */}
-            <div className="flex items-center gap-3 lg:gap-4 flex-shrink-0">
+            <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0" style={{ pointerEvents: 'auto' }}>
               {/* Notifications */}
               <Button
                 variant="ghost"
                 size="sm"
                 className="relative p-3 text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-300 hover-scale click-effect rounded-xl group"
+                style={{ pointerEvents: 'auto' }}
               >
                 <Bell className="w-5 h-5 lg:w-5 lg:h-5" />
                 <span className="absolute -top-1 -right-1 w-3 h-3 lg:w-3.5 lg:h-3.5 bg-gradient-to-r from-destructive to-destructive/80 rounded-full flex items-center justify-center">
@@ -109,12 +110,15 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                 variant="ghost"
                 size="sm"
                 className="sm:hidden p-3 text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-300 hover-scale click-effect rounded-xl"
+                style={{ pointerEvents: 'auto' }}
               >
                 <Search className="w-4 h-4" />
               </Button>
 
-              {/* User Menu */}
-              <UserMenu />
+              {/* User Menu - Versión funcional */}
+              <div className="flex items-center ml-2" style={{ pointerEvents: 'auto' }}>
+                <UserMenuWorking />
+              </div>
             </div>
           </div>
         </header>

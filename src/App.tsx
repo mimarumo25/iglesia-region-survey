@@ -32,6 +32,8 @@ const Parroquias = React.lazy(() => import("./pages/Parroquias"));
 const SurveyForm = React.lazy(() => import("@/components/SurveyForm"));
 const NewSurveyWithHierarchy = React.lazy(() => import("./pages/NewSurveyWithHierarchy"));
 const Profile = React.lazy(() => import("./pages/Profile"));
+const DebugUserMenu = React.lazy(() => import("./pages/DebugUserMenu"));
+// const ProfileSimple = React.lazy(() => import("./pages/ProfileSimple"));
 // Componente de demostración de tallas (temporal para desarrollo)
 const TallasDemoPage = React.lazy(() => import("@/components/tallas/TallasDemoPage"));
 // const NoPermissions = React.lazy(() => import("@/components/ui/no-permissions"));
@@ -234,6 +236,18 @@ const App = () => (
                     <PrivateRoute>
                       <Layout>
                         <Profile />
+                      </Layout>
+                    </PrivateRoute>
+                  } 
+                />
+
+                {/* Ruta de debug temporal */}
+                <Route 
+                  path="/debug-user" 
+                  element={
+                    <PrivateRoute>
+                      <Layout>
+                        <DebugUserMenu />
                       </Layout>
                     </PrivateRoute>
                   } 
