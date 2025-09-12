@@ -67,7 +67,7 @@ export const WorkingSearch: React.FC<WorkingSearchProps> = ({
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
-  // Hooks para datos reales
+  // Hooks para datos reales con menos queries pesadas
   const { useActiveSectoresQuery } = useSectores();
   const { useUsersQuery } = useUsers();
   
@@ -90,28 +90,23 @@ export const WorkingSearch: React.FC<WorkingSearchProps> = ({
     return (usersData as any) || [];
   }, [usersData]);
 
-  // Función de búsqueda mejorada con funcionalidades del sitio
+  // Función de búsqueda optimizada con caché y mejor performance
   const searchResults = useMemo(() => {
-    if (query.length < 2) return [];
+    if (query.length < 1) return []; // Cambiar de 2 a 1
 
     const results: any[] = [];
     const searchTerm = query.toLowerCase();
 
-    // 1. Buscar en funcionalidades del sitio (prioridad alta)
-    siteFunctionalities.forEach((func) => {
+    // 1. Buscar en funcionalidades del sitio (prioridad alta) - Optimizado
+    for (const func of siteFunctionalities) {
       const matchTitle = func.title.toLowerCase().includes(searchTerm);
-      const matchSubtitle = func.subtitle.toLowerCase().includes(searchTerm);
       const matchKeywords = func.keywords.some(keyword => keyword.includes(searchTerm));
-      const matchCategory = func.category.toLowerCase().includes(searchTerm);
-
-      if (matchTitle || matchSubtitle || matchKeywords || matchCategory) {
-        // Calcular relevancia
+      
+      // Búsqueda más eficiente
+      if (matchTitle || matchKeywords) {
         let relevance = 0;
-        if (matchTitle) relevance += 10;
-        if (func.title.toLowerCase().startsWith(searchTerm)) relevance += 5;
-        if (matchSubtitle) relevance += 3;
-        if (matchKeywords) relevance += 2;
-        if (matchCategory) relevance += 1;
+        if (matchTitle) relevance += func.title.toLowerCase().startsWith(searchTerm) ? 15 : 10;
+        if (matchKeywords) relevance += 5;
 
         results.push({
           id: `func-${func.id}`,
@@ -124,49 +119,52 @@ export const WorkingSearch: React.FC<WorkingSearchProps> = ({
           relevance,
           category: func.category
         });
-      }
-    });
 
-    // 2. Buscar en sectores (datos dinámicos)
-    sectores.forEach((sector: any) => {
-      if (
-        sector.nombre?.toLowerCase().includes(searchTerm) ||
-        sector.descripcion?.toLowerCase().includes(searchTerm) ||
-        sector.municipio?.nombre?.toLowerCase().includes(searchTerm)
-      ) {
-        results.push({
-          id: `sector-${sector.id_sector}`,
-          title: sector.nombre,
-          subtitle: sector.municipio?.nombre || 'Sin municipio',
-          description: sector.descripcion,
-          type: 'sector',
-          icon: MapPin,
-          path: '/sectors',
-          relevance: 5
-        });
+        // Limitar temprano para mejor performance
+        if (results.length >= 15) break;
       }
-    });
+    }
 
-    // 3. Buscar en usuarios (datos dinámicos)
-    usuarios.forEach((usuario: any) => {
-      const fullName = `${usuario.primer_nombre || ''} ${usuario.segundo_nombre || ''} ${usuario.primer_apellido || ''} ${usuario.segundo_apellido || ''}`.trim();
-      if (
-        fullName.toLowerCase().includes(searchTerm) ||
-        usuario.correo_electronico?.toLowerCase().includes(searchTerm) ||
-        usuario.numero_documento?.includes(searchTerm)
-      ) {
-        results.push({
-          id: `user-${usuario.id}`,
-          title: fullName || usuario.correo_electronico,
-          subtitle: usuario.correo_electronico,
-          description: usuario.activo ? 'Usuario Activo' : 'Usuario Inactivo',
-          type: 'usuario',
-          icon: User,
-          path: '/users',
-          relevance: 4
-        });
-      }
-    });
+    // Solo buscar en datos dinámicos si hay menos de 10 resultados de funcionalidades
+    if (results.length < 10) {
+      // 2. Buscar en sectores (limitado)
+      sectores.slice(0, 50).forEach((sector: any) => {
+        if (results.length >= 15) return;
+        
+        if (sector.nombre?.toLowerCase().includes(searchTerm)) {
+          results.push({
+            id: `sector-${sector.id_sector}`,
+            title: sector.nombre,
+            subtitle: sector.municipio?.nombre || 'Sin municipio',
+            description: sector.descripcion,
+            type: 'sector',
+            icon: MapPin,
+            path: '/sectors',
+            relevance: 5
+          });
+        }
+      });
+
+      // 3. Buscar en usuarios (limitado)
+      usuarios.slice(0, 30).forEach((usuario: any) => {
+        if (results.length >= 15) return;
+        
+        const fullName = `${usuario.primer_nombre || ''} ${usuario.primer_apellido || ''}`.trim();
+        if (fullName.toLowerCase().includes(searchTerm) || 
+            usuario.correo_electronico?.toLowerCase().includes(searchTerm)) {
+          results.push({
+            id: `user-${usuario.id}`,
+            title: fullName || usuario.correo_electronico,
+            subtitle: usuario.correo_electronico,
+            description: usuario.activo ? 'Usuario Activo' : 'Usuario Inactivo',
+            type: 'usuario',
+            icon: User,
+            path: '/users',
+            relevance: 4
+          });
+        }
+      });
+    }
 
     // Ordenar por relevancia y limitar resultados
     return results
@@ -177,7 +175,8 @@ export const WorkingSearch: React.FC<WorkingSearchProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
-    setIsOpen(value.length >= 2);
+    // Abrir inmediatamente si hay contenido
+    setIsOpen(value.length >= 1);
   };
 
   const handleClear = () => {

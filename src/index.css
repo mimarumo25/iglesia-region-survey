@@ -93,15 +93,13 @@ All colors MUST be HSL - MIA Verde y Azul Temático
     --shadow-hover: 0 4px 8px -2px hsl(var(--primary) / 0.05), 0 2px 4px -1px hsl(var(--primary) / 0.02); /* Más sutil */
     --shadow-active: 0 2px 4px -1px hsl(var(--primary) / 0.08), 0 1px 2px -1px hsl(var(--primary) / 0.04); /* Más sutil */
 
-    /* Transiciones más suaves */
-    --transition-smooth: all 0.3s ease-in-out;
-    --transition-fast: all 0.15s ease-in-out;
-    --transition-slow: all 0.5s ease-in-out;
-    --transition-bounce: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    --transition-elastic: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    --transition-spring: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-
-    /* Sidebar MIA - usando verde oscuro del tema */
+  /* Transiciones optimizadas para mejor rendimiento */
+  --transition-smooth: all 0.2s ease-in-out;
+  --transition-fast: all 0.1s ease-in-out;
+  --transition-slow: all 0.3s ease-in-out;
+  --transition-bounce: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-elastic: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-spring: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);    /* Sidebar MIA - usando verde oscuro del tema */
     --sidebar-background: 142 76% 26%; /* Verde MIA oscuro */
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 142 76% 20%; /* Verde MIA más oscuro */
@@ -339,14 +337,14 @@ All colors MUST be HSL - MIA Verde y Azul Temático
     overflow-wrap: break-word;
   }
 
-  /* Transición suave para el cambio de ancho del sidebar */
+  /* Transición optimizada para el cambio de ancho del sidebar */
   .sidebar-dynamic-width {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Asegurar que el sidebar tenga transición suave en el ancho */
+  /* Asegurar que el sidebar tenga transición suave y rápida en el ancho */
   .sidebar-dynamic-width [data-sidebar="sidebar"] {
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .parish-progress-bar {
@@ -379,10 +377,11 @@ All colors MUST be HSL - MIA Verde y Azul Temático
 
 /* ===== CLASES DE UTILIDAD MÓVIL ELIMINADAS ===== */
 
-/* Mejoras para el menú móvil - sin animaciones */
+/* Mejoras para el menú móvil - optimizado sin delays */
 .mobile-menu-overlay {
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  transition: opacity 0.15s ease-in-out;
 }
 
 /* Mejoras táctiles para móvil */
@@ -390,6 +389,11 @@ All colors MUST be HSL - MIA Verde y Azul Temático
   .touch-target {
     min-height: 40px;
     min-width: 40px;
+  }
+  
+  /* Optimizar transiciones en móvil */
+  * {
+    transition-duration: 0.1s !important;
   }
 }
 
@@ -402,9 +406,10 @@ All colors MUST be HSL - MIA Verde y Azul Temático
 
 
 
-/* Mejoras para el sidebar en móvil - sin animaciones */
+/* Mejoras para el sidebar en móvil - transiciones rápidas */
 .sidebar-mobile {
   transform: translateX(-100%);
+  transition: transform 0.15s ease-in-out;
 }
 
 .sidebar-mobile.open {
@@ -413,7 +418,7 @@ All colors MUST be HSL - MIA Verde y Azul Temático
 
 /* Sin animación de entrada escalonada para elementos del menú */
 
-/* Scrollbar personalizado para el sidebar */
+/* Scrollbar personalizado para el sidebar con transiciones rápidas */
 .scrollbar-thin {
   scrollbar-width: thin;
   scrollbar-color: hsl(var(--sidebar-border)) transparent;
@@ -430,7 +435,7 @@ All colors MUST be HSL - MIA Verde y Azul Temático
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background-color: hsl(var(--sidebar-border) / 0.4);
   border-radius: 2.5px;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.1s ease;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
@@ -445,7 +450,7 @@ All colors MUST be HSL - MIA Verde y Azul Temático
   overflow: hidden;
 }
 
-/* Scrollbar personalizado para el contenido principal */
+/* Scrollbar personalizado para el contenido principal - más rápido */
 .main-content-scroll {
   scrollbar-width: thin;
   scrollbar-color: hsl(var(--border)) transparent;
@@ -462,7 +467,7 @@ All colors MUST be HSL - MIA Verde y Azul Temático
 .main-content-scroll::-webkit-scrollbar-thumb {
   background-color: hsl(var(--border) / 0.3);
   border-radius: 3px;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.1s ease;
 }
 
 .main-content-scroll::-webkit-scrollbar-thumb:hover {

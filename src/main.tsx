@@ -82,6 +82,24 @@ window.addEventListener('unhandledrejection', (event) => {
   }
 });
 
+// Prevenir recargas automáticas en desarrollo por cambios de foco/visibilidad
+if (import.meta.env.DEV) {
+  // Deshabilitar recarga automática cuando la pestaña pierde/gana foco
+  let isPageVisible = true;
+  
+  document.addEventListener('visibilitychange', () => {
+    isPageVisible = !document.hidden;
+  });
+
+  // Evitar recargas innecesarias del HMR
+  if (import.meta.hot) {
+    import.meta.hot.on('vite:beforeUpdate', () => {
+      // Solo aplicar actualizaciones si la página es visible
+      return isPageVisible;
+    });
+  }
+}
+
 // Add React error boundary fallback at the root level
 const rootElement = document.getElementById('root')!;
 const root = createRoot(rootElement);

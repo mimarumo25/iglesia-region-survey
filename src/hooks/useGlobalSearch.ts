@@ -1,11 +1,17 @@
 import { useState, useEffect, useMemo } from 'react';
 import { GlobalSearchService, SearchResults, SearchableData } from '@/services/globalSearch';
 
-// Hook simple de debounce si no existe
+// Hook optimizado de debounce con delay más corto
 const useDebounceValue = (value: string, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
+    // Si el valor está vacío, actualizar inmediatamente
+    if (!value) {
+      setDebouncedValue(value);
+      return;
+    }
+
     const handler = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
@@ -47,8 +53,8 @@ export const useGlobalSearch = (
 ): UseGlobalSearchReturn => {
   const {
     maxResults = 10,
-    debounceMs = 300,
-    minQueryLength = 2
+    debounceMs = 150, // Reducido de 300 a 150ms
+    minQueryLength = 1 // Reducido de 2 a 1
   } = options;
 
   const [query, setQuery] = useState('');

@@ -2,7 +2,6 @@ import React, { createContext, useContext, useEffect, useCallback, ReactNode } f
 import { AuthContextType, User } from '@/types/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthService } from '@/services/auth';
-import { apiGet } from '@/interceptors/axios';
 
 // Crear el contexto de autenticación
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -16,36 +15,17 @@ let isLoggingOut = false;
 
 /**
  * Proveedor de contexto de autenticación
- * Maneja el estado global de autenticación y la persistencia de sesión
+ * ULTRA-SIMPLIFICADO: NO hace verificaciones automáticas ni llamadas API
+ * Solo carga datos almacenados y deja que el usuario maneje las acciones
  */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const auth = useAuth();
 
   /**
-   * Función para obtener datos del usuario desde la API
-   * @returns Promise<User | null> - Datos del usuario o null si hay error
+   * Función para inicializar SOLO datos locales - SIN servicios
+   * Solo carga lo que ya está almacenado, NO hace ninguna llamada
    */
-  const fetchUserData = async (): Promise<User | null> => {
-    try {
-      // Llamada a la API para obtener datos actuales del usuario
-      const response = await apiGet<{ status: string; data: User }>('/api/auth/me');
-      
-      if (response.data.status === 'success') {
-        return response.data.data;
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Error al obtener datos del usuario:', error);
-      return null;
-    }
-  };
-
-  /**
-   * Función para inicializar la sesión al cargar la aplicación
-   */
-  const initializeAuth = async () => {
-    
+  const initializeAuth = () => {
     // Si está en proceso de logout, no hacer nada
     if (isLoggingOut) {
       return;
@@ -57,9 +37,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return; // No limpiar el flag aquí para que persista
     }
     
-    // MODO DESARROLLO: Permitir acceso sin autenticación para pruebas
+    // MODO DESARROLLO: Usuario ficticio sin llamadas
     if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
-      console.log('🔧 AuthContext: Modo desarrollo SKIP_AUTH activado');
       const devUser = {
         id: 'dev-user-123',
         firstName: 'Diego',
@@ -73,80 +52,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         emailVerified: true,
         roles: ['Administrador']
       };
-      console.log('🔧 AuthContext: Estableciendo usuario de desarrollo:', devUser);
       auth.setUserData(devUser);
       return;
     }
     
-    // Verificar si hay tokens almacenados
-    if (!AuthService.isAuthenticated()) {
-      return;
-    }
-
     try {
-      // Primero intentar cargar datos del usuario almacenados localmente
+      // SOLO verificar si hay tokens válidos almacenados (sin llamadas)
+      const hasValidTokens = AuthService.isAuthenticated();
       const storedUserData = AuthService.getUserData();
       
-      if (storedUserData) {
+      if (hasValidTokens && storedUserData) {
+        // Solo usar datos ya almacenados - NO hacer verificaciones
         auth.setUserData(storedUserData);
+      } else if (!hasValidTokens) {
+        // Si no hay tokens válidos, limpiar todo
+        AuthService.clearSession();
+        auth.setUserData(null);
       }
 
-      // Intentar renovar el token para asegurar que sea válido
-      const refreshSuccess = await auth.refreshAuth();
-      
-      if (refreshSuccess) {
-        
-        // Si no tenemos datos de usuario localmente, intentar obtenerlos del servidor
-        if (!storedUserData) {
-          const userData = await fetchUserData();
-          
-          if (userData) {
-            auth.setUserData(userData);
-          }
-        }
-      } else {
-      }
     } catch (error) {
-      console.error('❌ Error al inicializar autenticación:', error);
-      // En caso de error, limpiar la sesión
+      // En caso de error, solo limpiar localmente
+      console.error('Error al cargar datos locales:', error);
       AuthService.clearSession();
+      auth.setUserData(null);
     }
   };
 
-  // Efecto para inicializar la autenticación al montar el componente
+  // ✅ INICIALIZACIÓN: Solo una vez al cargar, sin verificaciones posteriores
   useEffect(() => {
     initializeAuth();
-  }, []); // Solo ejecutar una vez al montar
-
-  // Efecto para manejar cambios en la visibilidad de la página
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      // Cuando la página vuelve a ser visible, verificar la sesión
-      if (!document.hidden && AuthService.isAuthenticated()) {
-        initializeAuth();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
-
-  // Efecto para manejar el evento beforeunload (antes de cerrar la página)
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      // Opcional: realizar alguna limpieza antes de cerrar la página
-      // Por ahora, no hacemos nada específico
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, []);
+  }, []); // Solo ejecutar una vez al montar - NO más verificaciones automáticas
 
   /**
    * Función personalizada de logout que maneja el estado global
@@ -172,7 +107,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       : auth.isAuthenticated,
     login: auth.login,
     logout: handleLogout, // Usar la función personalizada
-    refreshAuth: auth.refreshAuth,
+    // ❌ NO exponer refreshAuth - los componentes no deberían usarlo automáticamente
+    refreshAuth: () => Promise.resolve(false), // Función dummy para mantener interfaz
   };
 
   return (

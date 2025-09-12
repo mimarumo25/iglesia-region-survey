@@ -12,7 +12,7 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-// Componente para el botón hamburguesa animado
+// Componente para el botón hamburguesa optimizado
 const AnimatedMenuButton = () => {
   const { openMobile, toggleSidebar, isMobile } = useSidebar();
   
@@ -27,27 +27,26 @@ const AnimatedMenuButton = () => {
       size="sm"
       onClick={toggleSidebar}
       className={cn(
-        "relative w-12 h-12 p-0 rounded-xl transition-all duration-300 hover:bg-primary/10 group",
-        "flex flex-col items-center justify-center gap-1",
-        "hover-scale click-effect"
+        "relative w-12 h-12 p-0 rounded-xl hover:bg-primary/10 group",
+        "flex flex-col items-center justify-center gap-1"
       )}
       aria-label={openMobile ? "Cerrar menú" : "Abrir menú"}
     >
       <span
         className={cn(
-          "block w-6 h-0.5 bg-current transition-all duration-300 ease-out rounded-full",
+          "block w-6 h-0.5 bg-current rounded-full transition-transform duration-200",
           openMobile ? "rotate-45 translate-y-2" : ""
         )}
       />
       <span
         className={cn(
-          "block w-6 h-0.5 bg-current transition-all duration-300 ease-out rounded-full",
+          "block w-6 h-0.5 bg-current rounded-full transition-opacity duration-200",
           openMobile ? "opacity-0" : ""
         )}
       />
       <span
         className={cn(
-          "block w-6 h-0.5 bg-current transition-all duration-300 ease-out rounded-full",
+          "block w-6 h-0.5 bg-current rounded-full transition-transform duration-200",
           openMobile ? "-rotate-45 -translate-y-2" : ""
         )}
       />

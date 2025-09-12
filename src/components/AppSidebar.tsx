@@ -226,10 +226,9 @@ const AppSidebar = () => {
   const { navigateWithTransition, isPending } = useRouteTransition();
   const { preloadRoute } = useRoutePreloader();
   
-  // Estados para controlar la estabilidad visual y prevenir CLS
-  const [isInitialMount, setIsInitialMount] = useState(true);
-  const [isLayoutReady, setIsLayoutReady] = useState(false);
-  const [shouldRenderContent, setShouldRenderContent] = useState(false);
+  // Estados simplificados para renderizado inmediato
+  const [isInitialMount, setIsInitialMount] = useState(false);
+  const [shouldRenderContent, setShouldRenderContent] = useState(true);
 
   // Filtrar elementos del menú según permisos del usuario
   const filteredNavigationItems = navigationItems.filter(item => {
@@ -269,42 +268,10 @@ const AppSidebar = () => {
     });
   }, [currentPath]);
 
-  // Efecto avanzado para estabilidad visual y prevención de CLS
+  // Simplificar efectos de montaje para mejor rendimiento
   useEffect(() => {
-    // Primera fase: preparar el layout
-    const prepareLayout = () => {
-      setIsLayoutReady(true);
-    };
-
-    // Segunda fase: renderizar contenido
-    const renderContent = () => {
-      setShouldRenderContent(true);
-    };
-
-    // Tercera fase: habilitar transiciones
-    const enableTransitions = () => {
-      setIsInitialMount(false);
-    };
-
-    // Usar requestAnimationFrame para sincronizar con el ciclo de renderizado del navegador
-    const firstFrame = requestAnimationFrame(() => {
-      prepareLayout();
-      
-      const secondFrame = requestAnimationFrame(() => {
-        renderContent();
-        
-        // Usar un timeout corto para la habilitación de transiciones
-        const timer = setTimeout(() => {
-          enableTransitions();
-        }, 150); // Aumentar el delay para mejor estabilidad
-
-        return () => clearTimeout(timer);
-      });
-
-      return () => cancelAnimationFrame(secondFrame);
-    });
-
-    return () => cancelAnimationFrame(firstFrame);
+    // Renderizado inmediato sin delays
+    setIsInitialMount(false);
   }, []);
 
   const isActive = (path: string) => {
@@ -320,9 +287,9 @@ const AppSidebar = () => {
     setActiveItem(path);
     // Usar navegación con transición en lugar de navegación regular
     navigateWithTransition(path);
-    // Solo cerrar el menú en móvil después de seleccionar, y únicamente si está abierto
+    // Cerrar el menú móvil inmediatamente sin delay
     if (isMobile && state === "expanded") {
-      setTimeout(() => setOpenMobile(false), 150);
+      setOpenMobile(false);
     }
   };
 
@@ -448,17 +415,12 @@ const AppSidebar = () => {
         '--sidebar-width': isConfigExpanded ? '22rem' : '16rem',
         '--sidebar-width-mobile': isConfigExpanded ? '24rem' : '18rem',
       } as React.CSSProperties}
-      className={cn(
-        "sidebar-dynamic-width h-screen",
-        // Aplicar clase de preparación visual durante el montaje
-        !isLayoutReady && "opacity-0"
-      )}
+      className="sidebar-dynamic-width h-screen"
     >
       <Sidebar
         className={cn(
           "bg-gradient-sidebar border-r border-sidebar-border shadow-lg flex flex-col h-full",
-          shouldRenderContent && !isInitialMount && 'transition-all duration-300',
-          !shouldRenderContent && "opacity-0"
+          shouldRenderContent && !isInitialMount && 'transition-all duration-300'
         )}
         collapsible="icon"
         variant="sidebar"
