@@ -201,14 +201,20 @@ const VeredasPage = () => {
     setPage(newPage);
   };
 
-  // Obtener nombre del municipio
-  const getMunicipioName = (id_municipio: number): string => {
+  // Obtener nombre del municipio desde la vereda o desde la lista de municipios como fallback
+  const getMunicipioName = (vereda: Vereda): string => {
+    // Si la vereda tiene la información del municipio incluida (API response)
+    if (vereda.municipio && vereda.municipio.nombre) {
+      return vereda.municipio.nombre;
+    }
+    
+    // Fallback: buscar en la lista de municipios por id_municipio
     if (!municipios || municipios.length === 0) return 'Desconocido';
     const municipio = municipios.find(m => {
       const municipioId = typeof m.id_municipio === 'string' 
         ? parseInt(m.id_municipio) 
         : m.id_municipio;
-      return municipioId === id_municipio;
+      return municipioId === vereda.id_municipio;
     });
     return municipio?.nombre_municipio || 'Desconocido';
   };
@@ -422,7 +428,7 @@ const VeredasPage = () => {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Building2 className="w-4 h-4 text-secondary " />
-                          <span>{getMunicipioName(vereda.id_municipio)}</span>
+                          <span>{getMunicipioName(vereda)}</span>
                         </div>
                       </TableCell>
                       <TableCell>

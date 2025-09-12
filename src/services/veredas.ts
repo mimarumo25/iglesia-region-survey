@@ -87,6 +87,105 @@ class VeredasService {
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ): Promise<VeredasResponse> {
     try {
+      // Mock temporal para testing - data del JSON proporcionado
+      const mockData = {
+        "success": true,
+        "message": "Veredas retrieved successfully",
+        "data": {
+          "status": "success",
+          "data": [
+            {
+              "id_vereda": "1",
+              "nombre": "Vereda Central Abejorral",
+              "codigo_vereda": "V001",
+              "id_municipio_municipios": "1",
+              "created_at": "2025-09-05T06:36:25.352Z",
+              "updated_at": "2025-09-05T06:36:25.352Z",
+              "municipio": {
+                "id_municipio": "1",
+                "nombre": "Abejorral",
+                "codigo": "00013"
+              }
+            },
+            {
+              "id_vereda": "2",
+              "nombre": "Vereda Central Abrego",
+              "codigo_vereda": "V002",
+              "id_municipio_municipios": "2",
+              "created_at": "2025-09-05T06:36:25.352Z",
+              "updated_at": "2025-09-05T06:36:25.352Z",
+              "municipio": {
+                "id_municipio": "2",
+                "nombre": "Abrego",
+                "codigo": "00859"
+              }
+            },
+            {
+              "id_vereda": "11",
+              "nombre": "El Paso",
+              "codigo_vereda": "001",
+              "id_municipio_municipios": "1",
+              "created_at": "2025-09-09T04:20:42.050Z",
+              "updated_at": "2025-09-09T04:20:42.050Z",
+              "municipio": {
+                "id_municipio": "1",
+                "nombre": "Abejorral",
+                "codigo": "00013"
+              }
+            },
+            {
+              "id_vereda": "12",
+              "nombre": "Miguel Mariano",
+              "codigo_vereda": "dfdfdf",
+              "id_municipio_municipios": "1120",
+              "created_at": "2025-09-09T04:23:23.959Z",
+              "updated_at": "2025-09-09T04:23:23.959Z",
+              "municipio": {
+                "id_municipio": "1120",
+                "nombre": "Zetaquira",
+                "codigo": "00324"
+              }
+            }
+          ],
+          "total": 12,
+          "message": "Se encontraron 12 veredas"
+        },
+        "timestamp": "2025-09-10T03:52:05.567Z"
+      };
+
+      // Para testing, retornar mock data directamente
+      if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
+        console.log('🧪 MOCK: Usando datos de prueba para veredas');
+        
+        const veredas = mockData.data.data || [];
+        const totalCount = mockData.data.total || 0;
+        const totalPages = Math.ceil(totalCount / limit);
+        
+        // Procesar los datos para asegurar que el id_municipio sea numérico
+        const processedVeredas = veredas.map((vereda: any) => ({
+          ...vereda,
+          id_vereda: parseInt(vereda.id_vereda),
+          id_municipio: typeof vereda.id_municipio_municipios === 'string' 
+            ? parseInt(vereda.id_municipio_municipios) 
+            : vereda.id_municipio_municipios || vereda.id_municipio,
+          municipio: vereda.municipio ? {
+            ...vereda.municipio,
+            id_municipio: typeof vereda.municipio.id_municipio === 'string'
+              ? parseInt(vereda.municipio.id_municipio)
+              : vereda.municipio.id_municipio
+          } : undefined
+        }));
+        
+        return {
+          data: processedVeredas,
+          total: totalCount,
+          page: page,
+          limit: limit,
+          totalPages: totalPages,
+        };
+      }
+
+      // Lógica normal de la API
       const client = getApiClient();
       const response = await client.get(
         `/api/catalog/veredas`,
@@ -118,8 +217,22 @@ class VeredasService {
       const totalCount = response.data.data.total || 0;
       const totalPages = Math.ceil(totalCount / limit);
       
+      // Procesar los datos para asegurar que el id_municipio sea numérico
+      const processedVeredas = veredas.map((vereda: any) => ({
+        ...vereda,
+        id_municipio: typeof vereda.id_municipio_municipios === 'string' 
+          ? parseInt(vereda.id_municipio_municipios) 
+          : vereda.id_municipio_municipios || vereda.id_municipio,
+        municipio: vereda.municipio ? {
+          ...vereda.municipio,
+          id_municipio: typeof vereda.municipio.id_municipio === 'string'
+            ? parseInt(vereda.municipio.id_municipio)
+            : vereda.municipio.id_municipio
+        } : undefined
+      }));
+      
       return {
-        data: veredas,
+        data: processedVeredas,
         total: totalCount,
         page: page,
         limit: limit,
@@ -225,8 +338,22 @@ class VeredasService {
       const totalCount = response.data.data.total || 0;
       const totalPages = Math.ceil(totalCount / limit);
       
+      // Procesar los datos para asegurar que el id_municipio sea numérico
+      const processedVeredas = veredas.map((vereda: any) => ({
+        ...vereda,
+        id_municipio: typeof vereda.id_municipio_municipios === 'string' 
+          ? parseInt(vereda.id_municipio_municipios) 
+          : vereda.id_municipio_municipios || vereda.id_municipio,
+        municipio: vereda.municipio ? {
+          ...vereda.municipio,
+          id_municipio: typeof vereda.municipio.id_municipio === 'string'
+            ? parseInt(vereda.municipio.id_municipio)
+            : vereda.municipio.id_municipio
+        } : undefined
+      }));
+      
       return {
-        data: veredas,
+        data: processedVeredas,
         total: totalCount,
         page: page,
         limit: limit,
@@ -274,8 +401,22 @@ class VeredasService {
       const totalCount = response.data.data.total || 0;
       const totalPages = Math.ceil(totalCount / limit);
       
+      // Procesar los datos para asegurar que el id_municipio sea numérico
+      const processedVeredas = veredas.map((vereda: any) => ({
+        ...vereda,
+        id_municipio: typeof vereda.id_municipio_municipios === 'string' 
+          ? parseInt(vereda.id_municipio_municipios) 
+          : vereda.id_municipio_municipios || vereda.id_municipio,
+        municipio: vereda.municipio ? {
+          ...vereda.municipio,
+          id_municipio: typeof vereda.municipio.id_municipio === 'string'
+            ? parseInt(vereda.municipio.id_municipio)
+            : vereda.municipio.id_municipio
+        } : undefined
+      }));
+      
       return {
-        data: veredas,
+        data: processedVeredas,
         total: totalCount,
         page: page,
         limit: limit,
