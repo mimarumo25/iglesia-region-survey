@@ -4,9 +4,41 @@ import {
   Enfermedad,
   EnfermedadCreate,
   EnfermedadUpdate,
-  EnfermedadesResponse,
+  EnfermedadesResponse
 } from '@/types/enfermedades';
 import { useToast } from '@/hooks/use-toast';
+
+// Función para paginar datos del lado del cliente
+const paginateClientSide = <T>(data: T[], page: number, limit: number) => {
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedData = data.slice(startIndex, endIndex);
+  
+  return {
+    data: paginatedData,
+    pagination: {
+      currentPage: page,
+      totalPages: Math.ceil(data.length / limit),
+      totalCount: data.length,
+      hasNext: page < Math.ceil(data.length / limit),
+      hasPrev: page > 1,
+      limit: limit
+    }
+  };
+};
+
+// Función para filtrar enfermedades por término de búsqueda
+const filterBySearch = (enfermedades: Enfermedad[], searchTerm: string): Enfermedad[] => {
+  if (!searchTerm || !searchTerm.trim()) {
+    return enfermedades;
+  }
+  
+  const term = searchTerm.toLowerCase().trim();
+  return enfermedades.filter(enfermedad => 
+    enfermedad.nombre?.toLowerCase().includes(term) ||
+    enfermedad.descripcion?.toLowerCase().includes(term)
+  );
+};
 
 export const useEnfermedades = () => {
   const queryClient = useQueryClient();
@@ -14,50 +46,39 @@ export const useEnfermedades = () => {
 
   // ===== QUERIES =====
 
-  // Query para obtener todas las enfermedades con paginación
+  // Query unificada para obtener enfermedades con paginación y búsqueda
   const useEnfermedadesQuery = (
     page: number = 1,
     limit: number = 10,
     sortBy: string = 'id_enfermedad',
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
+    sortOrder: 'ASC' | 'DESC' = 'ASC',
+    searchTerm: string = ''
   ) => {
-    return useQuery<EnfermedadesResponse, Error>({
-      queryKey: ['enfermedades', { page, limit, sortBy, sortOrder }],
-      queryFn: () => enfermedadesService.getEnfermedades(page, limit, sortBy, sortOrder),
-      keepPreviousData: true,
-      onError: (err: any) => {
-        const errorMessage = err.response?.data?.message || 'Error al cargar enfermedades';
-        console.error('Error loading enfermedades:', err);
-        toast({
-          title: 'Error',
-          description: errorMessage,
-          variant: 'destructive',
-        });
+    return useQuery({
+      queryKey: ['enfermedades', { page, limit, sortBy, sortOrder, searchTerm }],
+      queryFn: async () => {
+        // Obtener todos los datos sin paginación del backend
+        const response = await enfermedadesService.getEnfermedades(1, 1000, sortBy, sortOrder);
+        const allEnfermedades = response?.data || [];
+        
+        // Aplicar filtro de búsqueda
+        const filteredEnfermedades = filterBySearch(allEnfermedades, searchTerm);
+        
+        // Aplicar paginación client-side
+        return paginateClientSide(filteredEnfermedades, page, limit);
       },
+      placeholderData: (previousData) => previousData,
     });
   };
 
-  // Query para buscar enfermedades
+  // Query simplificada para búsqueda - reutiliza la query principal
   const useSearchEnfermedadesQuery = (
     query: string,
     page: number = 1,
     limit: number = 10
   ) => {
-    return useQuery<EnfermedadesResponse, Error>({
-      queryKey: ['enfermedades', { search: query, page, limit }],
-      queryFn: () => enfermedadesService.searchEnfermedades(query, page, limit),
-      enabled: !!query.trim(),
-      keepPreviousData: true,
-      onError: (err: any) => {
-        const errorMessage = err.response?.data?.message || 'Error al buscar enfermedades';
-        console.error('Error searching enfermedades:', err);
-        toast({
-          title: 'Error',
-          description: errorMessage,
-          variant: 'destructive',
-        });
-      },
-    });
+    // Reutilizar la query principal con el término de búsqueda
+    return useEnfermedadesQuery(page, limit, 'nombre', 'ASC', query);
   };
 
   // Query para filtrar enfermedades por categoría
@@ -70,16 +91,7 @@ export const useEnfermedades = () => {
       queryKey: ['enfermedades', { category: categoria, page, limit }],
       queryFn: () => enfermedadesService.getEnfermedadesByCategoria(categoria, page, limit),
       enabled: !!categoria.trim(),
-      keepPreviousData: true,
-      onError: (err: any) => {
-        const errorMessage = err.response?.data?.message || 'Error al filtrar enfermedades por categoría';
-        console.error('Error filtering enfermedades by category:', err);
-        toast({
-          title: 'Error',
-          description: errorMessage,
-          variant: 'destructive',
-        });
-      },
+      placeholderData: (previousData) => previousData,
     });
   };
 
@@ -89,15 +101,6 @@ export const useEnfermedades = () => {
       queryKey: ['enfermedad', id],
       queryFn: () => enfermedadesService.getEnfermedadById(id),
       enabled: !!id,
-      onError: (err: any) => {
-        const errorMessage = err.response?.data?.message || 'Error al obtener enfermedad';
-        console.error('Error getting enfermedad by ID:', err);
-        toast({
-          title: 'Error',
-          description: errorMessage,
-          variant: 'destructive',
-        });
-      },
     });
   };
 
@@ -108,7 +111,7 @@ export const useEnfermedades = () => {
     return useMutation<Enfermedad, Error, EnfermedadCreate>({
       mutationFn: enfermedadesService.createEnfermedad,
       onSuccess: () => {
-        queryClient.invalidateQueries(['enfermedades']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['enfermedades'] });
         toast({
           title: 'Éxito',
           description: 'Enfermedad creada correctamente',
@@ -128,10 +131,10 @@ export const useEnfermedades = () => {
 
   // Mutación para actualizar enfermedad
   const useUpdateEnfermedadMutation = () => {
-    return useMutation<Enfermedad, Error, { id: string; data: EnfermedadUpdate }>({
+    return useMutation<Enfermedad, Error, { id: string; data: EnfermedadCreate }>({
       mutationFn: ({ id, data }) => enfermedadesService.updateEnfermedad(id, data),
       onSuccess: () => {
-        queryClient.invalidateQueries(['enfermedades']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['enfermedades'] });
         toast({
           title: 'Éxito',
           description: 'Enfermedad actualizada correctamente',
@@ -154,7 +157,7 @@ export const useEnfermedades = () => {
     return useMutation<void, Error, string>({
       mutationFn: enfermedadesService.deleteEnfermedad,
       onSuccess: () => {
-        queryClient.invalidateQueries(['enfermedades']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['enfermedades'] });
         toast({
           title: 'Éxito',
           description: 'Enfermedad eliminada correctamente',
@@ -172,11 +175,14 @@ export const useEnfermedades = () => {
     });
   };
 
+  // ===== RETURN OBJECT =====
   return {
+    // Queries
     useEnfermedadesQuery,
     useSearchEnfermedadesQuery,
     useEnfermedadesByCategoriaQuery,
     useEnfermedadByIdQuery,
+    // Mutations
     useCreateEnfermedadMutation,
     useUpdateEnfermedadMutation,
     useDeleteEnfermedadMutation,

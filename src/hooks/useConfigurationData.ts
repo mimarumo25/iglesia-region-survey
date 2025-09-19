@@ -19,13 +19,8 @@ interface SituacionCivil {
   activo: boolean;
 }
 
-interface TipoVivienda {
-  id: number;
-  id_tipo_vivienda?: number;
-  nombre: string;
-  descripcion?: string;
-  activo?: boolean;
-}
+// Importar tipos específicos
+import type { TipoVivienda as TipoViviendaType } from "@/types/tipos-vivienda";
 
 // Importar hooks de servicios disponibles
 import { useSectores } from "@/hooks/useSectores";
@@ -203,13 +198,13 @@ export const useConfigurationData = (): ConfigurationData => {
   const { useUsersQuery } = useUsers();
   const { useSexosActivosQuery } = useSexos();
   const { useSituacionesCivilesQuery } = useSituacionesCiviles();
-  const { useTiposViviendaActivosQuery } = useTiposVivienda();
+  const { useTiposViviendaQuery } = useTiposVivienda();
   const { useDisposicionBasuraQuery } = useDisposicionBasura();
   const { useAguasResidualesQuery } = useAguasResiduales();
   const { useTiposIdentificacionActivosQuery } = useTiposIdentificacion();
   const { useParentescosQuery } = useParentescos();
-  const { useEstudiosQuery } = useEstudios();
-  const { useProfesionesQuery } = useProfesiones();
+  const { useActiveEstudiosQuery } = useEstudios();
+  const { useActiveProfesionesQuery } = useProfesiones();
   const { useEnfermedadesQuery } = useEnfermedades();
   const { useComunidadesCulturalesQuery } = useComunidadesCulturales();
   const { useParroquiasQuery } = useParroquias();
@@ -225,23 +220,23 @@ export const useConfigurationData = (): ConfigurationData => {
 
   // Queries adicionales (usando parámetros por defecto)
   const { data: situacionesCivilesData, isLoading: situacionesCivilesLoading, error: situacionesCivilesError } = useSituacionesCivilesQuery(1, 50);
-  const tiposViviendaQuery = useTiposViviendaActivosQuery(1, 50);
+  const tiposViviendaQuery = useTiposViviendaQuery(undefined, 1, 50);
   const { data: tiposViviendaData, isLoading: tiposViviendaLoading, error: tiposViviendaError } = tiposViviendaQuery;
-  const disposicionBasuraQuery = useDisposicionBasuraQuery(1, 50);
+  const disposicionBasuraQuery = useDisposicionBasuraQuery(undefined, 1, 50);
   const { data: disposicionBasuraData, isLoading: disposicionBasuraLoading, error: disposicionBasuraError } = disposicionBasuraQuery;
-  const aguasResidualesQuery = useAguasResidualesQuery(1, 50);
+  const aguasResidualesQuery = useAguasResidualesQuery('', 1, 50);
   const { data: aguasResidualesData, isLoading: aguasResidualesLoading, error: aguasResidualesError } = aguasResidualesQuery;
   const tiposIdentificacionQuery = useTiposIdentificacionActivosQuery(1, 50);
   const { data: tiposIdentificacionData, isLoading: tiposIdentificacionLoading, error: tiposIdentificacionError } = tiposIdentificacionQuery;
   const parentescosQuery = useParentescosQuery(1, 50);
   const { data: parentescosData, isLoading: parentescosLoading, error: parentescosError } = parentescosQuery;
-  const estudiosQuery = useEstudiosQuery(1, 50);
+  const estudiosQuery = useActiveEstudiosQuery();
   const { data: estudiosData, isLoading: estudiosLoading, error: estudiosError } = estudiosQuery;
-  const profesionesQuery = useProfesionesQuery(1, 50);
+  const profesionesQuery = useActiveProfesionesQuery();
   const { data: profesionesData, isLoading: profesionesLoading, error: profesionesError } = profesionesQuery;
   const enfermedadesQuery = useEnfermedadesQuery(1, 50);
   const { data: enfermedadesData, isLoading: enfermedadesLoading, error: enfermedadesError } = enfermedadesQuery;
-  const comunidadesCulturalesQuery = useComunidadesCulturalesQuery(1, 50);
+  const comunidadesCulturalesQuery = useComunidadesCulturalesQuery();
   const { data: comunidadesCulturalesData, isLoading: comunidadesCulturalesLoading, error: comunidadesCulturalesError } = comunidadesCulturalesQuery;
   const { data: parroquiasData, isLoading: parroquiasLoading, error: parroquiasError } = useParroquiasQuery();
   const { data: municipiosData, isLoading: municipiosLoading, error: municipiosError } = useAllMunicipiosQuery();
@@ -378,14 +373,14 @@ export const useConfigurationData = (): ConfigurationData => {
     // Verificamos la estructura de datos que devuelve la API: ServerResponse<TiposViviendaResponse>
     const data = tiposViviendaData as { 
       data?: { 
-        tiposVivienda?: TipoVivienda[] 
+        tiposVivienda?: TipoViviendaType[] 
       } 
     };
     if (!data?.data?.tiposVivienda || !Array.isArray(data.data.tiposVivienda)) {
       return [];
     }
-    return data.data.tiposVivienda.map((tipo: TipoVivienda) => ({
-      value: tipo.id_tipo_vivienda?.toString() || tipo.id?.toString() || '',
+    return data.data.tiposVivienda.map((tipo: TipoViviendaType) => ({
+      value: tipo.id_tipo_vivienda?.toString() || '',
       label: tipo.nombre || 'Sin nombre',
       description: tipo.descripcion || `Tipo de vivienda: ${tipo.nombre}`,
       category: 'Vivienda'
@@ -393,10 +388,10 @@ export const useConfigurationData = (): ConfigurationData => {
   }, [tiposViviendaData]);
 
   const parroquiaOptions = useMemo((): AutocompleteOption[] => {
-    if (!parroquiasData?.data?.parroquias || !Array.isArray(parroquiasData.data.parroquias)) {
+    if (!parroquiasData?.data || !Array.isArray(parroquiasData.data)) {
       return [];
     }
-    return parroquiasData.data.parroquias.map(parroquia => ({
+    return parroquiasData.data.map(parroquia => ({
       value: parroquia.id_parroquia?.toString() || '',
       label: parroquia.nombre || 'Sin nombre',
       description: `Parroquia del municipio`,

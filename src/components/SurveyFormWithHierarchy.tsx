@@ -1,15 +1,13 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, ChevronRight, Save, FileDown, Loader2 } from "lucide-react";
 import SurveyHeader from "./survey/SurveyHeader";
 import FormField from "./survey/FormField";
 import EnhancedFormField from "./survey/EnhancedFormField";
 import FamilyGrid from "./survey/FamilyGrid";
 import DeceasedGrid from "./survey/DeceasedGrid";
 import SurveyControls from "./survey/SurveyControls";
-import { FamilyMember, DeceasedFamilyMember, FormField as FormFieldType, FormStage, SurveySessionData, ConfigurationItem } from "@/types/survey";
+import { FormField as FormFieldType, FormStage, SurveySessionData, ConfigurationItem } from "@/types/survey";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
 import { useHierarchicalConfiguration } from "@/hooks/useHierarchicalConfiguration";
 import { AutocompleteWithLoading } from "@/components/ui/autocomplete-with-loading";
@@ -390,8 +388,7 @@ const SurveyFormWithHierarchy: React.FC<SurveyFormProps> = ({
         onPrevious={handlePrevious}
         onNext={handleNext}
         onSubmit={handleSubmit}
-        isLoading={isLoading}
-        canProceed={true} // Puedes agregar validación aquí
+        isSubmitting={isLoading}
       />
 
     </div>

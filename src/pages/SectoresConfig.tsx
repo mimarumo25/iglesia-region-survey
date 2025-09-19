@@ -29,6 +29,7 @@ import {
   ChevronRight,
   CheckCircle2,
   XCircle,
+  X,
 } from 'lucide-react';
 
 const SectoresPage = () => {
@@ -42,9 +43,8 @@ const SectoresPage = () => {
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Queries de React Query
-  const { data: sectoresResponse, isLoading: sectoresLoading, refetch: refetchSectores } = sectoresHook.useSectoresQuery(page, limit, sortBy, sortOrder);
-  const { data: searchResponse, isLoading: searchLoading } = sectoresHook.useSearchSectoresQuery(searchTerm, page, limit);
+  // Queries de React Query - Ahora con query unificado
+  const { data: sectoresResponse, isLoading: sectoresLoading, refetch: refetchSectores } = sectoresHook.useSectoresQuery(page, limit, sortBy, sortOrder, searchTerm);
   const { data: municipios, isLoading: municipiosLoading } = municipiosHook.useAllMunicipiosQuery();
 
   // Mutaciones de React Query
@@ -52,28 +52,16 @@ const SectoresPage = () => {
   const updateMutation = sectoresHook.useUpdateSectorMutation();
   const deleteMutation = sectoresHook.useDeleteSectorMutation();
 
-  const sectores = searchTerm 
-    ? (searchResponse?.data?.data || []) 
-    : (sectoresResponse?.data?.data || []);
-    
-  // Adaptar la respuesta de la API al formato esperado por el frontend
-  const pagination = searchTerm 
-    ? {
-        currentPage: page,
-        totalPages: Math.ceil((searchResponse?.data?.total || 0) / limit),
-        totalCount: searchResponse?.data?.total || 0,
-        hasNext: page < Math.ceil((searchResponse?.data?.total || 0) / limit),
-        hasPrev: page > 1,
-      }
-    : {
-        currentPage: page,
-        totalPages: Math.ceil((sectoresResponse?.data?.total || 0) / limit),
-        totalCount: sectoresResponse?.data?.total || 0,
-        hasNext: page < Math.ceil((sectoresResponse?.data?.total || 0) / limit),
-        hasPrev: page > 1,
-      };
+  const sectores = sectoresResponse?.data?.sectores || [];
+  const pagination = sectoresResponse?.data?.pagination || {
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    hasNext: false,
+    hasPrev: false,
+  };
 
-  const loading = sectoresLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const loading = sectoresLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios
   const {
@@ -196,9 +184,16 @@ const SectoresPage = () => {
     openDeleteDialog();
   };
 
-  // Manejo de búsqueda
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Manejo de búsqueda en tiempo real
+  const handleSearchTermChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+    setPage(1); // Resetear a primera página
+  };
+
+  // Limpiar búsqueda
+  const handleClearSearch = () => {
+    setSearchTerm('');
     setPage(1);
   };
 
@@ -243,30 +238,24 @@ const SectoresPage = () => {
       {/* Búsqueda */}
       <Card className="mb-6">
         <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="flex gap-4">
+          <div className="flex gap-4">
             <Input
-              placeholder="Buscar por nombre..."
+              placeholder="Buscar por nombre o código..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchTermChange}
               className="flex-1"
             />
-            <Button type="submit" variant="outline">
-              <Search className="w-4 h-4 mr-2" />
-              Buscar
-            </Button>
             {searchTerm && (
               <Button
                 type="button"
-                variant="ghost"
-                onClick={() => {
-                  setSearchTerm('');
-                  setPage(1);
-                }}
+                variant="outline"
+                onClick={handleClearSearch}
               >
+                <X className="w-4 h-4 mr-2" />
                 Limpiar
               </Button>
             )}
-          </form>
+          </div>
         </CardContent>
       </Card>
 

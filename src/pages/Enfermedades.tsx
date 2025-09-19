@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { ConfigurationTable, TableColumn, TableAction, PaginationData } from '@/components/ui/configuration-table';
+import { ResponsiveTable, ResponsiveTableColumn } from '@/components/ui/responsive-table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
 import { useEnfermedades } from '@/hooks/useEnfermedades';
 import { Enfermedad, EnfermedadCreate } from '@/types/enfermedades';
@@ -19,6 +19,7 @@ import {
   RefreshCw,
   Eye,
   EyeOff,
+  X,
 } from 'lucide-react';
 
 const EnfermedadesPage = () => {
@@ -31,34 +32,24 @@ const EnfermedadesPage = () => {
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Queries de React Query
-  const { data: enfermedadesResponse, isLoading: enfermedadesLoading, refetch: refetchEnfermedades } = enfermedadesHook.useEnfermedadesQuery(page, limit, sortBy, sortOrder);
-  const { data: searchResponse, isLoading: searchLoading } = enfermedadesHook.useSearchEnfermedadesQuery(searchTerm, page, limit);
+  // Query unificada - Una sola query que maneja tanto datos normales como búsqueda
+  const { data: enfermedadesResponse, isLoading: enfermedadesLoading, refetch: refetchEnfermedades } = enfermedadesHook.useEnfermedadesQuery(page, limit, sortBy, sortOrder, searchTerm);
 
   // Mutaciones de React Query
   const createMutation = enfermedadesHook.useCreateEnfermedadMutation();
   const updateMutation = enfermedadesHook.useUpdateEnfermedadMutation();
   const deleteMutation = enfermedadesHook.useDeleteEnfermedadMutation();
 
-  const enfermedades = searchTerm
-    ? ((searchResponse as any)?.data || [])
-    : ((enfermedadesResponse as any)?.data || []);
-    
-  const pagination = searchTerm
-    ? {
-        totalItems: (searchResponse as any)?.total || 0,
-        totalPages: (searchResponse as any)?.totalPages || 1,
-        currentPage: (searchResponse as any)?.page || 1,
-        itemsPerPage: (searchResponse as any)?.limit || 10
-      }
-    : {
-        totalItems: (enfermedadesResponse as any)?.total || 0,
-        totalPages: (enfermedadesResponse as any)?.totalPages || 1,
-        currentPage: (enfermedadesResponse as any)?.page || 1,
-        itemsPerPage: (enfermedadesResponse as any)?.limit || 10
-      };
+  // Datos y paginación simplificados
+  const enfermedades = (enfermedadesResponse as any)?.data || [];
+  const pagination = {
+    totalItems: (enfermedadesResponse as any)?.total || 0,
+    totalPages: (enfermedadesResponse as any)?.totalPages || 1,
+    currentPage: (enfermedadesResponse as any)?.page || 1,
+    itemsPerPage: (enfermedadesResponse as any)?.limit || 10
+  };
 
-  const loading = enfermedadesLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const loading = enfermedadesLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios
   const {
@@ -145,11 +136,16 @@ const EnfermedadesPage = () => {
     openDeleteDialog();
   };
 
-  // Manejo de búsqueda
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1); // Resetear paginación al buscar
-    // searchTerm ya está actualizado por el onChange del Input
+  // Manejo de búsqueda en tiempo real
+  const handleSearchTermChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setPage(1); // Resetear paginación al cambiar búsqueda
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setPage(1);
   };
 
   // Manejo de paginación
@@ -195,42 +191,30 @@ const EnfermedadesPage = () => {
       {/* Búsqueda y filtros con diseño mejorado */}
       <Card className="mb-6">
         <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="space-y-4">
+          <div className="space-y-4">
             <div className="flex flex-col md:flex-row gap-4 items-end">
               {/* Búsqueda por texto */}
-              <div className="flex-1">
+              <div className="flex-1 relative">
                 <Input
                   placeholder="Buscar por nombre o descripción..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="border-input-border focus:ring-primary transition-smooth"
+                  onChange={handleSearchTermChange}
+                  className="border-input-border focus:ring-primary transition-smooth pr-8"
                 />
-              </div>
-
-              {/* Botones de acción */}
-              <div className="flex gap-2">
-                <Button
-                  type="submit"
-                  variant="outline"
-                >
-                  <Search className="w-4 h-4 mr-2" />
-                  Buscar
-                </Button>
                 {searchTerm && (
                   <Button
                     type="button"
                     variant="ghost"
-                    onClick={() => {
-                      setSearchTerm('');
-                      setPage(1); // Resetear paginación
-                    }}
+                    size="sm"
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
+                    onClick={handleClearSearch}
                   >
-                    Limpiar
+                    <X className="h-4 w-4" />
                   </Button>
                 )}
               </div>
             </div>
-          </form>
+          </div>
         </CardContent>
       </Card>
 
@@ -240,7 +224,9 @@ const EnfermedadesPage = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Enfermedades</p>
+                <p className="text-sm text-muted-foreground">
+                  {searchTerm ? 'Enfermedades Filtradas' : 'Total Enfermedades'}
+                </p>
                 <p className="text-2xl font-bold text-foreground">{pagination.totalItems}</p>
               </div>
               <Activity className="w-8 h-8 text-muted-foreground opacity-70" />
@@ -286,74 +272,102 @@ const EnfermedadesPage = () => {
               )}
             </div>
           ) : (
-            <ConfigurationTable
-              data={enfermedades}
-              columns={[
-                {
-                  key: 'id_enfermedad',
-                  label: 'ID',
-                  render: (value: any) => <span className="font-medium text-foreground">{value}</span>
-                },
-                {
-                  key: 'nombre',
-                  label: 'Nombre',
-                  render: (value: any) => (
-                    <div className="flex items-center gap-2">
-                      <Activity className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium">{value}</span>
-                    </div>
-                  )
-                },
-                {
-                  key: 'descripcion',
-                  label: 'Descripción',
-                  render: (value: any) => (
-                    <span>{value || 'N/A'}</span>
-                  )
-                },
-                {
-                  key: 'createdAt',
-                  label: 'Fecha Creación',
-                  render: (value: any) => (
-                    <Badge variant="outline">
-                      {formatDate(value)}
-                    </Badge>
-                  )
-                },
-                {
-                  key: 'updatedAt',
-                  label: 'Última Actualización',
-                  render: (value: any) => (
-                    <Badge variant="outline">
-                      {formatDate(value)}
-                    </Badge>
-                  )
-                }
-              ]}
-              actions={[
-                {
-                  type: 'edit' as const,
-                  label: 'Editar',
-                  icon: <Edit2 className="w-4 h-4" />,
-                  color: 'default' as const,
-                  onClick: (item: any) => handleOpenEditDialog(item)
-                },
-                {
-                  type: 'delete' as const,
-                  label: 'Eliminar',
-                  icon: <Trash2 className="w-4 h-4" />,
-                  color: 'destructive' as const,
-                  onClick: (item: any) => handleOpenDeleteDialog(item)
-                }
-              ]}
-              pagination={{
-                currentPage: pagination.currentPage,
-                totalPages: pagination.totalPages,
-                totalItems: pagination.totalItems,
-                itemsPerPage: pagination.itemsPerPage
-              }}
-              onPageChange={handlePageChange}
-            />
+            <>
+              <ResponsiveTable
+                data={enfermedades}
+                columns={[
+                  {
+                    key: 'id_enfermedad',
+                    label: 'ID',
+                    priority: 'medium',
+                    render: (value: any) => <span className="font-medium text-foreground">{value}</span>
+                  },
+                  {
+                    key: 'nombre',
+                    label: 'Nombre',
+                    priority: 'high',
+                    render: (value: any) => (
+                      <div className="flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium">{value}</span>
+                      </div>
+                    )
+                  },
+                  {
+                    key: 'descripcion',
+                    label: 'Descripción',
+                    priority: 'medium',
+                    render: (value: any) => (
+                      <span>{value || 'N/A'}</span>
+                    )
+                  },
+                  {
+                    key: 'createdAt',
+                    label: 'Fecha Creación',
+                    priority: 'low',
+                    render: (value: any) => (
+                      <Badge variant="outline">
+                        {formatDate(value)}
+                      </Badge>
+                    )
+                  },
+                  {
+                    key: 'updatedAt',
+                    label: 'Última Actualización',
+                    priority: 'low',
+                    render: (value: any) => (
+                      <Badge variant="outline">
+                        {formatDate(value)}
+                      </Badge>
+                    )
+                  }
+                ]}
+                actions={[
+                  {
+                    label: 'Editar',
+                    icon: <Edit2 className="w-4 h-4" />,
+                    variant: 'default' as const,
+                    onClick: (item: any) => handleOpenEditDialog(item)
+                  },
+                  {
+                    label: 'Eliminar',
+                    icon: <Trash2 className="w-4 h-4" />,
+                    variant: 'destructive' as const,
+                    onClick: (item: any) => handleOpenDeleteDialog(item)
+                  }
+                ]}
+              />
+              
+              {/* Paginación */}
+              {enfermedades.length > 0 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando {enfermedades.length} de {pagination.totalItems} enfermedades
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage - 1)}
+                      disabled={pagination.currentPage <= 1 || loading}
+                    >
+                      Anterior
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      Página {pagination.currentPage} de {pagination.totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage + 1)}
+                      disabled={pagination.currentPage >= pagination.totalPages || loading}
+                    >
+                      Siguiente
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

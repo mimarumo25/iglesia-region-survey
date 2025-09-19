@@ -24,7 +24,6 @@ const NotFound = React.lazy(() => import("./pages/NotFound"));
 const Surveys = React.lazy(() => import("./pages/Surveys"));
 const SurveyDetails = React.lazy(() => import("./pages/SurveyDetails"));
 const Families = React.lazy(() => import("./pages/Families"));
-const Sectors = React.lazy(() => import("./pages/Sectors"));
 const Reports = React.lazy(() => import("./pages/Reports"));
 const Users = React.lazy(() => import("./pages/Users"));
 const SettingsWrapper = React.lazy(() => import("./pages/SettingsWrapper"));
@@ -183,17 +182,6 @@ const App = () => (
                 />
                 
                 <Route 
-                  path="/sectors" 
-                  element={
-                    <PrivateRoute>
-                      <Layout>
-                        <Sectors />
-                      </Layout>
-                    </PrivateRoute>
-                  } 
-                />
-                
-                <Route 
                   path="/reports" 
                   element={
                     <PrivateRoute>
@@ -267,17 +255,6 @@ const App = () => (
                 {/* Rutas específicas para sub-configuraciones */}
                 <Route 
                   path="/settings/parroquias" 
-                  element={
-                    <PrivateRoute requiredRole={["admin"]}>
-                      <Layout>
-                        <SettingsWrapper />
-                      </Layout>
-                    </PrivateRoute>
-                  } 
-                />
-
-                <Route 
-                  path="/settings/sectors" 
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>

@@ -10,37 +10,41 @@ import {
   ServerResponse
 } from '@/types/aguas-residuales';
 
+// ✅ PATRÓN UNIFICADO: Funciones de paginación y filtrado del lado del cliente
+const paginateClientSide = <T>(data: T[], page: number, limit: number) => {
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedData = data.slice(startIndex, endIndex);
+  
+  return {
+    data: paginatedData,
+    currentPage: page,
+    totalPages: Math.ceil(data.length / limit),
+    totalItems: data.length,
+    itemsPerPage: limit,
+    startIndex: startIndex + 1,
+    endIndex: Math.min(endIndex, data.length),
+  };
+};
+
+const filterBySearch = (data: AguaResidual[], searchTerm: string): AguaResidual[] => {
+  if (!searchTerm.trim()) return data;
+  
+  const normalizedSearch = searchTerm.toLowerCase().trim();
+  return data.filter(item => 
+    item.nombre?.toLowerCase().includes(normalizedSearch) ||
+    item.descripcion?.toLowerCase().includes(normalizedSearch)
+  );
+};
+
 export const useAguasResiduales = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // ===== QUERIES =====
-
-  // Query para obtener todos los tipos de aguas residuales con paginación y ordenamiento
+  // ===== QUERY PRINCIPAL UNIFICADO =====
+  // Una sola query que maneja todo: obtener, buscar y paginar
   const useAguasResidualesQuery = (
-    page: number = 1,
-    limit: number = 10,
-    sortBy: string = 'id_tipo_aguas_residuales',
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ) => {
-    return useQuery<ServerResponse<AguasResidualesResponse>, Error>({
-      queryKey: ['aguasResiduales', { page, limit, sortBy, sortOrder }],
-      queryFn: () => aguasResidualesService.getAguasResiduales(page, limit, sortBy, sortOrder),
-      keepPreviousData: true, // Mantiene los datos anteriores mientras se carga la nueva página
-      onError: (error: any) => {
-        console.error('Error loading aguas residuales:', error);
-        toast({
-          title: "Error",
-          description: "Error al cargar los tipos de aguas residuales",
-          variant: "destructive",
-        });
-      },
-    });
-  };
-
-  // Query para buscar tipos de aguas residuales
-  const useSearchAguasResidualesQuery = (
-    searchTerm: string,
+    searchTerm: string = '',
     page: number = 1,
     limit: number = 10,
     sortBy: string = 'id_tipo_aguas_residuales',
@@ -48,17 +52,40 @@ export const useAguasResiduales = () => {
   ) => {
     return useQuery<ServerResponse<AguasResidualesResponse>, Error>({
       queryKey: ['aguasResiduales', { searchTerm, page, limit, sortBy, sortOrder }],
-      queryFn: () => aguasResidualesService.searchAguasResiduales(searchTerm, page, limit, sortBy, sortOrder),
-      enabled: !!searchTerm, // Solo se ejecuta si hay un searchTerm
-      keepPreviousData: true,
-      onError: (error: any) => {
-        console.error('Error searching aguas residuales:', error);
-        toast({
-          title: "Error",
-          description: "Error al buscar tipos de aguas residuales",
-          variant: "destructive",
-        });
+      queryFn: async () => {
+        // Siempre obtenemos todos los datos del servidor
+        const response = await aguasResidualesService.getAguasResiduales(1, 1000, sortBy, sortOrder);
+        
+        if (response.success && response.data?.tiposAguasResiduales) {
+          const allData = response.data.tiposAguasResiduales;
+          
+          // Aplicar filtro de búsqueda del lado del cliente
+          const filteredData = filterBySearch(allData, searchTerm);
+          
+          // Aplicar paginación del lado del cliente
+          const paginatedResult = paginateClientSide(filteredData, page, limit);
+          
+          // Retornar en el formato esperado
+          return {
+            ...response,
+            data: {
+              tiposAguasResiduales: paginatedResult.data,
+              pagination: {
+                currentPage: paginatedResult.currentPage,
+                totalPages: paginatedResult.totalPages,
+                totalCount: paginatedResult.totalItems,
+                hasNext: paginatedResult.currentPage < paginatedResult.totalPages,
+                hasPrev: paginatedResult.currentPage > 1,
+              }
+            }
+          };
+        }
+        
+        return response;
       },
+      staleTime: 5 * 60 * 1000, // 5 minutos
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
   };
 
@@ -68,14 +95,6 @@ export const useAguasResiduales = () => {
       queryKey: ['aguaResidual', id],
       queryFn: () => aguasResidualesService.getAguaResidualById(id),
       enabled: !!id, // Solo se ejecuta si hay un ID
-      onError: (error: any) => {
-        console.error('Error loading agua residual by ID:', error);
-        toast({
-          title: "Error",
-          description: "Error al cargar el tipo de agua residual",
-          variant: "destructive",
-        });
-      },
     });
   };
 
@@ -86,7 +105,7 @@ export const useAguasResiduales = () => {
     return useMutation<ServerResponse<AguaResidual>, Error, AguaResidualCreate>({
       mutationFn: aguasResidualesService.createAguaResidual,
       onSuccess: () => {
-        queryClient.invalidateQueries(['aguasResiduales']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['aguasResiduales'] });
         toast({
           title: "Éxito",
           description: "Tipo de agua residual creado correctamente",
@@ -108,7 +127,7 @@ export const useAguasResiduales = () => {
     return useMutation<ServerResponse<AguaResidual>, Error, { id: string; data: AguaResidualUpdate }>({
       mutationFn: ({ id, data }) => aguasResidualesService.updateAguaResidual(id, data),
       onSuccess: () => {
-        queryClient.invalidateQueries(['aguasResiduales']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['aguasResiduales'] });
         toast({
           title: "Éxito",
           description: "Tipo de agua residual actualizado correctamente",
@@ -130,7 +149,7 @@ export const useAguasResiduales = () => {
     return useMutation<void, Error, string>({
       mutationFn: aguasResidualesService.deleteAguaResidual,
       onSuccess: () => {
-        queryClient.invalidateQueries(['aguasResiduales']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['aguasResiduales'] });
         toast({
           title: "Éxito",
           description: "Tipo de agua residual eliminado correctamente",
@@ -149,7 +168,6 @@ export const useAguasResiduales = () => {
 
   return {
     useAguasResidualesQuery,
-    useSearchAguasResidualesQuery,
     useAguaResidualByIdQuery,
     useCreateAguaResidualMutation,
     useUpdateAguaResidualMutation,

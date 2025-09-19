@@ -79,7 +79,7 @@ export const usePermissions = () => {
         return permissions.canViewReports;
       case '/settings':
         return permissions.canManageSettings;
-      case '/sectors':
+      case '/settings/sectores-config':
         return permissions.canManageSectors;
       default:
         return isAuthenticated; // Rutas generales requieren solo autenticación

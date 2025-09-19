@@ -1,37 +1,72 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { profesionesService } from '@/services/profesiones';
-import { ProfesionFormData, ProfesionUpdateData } from '@/types/profesiones';
+import { ProfesionFormData, ProfesionUpdateData, Profesion } from '@/types/profesiones';
+import { useMemo } from 'react';
+
+// ✅ PATRÓN UNIFICADO - Single Query con búsqueda opcional
+export const useProfesionesQuery = (searchTerm?: string) => {
+  return useQuery({
+    queryKey: ['profesiones', searchTerm || 'all'],
+    queryFn: () => {
+      // Si hay término de búsqueda, usar búsqueda; si no, obtener todos
+      return searchTerm && searchTerm.trim()
+        ? profesionesService.searchProfesiones(searchTerm.trim(), 1, 100)
+        : profesionesService.getProfesiones(1, 100, 'id_profesion', 'ASC');
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData,
+  });
+};
+
+// 🔧 Helper function para paginación del lado del cliente
+export const paginateClientSide = <T>(
+  items: T[],
+  page: number,
+  limit: number
+): {
+  paginatedItems: T[];
+  totalPages: number;
+  currentPage: number;
+  totalCount: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+} => {
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedItems = items.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(items.length / limit);
+
+  return {
+    paginatedItems,
+    totalPages,
+    currentPage: page,
+    totalCount: items.length,
+    hasNext: page < totalPages,
+    hasPrev: page > 1,
+  };
+};
+
+// 🔍 Helper function para filtrar búsquedas del lado del cliente
+export const filterBySearch = (
+  items: Profesion[],
+  searchTerm: string
+): Profesion[] => {
+  if (!searchTerm || !searchTerm.trim()) {
+    return items;
+  }
+
+  const lowercaseSearch = searchTerm.toLowerCase().trim();
+  return items.filter(item =>
+    item.nombre_profesion?.toLowerCase().includes(lowercaseSearch) ||
+    item.descripcion?.toLowerCase().includes(lowercaseSearch)
+  );
+};
 
 // Hook personalizado para todas las operaciones de profesiones
 export const useProfesiones = () => {
   const queryClient = useQueryClient();
-
-  // Query para obtener profesiones con paginación
-  const useProfesionesQuery = (
-    page: number = 1, 
-    limit: number = 10, 
-    sortBy: string = 'id_profesion', 
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ) => {
-    return useQuery({
-      queryKey: ['profesiones', page, limit, sortBy, sortOrder],
-      queryFn: () => profesionesService.getProfesiones(page, limit, sortBy, sortOrder),
-      staleTime: 1000 * 60 * 5, // 5 minutos
-      refetchOnWindowFocus: false,
-    });
-  };
-
-  // Query para buscar profesiones
-  const useSearchProfesionesQuery = (search: string, page: number = 1, limit: number = 10) => {
-    return useQuery({
-      queryKey: ['profesiones-search', search, page, limit],
-      queryFn: () => profesionesService.searchProfesiones(search, page, limit),
-      enabled: search.length > 0,
-      staleTime: 1000 * 60 * 2, // 2 minutos para búsquedas
-      refetchOnWindowFocus: false,
-    });
-  };
 
   // Query para obtener una profesión por ID
   const useProfesionByIdQuery = (id: string) => {
@@ -51,6 +86,7 @@ export const useProfesiones = () => {
       queryFn: () => profesionesService.getActiveProfesiones(),
       staleTime: 1000 * 60 * 10, // 10 minutos para datos activos
       refetchOnWindowFocus: false,
+      placeholderData: (previousData) => previousData,
     });
   };
 
@@ -61,6 +97,7 @@ export const useProfesiones = () => {
       queryFn: () => profesionesService.getProfesionesStats(),
       staleTime: 1000 * 60 * 5,
       refetchOnWindowFocus: false,
+      placeholderData: (previousData) => previousData,
     });
   };
 
@@ -180,8 +217,6 @@ export const useProfesiones = () => {
 
   return {
     // Queries
-    useProfesionesQuery,
-    useSearchProfesionesQuery,
     useProfesionByIdQuery,
     useActiveProfesionesQuery,
     useProfesionesStatsQuery,

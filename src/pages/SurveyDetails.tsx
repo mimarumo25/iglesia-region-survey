@@ -5,7 +5,7 @@
  * incluyendo miembros de familia, fallecidos, servicios, etc.
  */
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,52 +38,38 @@ import {
 } from "lucide-react";
 
 // Importar servicios y tipos
-import { useEncuestas, EncuestaListItem } from "@/services/encuestas";
+import { useEncuestas } from "@/hooks/useEncuestas";
+import { EncuestaListItem } from "@/services/encuestas";
+import { useResponsiveTable } from "@/hooks/useResponsiveTable";
+import { MemberMobileCard } from "@/components/ui/MemberMobileCard";
+
+// Importar estilos para animaciones móviles
+import "@/styles/mobile-animations.css";
 
 const SurveyDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { getEncuestaById } = useEncuestas();
+  
+  // Hook para obtener encuesta
+  const { data: encuestaData, isLoading: loading, error } = useEncuestas().getEncuestaById(id || '');
+  
+  // Hook para responsive design
+  const { shouldUseMobileView, isMobile, isVerySmall } = useResponsiveTable();
 
-  // Estados
-  const [encuesta, setEncuesta] = useState<EncuestaListItem | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Estado derivado
+  const encuesta = encuestaData?.data || null;
 
-  // Cargar datos de la encuesta
-  useEffect(() => {
-    const loadEncuesta = async () => {
-      if (!id) {
-        setError("ID de encuesta no válido");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await getEncuestaById(parseInt(id));
-        setEncuesta(response.data as EncuestaListItem);
-
-        console.log('✅ Encuesta cargada:', response.data);
-
-      } catch (error: any) {
-        console.error('❌ Error al cargar encuesta:', error);
-        setError(error.message || 'Error al cargar la encuesta');
-        toast({
-          variant: "destructive",
-          title: "Error al cargar encuesta",
-          description: error.message || 'No se pudo cargar la información de la encuesta'
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadEncuesta();
-  }, [id, getEncuestaById, toast]);
+  // Manejo de error
+  React.useEffect(() => {
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error al cargar encuesta",
+        description: error.message || 'No se pudo cargar la información de la encuesta'
+      });
+    }
+  }, [error, toast]);
 
   // Funciones auxiliares
   const getStatusBadge = (status?: string) => {
@@ -193,19 +179,20 @@ const SurveyDetails = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className={`container mx-auto ${isMobile ? 'p-4' : 'p-6'} mobile-scroll-container`}>
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      <div className={`flex ${isMobile ? 'flex-col' : 'flex-col md:flex-row md:items-center md:justify-between'} gap-4 mb-6`}>
         <div className="flex items-center gap-4">
           <Button 
             onClick={() => navigate("/surveys")} 
             variant="outline" 
-            size="sm"
+            size={isMobile ? "default" : "sm"}
+            className={isMobile ? "w-full sm:w-auto" : ""}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver
           </Button>
-          <div>
+          <div className={isMobile ? "hidden" : "block"}>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
               <FileText className="w-8 h-8 text-blue-600" />
               Detalles de Encuesta
@@ -215,19 +202,35 @@ const SurveyDetails = () => {
             </p>
           </div>
         </div>
+        
+        {/* Título móvil */}
+        {isMobile && (
+          <div className="text-center">
+            <h1 className="text-xl font-bold text-gray-900 flex items-center justify-center gap-2">
+              <FileText className="w-6 h-6 text-blue-600" />
+              Detalles de Encuesta
+            </h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Familia {encuesta.apellido_familiar}
+            </p>
+            <p className="text-xs text-gray-500">{encuesta.codigo_familia}</p>
+          </div>
+        )}
+        
         <div className="flex gap-2">
           <Button 
             onClick={() => navigate(`/surveys/${id}/edit`)} 
-            className="flex items-center gap-2"
+            className={`flex items-center gap-2 ${isMobile ? 'w-full sm:w-auto' : ''}`}
+            size={isMobile ? "default" : "default"}
           >
             <Edit3 className="w-4 h-4" />
-            Editar Encuesta
+            {isMobile ? "Editar" : "Editar Encuesta"}
           </Button>
         </div>
       </div>
 
       {/* Información General */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className={`grid gap-6 mb-8 ${shouldUseMobileView ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'}`}>
         {/* Información Básica */}
         <Card>
           <CardHeader>
@@ -267,7 +270,7 @@ const SurveyDetails = () => {
                 <p className="text-sm text-gray-500">Teléfono</p>
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-gray-400" />
-                  <p className="text-sm">{encuesta.telefono}</p>
+                  <p className="text-sm font-mono">{encuesta.telefono}</p>
                 </div>
               </div>
             )}
@@ -352,7 +355,7 @@ const SurveyDetails = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className={`grid gap-6 ${shouldUseMobileView ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
             <div>
               <p className="text-sm text-gray-500 mb-2">Sistema de Acueducto</p>
               <Badge variant="outline">{encuesta.acueducto.nombre}</Badge>
@@ -369,7 +372,7 @@ const SurveyDetails = () => {
         </CardContent>
       </Card>
 
-      {/* Miembros de Familia */}
+      {/* Miembros de Familia - Responsive */}
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -380,82 +383,100 @@ const SurveyDetails = () => {
             Información de todos los miembros activos de la familia
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className={shouldUseMobileView ? "p-4" : ""}>
           {encuesta.miembros_familia.personas.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nombre Completo</TableHead>
-                  <TableHead>Identificación</TableHead>
-                  <TableHead>Edad</TableHead>
-                  <TableHead>Sexo</TableHead>
-                  <TableHead>Estado Civil</TableHead>
-                  <TableHead>Estudios</TableHead>
-                  <TableHead>Contacto</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            shouldUseMobileView ? (
+              // Vista móvil: Cards
+              <div className="space-y-4 mobile-view-transition">
                 {encuesta.miembros_familia.personas.map((miembro, index) => (
-                  <TableRow key={miembro.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{miembro.nombre_completo}</p>
-                        <div className="flex gap-1 text-xs text-gray-500 mt-1">
-                          <span>👕 {miembro.tallas.camisa}</span>
-                          <span>👖 {miembro.tallas.pantalon}</span>
-                          <span>👟 {miembro.tallas.zapato}</span>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="text-sm">{miembro.identificacion.numero}</p>
-                        {miembro.identificacion.tipo && (
-                          <p className="text-xs text-gray-500">
-                            {miembro.identificacion.tipo.codigo}
-                          </p>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="text-sm">{miembro.edad || calculateAge(miembro.fecha_nacimiento)} años</p>
-                        <p className="text-xs text-gray-500">
-                          {formatDate(miembro.fecha_nacimiento)}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-xs">
-                        {miembro.sexo.descripcion}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-sm">{miembro.estado_civil.nombre}</p>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-sm">{miembro.estudios.nombre}</p>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        {miembro.telefono && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <Phone className="w-3 h-3" />
-                            {miembro.telefono}
-                          </div>
-                        )}
-                        {miembro.email && !miembro.email.includes('@temp.com') && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <Mail className="w-3 h-3" />
-                            {miembro.email}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  <MemberMobileCard
+                    key={miembro.id}
+                    member={miembro}
+                    familyAddress={encuesta.direccion_familia}
+                    index={index}
+                    compact={false}
+                  />
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            ) : (
+              // Vista desktop: Tabla
+              <div className="desktop-view-transition">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nombre Completo</TableHead>
+                      <TableHead>Identificación</TableHead>
+                      <TableHead>Edad</TableHead>
+                      <TableHead>Sexo</TableHead>
+                      <TableHead>Estado Civil</TableHead>
+                      <TableHead>Estudios</TableHead>
+                      <TableHead>Contacto</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {encuesta.miembros_familia.personas.map((miembro, index) => (
+                      <TableRow key={miembro.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{miembro.nombre_completo}</p>
+                            <div className="flex gap-1 text-xs text-gray-500 mt-1">
+                              <span>👕 {miembro.tallas.camisa}</span>
+                              <span>👖 {miembro.tallas.pantalon}</span>
+                              <span>👟 {miembro.tallas.zapato}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="text-sm">{miembro.identificacion.numero}</p>
+                            {miembro.identificacion.tipo && (
+                              <p className="text-xs text-gray-500">
+                                {miembro.identificacion.tipo.codigo}
+                              </p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="text-sm">{miembro.edad || calculateAge(miembro.fecha_nacimiento)} años</p>
+                            <p className="text-xs text-gray-500">
+                              {formatDate(miembro.fecha_nacimiento)}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs">
+                            {miembro.sexo.descripcion}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <p className="text-sm">{miembro.estado_civil.nombre}</p>
+                        </TableCell>
+                        <TableCell>
+                          <p className="text-sm">{miembro.estudios.nombre}</p>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            {miembro.telefono && (
+                              <div className="flex items-center gap-1 text-xs">
+                                <Phone className="w-3 h-3" />
+                                {miembro.telefono}
+                              </div>
+                            )}
+                            {miembro.email && !miembro.email.includes('@temp.com') && (
+                              <div className="flex items-center gap-1 text-xs">
+                                <Mail className="w-3 h-3" />
+                                {miembro.email}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )
           ) : (
             <div className="text-center py-8 text-gray-500">
               <Users className="w-12 h-12 mx-auto mb-2" />

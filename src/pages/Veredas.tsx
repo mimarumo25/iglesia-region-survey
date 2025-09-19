@@ -3,14 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table';
+import { ResponsiveTable } from '@/components/ui/responsive-table';
 import { Autocomplete, AutocompleteOption } from '@/components/ui/autocomplete';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
 import { useVeredas } from '@/hooks/useVeredas';
@@ -21,7 +14,6 @@ import { municipiosToOptions, formatDate } from '@/lib/utils';
 import {
   MapPin,
   Plus,
-  Search,
   Edit2,
   Trash2,
   Loader2,
@@ -35,19 +27,15 @@ import {
 const VeredasPage = () => {
   const veredasHook = useVeredas();
 
-  // Estados para la paginación y filtros de veredas
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [sortBy, setSortBy] = useState('id_vereda');
-  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
+  // Estados para búsqueda, filtros y paginación
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMunicipioFilter, setSelectedMunicipioFilter] = useState<string>('');
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
 
-  // Queries de React Query
+  // Queries usando patrón unificado
   const { data: municipiosData, isLoading: municipiosLoading } = veredasHook.useMunicipiosQuery();
-  const { data: veredasResponse, isLoading: veredasLoading, refetch: refetchVeredas } = veredasHook.useVeredasQuery(page, limit, sortBy, sortOrder);
-  const { data: searchVeredasResponse, isLoading: searchLoading, refetch: refetchSearch } = veredasHook.useSearchVeredasQuery(searchTerm);
-  const { data: veredasByMunicipioResponse, isLoading: veredasByMunicipioLoading, refetch: refetchVeredasByMunicipio } = veredasHook.useVeredasByMunicipioQuery(parseInt(selectedMunicipioFilter));
+  const { data: veredasResponse, isLoading: veredasLoading, refetch: refetchVeredas } = veredasHook.useVeredasQuery(searchTerm, selectedMunicipioFilter, page, limit);
 
   // Mutaciones de React Query
   const createMutation = veredasHook.useCreateVeredaMutation();
@@ -55,42 +43,15 @@ const VeredasPage = () => {
   const deleteMutation = veredasHook.useDeleteVeredaMutation();
 
   const municipios = (municipiosData || []) as Municipio[];
-  let veredas: Vereda[] = [];
-  let pagination: VeredaPagination = {
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 0,
+  const veredas = veredasResponse?.data || [];
+  const pagination = {
+    page: veredasResponse?.page || 1,
+    limit: veredasResponse?.limit || limit,
+    total: veredasResponse?.total || 0,
+    totalPages: veredasResponse?.totalPages || 1,
   };
 
-  // Determinar qué datos de veredas y paginación usar
-  if (searchTerm && searchTerm.trim()) {
-    veredas = searchVeredasResponse?.data || [];
-    pagination = {
-      page: searchVeredasResponse?.page || 1,
-      limit: searchVeredasResponse?.limit || limit,
-      total: searchVeredasResponse?.total || 0,
-      totalPages: searchVeredasResponse?.totalPages || 1,
-    };
-  } else if (selectedMunicipioFilter && selectedMunicipioFilter !== 'all' && selectedMunicipioFilter !== '') {
-    veredas = veredasByMunicipioResponse?.data || [];
-    pagination = {
-      page: veredasByMunicipioResponse?.page || 1,
-      limit: veredasByMunicipioResponse?.limit || limit,
-      total: veredasByMunicipioResponse?.total || 0,
-      totalPages: veredasByMunicipioResponse?.totalPages || 1,
-    };
-  } else {
-    veredas = veredasResponse?.data || [];
-    pagination = {
-      page: veredasResponse?.page || 1,
-      limit: veredasResponse?.limit || limit,
-      total: veredasResponse?.total || 0,
-      totalPages: veredasResponse?.totalPages || 1,
-    };
-  }
-
-  const loading = veredasLoading || searchLoading || veredasByMunicipioLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const loading = veredasLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios usando el hook personalizado
   const {
@@ -181,21 +142,6 @@ const VeredasPage = () => {
     openDeleteDialog();
   };
 
-  // Manejo de búsqueda
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1); // Resetear paginación al buscar
-    // Al cambiar searchTerm, useSearchVeredasQuery se ejecutará automáticamente
-    // No es necesario llamar a refetch explícitamente aquí si el enabled depende de searchTerm
-  };
-
-  // Manejo del filtro por municipio
-  const handleMunicipioFilter = (municipioId: string) => {
-    setSelectedMunicipioFilter(municipioId);
-    setSearchTerm(''); // Limpiar búsqueda al aplicar filtro de municipio
-    setPage(1); // Resetear paginación al aplicar filtro
-  };
-
   // Manejo de paginación
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -238,15 +184,7 @@ const VeredasPage = () => {
         <div className="flex gap-2 ">
           <Button
             variant="outline"
-            onClick={() => {
-              if (searchTerm && searchTerm.trim()) {
-                refetchSearch();
-              } else if (selectedMunicipioFilter && selectedMunicipioFilter !== 'all' && selectedMunicipioFilter !== '') {
-                refetchVeredasByMunicipio();
-              } else {
-                refetchVeredas();
-              }
-            }}
+            onClick={() => refetchVeredas()}
             disabled={loading}
             className=""
           >
@@ -266,16 +204,27 @@ const VeredasPage = () => {
       {/* Búsqueda y filtros con diseño mejorado */}
       <Card className="mb-6  ">
         <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="space-y-4">
+          <div className="space-y-4">
             <div className="flex flex-col md:flex-row gap-4">
-              {/* Búsqueda por texto */}
-              <div className="flex-1">
+              {/* Búsqueda por texto con búsqueda en tiempo real */}
+              <div className="flex-1 relative">
                 <Input
                   placeholder="Buscar veredas por nombre o código..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="border-input-border focus:ring-primary"
+                  className="border-input-border focus:ring-primary pr-10"
                 />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded"
+                    type="button"
+                  >
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
               
               {/* Filtro por municipio */}
@@ -286,7 +235,7 @@ const VeredasPage = () => {
                     ...getMunicipiosOptions()
                   ]}
                   value={selectedMunicipioFilter}
-                  onValueChange={handleMunicipioFilter}
+                  onValueChange={(value) => setSelectedMunicipioFilter(value)}
                   placeholder="Filtrar por municipio"
                   searchPlaceholder="Buscar municipio..."
                   emptyText="No se encontraron municipios"
@@ -295,34 +244,8 @@ const VeredasPage = () => {
                   className="w-full"
                 />
               </div>
-              
-              {/* Botones de acción */}
-              <div className="flex gap-2">
-                <Button
-                  type="submit"
-                  variant="outline"
-                  className=""
-                >
-                  <Search className="w-4 h-4 mr-2" />
-                  Buscar
-                </Button>
-                {(searchTerm || selectedMunicipioFilter) && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => {
-                      setSearchTerm('');
-                      setSelectedMunicipioFilter('');
-                      setPage(1); // Resetear paginación
-                    }}
-                    className=""
-                  >
-                    Limpiar
-                  </Button>
-                )}
-              </div>
             </div>
-          </form>
+          </div>
         </CardContent>
       </Card>
 
@@ -332,7 +255,9 @@ const VeredasPage = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Veredas</p>
+                <p className="text-sm text-muted-foreground">
+                  {(searchTerm || selectedMunicipioFilter !== 'all') && selectedMunicipioFilter !== '' ? 'Veredas Filtradas' : 'Total Veredas'}
+                </p>
                 <p className="text-2xl font-bold text-foreground">{pagination.total}</p>
               </div>
               <MapPin className="w-8 h-8 text-muted-foreground opacity-70 " />
@@ -369,24 +294,6 @@ const VeredasPage = () => {
             </div>
           ) : veredas.length === 0 ? (
             <div className="text-center py-8">
-              {/* Alerta sobre problema del backend */}
-              <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <div className="flex items-center justify-center mb-2">
-                  <svg className="w-5 h-5 text-amber-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  <h4 className="text-sm font-medium text-amber-800">Problema temporal del servidor</h4>
-                </div>
-                <p className="text-sm text-amber-700 mb-2">
-                  Las veredas se están guardando correctamente, pero existe un problema en el servidor 
-                  que impide mostrarlas. El equipo técnico ya ha sido notificado.
-                </p>
-                <p className="text-xs text-amber-600">
-                  <strong>Para desarrolladores:</strong> Error de asociación de tablas "Municipios is not associated to Veredas!" 
-                  en el endpoint GET /api/catalog/veredas
-                </p>
-              </div>
-              
               <MapPin className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4 " />
               <p className="text-muted-foreground">No se encontraron veredas</p>
               {(searchTerm || selectedMunicipioFilter) && (
@@ -397,69 +304,87 @@ const VeredasPage = () => {
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-b">
-                    <TableHead className="font-semibold">ID</TableHead>
-                    <TableHead className="font-semibold">Nombre</TableHead>
-                    <TableHead className="font-semibold">Código</TableHead>
-                    <TableHead className="font-semibold">Municipio</TableHead>
-                    <TableHead className="font-semibold">Fecha Creación</TableHead>
-                    <TableHead className="text-right font-semibold text-muted-foreground">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {veredas.map((vereda, index) => (
-                    <TableRow
-                      key={vereda.id_vereda}
-                            className=""                    >
-                      <TableCell className="font-medium text-muted-foreground/80">
-                        {vereda.id_vereda}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-muted-foreground " />
-                          <span className="font-medium">{vereda.nombre}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                          {vereda.codigo_vereda}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-secondary " />
-                          <span>{getMunicipioName(vereda)}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="">
-                          {formatDate(vereda.created_at)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenEditDialog(vereda)}
-                            className=""
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenDeleteDialog(vereda)}
-                            className=""
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <ResponsiveTable
+                data={veredas}
+                columns={[
+                  {
+                    key: 'id_vereda',
+                    label: 'ID',
+                    priority: 'low',
+                    hideOnMobile: true,
+                    render: (value) => (
+                      <span className="font-medium text-muted-foreground/80">
+                        {value}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: 'nombre',
+                    label: 'Nombre',
+                    priority: 'high',
+                    render: (value) => (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium">{value}</span>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: 'codigo_vereda',
+                    label: 'Código',
+                    priority: 'medium',
+                    render: (value) => value || '-',
+                  },
+                  {
+                    key: 'municipio',
+                    label: 'Municipio',
+                    priority: 'high',
+                    render: (value, item) => (
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-secondary" />
+                        <span>{getMunicipioName(item)}</span>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: 'created_at',
+                    label: 'Fecha Creación',
+                    priority: 'low',
+                    hideOnMobile: true,
+                    render: (value) => (
+                      <Badge variant="outline">
+                        {formatDate(value)}
+                      </Badge>
+                    ),
+                  },
+                ]}
+                actions={[
+                  {
+                    label: 'Editar',
+                    icon: <Edit2 className="w-4 h-4" />,
+                    onClick: handleOpenEditDialog,
+                    variant: 'ghost',
+                    primary: true,
+                  },
+                  {
+                    label: 'Eliminar',
+                    icon: <Trash2 className="w-4 h-4" />,
+                    onClick: handleOpenDeleteDialog,
+                    variant: 'destructive',
+                    primary: false,
+                  },
+                ]}
+                emptyState={{
+                  icon: <MapPin className="w-16 h-16 text-muted-foreground/50" />,
+                  title: 'No se encontraron veredas',
+                  description: (searchTerm || selectedMunicipioFilter) 
+                    ? 'Intenta con otros términos de búsqueda o filtros'
+                    : undefined,
+                }}
+                loading={loading}
+                loadingText="Cargando veredas..."
+                itemKey="id_vereda"
+              />
 
               {/* Paginación con diseño mejorado */}
               {pagination.totalPages > 1 && (

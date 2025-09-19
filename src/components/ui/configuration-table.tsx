@@ -1,30 +1,23 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
+import { ResponsiveTable, ResponsiveTableColumn, ResponsiveTableAction } from '@/components/ui/responsive-table';
+import { Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Edit2, Trash2, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useResponsiveTypography } from '@/hooks/useTypography';
 
-// Tipos para las columnas de la tabla
+// Tipos para las columnas de la tabla (mantenemos compatibilidad hacia atrás)
 export interface TableColumn {
   key: string;
   label: string;
   width?: string;
   align?: 'left' | 'center' | 'right';
   render?: (value: any, item: any) => React.ReactNode;
+  /** Prioridad para vista móvil */
+  priority?: 'high' | 'medium' | 'low';
+  /** Ocultar en tablet */
+  hideOnTablet?: boolean;
+  /** Ocultar en móvil */
+  hideOnMobile?: boolean;
 }
 
 // Tipos para los datos de paginación
@@ -35,7 +28,7 @@ export interface PaginationData {
   itemsPerPage: number;
 }
 
-// Tipos para las acciones
+// Tipos para las acciones (mantenemos compatibilidad hacia atrás)
 export interface TableAction {
   type: 'edit' | 'delete' | 'custom';
   label: string;
@@ -43,6 +36,8 @@ export interface TableAction {
   color?: 'default' | 'destructive' | 'primary' | 'secondary';
   onClick: (item: any) => void;
   show?: (item: any) => boolean;
+  /** Si es true, se muestra prominentemente en móvil */
+  primary?: boolean;
 }
 
 // Props del componente
@@ -71,53 +66,85 @@ interface ConfigurationTableProps {
   // Búsqueda
   searchTerm?: string;
   
+  // Eventos
+  onRowClick?: (item: any) => void;
+  
   // Personalización
   className?: string;
   title?: string;
   titleIcon?: React.ReactNode;
+  
+  /** Clave única para cada elemento */
+  itemKey?: string;
 }
 
-// Componente de acción con tooltip
-const ActionButton: React.FC<{
-  action: TableAction;
-  item: any;
-}> = ({ action, item }) => {
-  if (action.show && !action.show(item)) {
-    return null;
-  }
+// Función auxiliar para convertir TableColumn a ResponsiveTableColumn
+const convertToResponsiveColumn = (column: TableColumn): ResponsiveTableColumn => ({
+  key: column.key,
+  label: column.label,
+  width: column.width,
+  align: column.align,
+  render: column.render,
+  priority: column.priority || 'medium',
+  hideOnTablet: column.hideOnTablet,
+  hideOnMobile: column.hideOnMobile,
+});
 
-  const getButtonClasses = () => {
+// Función auxiliar para convertir TableAction a ResponsiveTableAction
+const convertToResponsiveAction = (action: TableAction): ResponsiveTableAction => {
+  const getVariant = () => {
     switch (action.color) {
       case 'destructive':
-        return 'hover:bg-destructive/10 hover:text-destructive';
+        return 'destructive' as const;
       case 'primary':
-        return 'hover:bg-primary/10 hover:text-primary';
+        return 'default' as const;
       case 'secondary':
-        return 'hover:bg-secondary/10 hover:text-secondary';
+        return 'secondary' as const;
       default:
-        return 'hover:bg-muted/50';
+        return 'ghost' as const;
     }
   };
 
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => action.onClick(item)}
-            className={getButtonClasses()}
-          >
-            {action.icon}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{action.label}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
+  return {
+    label: action.label,
+    icon: action.icon,
+    onClick: action.onClick,
+    variant: getVariant(),
+    primary: action.primary || action.type === 'edit',
+  };
+};
+
+// Función para renderizar valores por defecto
+const renderDefaultValue = (value: any, column: TableColumn, item: any) => {
+  if (column.render) {
+    return column.render(value, item);
+  }
+  
+  // Renderizado por defecto según el tipo de datos
+  if (value === null || value === undefined) {
+    return <span className="text-muted-foreground">-</span>;
+  }
+  
+  if (typeof value === 'boolean') {
+    return (
+      <Badge variant={value ? 'default' : 'secondary'}>
+        {value ? 'Activo' : 'Inactivo'}
+      </Badge>
+    );
+  }
+  
+  if (column.key.toLowerCase().includes('fecha') || column.key.toLowerCase().includes('date')) {
+    const date = new Date(value);
+    if (!isNaN(date.getTime())) {
+      return (
+        <Badge variant="outline">
+          {date.toLocaleDateString('es-ES')}
+        </Badge>
+      );
+    }
+  }
+  
+  return value?.toString() || '-';
 };
 
 // Componente principal
@@ -126,7 +153,7 @@ export const ConfigurationTable: React.FC<ConfigurationTableProps> = ({
   columns,
   loading = false,
   loadingText = 'Cargando datos...',
-  emptyIcon = <Trash2 className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />,
+  emptyIcon = <Trash2 className="w-16 h-16 text-muted-foreground/50" />,
   emptyTitle = 'No se encontraron datos',
   emptyDescription,
   actions = [],
@@ -134,65 +161,43 @@ export const ConfigurationTable: React.FC<ConfigurationTableProps> = ({
   onPageChange,
   showPagination = true,
   searchTerm,
+  onRowClick,
   className = '',
   title,
   titleIcon,
+  itemKey = 'id',
 }) => {
   const { getResponsiveTypographyClass } = useResponsiveTypography();
-  // Renderizar el valor de una celda
-  const renderCellValue = (column: TableColumn, item: any) => {
-    const value = item[column.key];
-    
-    if (column.render) {
-      return column.render(value, item);
-    }
-    
-    // Renderizado por defecto según el tipo de datos
-    if (value === null || value === undefined) {
-      return <span className="text-muted-foreground">-</span>;
-    }
-    
-    if (typeof value === 'boolean') {
-      return (
-        <Badge variant={value ? 'default' : 'secondary'}>
-          {value ? 'Activo' : 'Inactivo'}
-        </Badge>
-      );
-    }
-    
-    if (column.key.toLowerCase().includes('fecha') || column.key.toLowerCase().includes('date')) {
-      const date = new Date(value);
-      if (!isNaN(date.getTime())) {
-        return (
-          <Badge variant="outline">
-            {date.toLocaleDateString('es-ES')}
-          </Badge>
-        );
-      }
-    }
-    
-    return value?.toString() || '-';
-  };
 
-  // Obtener acciones por defecto
-  const getDefaultActions = (): TableAction[] => [
+  // Convertir columnas para el ResponsiveTable
+  const responsiveColumns: ResponsiveTableColumn[] = columns.map(column => ({
+    ...convertToResponsiveColumn(column),
+    render: (value: any, item: any) => renderDefaultValue(value, column, item),
+  }));
+
+  // Filtrar y convertir acciones
+  const visibleActions = actions.filter(action => !action.show || action.show);
+  const responsiveActions: ResponsiveTableAction[] = visibleActions.map(convertToResponsiveAction);
+
+  // Obtener acciones por defecto si no se proporcionan
+  const defaultActions: ResponsiveTableAction[] = [
     {
-      type: 'edit',
       label: 'Editar',
       icon: <Edit2 className="w-4 h-4" />,
-      color: 'primary',
       onClick: () => {},
+      variant: 'ghost',
+      primary: true,
     },
     {
-      type: 'delete',
       label: 'Eliminar',
       icon: <Trash2 className="w-4 h-4" />,
-      color: 'destructive',
       onClick: () => {},
+      variant: 'destructive',
+      primary: false,
     },
   ];
 
-  const finalActions = actions.length > 0 ? actions : getDefaultActions();
+  const finalActions = responsiveActions.length > 0 ? responsiveActions : defaultActions;
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -200,128 +205,60 @@ export const ConfigurationTable: React.FC<ConfigurationTableProps> = ({
       {title && (
         <div className="flex items-center gap-2 mb-4">
           {titleIcon}
-          <h3 className={`${getResponsiveTypographyClass('h3')} text-foreground`}>{title}</h3>
+          <h3 className={`${getResponsiveTypographyClass('h3')} text-foreground`}>
+            {title}
+          </h3>
         </div>
       )}
 
-      {/* Estado de carga */}
-      {loading ? (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-          <span className={`ml-2 text-muted-foreground ${getResponsiveTypographyClass('body')}`}>
-            {loadingText}
-          </span>
-        </div>
-      ) : data.length === 0 ? (
-        /* Estado vacío */
-        <div className="text-center py-8">
-          {emptyIcon}
-          <p className={`text-muted-foreground font-medium ${getResponsiveTypographyClass('body')}`}>
-            {emptyTitle}
-          </p>
-          {emptyDescription && (
-            <p className={`text-muted-foreground/70 mt-1 ${getResponsiveTypographyClass('bodySmall')}`}>
-              {emptyDescription}
-            </p>
-          )}
-          {searchTerm && (
-            <p className={`text-muted-foreground/70 mt-1 ${getResponsiveTypographyClass('bodySmall')}`}>
-              Intenta con otros términos de búsqueda
-            </p>
-          )}
-        </div>
-      ) : (
-        /* Tabla con datos */
-        <>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {columns.map((column) => (
-                  <TableHead
-                    key={column.key}
-                    className={`${getResponsiveTypographyClass('tableHeader')} ${
-                      column.align === 'right' ? 'text-right' : 
-                      column.align === 'center' ? 'text-center' : ''
-                    }`}
-                    style={{ width: column.width }}
-                  >
-                    {column.label}
-                  </TableHead>
-                ))}
-                {finalActions.length > 0 && (
-                  <TableHead className={`text-right ${getResponsiveTypographyClass('tableHeader')}`}>
-                    Acciones
-                  </TableHead>
-                )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((item, index) => (
-                <TableRow 
-                  key={item.id || index}
-                  className="hover:bg-muted/50"
-                >
-                  {columns.map((column) => (
-                    <TableCell
-                      key={column.key}
-                      className={`${getResponsiveTypographyClass('tableCell')} ${
-                        column.align === 'right' ? 'text-right' : 
-                        column.align === 'center' ? 'text-center' : ''
-                      }`}
-                    >
-                      {renderCellValue(column, item)}
-                    </TableCell>
-                  ))}
-                  {finalActions.length > 0 && (
-                    <TableCell className="text-right">
-                      <div className="flex gap-1 justify-end">
-                        {finalActions.map((action, actionIndex) => (
-                          <ActionButton
-                            key={actionIndex}
-                            action={action}
-                            item={item}
-                          />
-                        ))}
-                      </div>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+      {/* Tabla responsive */}
+      <ResponsiveTable
+        data={data}
+        columns={responsiveColumns}
+        actions={finalActions}
+        loading={loading}
+        loadingText={loadingText}
+        emptyState={{
+          icon: emptyIcon,
+          title: emptyTitle,
+          description: emptyDescription || (searchTerm ? 'Intenta con otros términos de búsqueda' : undefined),
+        }}
+        onRowClick={onRowClick}
+        itemKey={itemKey}
+      />
 
-          {/* Paginación */}
-          {showPagination && pagination && pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between pt-4 border-t border-border">
-              <p className="text-sm text-muted-foreground">
-                Mostrando {data.length} de {pagination.totalItems} elementos
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onPageChange?.(pagination.currentPage - 1)}
-                  disabled={pagination.currentPage === 1}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Anterior
-                </Button>
-                <span className="flex items-center px-3 text-sm font-medium text-foreground bg-muted/50 rounded-md">
-                  Página {pagination.currentPage} de {pagination.totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onPageChange?.(pagination.currentPage + 1)}
-                  disabled={pagination.currentPage === pagination.totalPages}
-                >
-                  Siguiente
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-        </>
+      {/* Paginación */}
+      {showPagination && pagination && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between pt-4 border-t border-border">
+          <p className="text-sm text-muted-foreground">
+            Mostrando {data.length} de {pagination.totalItems} elementos
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange?.(pagination.currentPage - 1)}
+              disabled={pagination.currentPage === 1}
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span className="hidden sm:inline ml-1">Anterior</span>
+            </Button>
+            <span className="flex items-center px-3 text-sm font-medium text-foreground bg-muted/50 rounded-md">
+              <span className="hidden sm:inline">Página </span>
+              {pagination.currentPage}
+              <span className="hidden sm:inline"> de {pagination.totalPages}</span>
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange?.(pagination.currentPage + 1)}
+              disabled={pagination.currentPage === pagination.totalPages}
+            >
+              <span className="hidden sm:inline mr-1">Siguiente</span>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

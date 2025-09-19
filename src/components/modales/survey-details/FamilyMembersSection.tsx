@@ -2,12 +2,14 @@
  * 👥 Sección de Miembros de Familia
  * 
  * Muestra información detallada de todos los miembros activos de la familia
+ * con diseño responsive: tabla en desktop, cards en móvil
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Users,
   User,
@@ -22,12 +24,20 @@ import {
 } from "lucide-react";
 
 import { EncuestaListItem } from "@/services/encuestas";
+import { useResponsiveTable } from "@/hooks/useResponsiveTable";
+import { MemberMobileCard } from "@/components/ui/MemberMobileCard";
+
+// Importar estilos para animaciones
+import "@/styles/mobile-animations.css";
 
 interface FamilyMembersSectionProps {
   data: EncuestaListItem;
 }
 
 export const FamilyMembersSection = ({ data }: FamilyMembersSectionProps) => {
+  
+  // Hook para detectar dispositivo móvil
+  const { shouldUseMobileView, isMobile, isVerySmall } = useResponsiveTable();
   
   /**
    * Calcular edad desde fecha de nacimiento
@@ -115,7 +125,7 @@ export const FamilyMembersSection = ({ data }: FamilyMembersSectionProps) => {
         </CardHeader>
         <CardContent>
           {miembros.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div className={`grid gap-4 mb-4 ${isVerySmall ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
               <div className="text-center p-3 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">{miembros.length}</div>
                 <div className="text-sm text-blue-700">Total Miembros</div>
@@ -126,18 +136,22 @@ export const FamilyMembersSection = ({ data }: FamilyMembersSectionProps) => {
                 </div>
                 <div className="text-sm text-green-700">Adultos</div>
               </div>
-              <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600">
-                  {miembros.filter(m => calculateAge(m.fecha_nacimiento) < 18).length}
-                </div>
-                <div className="text-sm text-yellow-700">Menores</div>
-              </div>
-              <div className="text-center p-3 bg-purple-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">
-                  {Math.round(miembros.reduce((sum, m) => sum + calculateAge(m.fecha_nacimiento), 0) / miembros.length) || 0}
-                </div>
-                <div className="text-sm text-purple-700">Edad Promedio</div>
-              </div>
+              {!isVerySmall && (
+                <>
+                  <div className="text-center p-3 bg-yellow-50 rounded-lg">
+                    <div className="text-2xl font-bold text-yellow-600">
+                      {miembros.filter(m => calculateAge(m.fecha_nacimiento) < 18).length}
+                    </div>
+                    <div className="text-sm text-yellow-700">Menores</div>
+                  </div>
+                  <div className="text-center p-3 bg-purple-50 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {Math.round(miembros.reduce((sum, m) => sum + calculateAge(m.fecha_nacimiento), 0) / miembros.length) || 0}
+                    </div>
+                    <div className="text-sm text-purple-700">Edad Promedio</div>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500">
@@ -148,7 +162,7 @@ export const FamilyMembersSection = ({ data }: FamilyMembersSectionProps) => {
         </CardContent>
       </Card>
 
-      {/* Lista detallada de miembros */}
+      {/* Lista detallada de miembros - Responsive */}
       {miembros.length > 0 && (
         <Card>
           <CardHeader>
@@ -157,139 +171,159 @@ export const FamilyMembersSection = ({ data }: FamilyMembersSectionProps) => {
               Información Detallada de Miembros
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[250px]">Miembro</TableHead>
-                    <TableHead>Identificación</TableHead>
-                    <TableHead>Edad</TableHead>
-                    <TableHead>Sexo</TableHead>
-                    <TableHead>Estado Civil</TableHead>
-                    <TableHead>Estudios</TableHead>
-                    <TableHead>Contacto</TableHead>
-                    <TableHead>Tallas</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {miembros.map((miembro, index) => (
-                    <TableRow key={miembro.id || index}>
-                      {/* Información Personal */}
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="w-10 h-10">
-                            <AvatarFallback className="bg-blue-100 text-blue-600">
-                              {getInitials(miembro.nombre_completo)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {miembro.nombre_completo}
-                            </p>
-                            <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
-                              <MapPin className="w-3 h-3" />
-                              {miembro.direccion || data.direccion_familia}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
+          <CardContent className={shouldUseMobileView ? "p-4" : "p-0"}>
+            {shouldUseMobileView ? (
+              // Vista móvil: Cards
+              <div className="space-y-3 mobile-view-transition">
+                {miembros.map((miembro, index) => (
+                  <MemberMobileCard
+                    key={miembro.id || index}
+                    member={miembro}
+                    familyAddress={data.direccion_familia}
+                    index={index}
+                    compact={isMobile}
+                  />
+                ))}
+              </div>
+            ) : (
+              // Vista desktop: Tabla
+              <div className="desktop-view-transition">
+                <ScrollArea className="w-full">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[250px]">Miembro</TableHead>
+                          <TableHead>Identificación</TableHead>
+                          <TableHead>Edad</TableHead>
+                          <TableHead>Sexo</TableHead>
+                          <TableHead>Estado Civil</TableHead>
+                          <TableHead>Estudios</TableHead>
+                          <TableHead>Contacto</TableHead>
+                          <TableHead>Tallas</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {miembros.map((miembro, index) => (
+                          <TableRow key={miembro.id || index}>
+                            {/* Información Personal */}
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <Avatar className="w-10 h-10">
+                                  <AvatarFallback className="bg-blue-100 text-blue-600">
+                                    {getInitials(miembro.nombre_completo)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium text-gray-900">
+                                    {miembro.nombre_completo}
+                                  </p>
+                                  <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                                    <MapPin className="w-3 h-3" />
+                                    {miembro.direccion || data.direccion_familia}
+                                  </div>
+                                </div>
+                              </div>
+                            </TableCell>
 
-                      {/* Identificación */}
-                      <TableCell>
-                        <div>
-                          <div className="flex items-center gap-1">
-                            <IdCard className="w-3 h-3 text-gray-400" />
-                            <p className="text-sm font-mono">{miembro.identificacion.numero}</p>
-                          </div>
-                          {miembro.identificacion.tipo && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              {miembro.identificacion.tipo.codigo} - {miembro.identificacion.tipo.nombre}
-                            </p>
-                          )}
-                        </div>
-                      </TableCell>
+                            {/* Identificación */}
+                            <TableCell>
+                              <div>
+                                <div className="flex items-center gap-1">
+                                  <IdCard className="w-3 h-3 text-gray-400" />
+                                  <p className="text-sm font-mono">{miembro.identificacion.numero}</p>
+                                </div>
+                                {miembro.identificacion.tipo && (
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {miembro.identificacion.tipo.codigo} - {miembro.identificacion.tipo.nombre}
+                                  </p>
+                                )}
+                              </div>
+                            </TableCell>
 
-                      {/* Edad */}
-                      <TableCell>
-                        <div>
-                          <p className="text-sm font-medium">
-                            {miembro.edad || calculateAge(miembro.fecha_nacimiento)} años
-                          </p>
-                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
-                            <Calendar className="w-3 h-3" />
-                            {formatDate(miembro.fecha_nacimiento)}
-                          </div>
-                        </div>
-                      </TableCell>
+                            {/* Edad */}
+                            <TableCell>
+                              <div>
+                                <p className="text-sm font-medium">
+                                  {miembro.edad || calculateAge(miembro.fecha_nacimiento)} años
+                                </p>
+                                <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                                  <Calendar className="w-3 h-3" />
+                                  {formatDate(miembro.fecha_nacimiento)}
+                                </div>
+                              </div>
+                            </TableCell>
 
-                      {/* Sexo */}
-                      <TableCell>
-                        {getSexBadge(miembro.sexo)}
-                      </TableCell>
+                            {/* Sexo */}
+                            <TableCell>
+                              {getSexBadge(miembro.sexo)}
+                            </TableCell>
 
-                      {/* Estado Civil */}
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Heart className="w-3 h-3 text-gray-400" />
-                          <p className="text-sm">{miembro.estado_civil.nombre}</p>
-                        </div>
-                      </TableCell>
+                            {/* Estado Civil */}
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <Heart className="w-3 h-3 text-gray-400" />
+                                <p className="text-sm">{miembro.estado_civil.nombre}</p>
+                              </div>
+                            </TableCell>
 
-                      {/* Estudios */}
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <GraduationCap className="w-3 h-3 text-gray-400" />
-                          <p className="text-sm">{miembro.estudios.nombre}</p>
-                        </div>
-                      </TableCell>
+                            {/* Estudios */}
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <GraduationCap className="w-3 h-3 text-gray-400" />
+                                <p className="text-sm">{miembro.estudios.nombre}</p>
+                              </div>
+                            </TableCell>
 
-                      {/* Contacto */}
-                      <TableCell>
-                        <div className="space-y-1">
-                          {miembro.telefono && (
-                            <div className="flex items-center gap-1 text-xs">
-                              <Phone className="w-3 h-3 text-green-500" />
-                              <span className="font-mono">{miembro.telefono}</span>
-                            </div>
-                          )}
-                          {miembro.email && !isTemporaryEmail(miembro.email) && (
-                            <div className="flex items-center gap-1 text-xs">
-                              <Mail className="w-3 h-3 text-blue-500" />
-                              <span>{miembro.email}</span>
-                            </div>
-                          )}
-                          {(!miembro.telefono && (!miembro.email || isTemporaryEmail(miembro.email))) && (
-                            <span className="text-xs text-gray-400">Sin contacto</span>
-                          )}
-                        </div>
-                      </TableCell>
+                            {/* Contacto */}
+                            <TableCell>
+                              <div className="space-y-1">
+                                {miembro.telefono && (
+                                  <div className="flex items-center gap-1 text-xs">
+                                    <Phone className="w-3 h-3 text-green-500" />
+                                    <span className="font-mono">{miembro.telefono}</span>
+                                  </div>
+                                )}
+                                {miembro.email && !isTemporaryEmail(miembro.email) && (
+                                  <div className="flex items-center gap-1 text-xs">
+                                    <Mail className="w-3 h-3 text-blue-500" />
+                                    <span>{miembro.email}</span>
+                                  </div>
+                                )}
+                                {(!miembro.telefono && (!miembro.email || isTemporaryEmail(miembro.email))) && (
+                                  <span className="text-xs text-gray-400">Sin contacto</span>
+                                )}
+                              </div>
+                            </TableCell>
 
-                      {/* Tallas */}
-                      <TableCell>
-                        <div className="flex flex-col gap-1 text-xs">
-                          <div className="flex items-center gap-1">
-                            <Shirt className="w-3 h-3 text-gray-400" />
-                            <span>👕 {miembro.tallas.camisa}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span>👖 {miembro.tallas.pantalon}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span>👟 {miembro.tallas.zapato}</span>
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                            {/* Tallas */}
+                            <TableCell>
+                              <div className="flex flex-col gap-1 text-xs">
+                                <div className="flex items-center gap-1">
+                                  <Shirt className="w-3 h-3 text-gray-400" />
+                                  <span>👕 {miembro.tallas.camisa}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span>👖 {miembro.tallas.pantalon}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span>👟 {miembro.tallas.zapato}</span>
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
 
-      {/* Análisis demográfico */}
+      {/* Análisis demográfico - Responsive */}
       {miembros.length > 0 && (
         <Card>
           <CardHeader>
@@ -299,7 +333,7 @@ export const FamilyMembersSection = ({ data }: FamilyMembersSectionProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className={`grid gap-6 ${shouldUseMobileView ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
               {/* Distribución por edad */}
               <div>
                 <h4 className="font-medium text-gray-900 mb-3">Distribución por Edades</h4>

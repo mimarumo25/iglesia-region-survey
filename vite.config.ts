@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => ({
     },
     proxy: {
       '/api': {
-        target: 'http://206.62.139.100:3000',
+        target: 'http://206.62.139.100:3001',
         changeOrigin: true,
         secure: false,
       }

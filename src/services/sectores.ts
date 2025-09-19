@@ -1,4 +1,4 @@
-import { apiClient } from '@/interceptors/axios';
+import { getApiClient } from '@/config/api';
 
 // Interfaces para Sectores
 export interface Sector {
@@ -80,108 +80,168 @@ export interface SectoresStatsResponse {
   ultimo_registro?: string;
 }
 
-// Servicios para Sectores
-export const sectoresService = {
+class SectoresService {
   // Obtener todos los sectores con paginación
-  getSectores: async (
+  async getSectores(
     page: number = 1, 
     limit: number = 10, 
     sortBy: string = 'id_sector', 
     sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ): Promise<SectoresResponse> => {
-    const response = await apiClient.get('/api/catalog/sectors', {
-      params: { page, limit, sortBy, sortOrder }
-    });
-    return response.data;
-  },
+  ): Promise<SectoresResponse> {
+    try {
+      const client = getApiClient();
+      const response = await client.get('/api/catalog/sectores', {
+        params: { page, limit, sortBy, sortOrder }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener sectores:', error);
+      throw error;
+    }
+  }
 
   // Buscar sectores
-  searchSectores: async (
+  async searchSectores(
     search: string,
     page: number = 1,
     limit: number = 10
-  ): Promise<SectoresResponse> => {
-    const response = await apiClient.get('/api/catalog/sectors/search', {
-      params: { search, page, limit }
-    });
-    return response.data;
-  },
+  ): Promise<SectoresResponse> {
+    try {
+      const client = getApiClient();
+      const response = await client.get('/api/catalog/sectores/search', {
+        params: { search, page, limit }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al buscar sectores:', error);
+      throw error;
+    }
+  }
 
   // Obtener un sector por ID
-  getSectorById: async (id: string): Promise<ServerResponse<Sector>> => {
-    const response = await apiClient.get(`/api/catalog/sectors/${id}`);
-    return response.data;
-  },
+  async getSectorById(id: string): Promise<ServerResponse<Sector>> {
+    try {
+      const client = getApiClient();
+      const response = await client.get(`/api/catalog/sectores/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener sector por ID:', error);
+      throw error;
+    }
+  }
 
   // Crear nuevo sector
-  createSector: async (data: SectorFormData): Promise<ServerResponse<Sector>> => {
-    const response = await apiClient.post('/api/catalog/sectors', data);
-    return response.data;
-  },
+  async createSector(data: SectorFormData): Promise<ServerResponse<Sector>> {
+    try {
+      const client = getApiClient();
+      const response = await client.post('/api/catalog/sectores', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear sector:', error);
+      throw error;
+    }
+  }
 
   // Actualizar sector
-  updateSector: async (id: string, data: SectorUpdateData): Promise<ServerResponse<Sector>> => {
-    const response = await apiClient.put(`/api/catalog/sectors/${id}`, data);
-    return response.data;
-  },
+  async updateSector(id: string, data: SectorUpdateData): Promise<ServerResponse<Sector>> {
+    try {
+      const client = getApiClient();
+      const response = await client.put(`/api/catalog/sectores/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al actualizar sector:', error);
+      throw error;
+    }
+  }
 
   // Eliminar sector
-  deleteSector: async (id: string): Promise<ServerResponse<void>> => {
-    const response = await apiClient.delete(`/api/catalog/sectors/${id}`);
-    return response.data;
-  },
+  async deleteSector(id: string): Promise<ServerResponse<void>> {
+    try {
+      const client = getApiClient();
+      const response = await client.delete(`/api/catalog/sectores/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error al eliminar sector:', error);
+      throw error;
+    }
+  }
 
   // Obtener sectores activos
-  getActiveSectores: async (): Promise<ServerResponse<SectoresResponse | Sector[]>> => {
-    const response = await apiClient.get('/api/catalog/sectors', {
-      params: { 
-        estado: 'activo',
-        limit: 100 // Obtener hasta 100 sectores activos
-      }
-    });
-    return response.data;
-  },
+  async getActiveSectores(): Promise<ServerResponse<SectoresResponse | Sector[]>> {
+    try {
+      const client = getApiClient();
+      const response = await client.get('/api/catalog/sectores', {
+        params: { 
+          estado: 'activo',
+          limit: 100 // Obtener hasta 100 sectores activos
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener sectores activos:', error);
+      throw error;
+    }
+  }
 
   // Obtener estadísticas de sectores
-  getSectoresStats: async (): Promise<ServerResponse<SectoresStatsResponse>> => {
-    const response = await apiClient.get('/api/catalog/sectors/stats');
-    return response.data;
-  },
+  async getSectoresStatistics(): Promise<ServerResponse<SectoresStatsResponse>> {
+    try {
+      const client = getApiClient();
+      const response = await client.get('/api/catalog/sectores/statistics');
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener estadísticas de sectores:', error);
+      throw error;
+    }
+  }
 
   // Alternar estado de sector
-  toggleSectorStatus: async (id: string): Promise<ServerResponse<Sector>> => {
-    const response = await apiClient.patch(`/api/catalog/sectors/${id}/toggle-status`);
-    return response.data;
-  },
+  async toggleSectorStatus(id: string): Promise<ServerResponse<Sector>> {
+    try {
+      const client = getApiClient();
+      const response = await client.patch(`/api/catalog/sectores/${id}/toggle-status`);
+      return response.data;
+    } catch (error) {
+      console.error('Error al alternar estado de sector:', error);
+      throw error;
+    }
+  }
 
   // Obtener municipios disponibles para sectores (alternativo usando endpoint regular de municipios)
-  getMunicipiosDisponibles: async (): Promise<MunicipiosDisponiblesResponse> => {
+  async getMunicipiosDisponibles(): Promise<MunicipiosDisponiblesResponse> {
     try {
+      const client = getApiClient();
       // Intentar primero el endpoint específico de sectores
-      const response = await apiClient.get('/api/catalog/sectors/municipios');
+      const response = await client.get('/api/catalog/sectores/municipios');
       return response.data;
     } catch (error) {
       // Si falla, usar el endpoint regular de municipios como alternativa
-      console.warn('Endpoint /api/catalog/sectors/municipios no disponible, usando endpoint de municipios regular');
-      const response = await apiClient.get('/api/catalog/municipios');
-      
-      // Transformar la respuesta del endpoint regular al formato esperado
-      return {
-        success: response.data.success || true,
-        message: response.data.message || 'Municipios obtenidos exitosamente',
-        data: {
-          status: 'success',
-          data: response.data.data?.municipios || response.data.data || [],
-          total: response.data.data?.total || response.data.total || 0,
-          message: 'Municipios disponibles para sectores'
-        },
-        timestamp: response.data.timestamp || new Date().toISOString()
-      };
+      console.warn('Endpoint /api/catalog/sectores/municipios no disponible, usando endpoint de municipios regular');
+      try {
+        const client = getApiClient();
+        const response = await client.get('/api/catalog/municipios');
+        
+        // Transformar la respuesta del endpoint regular al formato esperado
+        return {
+          success: response.data.success || true,
+          message: response.data.message || 'Municipios obtenidos exitosamente',
+          data: {
+            status: 'success',
+            data: response.data.data?.municipios || response.data.data || [],
+            total: response.data.data?.total || response.data.total || 0,
+            message: 'Municipios disponibles para sectores'
+          },
+          timestamp: response.data.timestamp || new Date().toISOString()
+        };
+      } catch (fallbackError) {
+        console.error('Error al obtener municipios disponibles:', fallbackError);
+        throw fallbackError;
+      }
     }
-  },
+  }
 
   // Búsqueda avanzada con filtros
-  searchSectoresAdvanced: async (
+  async searchSectoresAdvanced(
     filters: {
       nombre?: string;
       activo?: boolean;
@@ -190,10 +250,19 @@ export const sectoresService = {
       page?: number;
       limit?: number;
     }
-  ): Promise<SectoresResponse> => {
-    const response = await apiClient.get('/api/catalog/sectors/advanced-search', {
-      params: filters
-    });
-    return response.data;
-  },
-};
+  ): Promise<SectoresResponse> {
+    try {
+      const client = getApiClient();
+      const response = await client.get('/api/catalog/sectores/advanced-search', {
+        params: filters
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error en búsqueda avanzada de sectores:', error);
+      throw error;
+    }
+  }
+}
+
+export const sectoresService = new SectoresService();
+export default sectoresService;

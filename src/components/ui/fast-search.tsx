@@ -11,7 +11,7 @@ const coreFunctionalities = [
   { id: 'dashboard', title: 'Dashboard', route: '/dashboard', icon: Home, keywords: ['inicio', 'principal', 'home'] },
   { id: 'surveys', title: 'Encuestas', route: '/surveys', icon: Settings, keywords: ['encuestas', 'formularios'] },
   { id: 'families', title: 'Familias', route: '/families', icon: User, keywords: ['familias', 'hogares'] },
-  { id: 'sectors', title: 'Sectores', route: '/sectors', icon: MapPin, keywords: ['sectores', 'zonas'] },
+
   { id: 'users', title: 'Usuarios', route: '/users', icon: User, keywords: ['usuarios', 'personas'] },
   { id: 'settings', title: 'Configuración', route: '/settings', icon: Settings, keywords: ['configuración', 'ajustes'] },
 ];

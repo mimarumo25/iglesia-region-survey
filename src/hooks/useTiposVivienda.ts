@@ -15,72 +15,56 @@ export const useTiposVivienda = () => {
 
   // ===== QUERIES =====
 
-  // Query para obtener todos los tipos de vivienda con paginación y ordenamiento
+  // Query unificada para tipos de vivienda con parámetro de búsqueda opcional
   const useTiposViviendaQuery = (
+    searchTerm?: string,
     page: number = 1,
     limit: number = 10,
     sortBy: string = 'nombre',
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ) => {
     return useQuery<ServerResponse<TiposViviendaResponse>, Error>({
-      queryKey: ['tiposVivienda', { page, limit, sortBy, sortOrder }],
-      queryFn: () => tiposViviendaService.getTiposVivienda(page, limit, sortBy, sortOrder),
-      keepPreviousData: true,
-      onError: (error: any) => {
-        console.error('Error loading tipos de vivienda:', error);
-        toast({
-          title: "Error",
-          description: "Error al cargar los tipos de vivienda",
-          variant: "destructive",
-        });
+      queryKey: ['tiposVivienda', { searchTerm, page, limit, sortBy, sortOrder }],
+      queryFn: () => {
+        if (searchTerm && searchTerm.trim()) {
+          return tiposViviendaService.searchTiposVivienda(searchTerm.trim(), page, limit, sortBy, sortOrder);
+        }
+        return tiposViviendaService.getTiposVivienda(page, limit, sortBy, sortOrder);
       },
+      placeholderData: (previousData) => previousData,
     });
   };
 
-  // Query para buscar tipos de vivienda
-  const useSearchTiposViviendaQuery = (
-    searchTerm: string,
-    page: number = 1,
-    limit: number = 10,
-    sortBy: string = 'nombre',
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ) => {
-    return useQuery<ServerResponse<TiposViviendaResponse>, Error>({
-      queryKey: ['tiposVivienda', { search: searchTerm, page, limit, sortBy, sortOrder }],
-      queryFn: () => tiposViviendaService.searchTiposVivienda(searchTerm, page, limit, sortBy, sortOrder),
-      enabled: !!searchTerm, // Solo se ejecuta si hay un searchTerm
-      keepPreviousData: true,
-      onError: (error: any) => {
-        console.error('Error searching tipos de vivienda:', error);
-        toast({
-          title: "Error",
-          description: "Error al buscar tipos de vivienda",
-          variant: "destructive",
-        });
+  // Función helper para paginación del lado del cliente
+  const paginateClientSide = (items: TipoVivienda[], page: number, limit: number) => {
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedItems = items.slice(startIndex, endIndex);
+    
+    const totalPages = Math.ceil(items.length / limit);
+    const currentPage = Math.min(page, Math.max(1, totalPages));
+    
+    return {
+      items: paginatedItems,
+      pagination: {
+        currentPage,
+        totalPages,
+        totalCount: items.length,
+        hasNext: currentPage < totalPages,
+        hasPrev: currentPage > 1,
       },
-    });
+    };
   };
 
-  // Query para obtener tipos de vivienda activos
-  const useTiposViviendaActivosQuery = (
-    page: number = 1,
-    limit: number = 10,
-    sortBy: string = 'nombre',
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ) => {
-    return useQuery<ServerResponse<TiposViviendaResponse>, Error>({
-      queryKey: ['tiposVivienda', 'activos', { page, limit, sortBy, sortOrder }],
-      queryFn: () => tiposViviendaService.getTiposViviendaActivos(page, limit, sortBy, sortOrder),
-      keepPreviousData: true,
-      onError: (error: any) => {
-        console.error('Error loading active tipos de vivienda:', error);
-        toast({
-          title: "Error",
-          description: "Error al cargar los tipos de vivienda activos",
-          variant: "destructive",
-        });
-      },
-    });
+  // Función helper para filtrar por búsqueda del lado del cliente
+  const filterBySearch = (items: TipoVivienda[], searchTerm: string): TipoVivienda[] => {
+    if (!searchTerm || !searchTerm.trim()) return items;
+    
+    const term = searchTerm.toLowerCase().trim();
+    return items.filter((tipo) => 
+      tipo.nombre.toLowerCase().includes(term) ||
+      (tipo.descripcion && tipo.descripcion.toLowerCase().includes(term))
+    );
   };
 
   // Query para obtener un tipo de vivienda por ID
@@ -89,14 +73,6 @@ export const useTiposVivienda = () => {
       queryKey: ['tipoVivienda', id],
       queryFn: () => tiposViviendaService.getTipoViviendaById(id),
       enabled: !!id, // Solo se ejecuta si hay un ID
-      onError: (error: any) => {
-        console.error('Error loading tipo de vivienda by ID:', error);
-        toast({
-          title: "Error",
-          description: error.response?.data?.message || "Error al cargar el tipo de vivienda",
-          variant: "destructive",
-        });
-      },
     });
   };
 
@@ -107,7 +83,7 @@ export const useTiposVivienda = () => {
     return useMutation<ServerResponse<TipoVivienda>, Error, TipoViviendaCreate>({
       mutationFn: tiposViviendaService.createTipoVivienda,
       onSuccess: () => {
-        queryClient.invalidateQueries(['tiposVivienda']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['tiposVivienda'] });
         toast({
           title: "Éxito",
           description: "Tipo de vivienda creado correctamente",
@@ -129,7 +105,7 @@ export const useTiposVivienda = () => {
     return useMutation<ServerResponse<TipoVivienda>, Error, { id: string; data: TipoViviendaUpdate }>({
       mutationFn: ({ id, data }) => tiposViviendaService.updateTipoVivienda(id, data),
       onSuccess: () => {
-        queryClient.invalidateQueries(['tiposVivienda']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['tiposVivienda'] });
         toast({
           title: "Éxito",
           description: "Tipo de vivienda actualizado correctamente",
@@ -151,7 +127,7 @@ export const useTiposVivienda = () => {
     return useMutation<void, Error, string>({
       mutationFn: tiposViviendaService.deleteTipoVivienda,
       onSuccess: () => {
-        queryClient.invalidateQueries(['tiposVivienda']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['tiposVivienda'] });
         toast({
           title: "Éxito",
           description: "Tipo de vivienda eliminado correctamente",
@@ -170,9 +146,9 @@ export const useTiposVivienda = () => {
 
   return {
     useTiposViviendaQuery,
-    useSearchTiposViviendaQuery,
-    useTiposViviendaActivosQuery,
     useTipoViviendaByIdQuery,
+    paginateClientSide,
+    filterBySearch,
     useCreateTipoViviendaMutation,
     useUpdateTipoViviendaMutation,
     useDeleteTipoViviendaMutation,

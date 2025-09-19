@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ConfigurationTable, TableColumn, TableAction, PaginationData } from '@/components/ui/configuration-table';
+import { ResponsiveTable, ResponsiveTableColumn } from '@/components/ui/responsive-table';
 import { ConfigModal, ConfigFormField, useConfigModal } from "@/components/ui/config-modal";
 import { useMunicipios } from "@/hooks/useMunicipios";
 import { useDepartamentos } from "@/hooks/useDepartamentos";
@@ -27,6 +27,7 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  FileText,
 } from "lucide-react";
 
 const MunicipiosPage = () => {
@@ -40,7 +41,7 @@ const MunicipiosPage = () => {
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Queries de React Query
+  // Queries de React Query - Ahora con query unificado
   const { data: municipiosResponse, isLoading: municipiosLoading, refetch: refetchMunicipios } = municipiosHook.useMunicipiosQuery(page, limit, sortBy, sortOrder, searchTerm);
   const { data: departamentosResponse, isLoading: departamentosLoading } = departamentosHook.useActiveDepartamentosQuery();
 
@@ -152,11 +153,20 @@ const MunicipiosPage = () => {
     openDeleteDialog();
   };
 
-  // Manejo de búsqueda
+  // Manejo de búsqueda - Ahora en tiempo real
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    // La búsqueda ya se ejecuta automáticamente por el cambio en searchTerm
+  };
+
+  const handleSearchTermChange = (value: string) => {
+    setSearchTerm(value);
     setPage(1); // Resetear paginación al buscar
-    // searchTerm ya está actualizado por el onChange del Input
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setPage(1);
   };
 
   // Manejo de paginación
@@ -171,193 +181,231 @@ const MunicipiosPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl ">
-      {/* Header con diseño mejorado */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 ">
-        <div className="">
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <Building2 className="w-8 h-8 text-muted-foreground " />
+    <div className="container mx-auto p-3 sm:p-6 max-w-7xl">
+      {/* Header optimizado para móvil */}
+      <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="text-center sm:text-left">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center justify-center sm:justify-start gap-3">
+            <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
             Gestión de Municipios
           </h1>
-          <p className="text-muted-foreground mt-2">Administra los municipios para encuestas</p>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">Administra los municipios para encuestas</p>
         </div>
-        <div className="flex gap-2 ">
+        <div className="flex flex-col sm:flex-row gap-2 w-full">
           <Button 
             variant="outline" 
             onClick={() => refetchMunicipios()}
             disabled={loading}
-            className=""
+            className="w-full sm:w-auto"
           >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? '' : ''}`} />
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Actualizar
           </Button>
-          <Button 
+          {/*<Button 
             onClick={handleOpenCreateDialog}
-            className=""
+            className="w-full sm:w-auto"
           >
-            <Plus className="w-4 h-4 mr-2" />
+           <Plus className="w-4 h-4 mr-2" />
             Nuevo Municipio
-          </Button>
+          </Button>*/}
         </div>
       </div>
 
-      {/* Búsqueda con diseño mejorado */}
-      <Card className="mb-6  ">
-        <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="flex gap-4">
+      {/* Búsqueda optimizada para móvil */}
+      <Card className="mb-4 sm:mb-6">
+        <CardContent className="p-4 sm:pt-6">
+          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <Input
-              placeholder="Buscar por nombre o código DANE..."
+              placeholder="Buscar por nombre, código DANE o departamento..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 border-input-border focus:ring-primary"
+              onChange={(e) => handleSearchTermChange(e.target.value)}
+              className="flex-1 text-base"
             />
-            <Button 
-              type="submit" 
-              variant="outline"
-              className=""
-            >
-              <Search className="w-4 h-4 mr-2" />
-              Buscar
-            </Button>
-            {searchTerm && (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => {
-                  setSearchTerm('');
-                  setPage(1); // Resetear paginación
-                }}
-                className=""
+            <div className="flex gap-2">
+              <Button 
+                type="submit" 
+                variant="outline"
+                className="flex-1 sm:flex-initial"
               >
-                Limpiar
+                <Search className="w-4 h-4 mr-2" />
+                Buscar
               </Button>
-            )}
+              {searchTerm && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleClearSearch}
+                  className="flex-1 sm:flex-initial"
+                >
+                  Limpiar
+                </Button>
+              )}
+            </div>
           </form>
         </CardContent>
       </Card>
 
-      {/* Estadísticas con diseño mejorado */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <Card className="  ">
+      {/* Estadísticas responsivas para móvil */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Municipios</p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalCount}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Total Municipios</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground">{pagination.totalCount}</p>
               </div>
-              <Building2 className="w-8 h-8 text-muted-foreground opacity-70 " />
+              <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground opacity-70" />
             </div>
           </CardContent>
         </Card>
         
-        <Card className="  ">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Páginas</p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalPages}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Páginas</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground">{pagination.totalPages}</p>
               </div>
-              <Building2 className="w-8 h-8 text-secondary opacity-70 " />
+              <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-secondary opacity-70" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tabla de municipios con diseño mejorado */}
-      <Card className=" ">
-        <CardHeader className="">
-          <CardTitle className="flex items-center gap-2 text-foreground">
-            <Building2 className="w-5 h-5" />
-            Listado de Municipios
-          </CardTitle>
+      {/* Tabla de municipios responsiva */}
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <CardTitle className="text-center sm:text-left flex items-center gap-2 text-base sm:text-lg">
+              <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
+              Listado de Municipios
+            </CardTitle>
+            <div className="text-center sm:text-right">
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Página {pagination.page} de {pagination.totalPages}
+              </p>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-8 h-8 text-muted-foreground" />
-              <span className="ml-2 text-muted-foreground">Cargando municipios...</span>
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 text-muted-foreground animate-spin mb-3" />
+              <span className="text-sm text-muted-foreground">Cargando municipios...</span>
             </div>
           ) : municipios.length === 0 ? (
-            <div className="text-center py-8">
-              <Building2 className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4 " />
-              <p className="text-muted-foreground">No se encontraron municipios</p>
+            <div className="text-center py-12 px-4">
+              <Building2 className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground/50 mx-auto mb-4" />
+              <p className="text-sm sm:text-base text-muted-foreground mb-2">No se encontraron municipios</p>
               {searchTerm && (
-                <p className="text-sm text-muted-foreground/70">
+                <p className="text-xs sm:text-sm text-muted-foreground/70">
                   Intenta con otros términos de búsqueda
                 </p>
               )}
             </div>
           ) : (
-            <ConfigurationTable
-              data={municipios}
-              columns={[
-                {
-                  key: 'id_municipio',
-                  label: 'ID',
-                  render: (value: any) => <span className="font-medium text-foreground">{value}</span>
-                },
-                {
-                  key: 'nombre_municipio',
-                  label: 'Nombre',
-                  render: (value: any) => (
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium">{value}</span>
-                    </div>
-                  )
-                },
-                {
-                  key: 'codigo_dane',
-                  label: 'Código DANE',
-                  render: (value: any) => (
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{value}</span>
-                    </div>
-                  )
-                },
-                {
-                  key: 'departamento',
-                  label: 'Departamento',
-                  render: (value: any) => (
-                    <Badge variant="secondary">
-                      {value?.nombre || 'N/A'}
-                    </Badge>
-                  )
-                },
-                {
-                  key: 'created_at',
-                  label: 'Fecha Creación',
-                  render: (value: any) => (
-                    <Badge variant="outline">
-                      {formatDate(value)}
-                    </Badge>
-                  )
-                }
-              ]}
-              actions={[
-                {
-                  type: 'edit' as const,
-                  label: 'Editar',
-                  icon: <Edit2 className="w-4 h-4" />,
-                  color: 'default' as const,
-                  onClick: (item: any) => handleOpenEditDialog(item)
-                },
-                {
-                  type: 'delete' as const,
-                  label: 'Eliminar',
-                  icon: <Trash2 className="w-4 h-4" />,
-                  color: 'destructive' as const,
-                  onClick: (item: any) => handleOpenDeleteDialog(item)
-                }
-              ]}
-              pagination={{
-                currentPage: pagination.currentPage,
-                totalPages: pagination.totalPages,
-                totalItems: pagination.totalCount || 0,
-                itemsPerPage: limit
-              }}
-              onPageChange={handlePageChange}
-            />
+            <>
+              <ResponsiveTable
+                data={municipios}
+                columns={[
+                  {
+                    key: 'id_municipio',
+                    label: 'ID',
+                    priority: 'medium',
+                    render: (value: any) => <span className="font-medium text-foreground">{value}</span>
+                  },
+                  {
+                    key: 'nombre_municipio',
+                    label: 'Nombre',
+                    priority: 'high',
+                    render: (value: any) => (
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium">{value}</span>
+                      </div>
+                    )
+                  },
+                  {
+                    key: 'codigo_dane',
+                    label: 'Código DANE',
+                    priority: 'medium',
+                    render: (value: any) => (
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{value}</span>
+                      </div>
+                    )
+                  },
+                  {
+                    key: 'departamento',
+                    label: 'Departamento',
+                    priority: 'high',
+                    render: (value: any) => (
+                      <Badge variant="secondary">
+                        {value?.nombre || 'N/A'}
+                      </Badge>
+                    )
+                  },
+                  {
+                    key: 'created_at',
+                    label: 'Fecha Creación',
+                    priority: 'low',
+                    render: (value: any) => (
+                      <Badge variant="outline">
+                        {formatDate(value)}
+                      </Badge>
+                    )
+                  }
+                ]}
+                actions={[
+                  {
+                    label: 'Editar',
+                    icon: <Edit2 className="w-4 h-4" />,
+                    variant: 'default' as const,
+                    onClick: (item: any) => handleOpenEditDialog(item)
+                  },
+                  {
+                    label: 'Eliminar',
+                    icon: <Trash2 className="w-4 h-4" />,
+                    variant: 'destructive' as const,
+                    onClick: (item: any) => handleOpenDeleteDialog(item)
+                  }
+                ]}
+              />
+              
+              {/* Paginación responsiva */}
+              {municipios.length > 0 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 p-4 border-t">
+                  <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+                    Mostrando {municipios.length} de {pagination.totalCount} municipios
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage - 1)}
+                      disabled={!pagination.hasPrev || loading}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    
+                    <span className="text-xs sm:text-sm text-muted-foreground min-w-[100px] text-center">
+                      Página {pagination.currentPage} de {pagination.totalPages}
+                    </span>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage + 1)}
+                      disabled={!pagination.hasNext || loading}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

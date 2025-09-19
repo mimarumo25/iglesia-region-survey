@@ -1,59 +1,110 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { veredasService } from '@/services/veredas';
+import { useMunicipios } from '@/hooks/useMunicipios';
 import {
   Vereda,
   VeredaCreate,
   VeredaUpdate,
   VeredasResponse,
 } from '@/types/veredas';
-import { useMunicipios } from '@/hooks/useMunicipios'; // Importar el hook useMunicipios
+
+// ===== FUNCIONES DE PAGINACIÓN Y FILTRADO CLIENT-SIDE =====
+export const paginateClientSide = <T>(
+  data: T[],
+  page: number,
+  limit: number
+) => {
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedData = data.slice(startIndex, endIndex);
+  
+  return {
+    data: paginatedData,
+    total: data.length,
+    page,
+    limit,
+    totalPages: Math.ceil(data.length / limit),
+  };
+};
+
+export const filterBySearch = (
+  veredas: Vereda[],
+  searchTerm: string
+): Vereda[] => {
+  if (!searchTerm.trim()) return veredas;
+  
+  const term = searchTerm.toLowerCase().trim();
+  return veredas.filter(
+    (vereda) =>
+      vereda.nombre?.toLowerCase().includes(term) ||
+      vereda.codigo_vereda?.toLowerCase().includes(term) ||
+      (vereda.municipio?.nombre?.toLowerCase().includes(term)) ||
+      vereda.id_vereda?.toString().includes(term)
+  );
+};
+
+export const filterByMunicipio = (
+  veredas: Vereda[],
+  municipioId: string
+): Vereda[] => {
+  if (!municipioId || municipioId === 'all') return veredas;
+  
+  const id = parseInt(municipioId);
+  if (isNaN(id)) return veredas;
+  
+  return veredas.filter(vereda => vereda.id_municipio === id);
+};
 
 export const useVeredas = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const municipiosHook = useMunicipios(); // Obtener el hook de municipios
+  const municipiosHook = useMunicipios();
 
-  // ===== QUERIES =====
+  // ===== QUERY UNIFICADA PARA VEREDAS =====
+  const useVeredasQuery = (searchTerm: string = '', municipioFilter: string = '', page: number = 1, limit: number = 10) => {
+    return useQuery<VeredasResponse, Error>({
+      queryKey: ['veredas', { searchTerm, municipioFilter, page, limit }],
+      queryFn: async () => {
+        // Obtener todas las veredas desde el servidor
+        const response = await veredasService.getVeredas(1, 1000, 'id_vereda', 'ASC');
+        
+        let filteredVeredas = response.data || [];
+        
+        // Aplicar filtro por municipio primero
+        if (municipioFilter && municipioFilter !== 'all') {
+          filteredVeredas = filterByMunicipio(filteredVeredas, municipioFilter);
+        }
+        
+        // Aplicar filtro de búsqueda
+        if (searchTerm.trim()) {
+          filteredVeredas = filterBySearch(filteredVeredas, searchTerm);
+        }
+        
+        // Aplicar paginación client-side
+        const paginatedResult = paginateClientSide(filteredVeredas, page, limit);
+        
+        return {
+          data: paginatedResult.data,
+          page: paginatedResult.page,
+          limit: paginatedResult.limit,
+          total: paginatedResult.total,
+          totalPages: paginatedResult.totalPages,
+        };
+      },
+      placeholderData: (previousData) => previousData,
+    });
+  };
 
-  // Query para obtener municipios (reutilizando el hook de municipios)
+  // Query para municipios (reutilizando el hook existente)
   const useMunicipiosQuery = municipiosHook.useAllMunicipiosQuery;
-
-  // Query para obtener veredas con paginación
-  const useVeredasQuery = (
-    page: number = 1,
-    limit: number = 10,
-    sortBy: string = 'id_vereda',
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ) => {
-    return useQuery<VeredasResponse, Error>({
-      queryKey: ['veredas', { page, limit, sortBy, sortOrder }],
-      queryFn: () => veredasService.getVeredas(page, limit, sortBy, sortOrder),
-    });
-  };
-
-  const useSearchVeredasQuery = (searchTerm: string) => {
-    return useQuery<VeredasResponse, Error>({
-      queryKey: ['veredas', { searchTerm }],
-      queryFn: () => veredasService.searchVeredas(searchTerm),
-      enabled: !!searchTerm, // Solo se ejecuta si hay un searchTerm
-    });
-  };
-
-  const useVeredasByMunicipioQuery = (municipioId: number) => {
-    return useQuery<VeredasResponse, Error>({
-      queryKey: ['veredas', { municipioId }],
-      queryFn: () => veredasService.getVeredasByMunicipio(municipioId),
-      enabled: !!municipioId, // Solo se ejecuta si hay un municipioId
-    });
-  };
 
   // ===== MUTATIONS =====
   const useCreateVeredaMutation = () => {
     return useMutation<Vereda, Error, VeredaCreate>({
       mutationFn: veredasService.createVereda,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['veredas'] }); // Invalida y refetch las veredas
+        queryClient.invalidateQueries({ queryKey: ['veredas'] });
         toast({
           title: "Éxito",
           description: "Vereda creada correctamente",
@@ -74,7 +125,7 @@ export const useVeredas = () => {
     return useMutation<Vereda, Error, { id: number; data: VeredaUpdate }>({
       mutationFn: ({ id, data }) => veredasService.updateVereda(id, data),
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['veredas'] }); // Invalida y refetch las veredas
+        queryClient.invalidateQueries({ queryKey: ['veredas'] });
         toast({
           title: "Éxito",
           description: "Vereda actualizada correctamente",
@@ -95,7 +146,7 @@ export const useVeredas = () => {
     return useMutation<void, Error, number>({
       mutationFn: veredasService.deleteVereda,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['veredas'] }); // Invalida y refetch las veredas
+        queryClient.invalidateQueries({ queryKey: ['veredas'] });
         toast({
           title: "Éxito",
           description: "Vereda eliminada correctamente",
@@ -113,10 +164,8 @@ export const useVeredas = () => {
   };
 
   return {
-    useMunicipiosQuery,
     useVeredasQuery,
-    useSearchVeredasQuery,
-    useVeredasByMunicipioQuery,
+    useMunicipiosQuery,
     useCreateVeredaMutation,
     useUpdateVeredaMutation,
     useDeleteVeredaMutation,

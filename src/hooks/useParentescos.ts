@@ -9,54 +9,77 @@ import {
   ServerResponse
 } from '@/types/parentescos';
 
+// Función para paginar datos del lado del cliente
+const paginateClientSide = <T>(data: T[], page: number, limit: number) => {
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedData = data.slice(startIndex, endIndex);
+  
+  return {
+    data: paginatedData,
+    pagination: {
+      currentPage: page,
+      totalPages: Math.ceil(data.length / limit),
+      totalCount: data.length,
+      hasNext: page < Math.ceil(data.length / limit),
+      hasPrev: page > 1,
+      limit: limit
+    }
+  };
+};
+
+// Función para filtrar parentescos por término de búsqueda
+const filterBySearch = (parentescos: Parentesco[], searchTerm: string): Parentesco[] => {
+  if (!searchTerm || !searchTerm.trim()) {
+    return parentescos;
+  }
+  
+  const term = searchTerm.toLowerCase().trim();
+  return parentescos.filter(parentesco => 
+    parentesco.nombre?.toLowerCase().includes(term) ||
+    parentesco.descripcion?.toLowerCase().includes(term)
+  );
+};
+
 export const useParentescos = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   // ===== QUERIES =====
 
-  // Query para obtener todos los parentescos con paginación y filtros
+  // Query unificada para obtener parentescos con paginación y búsqueda
   const useParentescosQuery = (
     page: number = 1,
     limit: number = 10,
-    includeInactive: boolean = false
+    includeInactive: boolean = false,
+    searchTerm: string = ''
   ) => {
-    return useQuery<Parentesco[], Error>({
-      queryKey: ['parentescos', { page, limit, includeInactive }],
-      queryFn: () => parentescosService.getParentescos(includeInactive, limit, page),
-      keepPreviousData: true,
-      onError: (error: any) => {
-        console.error('Error loading parentescos:', error);
-        toast({
-          title: "Error",
-          description: error.response?.data?.message || "Error al cargar los parentescos",
-          variant: "destructive",
-        });
+    return useQuery({
+      queryKey: ['parentescos', { page, limit, includeInactive, searchTerm }],
+      queryFn: async () => {
+        // Obtener todos los datos sin paginación del backend
+        const response = await parentescosService.getParentescos(includeInactive, 1000, 1);
+        const allParentescos = Array.isArray(response) ? response : [];
+        
+        // Aplicar filtro de búsqueda
+        const filteredParentescos = filterBySearch(allParentescos, searchTerm);
+        
+        // Aplicar paginación client-side
+        return paginateClientSide(filteredParentescos, page, limit);
       },
+      placeholderData: (previousData) => previousData,
     });
   };
 
-  // Query para buscar parentescos por término de búsqueda
+  // Query simplificada para búsqueda - reutiliza la query principal
   const useSearchParentescosQuery = (
     searchTerm: string,
     page: number = 1,
     limit: number = 10,
     includeInactive: boolean = false
   ) => {
-    return useQuery<ServerResponse<ParentescosResponse>, Error>({
-      queryKey: ['parentescos', { search: searchTerm, page, limit, includeInactive }],
-      queryFn: () => parentescosService.searchParentescos(searchTerm, includeInactive, limit, page),
-      enabled: !!searchTerm, // Solo se ejecuta si hay un searchTerm
-      keepPreviousData: true,
-      onError: (error: any) => {
-        console.error('Error searching parentescos:', error);
-        toast({
-          title: "Error",
-          description: error.response?.data?.message || "Error al buscar parentescos",
-          variant: "destructive",
-        });
-      },
-    });
+    // Reutilizar la query principal con el término de búsqueda
+    return useParentescosQuery(page, limit, includeInactive, searchTerm);
   };
 
   // Query para obtener parentescos activos solamente
@@ -64,35 +87,22 @@ export const useParentescos = () => {
     page: number = 1,
     limit: number = 10
   ) => {
-    return useQuery<ServerResponse<ParentescosResponse>, Error>({
+    return useQuery({
       queryKey: ['parentescos', 'activos', { page, limit }],
-      queryFn: () => parentescosService.getParentescosActivos(limit, page),
-      keepPreviousData: true,
-      onError: (error: any) => {
-        console.error('Error loading active parentescos:', error);
-        toast({
-          title: "Error",
-          description: error.response?.data?.message || "Error al cargar los parentescos activos",
-          variant: "destructive",
-        });
+      queryFn: async () => {
+        const response = await parentescosService.getParentescosActivos(limit, page);
+        return response;
       },
+      placeholderData: (previousData) => previousData,
     });
   };
 
   // Query para obtener un parentesco por ID
   const useParentescoByIdQuery = (id: string) => {
-    return useQuery<ServerResponse<Parentesco>, Error>({
+    return useQuery({
       queryKey: ['parentesco', id],
       queryFn: () => parentescosService.getParentescoById(id),
-      enabled: !!id, // Solo se ejecuta si hay un ID
-      onError: (error: any) => {
-        console.error('Error loading parentesco by ID:', error);
-        toast({
-          title: "Error",
-          description: error.response?.data?.message || "Error al cargar el parentesco",
-          variant: "destructive",
-        });
-      },
+      enabled: !!id,
     });
   };
 
@@ -103,7 +113,7 @@ export const useParentescos = () => {
     return useMutation<ServerResponse<Parentesco>, Error, ParentescoCreate>({
       mutationFn: parentescosService.createParentesco,
       onSuccess: () => {
-        queryClient.invalidateQueries(['parentescos']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['parentescos'] });
         toast({
           title: "Éxito",
           description: "Parentesco creado correctamente",
@@ -125,7 +135,7 @@ export const useParentescos = () => {
     return useMutation<ServerResponse<Parentesco>, Error, { id: string; data: ParentescoUpdate }>({
       mutationFn: ({ id, data }) => parentescosService.updateParentesco(id, data),
       onSuccess: () => {
-        queryClient.invalidateQueries(['parentescos']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['parentescos'] });
         toast({
           title: "Éxito",
           description: "Parentesco actualizado correctamente",
@@ -147,7 +157,7 @@ export const useParentescos = () => {
     return useMutation<void, Error, string>({
       mutationFn: parentescosService.deleteParentesco,
       onSuccess: () => {
-        queryClient.invalidateQueries(['parentescos']); // Invalida y refetch los datos de la lista
+        queryClient.invalidateQueries({ queryKey: ['parentescos'] });
         toast({
           title: "Éxito",
           description: "Parentesco eliminado correctamente",

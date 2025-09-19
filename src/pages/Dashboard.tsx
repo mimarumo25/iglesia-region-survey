@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ParishButton } from "@/components/ui/parish-button";
 import { ParishCard } from "@/components/ui/parish-card";
 import { useNavigate } from "react-router-dom";
-import { FileText, Plus, Sparkles } from "lucide-react";
+import { FileText, Plus } from "lucide-react";
 
 const DashboardMain = () => {
   const navigate = useNavigate();
@@ -108,51 +108,6 @@ const DashboardMain = () => {
           <HousingTypes housingTypes={housingTypes} />
         </div>
       </ParishCard>
-      
-      {/* Ejemplo adicional de variantes temáticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <ParishCard variant="elevated" themeBackground="secondary" glowEffect className="text-secondary-foreground">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5" />
-              Fondo Secundario
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm opacity-90">
-              Tarjeta con fondo temático secundario y efecto de brillo.
-            </p>
-          </CardContent>
-        </ParishCard>
-        
-        <ParishCard variant="interactive" themeBackground="subtle" hoverAnimation>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Fondo Sutil
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Tarjeta con gradiente sutil y animación de hover.
-            </p>
-          </CardContent>
-        </ParishCard>
-        
-        <ParishCard variant="gradient" themeBackground="default" className="card-enhanced">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Plus className="w-5 h-5" />
-              Fondo Default
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Tarjeta con fondo por defecto y patrón decorativo.
-            </p>
-          </CardContent>
-        </ParishCard>
-      </div>
     </div>
   );
 };

@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { LoadingSkeleton, SurveyFormSkeleton } from "@/components/ui/loading-skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, ChevronRight, Save, FileDown, Loader2, Send } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import SurveyHeader from "./survey/SurveyHeader";
 import StandardFormField from "./survey/StandardFormField";
 import FamilyGrid from "./survey/FamilyGrid";
@@ -300,71 +301,12 @@ const SurveyForm = () => {
     }
   };
 
-  // Función adicional para enviar desde localStorage
-  const handleSubmitFromStorage = async () => {
-    setIsSubmitting(true);
-    
-    try {
-      const response = await SurveySubmissionService.submitSurveyFromStorage('parish-survey-completed');
-      
-      if (response.success) {
-        // El storage ya fue limpiado automáticamente por submitSurveyFromStorage
-        toast({
-          title: "✅ Datos enviados",
-          description: response.message || "Los datos almacenados se enviaron correctamente.",
-          variant: "default"
-        });
-        
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
-      } else {
-        toast({
-          title: "❌ Error en el envío",
-          description: response.message || "No se pudieron enviar los datos.",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: "❌ Error inesperado", 
-        description: "Problema al procesar los datos almacenados.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleExportData = () => {
-    const surveyData = {
-      informacionGeneral: formData,
-      familyMembers: familyMembers,
-      deceasedMembers: deceasedMembers,
-      timestamp: new Date().toISOString(),
-      exported: true
-    };
-
-    const dataStr = JSON.stringify(surveyData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `encuesta-parroquial-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    toast({
-      title: "Datos exportados",
-      description: "Los datos se han descargado en formato JSON",
-    });
-  };
-
   if (!currentStageData) return null;
+
+  // Mostrar skeleton completo mientras cargan los datos de configuración
+  if (configurationData.isAnyLoading) {
+    return <SurveyFormSkeleton />;
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 lg:py-8 bg-background dark:bg-background min-h-screen">
@@ -376,26 +318,6 @@ const SurveyForm = () => {
         currentStage={currentStage}
         formStages={formStages}
       />
-
-      {/* Indicador de carga de servicios */}
-      {configurationData.isAnyLoading && (
-        <Card className="mb-6 border-warning/20 bg-warning/10 dark:bg-warning/10 dark:border-warning/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3 text-sm text-warning-foreground">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="font-medium">Cargando datos de configuración...</span>
-              <div className="flex items-center gap-2 text-xs">
-                {configurationData.sectoresLoading && <span className="bg-warning/20 text-warning-foreground px-2 py-1 rounded">Sectores</span>}
-                {configurationData.parroquiasLoading && <span className="bg-warning/20 text-warning-foreground px-2 py-1 rounded">Parroquias</span>}
-                {configurationData.municipiosLoading && <span className="bg-warning/20 text-warning-foreground px-2 py-1 rounded">Municipios</span>}
-                {configurationData.tiposViviendaLoading && <span className="bg-warning/20 text-warning-foreground px-2 py-1 rounded">Tipos de Vivienda</span>}
-                {configurationData.disposicionBasuraLoading && <span className="bg-warning/20 text-warning-foreground px-2 py-1 rounded">Disposición de Basura</span>}
-                {configurationData.aguasResidualesLoading && <span className="bg-warning/20 text-warning-foreground px-2 py-1 rounded">Aguas Residuales</span>}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Formulario actual con Tailwind CSS compatible con tema oscuro */}
       <Card className="shadow-lg border-border rounded-xl bg-card dark:bg-card dark:border-border">
@@ -446,8 +368,6 @@ const SurveyForm = () => {
         onPrevious={handlePrevious}
         onNext={handleNext}
         onSubmit={handleSubmit}
-        onExport={handleExportData}
-        onSubmitFromStorage={handleSubmitFromStorage}
       />
 
       {/* Storage debugger component was removed during cleanup */}

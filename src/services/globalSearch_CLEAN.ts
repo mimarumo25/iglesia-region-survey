@@ -109,7 +109,7 @@ export class GlobalSearchService {
           subtitle: sector.municipio?.nombre || 'Sin municipio',
           description: sector.descripcion,
           type: 'sector',
-          path: `/sectors`,
+          path: `/settings/sectores-config`,
           icon: 'MapPin',
           matchScore: totalScore,
           matchFields

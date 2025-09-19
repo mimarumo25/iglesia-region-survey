@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,65 +26,64 @@ import {
   ChevronRight,
   Eye,
   EyeOff,
+  X,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
 const TiposViviendaPage = () => {
-  const tiposViviendaHook = useTiposVivienda();
+  const { 
+    useTiposViviendaQuery, 
+    paginateClientSide, 
+    filterBySearch,
+    useCreateTipoViviendaMutation,
+    useUpdateTipoViviendaMutation,
+    useDeleteTipoViviendaMutation,
+  } = useTiposVivienda();
 
   // Estados para paginación y filtros
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [sortBy, setSortBy] = useState('nombre');
-  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
+  const [limit] = useState(50); // Límite alto para paginación del lado del cliente
+  const [sortBy] = useState('nombre');
+  const [sortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState('');
   const [activoOnly, setActivoOnly] = useState(false);
 
-  // Queries de React Query
-  const { data: tiposViviendaResponse, isLoading: tiposViviendaLoading, refetch: refetchTiposVivienda } = tiposViviendaHook.useTiposViviendaQuery(page, limit, sortBy, sortOrder);
-  const { data: searchResponse, isLoading: searchLoading } = tiposViviendaHook.useSearchTiposViviendaQuery(searchTerm, page, limit, sortBy, sortOrder);
-  const { data: activosResponse, isLoading: activosLoading } = tiposViviendaHook.useTiposViviendaActivosQuery(page, limit, sortBy, sortOrder);
+  // Query unificada con búsqueda opcional
+  const { data: tiposViviendaResponse, isLoading, refetch } = useTiposViviendaQuery(
+    searchTerm,
+    1, // Siempre página 1 porque paginamos del lado del cliente
+    limit,
+    sortBy,
+    sortOrder
+  );
 
-  // Mutaciones de React Query
-  const createMutation = tiposViviendaHook.useCreateTipoViviendaMutation();
-  const updateMutation = tiposViviendaHook.useUpdateTipoViviendaMutation();
-  const deleteMutation = tiposViviendaHook.useDeleteTipoViviendaMutation();
+  // Mutaciones
+  const createMutation = useCreateTipoViviendaMutation();
+  const updateMutation = useUpdateTipoViviendaMutation();
+  const deleteMutation = useDeleteTipoViviendaMutation();
 
-  let tiposVivienda: TipoVivienda[] = [];
-  let pagination = {
-    currentPage: 1,
-    totalPages: 1,
-    totalCount: 0,
-    hasNext: false,
-    hasPrev: false,
-  };
+  // Procesamiento de datos con filtros del lado del cliente
+  const { items: tiposVivienda, pagination } = useMemo(() => {
+    let allTipos: TipoVivienda[] = [];
 
-  // Determinar qué datos y paginación usar
-  if (activoOnly && activosResponse) {
-    const responseData = activosResponse as ServerResponse<TiposViviendaResponse>;
-    // Verificar que el status sea "success" en lugar de true
-    if (responseData.status === 'success') {
-      tiposVivienda = responseData?.data?.tiposVivienda || [];
-      pagination = responseData?.data?.pagination || pagination;
+    if (tiposViviendaResponse?.status === 'success') {
+      allTipos = tiposViviendaResponse.data?.tiposVivienda || [];
     }
-  } else if (searchTerm && searchResponse) {
-    const responseData = searchResponse as ServerResponse<TiposViviendaResponse>;
-    // Verificar que el status sea "success" en lugar de true
-    if (responseData.status === 'success') {
-      tiposVivienda = responseData?.data?.tiposVivienda || [];
-      pagination = responseData?.data?.pagination || pagination;
-    }
-  } else if (tiposViviendaResponse) {
-    const responseData = tiposViviendaResponse as ServerResponse<TiposViviendaResponse>;
-    // Verificar que el status sea "success" en lugar de true
-    if (responseData.status === 'success') {
-      tiposVivienda = responseData?.data?.tiposVivienda || [];
-      pagination = responseData?.data?.pagination || pagination;
-    }
-  }
 
-  const loading = tiposViviendaLoading || searchLoading || activosLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+    // Aplicar filtro de solo activos si está habilitado
+    if (activoOnly) {
+      allTipos = allTipos.filter(tipo => tipo.activo);
+    }
+
+    // Filtrar por búsqueda del lado del cliente (para búsquedas en tiempo real)
+    const filteredTipos = filterBySearch(allTipos, searchTerm);
+
+    // Paginar del lado del cliente
+    return paginateClientSide(filteredTipos, page, 10); // 10 items por página en la vista
+  }, [tiposViviendaResponse, searchTerm, activoOnly, page, filterBySearch, paginateClientSide]);
+
+  const loading = isLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios
   const {
@@ -175,14 +174,6 @@ const TiposViviendaPage = () => {
     openDeleteDialog();
   };
 
-  // Manejo de búsqueda
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1); // Resetear paginación al buscar
-    setActivoOnly(false); // Desactivar filtro de activos
-    // searchTerm ya está actualizado por el onChange del Input
-  };
-
   // Manejo de paginación
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -191,8 +182,14 @@ const TiposViviendaPage = () => {
   // Manejo del filtro de activos
   const handleActivoOnlyChange = (checked: boolean) => {
     setActivoOnly(checked);
-    setSearchTerm(''); // Limpiar búsqueda
     setPage(1); // Resetear paginación al cambiar filtro
+  };
+
+  // Limpiar búsqueda y filtros
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setActivoOnly(false);
+    setPage(1);
   };
 
   // Formatear fecha
@@ -215,7 +212,7 @@ const TiposViviendaPage = () => {
         <div className="flex gap-2 ">
           <Button 
             variant="outline" 
-            onClick={() => refetchTiposVivienda()}
+            onClick={() => refetch()}
             disabled={loading}
             className=""
           >
@@ -235,16 +232,30 @@ const TiposViviendaPage = () => {
       {/* Búsqueda y filtros con diseño mejorado */}
       <Card className="mb-6  ">
         <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="space-y-4">
+          <div className="space-y-4">
             <div className="flex flex-col md:flex-row gap-4 items-end">
-              {/* Búsqueda por texto */}
-              <div className="flex-1">
+              {/* Búsqueda por texto con X clear button */}
+              <div className="flex-1 relative">
                 <Input
                   placeholder="Buscar por nombre o descripción..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="border-input-border focus:ring-primary"
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setPage(1); // Resetear paginación al buscar
+                  }}
+                  className="border-input-border focus:ring-primary pr-10"
                 />
+                {searchTerm && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearSearch}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
               
               {/* Solo activos */}
@@ -256,34 +267,8 @@ const TiposViviendaPage = () => {
                 />
                 <Label htmlFor="activo-only">Solo Activos</Label>
               </div>
-
-              {/* Botones de acción */}
-              <div className="flex gap-2">
-                <Button 
-                  type="submit" 
-                  variant="outline"
-                  className=""
-                >
-                  <Search className="w-4 h-4 mr-2" />
-                  Buscar
-                </Button>
-                {(searchTerm || activoOnly) && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => {
-                      setSearchTerm('');
-                      setActivoOnly(false);
-                      setPage(1); // Resetear paginación
-                    }}
-                    className=""
-                  >
-                    Limpiar
-                  </Button>
-                )}
-              </div>
             </div>
-          </form>
+          </div>
         </CardContent>
       </Card>
 

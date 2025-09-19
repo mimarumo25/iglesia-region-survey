@@ -8,6 +8,10 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 // Importar interceptor de axios para configurar automáticamente las peticiones
 import '@/interceptors/axios'
 
+// Importar estilos globales
+import './index.css'
+import '@/config/dateFormat' // Configurar date-fns en español
+
 // Removed debug utilities import - file was cleaned up
 
 // Create a client with optimized settings for DOM stability

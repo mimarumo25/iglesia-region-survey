@@ -9,27 +9,73 @@ import {
 } from '@/types/parroquias';
 import { useToast } from '@/hooks/use-toast';
 
+// Función para paginar datos del lado del cliente
+const paginateClientSide = <T>(data: T[], page: number, limit: number) => {
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedData = data.slice(startIndex, endIndex);
+  
+  return {
+    data: paginatedData,
+    pagination: {
+      currentPage: page,
+      totalPages: Math.ceil(data.length / limit),
+      totalCount: data.length,
+      hasNext: page < Math.ceil(data.length / limit),
+      hasPrev: page > 1,
+      limit: limit
+    }
+  };
+};
+
+// Función para filtrar parroquias por término de búsqueda
+const filterBySearch = (parroquias: Parroquia[], searchTerm: string): Parroquia[] => {
+  if (!searchTerm || !searchTerm.trim()) {
+    return parroquias;
+  }
+  
+  const term = searchTerm.toLowerCase().trim();
+  return parroquias.filter(parroquia => 
+    parroquia.nombre?.toLowerCase().includes(term) ||
+    parroquia.direccion?.toLowerCase().includes(term) ||
+    parroquia.telefono?.toLowerCase().includes(term) ||
+    parroquia.email?.toLowerCase().includes(term) ||
+    parroquia.municipio?.nombre_municipio?.toLowerCase().includes(term)
+  );
+};
+
 export const useParroquias = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   // ===== QUERIES =====
 
-  // Query para obtener todas las parroquias con paginación
+  // Query unificada para obtener parroquias con paginación y búsqueda
   const useParroquiasQuery = (
     page: number = 1,
     limit: number = 10,
     sortBy: string = 'id_parroquia',
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
+    sortOrder: 'ASC' | 'DESC' = 'ASC',
+    searchTerm: string = ''
   ) => {
     return useQuery({
-      queryKey: ['parroquias', { page, limit, sortBy, sortOrder }],
-      queryFn: () => parroquiasService.getParroquias(page, limit, sortBy, sortOrder),
+      queryKey: ['parroquias', { page, limit, sortBy, sortOrder, searchTerm }],
+      queryFn: async () => {
+        // Obtener todos los datos sin paginación del backend
+        const response = await parroquiasService.getParroquias(1, 1000, sortBy, sortOrder);
+        const allParroquias = response?.data?.parroquias || [];
+        
+        // Aplicar filtro de búsqueda
+        const filteredParroquias = filterBySearch(allParroquias, searchTerm);
+        
+        // Aplicar paginación client-side
+        return paginateClientSide(filteredParroquias, page, limit);
+      },
       placeholderData: (previousData) => previousData,
     });
   };
 
-  // Query para buscar parroquias
+  // Query simplificada para búsqueda - reutiliza la query principal
   const useSearchParroquiasQuery = (
     searchTerm: string,
     page: number = 1,
@@ -37,12 +83,8 @@ export const useParroquias = () => {
     sortBy: string = 'nombre',
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ) => {
-    return useQuery({
-      queryKey: ['parroquias', { search: searchTerm, page, limit, sortBy, sortOrder }],
-      queryFn: () => parroquiasService.searchParroquias(searchTerm, page, limit, sortBy, sortOrder),
-      enabled: !!searchTerm.trim(),
-      placeholderData: (previousData) => previousData,
-    });
+    // Reutilizar la query principal con el término de búsqueda
+    return useParroquiasQuery(page, limit, sortBy, sortOrder, searchTerm);
   };
 
   // Query para obtener una parroquia por ID

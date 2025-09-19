@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ConfigurationTable, TableColumn, TableAction, PaginationData } from '@/components/ui/configuration-table';
+import { ResponsiveTable, ResponsiveTableColumn } from '@/components/ui/responsive-table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
 import { useAguasResiduales } from '@/hooks/useAguasResiduales';
 import { AguaResidual, AguaResidualFormData } from '@/types/aguas-residuales';
@@ -17,6 +17,7 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  X,
 } from 'lucide-react';
 
 const AguasResidualesPage = () => {
@@ -29,23 +30,19 @@ const AguasResidualesPage = () => {
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Queries de React Query
-  const { data: aguasResidualesResponse, isLoading: aguasResidualesLoading, refetch: refetchAguasResiduales } = aguasResidualesHook.useAguasResidualesQuery(page, limit, sortBy, sortOrder);
-  const { data: searchResponse, isLoading: searchLoading } = aguasResidualesHook.useSearchAguasResidualesQuery(searchTerm, page, limit, sortBy, sortOrder);
+  // Queries de React Query - PATRÓN UNIFICADO
+  const { data: aguasResidualesResponse, isLoading: aguasResidualesLoading, refetch: refetchAguasResiduales } = aguasResidualesHook.useAguasResidualesQuery(searchTerm, page, limit, sortBy, sortOrder);
 
   // Mutaciones de React Query
   const createMutation = aguasResidualesHook.useCreateAguaResidualMutation();
   const updateMutation = aguasResidualesHook.useUpdateAguaResidualMutation();
   const deleteMutation = aguasResidualesHook.useDeleteAguaResidualMutation();
 
-  const aguasResiduales = searchTerm 
-    ? ((searchResponse as any)?.data?.tiposAguasResiduales || []) 
-    : ((aguasResidualesResponse as any)?.data?.tiposAguasResiduales || []);
-  const pagination = searchTerm 
-    ? ((searchResponse as any)?.data?.pagination || { currentPage: 1, totalPages: 1, totalCount: 0, hasNext: false, hasPrev: false }) 
-    : ((aguasResidualesResponse as any)?.data?.pagination || { currentPage: 1, totalPages: 1, totalCount: 0, hasNext: false, hasPrev: false });
-
-  const loading = aguasResidualesLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  // Datos unificados desde una sola query
+  const aguasResiduales = (aguasResidualesResponse as any)?.data?.tiposAguasResiduales || [];
+  const pagination = (aguasResidualesResponse as any)?.data?.pagination || { currentPage: 1, totalPages: 1, totalCount: 0, hasNext: false, hasPrev: false };
+  
+  const loading = aguasResidualesLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios
   const {
@@ -132,11 +129,17 @@ const AguasResidualesPage = () => {
     openDeleteDialog();
   };
 
-  // Manejo de búsqueda
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1); // Resetear paginación al buscar
-    // searchTerm ya está actualizado por el onChange del Input
+  // ✅ BÚSQUEDA EN TIEMPO REAL: Manejo del cambio en el input
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setSearchTerm(newValue);
+    setPage(1); // Resetear paginación
+  };
+
+  // ✅ LIMPIAR BÚSQUEDA: Manejo del botón X
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setPage(1);
   };
 
   // Manejo de paginación
@@ -181,63 +184,65 @@ const AguasResidualesPage = () => {
         </div>
       </div>
 
-      {/* Búsqueda con diseño mejorado */}
-      <Card className="mb-6  ">
+      {/* ✅ BÚSQUEDA EN TIEMPO REAL: Diseño mejorado con botón X */}
+      <Card className="mb-6">
         <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="flex gap-4">
-            <Input
-              placeholder="Buscar por nombre o descripción..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 border-input-border focus:ring-primary transition-smooth"
-            />
-            <Button 
-              type="submit" 
-              variant="outline"
-              className=""
-            >
-              <Search className="w-4 h-4 mr-2" />
-              Buscar
-            </Button>
-            {searchTerm && (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => {
-                  setSearchTerm('');
-                  setPage(1); // Resetear paginación
-                }}
-                className=""
-              >
-                Limpiar
-              </Button>
-            )}
-          </form>
+          <div className="relative flex gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nombre o descripción..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="pl-9 pr-10"
+              />
+              {searchTerm && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearSearch}
+                  className="absolute right-1 top-1/2 h-7 w-7 p-0 -translate-y-1/2 hover:bg-muted"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Estadísticas con diseño mejorado */}
+      {/* ✅ ESTADÍSTICAS DINÁMICAS: Mostrar filtrados vs total */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <Card className="  ">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Tipos</p>
+                <p className="text-sm text-muted-foreground">
+                  {searchTerm ? "Aguas Residuales Filtradas" : "Total Aguas Residuales"}
+                </p>
                 <p className="text-2xl font-bold text-foreground">{pagination.totalCount}</p>
+                {searchTerm && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Filtrado por: "{searchTerm}"
+                  </p>
+                )}
               </div>
-              <Droplet className="w-8 h-8 text-muted-foreground opacity-70 " />
+              <Droplet className="w-8 h-8 text-muted-foreground opacity-70" />
             </div>
           </CardContent>
         </Card>
         
-        <Card className="  ">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Páginas</p>
+                <p className="text-sm text-muted-foreground">
+                  {searchTerm ? "Páginas Filtradas" : "Total Páginas"}
+                </p>
                 <p className="text-2xl font-bold text-foreground">{pagination.totalPages}</p>
               </div>
-              <Droplet className="w-8 h-8 text-secondary opacity-70 " />
+              <Droplet className="w-8 h-8 text-secondary opacity-70" />
             </div>
           </CardContent>
         </Card>
@@ -268,67 +273,94 @@ const AguasResidualesPage = () => {
               )}
             </div>
           ) : (
-            <ConfigurationTable
-              data={aguasResiduales}
-              columns={[
-                {
-                  key: 'id_tipo_aguas_residuales',
-                  label: 'ID',
-                  render: (value: any) => <span className="font-medium text-foreground">{value}</span>
-                },
-                {
-                  key: 'nombre',
-                  label: 'Nombre',
-                  render: (value: any) => (
-                    <div className="flex items-center gap-2">
-                      <Droplet className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium">{value}</span>
-                    </div>
-                  )
-                },
-                {
-                  key: 'descripcion',
-                  label: 'Descripción',
-                  render: (value: any) => (
-                    <span className="font-medium">
-                      {value || 'N/A'}
+            <>
+              <ResponsiveTable
+                data={aguasResiduales}
+                columns={[
+                  {
+                    key: 'id_tipo_aguas_residuales',
+                    label: 'ID',
+                    priority: 'medium',
+                    render: (value: any) => <span className="font-medium text-foreground">{value}</span>
+                  },
+                  {
+                    key: 'nombre',
+                    label: 'Nombre',
+                    priority: 'high',
+                    render: (value: any) => (
+                      <div className="flex items-center gap-2">
+                        <Droplet className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium">{value}</span>
+                      </div>
+                    )
+                  },
+                  {
+                    key: 'descripcion',
+                    label: 'Descripción',
+                    priority: 'medium',
+                    render: (value: any) => (
+                      <span className="font-medium">
+                        {value || 'N/A'}
+                      </span>
+                    )
+                  },
+                  {
+                    key: 'created_at',
+                    label: 'Fecha Creación',
+                    priority: 'low',
+                    render: (value: any) => (
+                      <Badge variant="outline">
+                        {formatDate(value)}
+                      </Badge>
+                    )
+                  }
+                ]}
+                actions={[
+                  {
+                    label: 'Editar',
+                    icon: <Edit2 className="w-4 h-4" />,
+                    variant: 'default' as const,
+                    onClick: (item: any) => handleOpenEditDialog(item)
+                  },
+                  {
+                    label: 'Eliminar',
+                    icon: <Trash2 className="w-4 h-4" />,
+                    variant: 'destructive' as const,
+                    onClick: (item: any) => handleOpenDeleteDialog(item)
+                  }
+                ]}
+              />
+              
+              {/* Paginación */}
+              {aguasResiduales.length > 0 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando {aguasResiduales.length} de {pagination.totalCount} tipos de aguas residuales
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage - 1)}
+                      disabled={pagination.currentPage <= 1 || loading}
+                    >
+                      Anterior
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      Página {pagination.currentPage} de {pagination.totalPages}
                     </span>
-                  )
-                },
-                {
-                  key: 'created_at',
-                  label: 'Fecha Creación',
-                  render: (value: any) => (
-                    <Badge variant="outline">
-                      {formatDate(value)}
-                    </Badge>
-                  )
-                }
-              ]}
-              actions={[
-                {
-                  type: 'edit' as const,
-                  label: 'Editar',
-                  icon: <Edit2 className="w-4 h-4" />,
-                  color: 'default' as const,
-                  onClick: (item: any) => handleOpenEditDialog(item)
-                },
-                {
-                  type: 'delete' as const,
-                  label: 'Eliminar',
-                  icon: <Trash2 className="w-4 h-4" />,
-                  color: 'destructive' as const,
-                  onClick: (item: any) => handleOpenDeleteDialog(item)
-                }
-              ]}
-              pagination={{
-                currentPage: pagination.currentPage,
-                totalPages: pagination.totalPages,
-                totalItems: pagination.totalCount || 0,
-                itemsPerPage: limit
-              }}
-              onPageChange={handlePageChange}
-            />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage + 1)}
+                      disabled={pagination.currentPage >= pagination.totalPages || loading}
+                    >
+                      Siguiente
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

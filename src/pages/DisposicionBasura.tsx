@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,7 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  X,
 } from 'lucide-react';
 
 interface DisposicionBasuraFormData {
@@ -32,59 +33,52 @@ interface DisposicionBasuraFormData {
 }
 
 const DisposicionBasuraPage = () => {
-  const disposicionBasuraHook = useDisposicionBasura();
+  const { 
+    useDisposicionBasuraQuery,
+    paginateClientSide,
+    filterBySearch,
+    useCreateDisposicionBasuraMutation,
+    useUpdateDisposicionBasuraMutation,
+    useDeleteDisposicionBasuraMutation,
+  } = useDisposicionBasura();
 
   // Estados para paginación y filtros
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [sortBy, setSortBy] = useState('nombre');
-  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
+  const [limit] = useState(50); // Límite alto para paginación del lado del cliente
+  const [sortBy] = useState('nombre');
+  const [sortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Queries de React Query
-  const { data: disposicionBasuraResponse, isLoading: disposicionBasuraLoading, refetch: refetchDisposicionBasura } = disposicionBasuraHook.useDisposicionBasuraQuery(page, limit, sortBy, sortOrder);
-  const { data: searchResponse, isLoading: searchLoading } = disposicionBasuraHook.useSearchDisposicionBasuraQuery(searchTerm, page, limit);
+  // Query unificada con búsqueda opcional
+  const { data: disposicionBasuraResponse, isLoading, refetch } = useDisposicionBasuraQuery(
+    searchTerm,
+    1, // Siempre página 1 porque paginamos del lado del cliente
+    limit,
+    sortBy,
+    sortOrder
+  );
 
-  // Mutaciones de React Query
-  const createMutation = disposicionBasuraHook.useCreateDisposicionBasuraMutation();
-  const updateMutation = disposicionBasuraHook.useUpdateDisposicionBasuraMutation();
-  const deleteMutation = disposicionBasuraHook.useDeleteDisposicionBasuraMutation();
+  // Mutaciones
+  const createMutation = useCreateDisposicionBasuraMutation();
+  const updateMutation = useUpdateDisposicionBasuraMutation();
+  const deleteMutation = useDeleteDisposicionBasuraMutation();
 
-  let disposicionBasura: DisposicionBasura[] = [];
-  let pagination = {
-    currentPage: 1,
-    totalPages: 1,
-    totalCount: 0,
-    hasNext: false,
-    hasPrev: false,
-  };
+  // Procesamiento de datos con filtros del lado del cliente
+  const { items: disposicionBasura, pagination } = useMemo(() => {
+    let allItems: DisposicionBasura[] = [];
 
-  // Determinar qué datos y paginación usar
-  if (searchTerm && searchResponse) {
-    if (searchResponse.status === 'success') {
-      disposicionBasura = searchResponse?.data?.data || [];
-      pagination = {
-        currentPage: page,
-        totalPages: Math.ceil((searchResponse?.data?.total || 0) / limit),
-        totalCount: searchResponse?.data?.total || 0,
-        hasNext: page < Math.ceil((searchResponse?.data?.total || 0) / limit),
-        hasPrev: page > 1,
-      };
+    if (disposicionBasuraResponse?.status === 'success') {
+      allItems = disposicionBasuraResponse.data?.data || [];
     }
-  } else if (disposicionBasuraResponse) {
-    if (disposicionBasuraResponse.status === 'success') {
-      disposicionBasura = disposicionBasuraResponse?.data?.data || [];
-      pagination = {
-        currentPage: page,
-        totalPages: Math.ceil((disposicionBasuraResponse?.data?.total || 0) / limit),
-        totalCount: disposicionBasuraResponse?.data?.total || 0,
-        hasNext: page < Math.ceil((disposicionBasuraResponse?.data?.total || 0) / limit),
-        hasPrev: page > 1,
-      };
-    }
-  }
 
-  const loading = disposicionBasuraLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+    // Filtrar por búsqueda del lado del cliente (para búsquedas en tiempo real)
+    const filteredItems = filterBySearch(allItems, searchTerm);
+
+    // Paginar del lado del cliente
+    return paginateClientSide(filteredItems, page, 10); // 10 items por página en la vista
+  }, [disposicionBasuraResponse, searchTerm, page, filterBySearch, paginateClientSide]);
+
+  const loading = isLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios
   const {
@@ -171,15 +165,15 @@ const DisposicionBasuraPage = () => {
     openDeleteDialog();
   };
 
-  // Manejo de búsqueda
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1);
-  };
-
   // Manejo de paginación
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+  };
+
+  // Limpiar búsqueda
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setPage(1);
   };
 
   // Formatear fecha
@@ -215,31 +209,42 @@ const DisposicionBasuraPage = () => {
         {/* Search and Filters */}
         <Card>
           <CardContent className="p-4">
-            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                   placeholder="Buscar tipos de disposición..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setPage(1); // Resetear paginación al buscar
+                  }}
+                  className="pl-10 pr-10"
                 />
+                {searchTerm && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearSearch}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
               <div className="flex items-center space-x-2">
-                <Button type="submit" variant="outline" size="sm" disabled={loading}>
-                  <Search className="h-4 w-4" />
-                </Button>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => refetchDisposicionBasura()}
+                  onClick={() => refetch()}
                   disabled={loading}
                 >
                   <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 </Button>
               </div>
-            </form>
+            </div>
           </CardContent>
         </Card>
 

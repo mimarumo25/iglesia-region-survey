@@ -1,15 +1,8 @@
 import React from 'react';
+import { ResponsiveTable, ResponsiveTableColumn, ResponsiveTableAction } from '@/components/ui/responsive-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit2, Trash2, Loader2 } from 'lucide-react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { useResponsiveTypography } from '@/hooks/useTypography';
 
 export interface TableColumn<T = any> {
@@ -17,6 +10,10 @@ export interface TableColumn<T = any> {
   title: string;
   render?: (item: T) => React.ReactNode;
   className?: string;
+  /** Prioridad para vista móvil */
+  priority?: 'high' | 'medium' | 'low';
+  /** Ocultar en móvil */
+  hideOnMobile?: boolean;
 }
 
 export interface ConfigurationTableProps<T = any> {
@@ -44,103 +41,48 @@ export default function ConfigurationTable<T = any>({
 }: ConfigurationTableProps<T>) {
   const { getResponsiveTypographyClass } = useResponsiveTypography();
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-        <span className={`ml-2 text-muted-foreground ${getResponsiveTypographyClass('body')}`}>
-          Cargando datos...
-        </span>
-      </div>
-    );
-  }
+  // Convertir columnas para ResponsiveTable
+  const responsiveColumns: ResponsiveTableColumn[] = columns.map(column => ({
+    key: column.key,
+    label: column.title,
+    priority: column.priority || 'medium',
+    hideOnMobile: column.hideOnMobile,
+    className: column.className,
+    render: column.render ? (value: any, item: any) => column.render!(item) : undefined,
+  }));
 
-  if (data.length === 0 && emptyState) {
-    return (
-      <div className="text-center py-12">
-        <div className="text-muted-foreground/50 mb-4 flex justify-center">
-          {emptyState.icon}
-        </div>
-        <h3 className={`font-semibold mb-2 ${getResponsiveTypographyClass('h3')}`}>
-          {emptyState.title}
-        </h3>
-        <p className={`text-muted-foreground ${getResponsiveTypographyClass('body')}`}>
-          {emptyState.description}
-        </p>
-      </div>
-    );
+  // Crear acciones
+  const actions: ResponsiveTableAction[] = [];
+  
+  if (onEdit) {
+    actions.push({
+      label: 'Editar',
+      icon: <Edit2 className="w-4 h-4" />,
+      onClick: onEdit,
+      variant: 'ghost',
+      primary: true,
+    });
+  }
+  
+  if (onDelete) {
+    actions.push({
+      label: 'Eliminar',
+      icon: <Trash2 className="w-4 h-4" />,
+      onClick: onDelete,
+      variant: 'destructive',
+      primary: false,
+    });
   }
 
   return (
-    <div className="overflow-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {columns.map((column) => (
-              <TableHead
-                key={column.key}
-                className={`${getResponsiveTypographyClass('caption')} font-semibold ${column.className || ''}`}
-              >
-                {column.title}
-              </TableHead>
-            ))}
-            {(onEdit || onDelete) && (
-              <TableHead className={`text-right font-semibold ${getResponsiveTypographyClass('caption')}`}>
-                Acciones
-              </TableHead>
-            )}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((item, index) => (
-            <TableRow
-              key={index}
-              className="hover:bg-muted/50 transition-colors cursor-pointer"
-              onClick={() => onRowClick?.(item)}
-            >
-              {columns.map((column) => (
-                <TableCell
-                  key={column.key}
-                  className={`${getResponsiveTypographyClass('body')} ${column.className || ''}`}
-                >
-                  {column.render ? column.render(item) : (item as any)[column.key]}
-                </TableCell>
-              ))}
-              {(onEdit || onDelete) && (
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    {onEdit && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEdit(item);
-                        }}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                    {onDelete && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDelete(item);
-                        }}
-                        className="hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <ResponsiveTable
+      data={data}
+      columns={responsiveColumns}
+      actions={actions}
+      loading={loading}
+      loadingText="Cargando datos..."
+      emptyState={emptyState}
+      onRowClick={onRowClick}
+    />
   );
 }

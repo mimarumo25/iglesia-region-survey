@@ -2,16 +2,8 @@
  * 🏗️ Servicio para gestión completa de encuestas (CRUD)
  * 
  * Este servicio integra con la API "Encuestas" del backend que maneja
- * encuestas familiares completas con información demográfica, viviend    } catch (error) {
-         } catch (error) {
-          } catch (error) {
-      console.error(`❌ Error al eliminar encuesta ${id}:`, error);
-      throw encuestasService.handleApiError(error, `eliminar encuesta ${id}`);
-    }ole.error(`❌ Error al obtener encuesta ${id}:`, error);
-      throw encuestasService.handleApiError(error, `obtener encuesta ${id}`);
-    }sole.error('❌ Error al obtener encuestas:', error);
-      throw encuestasService.handleApiError(error, 'obtener encuestas');
-    } * servicios y miembros de familia.
+ * encuestas familiares completas con información demográfica, vivienda,
+ * servicios y miembros de familia.
  * 
  * Endpoints integrados:
  * - GET /api/encuesta - Obtener todas las encuestas con paginación
@@ -36,121 +28,7 @@ export interface TipoIdentificacion {
 }
 
 /**
- * Información de identificación de una persona
- */
-export interface Identificacion {
-  numero: string;
-  tipo: TipoIdentificacion | null;
-}
-
-/**
- * Información de estudios de una persona
- */
-export interface Estudios {
-  id: string;
-  nombre: string;
-}
-
-/**
- * Información de sexo de una persona
- */
-export interface Sexo {
-  id: string;
-  descripcion: string;
-}
-
-/**
- * Información de estado civil de una persona
- */
-export interface EstadoCivil {
-  id: number;
-  nombre: string;
-}
-
-/**
- * Tallas de una persona
- */
-export interface Tallas {
-  camisa: string;
-  pantalon: string;
-  zapato: string;
-}
-
-/**
- * Miembro de familia vivo
- */
-export interface MiembroFamilia {
-  id: string;
-  nombre_completo: string;
-  identificacion: Identificacion;
-  telefono: string;
-  email: string;
-  fecha_nacimiento: string;
-  direccion: string;
-  estudios: Estudios;
-  edad: number;
-  sexo: Sexo;
-  estado_civil: EstadoCivil;
-  tallas: Tallas;
-}
-
-/**
- * Miembro de familia fallecido
- */
-export interface MiembroFallecido {
-  id: string;
-  nombre_completo: string;
-  identificacion: Identificacion;
-  fecha_fallecimiento: string;
-  era_padre: boolean;
-  era_madre: boolean;
-  causa_fallecimiento: string;
-  es_fallecido: boolean;
-}
-
-/**
- * Información de miembros de familia
- */
-export interface MiembrosFamilia {
-  total_miembros: number;
-  personas: MiembroFamilia[];
-}
-
-/**
- * Información de personas fallecidas
- */
-export interface PersonasFallecidas {
-  total_fallecidos: number;
-  fallecidos: MiembroFallecido[];
-}
-
-/**
- * Información básica con ID y nombre
- */
-export interface InfoBasica {
-  id: string;
-  nombre: string;
-}
-
-/**
- * Tipo de vivienda
- */
-export interface TipoVivienda {
-  id: string;
-  nombre: string;
-}
-
-/**
- * Metadatos de la encuesta
- */
-export interface MetadatosEncuesta {
-  fecha_creacion: string;
-  estado: string;
-  version: string;
-}
-
-/**
- * Estructura básica de una encuesta en el listado
+ * Información básica de una encuesta en la lista (según API real)
  */
 export interface EncuestaListItem {
   id_encuesta: string;
@@ -158,435 +36,460 @@ export interface EncuestaListItem {
   direccion_familia: string;
   telefono: string;
   codigo_familia: string;
-  estado_encuesta: string;
+  estado_encuesta: 'pending' | 'in_progress' | 'completed' | 'validated';
   numero_encuestas: number;
   fecha_ultima_encuesta: string;
-  tipo_vivienda: TipoVivienda;
+  tipo_vivienda: {
+    id: string;
+    nombre: string;
+  } | null;
   tamaño_familia: number;
-  sector: InfoBasica;
-  municipio: InfoBasica;
-  vereda: InfoBasica;
-  parroquia: InfoBasica;
-  basuras: any[]; // Tipo específico según necesidad
-  acueducto: InfoBasica;
-  aguas_residuales: InfoBasica | null;
-  miembros_familia: MiembrosFamilia;
-  personas_fallecidas: PersonasFallecidas;
-  metadatos: MetadatosEncuesta;
-  
-  // Campos calculados para compatibilidad con UI existente
-  id?: number;
-  direccion?: string;
-  fecha?: string;
-  created_at?: string;
-  updated_at?: string;
-  familySize?: number;
-  surveyor?: string;
-  status?: 'completed' | 'pending' | 'in_progress' | 'cancelled';
-}
-
-/**
- * Encuesta completa con todos los detalles
- */
-export interface EncuestaCompleta extends EncuestaListItem {
-  informacionGeneral: {
-    municipio: { id: number; nombre: string; };
-    parroquia: { id: number; nombre: string; };
-    sector: { id: number; nombre: string; };
-    vereda: { id: number; nombre: string; };
-    fecha: string;
-    apellido_familiar: string;
-    direccion: string;
-    telefono: string;
-    numero_contrato_epm: string;
-    comunionEnCasa: boolean;
+  sector: {
+    id: string;
+    nombre: string;
+  } | null;
+  municipio: {
+    id: string;
+    nombre: string;
+  } | null;
+  vereda: {
+    id: string;
+    nombre: string;
+  } | null;
+  parroquia: {
+    id: string;
+    nombre: string;
+  } | null;
+  basuras: Array<{
+    id: string;
+    nombre: string;
+  }>;
+  acueducto: {
+    id: string;
+    nombre: string;
+  } | null;
+  aguas_residuales: {
+    id: string;
+    nombre: string;
+  } | null;
+  miembros_familia: {
+    total_miembros: number;
+    personas: Array<{
+      id: string;
+      nombre_completo: string;
+      identificacion: {
+        numero: string;
+        tipo: {
+          id: string;
+          nombre: string;
+          codigo: string;
+        };
+      };
+      telefono: string;
+      email: string;
+      fecha_nacimiento: string;
+      direccion: string;
+      estudios: {
+        id: string;
+        nombre: string;
+      };
+      edad: number;
+      sexo: {
+        id: string;
+        descripcion: string;
+      };
+      estado_civil: {
+        id: number;
+        nombre: string;
+      };
+      tallas: {
+        camisa: string;
+        pantalon: string;
+        zapato: string;
+      };
+    }>;
   };
-  vivienda: {
-    tipo_vivienda: { id: number; nombre: string; };
-    disposicion_basuras: {
-      recolector: boolean;
-      quemada: boolean;
-      enterrada: boolean;
-      recicla: boolean;
-      aire_libre: boolean;
-      no_aplica: boolean;
+  deceasedMembers: Array<{
+    nombres: string;
+    fechaFallecimiento: string;
+    sexo: {
+      id: number;
+      nombre: string;
     };
+    parentesco: {
+      id: number;
+      nombre: string;
+    };
+    causaFallecimiento: string;
+  }>;
+  metadatos: {
+    fecha_creacion: string;
+    estado: string;
+    version: string;
   };
-  servicios_agua: {
-    sistema_acueducto: { id: number; nombre: string; };
-    aguas_residuales: { id: number; nombre: string; } | null;
-    pozo_septico: boolean;
-    letrina: boolean;
-    campo_abierto: boolean;
-  };
-  observaciones: {
-    sustento_familia: string;
-    observaciones_encuestador: string;
-    autorizacion_datos: boolean;
-  };
-  familyMembers: any[];
-  deceasedMembers: any[];
 }
 
 /**
- * Parámetros para filtrar encuestas
+ * Miembro de la familia
  */
-export interface EncuestasFilters {
+export interface MiembroFamilia {
+  id?: string;
+  nombres: string;
+  apellidos: string;
+  tipo_identificacion?: string;
+  numero_identificacion?: string;
+  fecha_nacimiento?: string;
+  edad?: number;
+  sexo?: string;
+  parentesco?: string;
+  estado_civil?: string;
+  nivel_estudios?: string;
+  profesion_oficio?: string;
+  comunidad_cultural?: string;
+  enfermedades_cronicas?: string[];
+  discapacidades?: string[];
+  es_jefe_familia: boolean;
+  es_beneficiario_programa?: boolean;
+  programa_social?: string;
+  observaciones?: string;
+}
+
+/**
+ * Información de vivienda de la encuesta
+ */
+export interface InformacionVivienda {
+  tipo_vivienda?: string;
+  material_paredes?: string;
+  material_techo?: string;
+  material_piso?: string;
+  numero_habitaciones?: number;
+  numero_banos?: number;
+  tiene_cocina?: boolean;
+  tipo_cocina?: string;
+  tiene_agua_potable?: boolean;
+  fuente_agua?: string;
+  tiene_energia?: boolean;
+  tipo_energia?: string;
+  manejo_residuos?: string;
+  tiene_internet?: boolean;
+  observaciones_vivienda?: string;
+}
+
+/**
+ * Información socioeconómica de la familia
+ */
+export interface InformacionSocioeconomica {
+  ingresos_mensuales?: number;
+  fuente_ingresos?: string;
+  tiene_seguridad_social?: boolean;
+  tipo_seguridad_social?: string;
+  recibe_subsidios?: boolean;
+  tipos_subsidios?: string[];
+  tiene_creditos?: boolean;
+  observaciones_economicas?: string;
+}
+
+/**
+ * Datos completos de una encuesta familiar
+ */
+export interface EncuestaCompleta {
+  // Información básica
+  id_encuesta?: string;
+  codigo_familia: string;
+  apellido_familiar: string;
+  estado_encuesta: 'pending' | 'in_progress' | 'completed' | 'validated';
+  
+  // Ubicación geográfica
+  id_departamento?: string;
+  id_municipio?: string;
+  id_vereda?: string;
+  id_sector?: string;
+  direccion?: string;
+  coordenadas_gps?: string;
+  
+  // Información de vivienda
+  vivienda: InformacionVivienda;
+  
+  // Información socioeconómica
+  socioeconomica: InformacionSocioeconomica;
+  
+  // Miembros de la familia
+  miembros_familia: MiembroFamilia[];
+  
+  // Metadatos
+  fecha_creacion?: string;
+  fecha_actualizacion?: string;
+  usuario_creacion?: string;
+  usuario_actualizacion?: string;
+  observaciones_generales?: string;
+}
+
+/**
+ * Respuesta paginada de encuestas (según API real)
+ */
+export interface EncuestasResponse {
+  status: string;
+  message: string;
+  data: EncuestaListItem[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
+/**
+ * Respuesta de una encuesta individual
+ */
+export interface EncuestaResponse {
+  success: boolean;
+  data: EncuestaCompleta;
+  message?: string;
+}
+
+/**
+ * Parámetros para búsqueda de encuestas
+ */
+export interface EncuestasSearchParams {
   page?: number;
   limit?: number;
   search?: string;
-  municipio_id?: number;
-  parroquia_id?: number;
-  sector_id?: number;
   estado?: string;
-  fecha_desde?: string;
-  fecha_hasta?: string;
-  sortBy?: string;
-  sortOrder?: 'ASC' | 'DESC';
-}
-
-/**
- * Respuesta de la API para listado de encuestas
- */
-export interface EncuestasListResponse {
-  success: boolean;
-  message: string;
-  data: {
-    encuestas: EncuestaListItem[];
-    pagination: {
-      currentPage: number;
-      totalPages: number;
-      totalItems: number;
-      itemsPerPage: number;
-      hasNext: boolean;
-      hasPrev: boolean;
-    };
-    stats?: {
-      total: number;
-      completed: number;
-      pending: number;
-      in_progress: number;
-      cancelled: number;
-    };
-  };
-}
-
-/**
- * Respuesta de la API para una encuesta específica
- */
-export interface EncuestaDetailResponse {
-  success: boolean;
-  message: string;
-  data: EncuestaCompleta;
-}
-
-/**
- * Respuesta estándar para operaciones CUD
- */
-export interface EncuestaOperationResponse {
-  success: boolean;
-  message: string;
-  data?: {
-    id?: number;
-    [key: string]: any;
-  };
-  error?: string;
+  departamento?: string;
+  municipio?: string;
+  vereda?: string;
+  sector?: string;
+  fechaDesde?: string;
+  fechaHasta?: string;
 }
 
 // ============================================================================
-// SERVICIO PRINCIPAL
+// SERVICIO DE ENCUESTAS
 // ============================================================================
 
-export const encuestasService = {
-
+class EncuestasService {
   /**
-   * 📋 Obtener todas las encuestas con paginación y filtros
-   * 
-   * @param filters - Filtros opcionales para la búsqueda
-   * @returns Lista de encuestas con información de paginación
+   * Obtener lista paginada de encuestas
    */
-  async getEncuestas(filters: EncuestasFilters = {}): Promise<EncuestasListResponse> {
+  async getEncuestas(params: EncuestasSearchParams = {}): Promise<EncuestasResponse> {
     try {
-      console.log('🔍 Obteniendo encuestas con filtros:', filters);
+      console.log('📡 Obteniendo encuestas...', params);
       
-      const params = new URLSearchParams();
-      
-      // Paginación
-      if (filters.page) params.append('page', filters.page.toString());
-      if (filters.limit) params.append('limit', filters.limit.toString());
-      
-      // Búsqueda
-      if (filters.search) params.append('search', filters.search);
-      
-      // Filtros geográficos
-      if (filters.municipio_id) params.append('municipio_id', filters.municipio_id.toString());
-      if (filters.parroquia_id) params.append('parroquia_id', filters.parroquia_id.toString());
-      if (filters.sector_id) params.append('sector_id', filters.sector_id.toString());
-      
-      // Filtros de estado y fecha
-      if (filters.estado) params.append('estado', filters.estado);
-      if (filters.fecha_desde) params.append('fecha_desde', filters.fecha_desde);
-      if (filters.fecha_hasta) params.append('fecha_hasta', filters.fecha_hasta);
-      
-      // Ordenamiento
-      if (filters.sortBy) params.append('sortBy', filters.sortBy);
-      if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
-      
-      const queryString = params.toString();
-      const url = `/api/encuesta${queryString ? `?${queryString}` : ''}`;
-      
-      const response = await apiClient.get(url);
-      
-      console.log('✅ Encuestas obtenidas exitosamente:', response.data);
-      
-      // Procesar y enriquecer los datos
-      return encuestasService.processEncuestasResponse(response.data);
-      
-    } catch (error: any) {
-      console.error('❌ Error al obtener encuestas:', error);
-      throw encuestasService.handleApiError(error, 'obtener encuestas');
-    }
-  },
-
-  /**
-   * 🔍 Obtener una encuesta específica por ID
-   * 
-   * @param id - ID de la encuesta
-   * @returns Encuesta completa con todos los detalles
-   */
-  async getEncuestaById(id: number): Promise<EncuestaDetailResponse> {
-    try {
-      console.log(`🔍 Obteniendo encuesta con ID: ${id}`);
-      
-      const response = await apiClient.get(`/api/encuesta/${id}`);
-      
-      console.log('✅ Encuesta obtenida exitosamente:', response.data);
-      
-      return {
-        success: true,
-        message: 'Encuesta obtenida exitosamente',
-        data: response.data.data || response.data
-      };
-      
-    } catch (error: any) {
-      console.error(`❌ Error al obtener encuesta ${id}:`, error);
-      throw encuestasService.handleApiError(error, `obtener encuesta ${id}`);
-    }
-  },
-
-  /**
-   * 🗑️ Eliminar una encuesta por ID
-   * 
-   * @param id - ID de la encuesta a eliminar
-   * @returns Confirmación de eliminación
-   */
-  async deleteEncuesta(id: number): Promise<EncuestaOperationResponse> {
-    try {
-      console.log(`🗑️ Eliminando encuesta con ID: ${id}`);
-      
-      const response = await apiClient.delete(`/api/encuesta/${id}`);
-      
-      console.log('✅ Encuesta eliminada exitosamente:', response.data);
-      
-      return {
-        success: true,
-        message: 'Encuesta eliminada exitosamente',
-        data: { id }
-      };
-      
-    } catch (error: any) {
-      console.error(`❌ Error al eliminar encuesta ${id}:`, error);
-      throw encuestasService.handleApiError(error, `eliminar encuesta ${id}`);
-    }
-  },
-
-  /**
-   * 📊 Obtener estadísticas de encuestas
-   * 
-   * @returns Estadísticas generales de encuestas
-   */
-  async getEncuestasStats(): Promise<{
-    total: number;
-    completed: number;
-    pending: number;
-    in_progress: number;
-    cancelled: number;
-  }> {
-    try {
-      // Obtener una muestra grande para calcular estadísticas
-      const response = await this.getEncuestas({ limit: 1000 });
-      
-      const stats = {
-        total: response.data.pagination.totalItems,
-        completed: 0,
-        pending: 0,
-        in_progress: 0,
-        cancelled: 0
-      };
-      
-      // Calcular estadísticas basadas en los datos disponibles
-      response.data.encuestas.forEach(encuesta => {
-        if (encuesta.status) {
-          stats[encuesta.status]++;
+      const response = await apiClient.get('/api/encuesta', { 
+        params: {
+          page: params.page || 1,
+          limit: params.limit || 10,
+          search: params.search || '',
+          estado: params.estado || '',
+          departamento: params.departamento || '',
+          municipio: params.municipio || '',
+          vereda: params.vereda || '',
+          sector: params.sector || '',
+          fecha_desde: params.fechaDesde || '',
+          fecha_hasta: params.fechaHasta || '',
         }
       });
       
-      return stats;
+      console.log('✅ Encuestas obtenidas exitosamente', response.data);
       
-    } catch (error: any) {
-      console.error('❌ Error al obtener estadísticas:', error);
-      return { total: 0, completed: 0, pending: 0, in_progress: 0, cancelled: 0 };
-    }
-  },
-
-  // ========================================================================
-  // MÉTODOS AUXILIARES
-  // ========================================================================
-
-  /**
-   * Procesar y enriquecer la respuesta de la API
-   */
-  processEncuestasResponse(rawResponse: any): EncuestasListResponse {
-    const data = rawResponse.data || rawResponse;
-    
-    // Si la respuesta es un array directo (sin paginación)
-    if (Array.isArray(data)) {
-      return {
-        success: true,
-        message: 'Encuestas obtenidas exitosamente',
-        data: {
-          encuestas: data.map(encuestasService.enrichEncuestaItem),
-          pagination: {
-            currentPage: 1,
-            totalPages: 1,
-            totalItems: data.length,
-            itemsPerPage: data.length,
-            hasNext: false,
-            hasPrev: false
-          }
-        }
-      };
-    }
-    
-    // Si la respuesta tiene estructura de paginación
-    return {
-      success: true,
-      message: 'Encuestas obtenidas exitosamente',
-      data: {
-        encuestas: (data.encuestas || data.items || data).map(encuestasService.enrichEncuestaItem),
-        pagination: data.pagination || {
-          currentPage: 1,
-          totalPages: 1,
-          totalItems: (data.encuestas || data.items || data).length,
-          itemsPerPage: (data.encuestas || data.items || data).length,
-          hasNext: false,
-          hasPrev: false
-        },
-        stats: data.stats
-      }
-    };
-  },
-
-  /**
-   * Enriquecer cada item de encuesta con campos calculados
-   */
-  enrichEncuestaItem(item: any): EncuestaListItem {
-    return {
-      // Datos principales de la nueva estructura
-      id_encuesta: item.id_encuesta || item.id?.toString() || item.surveyId,
-      apellido_familiar: item.apellido_familiar || item.familyHead,
-      direccion_familia: item.direccion_familia || item.direccion || item.address,
-      telefono: item.telefono || item.phone,
-      codigo_familia: item.codigo_familia || item.familyCode,
-      estado_encuesta: item.estado_encuesta || item.estado || item.status || 'pending',
-      numero_encuestas: item.numero_encuestas || 1,
-      fecha_ultima_encuesta: item.fecha_ultima_encuesta || item.fecha || item.date,
-      tipo_vivienda: item.tipo_vivienda || { id: '', nombre: '' },
-      tamaño_familia: item.tamaño_familia || item.familySize || item.miembros_familia?.total_miembros || 0,
-      sector: item.sector || { id: '', nombre: '' },
-      municipio: item.municipio || { id: '', nombre: '' },
-      vereda: item.vereda || { id: '', nombre: '' },
-      parroquia: item.parroquia || { id: '', nombre: '' },
-      basuras: item.basuras || [],
-      acueducto: item.acueducto || { id: '', nombre: '' },
-      aguas_residuales: item.aguas_residuales,
-      miembros_familia: item.miembros_familia || { total_miembros: 0, personas: [] },
-      personas_fallecidas: item.personas_fallecidas || { total_fallecidos: 0, fallecidos: [] },
-      metadatos: item.metadatos || {
-        fecha_creacion: item.created_at || item.fecha,
-        estado: item.estado_encuesta || 'pending',
-        version: '1.0'
-      },
+      // La API devuelve directamente el formato esperado
+      return response.data;
       
-      // Campos calculados para compatibilidad con UI existente
-      id: parseInt(item.id_encuesta || item.id) || 0,
-      direccion: item.direccion_familia || item.direccion || item.address,
-      fecha: item.fecha_ultima_encuesta || item.fecha || item.date,
-      created_at: item.metadatos?.fecha_creacion || item.created_at || item.fecha,
-      updated_at: item.updated_at || item.fecha_ultima_encuesta,
-      familySize: item.tamaño_familia || item.miembros_familia?.total_miembros,
-      surveyor: item.surveyor || item.encuestador,
-      status: encuestasService.mapEstadoToStatus(item.estado_encuesta || item.estado || item.status)
-    };
-  },
-
-  /**
-   * Mapear estados del backend a estados del frontend
-   */
-  mapEstadoToStatus(estado: string): 'completed' | 'pending' | 'in_progress' | 'cancelled' {
-    const estadoLower = (estado || '').toLowerCase();
-    
-    if (estadoLower.includes('complet') || estadoLower === 'finished') return 'completed';
-    if (estadoLower.includes('progreso') || estadoLower === 'active') return 'in_progress';
-    if (estadoLower.includes('cancelad') || estadoLower === 'cancelled') return 'cancelled';
-    
-    return 'pending';
-  },
-
-  /**
-   * Manejo centralizado de errores de API
-   */
-  handleApiError(error: any, operation: string): Error {
-    const status = error.response?.status;
-    const message = error.response?.data?.message || error.message;
-    
-    switch (status) {
-      case 404:
-        return new Error(`No se encontró la encuesta solicitada`);
-      case 403:
-        return new Error(`No tienes permisos para ${operation}`);
-      case 401:
-        return new Error(`Debes iniciar sesión para ${operation}`);
-      case 500:
-        return new Error(`Error interno del servidor al ${operation}`);
-      default:
-        return new Error(`Error al ${operation}: ${message}`);
+    } catch (error) {
+      console.error('❌ Error al obtener encuestas:', error);
+      throw this.handleApiError(error, 'obtener encuestas');
     }
   }
-};
 
-// ============================================================================
-// HOOKS PARA REACT
-// ============================================================================
+  /**
+   * Obtener una encuesta por ID
+   */
+  async getEncuestaById(id: string): Promise<EncuestaResponse> {
+    try {
+      console.log(`📡 Obteniendo encuesta ${id}...`);
+      
+      const response = await apiClient.get(`/api/encuesta/${id}`);
+      
+      console.log('✅ Encuesta obtenida exitosamente');
+      return response.data;
+      
+    } catch (error) {
+      console.error(`❌ Error al obtener encuesta ${id}:`, error);
+      throw this.handleApiError(error, `obtener encuesta ${id}`);
+    }
+  }
 
-/**
- * 🎣 Hook para gestión de encuestas en componentes React
- */
-export function useEncuestas() {
-  return {
-    // Métodos del servicio
-    getEncuestas: encuestasService.getEncuestas,
-    getEncuestaById: encuestasService.getEncuestaById,
-    deleteEncuesta: encuestasService.deleteEncuesta,
-    getEncuestasStats: encuestasService.getEncuestasStats,
+  /**
+   * Crear nueva encuesta familiar completa
+   */
+  async createEncuesta(encuestaData: Omit<EncuestaCompleta, 'id_encuesta'>): Promise<EncuestaResponse> {
+    try {
+      console.log('📡 Creando nueva encuesta...', encuestaData);
+      
+      const response = await apiClient.post('/api/encuesta', encuestaData);
+      
+      console.log('✅ Encuesta creada exitosamente');
+      return response.data;
+      
+    } catch (error) {
+      console.error('❌ Error al crear encuesta:', error);
+      throw this.handleApiError(error, 'crear encuesta');
+    }
+  }
+
+  /**
+   * Actualizar encuesta existente
+   */
+  async updateEncuesta(id: string, encuestaData: Partial<EncuestaCompleta>): Promise<EncuestaResponse> {
+    try {
+      console.log(`📡 Actualizando encuesta ${id}...`, encuestaData);
+      
+      const response = await apiClient.put(`/api/encuesta/${id}`, encuestaData);
+      
+      console.log('✅ Encuesta actualizada exitosamente');
+      return response.data;
+      
+    } catch (error) {
+      console.error(`❌ Error al actualizar encuesta ${id}:`, error);
+      throw this.handleApiError(error, `actualizar encuesta ${id}`);
+    }
+  }
+
+  /**
+   * Eliminar encuesta
+   */
+  async deleteEncuesta(id: string): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log(`📡 Eliminando encuesta ${id}...`);
+      
+      const response = await apiClient.delete(`/api/encuesta/${id}`);
+      
+      console.log('✅ Encuesta eliminada exitosamente');
+      return response.data;
+      
+    } catch (error) {
+      console.error(`❌ Error al eliminar encuesta ${id}:`, error);
+      throw this.handleApiError(error, `eliminar encuesta ${id}`);
+    }
+  }
+
+  /**
+   * Validar encuesta (cambiar estado a validada)
+   */
+  async validarEncuesta(id: string): Promise<EncuestaResponse> {
+    try {
+      console.log(`📡 Validando encuesta ${id}...`);
+      
+      const response = await apiClient.patch(`/api/encuesta/${id}/validar`);
+      
+      console.log('✅ Encuesta validada exitosamente');
+      return response.data;
+      
+    } catch (error) {
+      console.error(`❌ Error al validar encuesta ${id}:`, error);
+      throw this.handleApiError(error, `validar encuesta ${id}`);
+    }
+  }
+
+  /**
+   * Obtener estadísticas de encuestas
+   */
+  async getEstadisticas(): Promise<any> {
+    try {
+      console.log('📡 Obteniendo estadísticas de encuestas...');
+      
+      const response = await apiClient.get('/api/encuesta/estadisticas');
+      
+      console.log('✅ Estadísticas obtenidas exitosamente');
+      return response.data;
+      
+    } catch (error) {
+      console.error('❌ Error al obtener estadísticas:', error);
+      throw this.handleApiError(error, 'obtener estadísticas');
+    }
+  }
+
+  // ============================================================================
+  // UTILIDADES Y MANEJO DE ERRORES
+  // ============================================================================
+
+  /**
+   * Manejo centralizado de errores de la API
+   */
+  handleApiError(error: any, context: string): Error {
+    const errorMessage = error?.response?.data?.message || 
+                        error?.message || 
+                        `Error desconocido al ${context}`;
     
-    // Utilidades
-    mapEstadoToStatus: encuestasService.mapEstadoToStatus,
-  };
+    const statusCode = error?.response?.status;
+    
+    console.error(`🚨 Error en ${context}:`, {
+      message: errorMessage,
+      status: statusCode,
+      url: error?.config?.url,
+      method: error?.config?.method
+    });
+    
+    // Retornar error personalizado con información útil
+    const customError = new Error(errorMessage);
+    (customError as any).statusCode = statusCode;
+    (customError as any).context = context;
+    
+    return customError;
+  }
+
+  /**
+   * Validar datos de encuesta antes del envío
+   */
+  validateEncuestaData(data: Partial<EncuestaCompleta>): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+    
+    // Validaciones básicas
+    if (!data.codigo_familia?.trim()) {
+      errors.push('El código de familia es requerido');
+    }
+    
+    if (!data.apellido_familiar?.trim()) {
+      errors.push('El apellido familiar es requerido');
+    }
+    
+    if (!data.miembros_familia || data.miembros_familia.length === 0) {
+      errors.push('Debe incluir al menos un miembro de familia');
+    }
+    
+    // Validar que exista un jefe de familia
+    const jefesFamilia = data.miembros_familia?.filter(m => m.es_jefe_familia) || [];
+    if (jefesFamilia.length === 0) {
+      errors.push('Debe designar un jefe de familia');
+    } else if (jefesFamilia.length > 1) {
+      errors.push('Solo puede haber un jefe de familia');
+    }
+    
+    // Validaciones de miembros
+    data.miembros_familia?.forEach((miembro, index) => {
+      if (!miembro.nombres?.trim()) {
+        errors.push(`Miembro ${index + 1}: Los nombres son requeridos`);
+      }
+      if (!miembro.apellidos?.trim()) {
+        errors.push(`Miembro ${index + 1}: Los apellidos son requeridos`);
+      }
+    });
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
 }
 
-// ============================================================================
-// EXPORTACIONES DEFAULT
-// ============================================================================
+// Instancia del servicio para exportar
+export const encuestasService = new EncuestasService();
 
-export default encuestasService;
+// Exportar la clase para casos donde se necesite instanciar
+export default EncuestasService;
+
+// Re-exportar el hook desde su ubicación correcta para compatibilidad
+export { useEncuestas } from '@/hooks/useEncuestas';

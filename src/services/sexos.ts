@@ -1,5 +1,4 @@
-import { apiClient } from '@/interceptors/axios';
-import axios from 'axios';
+import { getApiClient } from '@/config/api';
 import { 
   Sexo, 
   SexoCreate, 
@@ -8,26 +7,6 @@ import {
   ServerResponse, 
   ApiSexosResponse 
 } from '@/types/sexos';
-
-const API_BASE_URL = import.meta.env.VITE_BASE_URL_SERVICES || 'http://206.62.139.100:3000';
-
-// Cliente básico sin autenticación para modo desarrollo
-const basicClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-});
-
-// Función para obtener el cliente correcto
-const getApiClient = () => {
-  if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
-    return basicClient;
-  }
-  return apiClient;
-};
 
 class SexosService {
   // Obtener todos los sexos con paginación

@@ -265,84 +265,85 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
   ];
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Settings className="w-8 h-8 text-gray-600" />
+    <div className="container mx-auto p-3 sm:p-6 max-w-7xl">
+      {/* Header optimizado para móvil */}
+      <div className="flex flex-col gap-4 mb-4 sm:mb-6">
+        <div className="text-center sm:text-left">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center justify-center sm:justify-start gap-3">
+            <Settings className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600" />
             Configuración del Sistema
           </h1>
-          <p className="text-gray-600">Personaliza y configura el sistema MIA</p>
+          <p className="text-sm sm:text-base text-gray-600 mt-2">Personaliza y configura el sistema MIA</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleBackup}>
+        <div className="flex flex-col sm:flex-row gap-2 w-full">
+          <Button variant="outline" onClick={handleBackup} className="w-full sm:w-auto">
             <Download className="w-4 h-4 mr-2" />
             Crear Backup
           </Button>
-          <Button onClick={handleSave}>
+          <Button onClick={handleSave} className="w-full sm:w-auto">
             <Save className="w-4 h-4 mr-2" />
             Guardar Cambios
           </Button>
         </div>
       </div>
 
-      {/* Tabs de configuración */}
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-          <TabsTrigger value="general" className="flex items-center gap-2">
-            <Globe className="w-4 h-4" />
-            General
+      {/* Tabs de configuración optimizados para móvil */}
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 h-auto min-h-[60px] sm:min-h-[50px]">
+          <TabsTrigger value="general" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm h-full">
+            <Globe className="w-4 h-4 sm:w-4 sm:h-4 shrink-0" />
+            <span className="text-xs sm:text-sm font-medium text-center">General</span>
           </TabsTrigger>
-          <TabsTrigger value="system" className="flex items-center gap-2">
-            <Database className="w-4 h-4" />
-            Sistema
+          <TabsTrigger value="system" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm h-full">
+            <Database className="w-4 h-4 sm:w-4 sm:h-4 shrink-0" />
+            <span className="text-xs sm:text-sm font-medium text-center">Sistema</span>
           </TabsTrigger>
-          <TabsTrigger value="email" className="flex items-center gap-2">
-            <Mail className="w-4 h-4" />
-            Email
+          <TabsTrigger value="email" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm h-full">
+            <Mail className="w-4 h-4 sm:w-4 sm:h-4 shrink-0" />
+            <span className="text-xs sm:text-sm font-medium text-center">Email</span>
           </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2">
-            <Shield className="w-4 h-4" />
-            Seguridad
+          <TabsTrigger value="security" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm h-full">
+            <Shield className="w-4 h-4 sm:w-4 sm:h-4 shrink-0" />
+            <span className="text-xs sm:text-sm font-medium text-center">Seguridad</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="w-4 h-4" />
-            Notificaciones
+          <TabsTrigger value="notifications" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm h-full">
+            <Bell className="w-4 h-4 sm:w-4 sm:h-4 shrink-0" />
+            <span className="text-xs sm:text-sm font-medium text-center">Alertas</span>
           </TabsTrigger>
-          <TabsTrigger value="appearance" className="flex items-center gap-2">
-            <Palette className="w-4 h-4" />
-            Apariencia
+          <TabsTrigger value="appearance" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm h-full">
+            <Palette className="w-4 h-4 sm:w-4 sm:h-4 shrink-0" />
+            <span className="text-xs sm:text-sm font-medium text-center">Tema</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Tab de Configuración General */}
         <TabsContent value="general">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <Globe className="w-5 h-5 text-blue-600" />
                 Configuración General
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm sm:text-base">
                 Configuración básica del sistema
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="siteName">Nombre del Sistema</Label>
+                  <Label htmlFor="siteName" className="text-sm sm:text-base">Nombre del Sistema</Label>
                   <Input
                     id="siteName"
                     value={settings.siteName}
                     onChange={(e) => handleSettingChange("siteName", e.target.value)}
+                    className="h-10 sm:h-11"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="language">Idioma</Label>
+                  <Label htmlFor="language" className="text-sm sm:text-base">Idioma</Label>
                   <Select value={settings.language} onValueChange={(value) => handleSettingChange("language", value)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10 sm:h-11">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -355,19 +356,20 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
                   </Select>
                 </div>
 
-                <div className="md:col-span-2 space-y-2">
-                  <Label htmlFor="siteDescription">Descripción</Label>
+                <div className="sm:col-span-2 space-y-2">
+                  <Label htmlFor="siteDescription" className="text-sm sm:text-base">Descripción</Label>
                   <Input
                     id="siteDescription"
                     value={settings.siteDescription}
                     onChange={(e) => handleSettingChange("siteDescription", e.target.value)}
+                    className="h-10 sm:h-11"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="timezone">Zona Horaria</Label>
+                <div className="sm:col-span-2 space-y-2">
+                  <Label htmlFor="timezone" className="text-sm sm:text-base">Zona Horaria</Label>
                   <Select value={settings.timezone} onValueChange={(value) => handleSettingChange("timezone", value)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10 sm:h-11">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -387,31 +389,31 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
         {/* Tab de Configuración del Sistema */}
         <TabsContent value="system">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <Database className="w-5 h-5 text-blue-600" />
                 Configuración del Sistema
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm sm:text-base">
                 Gestiona los catálogos y opciones del sistema MIA
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {filteredSystemOptions.map((option) => (
                   <Card 
                     key={option.title}
                     className="cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 border-2 hover:border-primary/50"
                     onClick={() => navigate(option.url)}
                   >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                          <option.icon className="w-5 h-5 text-primary" />
+                    <CardHeader className="p-3 sm:pb-3">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+                          <option.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                         </div>
-                        <div>
-                          <CardTitle className="text-base">{option.title}</CardTitle>
-                          <CardDescription className="text-sm">
+                        <div className="min-w-0">
+                          <CardTitle className="text-sm sm:text-base leading-tight">{option.title}</CardTitle>
+                          <CardDescription className="text-xs sm:text-sm leading-tight mt-1">
                             {option.description}
                           </CardDescription>
                         </div>
@@ -422,10 +424,10 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
               </div>
               
               {filteredSystemOptions.length === 0 && (
-                <div className="text-center py-8">
-                  <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Sin permisos de configuración</h3>
-                  <p className="text-muted-foreground">
+                <div className="text-center py-8 sm:py-12">
+                  <Shield className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-base sm:text-lg font-semibold mb-2">Sin permisos de configuración</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground px-4">
                     No tienes permisos para acceder a las opciones de configuración del sistema.
                   </p>
                 </div>
@@ -437,62 +439,67 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
         {/* Tab de Configuración de Email */}
         <TabsContent value="email">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <Mail className="w-5 h-5 text-green-600" />
                 Configuración de Email
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm sm:text-base">
                 Configuración del servidor de correo electrónico
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="emailHost">Servidor SMTP</Label>
+                  <Label htmlFor="emailHost" className="text-sm sm:text-base">Servidor SMTP</Label>
                   <Input
                     id="emailHost"
                     value={settings.emailHost}
                     onChange={(e) => handleSettingChange("emailHost", e.target.value)}
+                    className="h-10 sm:h-11"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="emailPort">Puerto</Label>
+                  <Label htmlFor="emailPort" className="text-sm sm:text-base">Puerto</Label>
                   <Input
                     id="emailPort"
                     value={settings.emailPort}
                     onChange={(e) => handleSettingChange("emailPort", e.target.value)}
+                    className="h-10 sm:h-11"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="emailUser">Usuario</Label>
+                  <Label htmlFor="emailUser" className="text-sm sm:text-base">Usuario</Label>
                   <Input
                     id="emailUser"
                     type="email"
                     value={settings.emailUser}
                     onChange={(e) => handleSettingChange("emailUser", e.target.value)}
+                    className="h-10 sm:h-11"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="emailFromName">Nombre del Remitente</Label>
+                  <Label htmlFor="emailFromName" className="text-sm sm:text-base">Nombre del Remitente</Label>
                   <Input
                     id="emailFromName"
                     value={settings.emailFromName}
                     onChange={(e) => handleSettingChange("emailFromName", e.target.value)}
+                    className="h-10 sm:h-11"
                   />
                 </div>
 
-                <div className="md:col-span-2 space-y-2">
-                  <Label htmlFor="emailPassword">Contraseña</Label>
+                <div className="sm:col-span-2 space-y-2">
+                  <Label htmlFor="emailPassword" className="text-sm sm:text-base">Contraseña</Label>
                   <Input
                     id="emailPassword"
                     type="password"
                     value={settings.emailPassword}
                     onChange={(e) => handleSettingChange("emailPassword", e.target.value)}
                     placeholder="••••••••"
+                    className="h-10 sm:h-11"
                   />
                 </div>
               </div>
@@ -503,45 +510,47 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
         {/* Tab de Configuración de Seguridad */}
         <TabsContent value="security">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <Shield className="w-5 h-5 text-red-600" />
                 Configuración de Seguridad
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm sm:text-base">
                 Configuración de seguridad y acceso
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="sessionTimeout">Tiempo de Sesión (minutos)</Label>
+                  <Label htmlFor="sessionTimeout" className="text-sm sm:text-base">Tiempo de Sesión (minutos)</Label>
                   <Input
                     id="sessionTimeout"
                     type="number"
                     value={settings.sessionTimeout}
                     onChange={(e) => handleSettingChange("sessionTimeout", e.target.value)}
+                    className="h-10 sm:h-11"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="passwordMinLength">Longitud mínima de contraseña</Label>
+                  <Label htmlFor="passwordMinLength" className="text-sm sm:text-base">Longitud mínima de contraseña</Label>
                   <Input
                     id="passwordMinLength"
                     type="number"
                     value={settings.passwordMinLength}
                     onChange={(e) => handleSettingChange("passwordMinLength", e.target.value)}
+                    className="h-10 sm:h-11"
                   />
                 </div>
               </div>
 
               <Separator />
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="requireTwoFactor">Autenticación de Dos Factores</Label>
-                    <p className="text-sm text-gray-500">Requerir 2FA para todos los usuarios</p>
+              <div className="space-y-4 sm:space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="requireTwoFactor" className="text-sm sm:text-base">Autenticación de Dos Factores</Label>
+                    <p className="text-xs sm:text-sm text-gray-500">Requerir 2FA para todos los usuarios</p>
                   </div>
                   <Switch
                     id="requireTwoFactor"
@@ -550,10 +559,10 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="allowGuestAccess">Acceso de Invitados</Label>
-                    <p className="text-sm text-gray-500">Permitir acceso limitado sin autenticación</p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="allowGuestAccess" className="text-sm sm:text-base">Acceso de Invitados</Label>
+                    <p className="text-xs sm:text-sm text-gray-500">Permitir acceso limitado sin autenticación</p>
                   </div>
                   <Switch
                     id="allowGuestAccess"
@@ -569,18 +578,18 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
         {/* Tab de Notificaciones */}
         <TabsContent value="notifications">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <Bell className="w-5 h-5 text-yellow-600" />
                 Configuración de Notificaciones
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm sm:text-base">
                 Configurar preferencias de notificaciones
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="emailNotifications">Notificaciones por Email</Label>
+            <CardContent className="space-y-4 sm:space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <Label htmlFor="emailNotifications" className="text-sm sm:text-base">Notificaciones por Email</Label>
                 <Switch
                   id="emailNotifications"
                   checked={settings.emailNotifications}
@@ -588,8 +597,8 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <Label htmlFor="smsNotifications">Notificaciones por SMS</Label>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <Label htmlFor="smsNotifications" className="text-sm sm:text-base">Notificaciones por SMS</Label>
                 <Switch
                   id="smsNotifications"
                   checked={settings.smsNotifications}
@@ -597,8 +606,8 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <Label htmlFor="pushNotifications">Notificaciones Push</Label>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <Label htmlFor="pushNotifications" className="text-sm sm:text-base">Notificaciones Push</Label>
                 <Switch
                   id="pushNotifications"
                   checked={settings.pushNotifications}
@@ -606,8 +615,8 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <Label htmlFor="reportNotifications">Notificaciones de Reportes</Label>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <Label htmlFor="reportNotifications" className="text-sm sm:text-base">Notificaciones de Reportes</Label>
                 <Switch
                   id="reportNotifications"
                   checked={settings.reportNotifications}

@@ -86,6 +86,7 @@ export const MetadataSection = ({ data }: MetadataSectionProps) => {
    */
   const getDaysSinceCreation = () => {
     try {
+      if (!data.metadatos?.fecha_creacion) return null;
       const creation = new Date(data.metadatos.fecha_creacion);
       const today = new Date();
       const diffTime = Math.abs(today.getTime() - creation.getTime());
@@ -109,7 +110,7 @@ export const MetadataSection = ({ data }: MetadataSectionProps) => {
       data.sector?.nombre,
       data.tipo_vivienda?.nombre,
       data.acueducto?.nombre,
-      data.miembros_familia.total_miembros > 0,
+      data.miembros_familia?.total_miembros > 0,
     ];
     
     const completed = fields.filter(Boolean).length;
@@ -159,7 +160,7 @@ export const MetadataSection = ({ data }: MetadataSectionProps) => {
             <div>
               <p className="text-sm font-medium text-gray-500 mb-1">Versión</p>
               <Badge variant="outline" className="text-sm">
-                v{data.metadatos.version}
+                v{data.metadatos?.version || 'N/A'}
               </Badge>
             </div>
           </div>
@@ -180,7 +181,7 @@ export const MetadataSection = ({ data }: MetadataSectionProps) => {
               <p className="text-sm font-medium text-gray-500 mb-1">Fecha de Creación</p>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-gray-400" />
-                <p className="text-sm">{formatDate(data.metadatos.fecha_creacion)}</p>
+                <p className="text-sm">{formatDate(data.metadatos?.fecha_creacion)}</p>
               </div>
               {daysSince && (
                 <p className="text-xs text-gray-500 mt-1">Hace {daysSince} días</p>
@@ -207,7 +208,7 @@ export const MetadataSection = ({ data }: MetadataSectionProps) => {
             <div>
               <p className="text-sm font-medium text-gray-500 mb-1">Estado Técnico</p>
               <Badge variant="outline" className="text-sm">
-                {data.metadatos.estado}
+                {data.metadatos?.estado || 'N/A'}
               </Badge>
             </div>
           </div>
@@ -254,7 +255,7 @@ export const MetadataSection = ({ data }: MetadataSectionProps) => {
                 { label: "Sector", value: data.sector?.nombre },
                 { label: "Tipo Vivienda", value: data.tipo_vivienda?.nombre },
                 { label: "Acueducto", value: data.acueducto?.nombre },
-                { label: "Miembros Familia", value: data.miembros_familia.total_miembros > 0 }
+                { label: "Miembros Familia", value: (data.miembros_familia?.total_miembros || 0) > 0 }
               ].map((field) => (
                 <div key={field.label} className="flex items-center gap-2">
                   <span className={`text-sm ${field.value ? 'text-green-600' : 'text-red-600'}`}>
@@ -280,14 +281,14 @@ export const MetadataSection = ({ data }: MetadataSectionProps) => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-3 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">
-                {data.miembros_familia.total_miembros}
+                {data.miembros_familia?.total_miembros || 0}
               </div>
               <div className="text-xs text-blue-700">Miembros Vivos</div>
             </div>
 
             <div className="text-center p-3 bg-red-50 rounded-lg">
               <div className="text-2xl font-bold text-red-600">
-                {data.personas_fallecidas.total_fallecidos}
+                {data.deceasedMembers?.length || 0}
               </div>
               <div className="text-xs text-red-700">Fallecidos</div>
             </div>
@@ -322,15 +323,15 @@ export const MetadataSection = ({ data }: MetadataSectionProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="font-medium text-gray-700">ID Interno:</span>
-                <code className="ml-2 text-gray-600">{data.id || 'N/A'}</code>
+                <code className="ml-2 text-gray-600">{data.id_encuesta || 'N/A'}</code>
               </div>
               <div>
                 <span className="font-medium text-gray-700">Versión Sistema:</span>
-                <span className="ml-2 text-gray-600">v{data.metadatos.version}</span>
+                <span className="ml-2 text-gray-600">v{data.metadatos?.version || 'N/A'}</span>
               </div>
               <div>
                 <span className="font-medium text-gray-700">Estado Backend:</span>
-                <span className="ml-2 text-gray-600">{data.metadatos.estado}</span>
+                <span className="ml-2 text-gray-600">{data.metadatos?.estado || 'N/A'}</span>
               </div>
               <div>
                 <span className="font-medium text-gray-700">Tipo Registro:</span>

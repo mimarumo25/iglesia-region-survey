@@ -1,6 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from '@/hooks/use-toast';
 import { estadosCivilesService } from '@/services/estados-civiles';
+import { useMemo } from 'react';
 import {
   EstadoCivil,
   EstadoCivilCreate,
@@ -11,97 +12,96 @@ import {
   EstadoCivilDeleteResponse,
 } from '@/types/estados-civiles';
 
+// ✅ PATRÓN UNIFICADO - Single Query con búsqueda opcional
+export const useEstadosCivilesQuery = (searchTerm?: string, includeInactive: boolean = false) => {
+  return useQuery({
+    queryKey: ['estadosCiviles', searchTerm || 'all', includeInactive],
+    queryFn: () => {
+      // Si hay término de búsqueda, usar búsqueda; si no, obtener todos
+      return searchTerm && searchTerm.trim()
+        ? estadosCivilesService.searchEstadosCiviles(searchTerm.trim(), includeInactive, 100, 1, 'orden', 'ASC')
+        : estadosCivilesService.getEstadosCiviles(includeInactive, 100, 1, 'orden', 'ASC');
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData,
+  });
+};
+
+// 🔧 Helper function para paginación del lado del cliente
+export const paginateClientSide = <T>(
+  items: T[],
+  page: number,
+  limit: number
+): {
+  paginatedItems: T[];
+  totalPages: number;
+  currentPage: number;
+  totalCount: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+} => {
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedItems = items.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(items.length / limit);
+
+  return {
+    paginatedItems,
+    totalPages,
+    currentPage: page,
+    totalCount: items.length,
+    hasNext: page < totalPages,
+    hasPrev: page > 1,
+  };
+};
+
+// 🔍 Helper function para filtrar búsquedas del lado del cliente
+export const filterBySearch = (
+  items: EstadoCivil[],
+  searchTerm: string
+): EstadoCivil[] => {
+  if (!searchTerm || !searchTerm.trim()) {
+    return items;
+  }
+
+  const lowercaseSearch = searchTerm.toLowerCase().trim();
+  return items.filter(item =>
+    item.nombre?.toLowerCase().includes(lowercaseSearch) ||
+    item.codigo?.toLowerCase().includes(lowercaseSearch) ||
+    item.descripcion?.toLowerCase().includes(lowercaseSearch)
+  );
+};
+
 export const useEstadosCiviles = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   // ===== QUERIES =====
 
-  // Query para obtener todos los estados civiles con paginación y filtros
-  const useEstadosCivilesQuery = (
-    page: number = 1,
-    limit: number = 10,
-    orderBy: string = 'orden',
-    orderDirection: 'ASC' | 'DESC' = 'ASC',
-    includeInactive: boolean = false
-  ) => {
-    return useQuery<EstadoCivilResponse, Error>({
-      queryKey: ['estadosCiviles', { page, limit, orderBy, orderDirection, includeInactive }],
-      queryFn: () => estadosCivilesService.getEstadosCiviles(includeInactive, limit, page, orderBy, orderDirection),
-      keepPreviousData: true,
-      onError: (error: any) => {
-        console.error('Error loading estados civiles:', error);
-        toast({
-          title: "Error",
-          description: error.response?.data?.message || "Error al cargar los estados civiles",
-          variant: "destructive",
-        });
-      },
-    });
-  };
-
-  // Query para buscar estados civiles por término de búsqueda
-  const useSearchEstadosCivilesQuery = (
-    searchTerm: string,
-    page: number = 1,
-    limit: number = 10,
-    orderBy: string = 'orden',
-    orderDirection: 'ASC' | 'DESC' = 'ASC',
-    includeInactive: boolean = false
-  ) => {
-    return useQuery<EstadoCivilResponse, Error>({
-      queryKey: ['estadosCiviles', { search: searchTerm, page, limit, orderBy, orderDirection, includeInactive }],
-      queryFn: () => estadosCivilesService.searchEstadosCiviles(searchTerm, includeInactive, limit, page, orderBy, orderDirection),
-      enabled: !!searchTerm, // Solo se ejecuta si hay un searchTerm
-      keepPreviousData: true,
-      onError: (error: any) => {
-        console.error('Error searching estados civiles:', error);
-        toast({
-          title: "Error",
-          description: error.response?.data?.message || "Error al buscar estados civiles",
-          variant: "destructive",
-        });
-      },
-    });
-  };
-
   // Query para obtener solo los estados civiles activos
   const useEstadosCivilesActivosQuery = (
-    limit: number = 10,
+    limit: number = 100,
     page: number = 1
   ) => {
-    return useQuery<EstadoCivilResponse, Error>({
+    return useQuery({
       queryKey: ['estadosCiviles', 'activos', { limit, page }],
       queryFn: () => estadosCivilesService.getEstadosCivilesActivos(limit, page),
-      keepPreviousData: true,
-      onError: (error: any) => {
-        console.error('Error loading active estados civiles:', error);
-        toast({
-          title: "Error",
-          description: error.response?.data?.message || "Error al cargar los estados civiles activos",
-          variant: "destructive",
-        });
-      },
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+      placeholderData: (previousData) => previousData,
     });
   };
 
   // Query para obtener un estado civil por ID
   const useEstadoCivilByIdQuery = (id: number) => {
-    return useQuery<EstadoCivil, Error>({
+    return useQuery({
       queryKey: ['estadoCivil', id],
       queryFn: async () => {
         const response = await estadosCivilesService.getEstadoCivilById(id);
-        return response.data; // Asumiendo que la respuesta es { status: 'success', data: EstadoCivil }
+        return response.data;
       },
-      enabled: !!id, // Solo se ejecuta si hay un ID
-      onError: (error: any) => {
-        console.error('Error loading estado civil by ID:', error);
-        toast({
-          title: "Error",
-          description: error.response?.data?.message || "Error al cargar el estado civil",
-          variant: "destructive",
-        });
-      },
+      enabled: !!id,
+      staleTime: 1000 * 60 * 5,
     });
   };
 
@@ -174,8 +174,6 @@ export const useEstadosCiviles = () => {
   };
 
   return {
-    useEstadosCivilesQuery,
-    useSearchEstadosCivilesQuery,
     useEstadosCivilesActivosQuery,
     useEstadoCivilByIdQuery,
     useCreateEstadoCivilMutation,

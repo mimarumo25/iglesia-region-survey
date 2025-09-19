@@ -1,35 +1,87 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { comunidadesCulturalesService } from '@/services/comunidades-culturales';
-import { ComunidadCulturalFormData, ComunidadCulturalUpdateData } from '@/types/comunidades-culturales';
+import { ComunidadCulturalFormData, ComunidadCulturalUpdateData, ComunidadCultural } from '@/types/comunidades-culturales';
+import { useMemo } from 'react';
+
+// ✅ PATRÓN UNIFICADO - Single Query con búsqueda opcional
+export const useComunidadesCulturalesQuery = (searchTerm?: string) => {
+  return useQuery({
+    queryKey: ['comunidades-culturales', searchTerm || 'all'],
+    queryFn: () => {
+      // Si hay término de búsqueda, usar búsqueda; si no, obtener todos
+      return searchTerm && searchTerm.trim()
+        ? comunidadesCulturalesService.searchComunidadesCulturales(searchTerm.trim(), 1, 100)
+        : comunidadesCulturalesService.getComunidadesCulturales(1, 100, 'nombre', 'ASC');
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData,
+  });
+};
+
+// 🔧 Helper function para paginación del lado del cliente
+export const paginateClientSide = <T>(
+  items: T[],
+  page: number,
+  limit: number
+): {
+  paginatedItems: T[];
+  totalPages: number;
+  currentPage: number;
+  totalCount: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+} => {
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedItems = items.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(items.length / limit);
+
+  return {
+    paginatedItems,
+    totalPages,
+    currentPage: page,
+    totalCount: items.length,
+    hasNext: page < totalPages,
+    hasPrev: page > 1,
+  };
+};
+
+// 🔍 Helper function para filtrar búsquedas del lado del cliente
+export const filterBySearch = (
+  comunidades: ComunidadCultural[],
+  searchTerm: string
+): ComunidadCultural[] => {
+  if (!searchTerm || !searchTerm.trim()) {
+    return comunidades;
+  }
+
+  const term = searchTerm.toLowerCase().trim();
+  
+  return comunidades.filter((comunidad) =>
+    comunidad.nombre.toLowerCase().includes(term) ||
+    (comunidad.descripcion && comunidad.descripcion.toLowerCase().includes(term))
+  );
+};
 
 // Hook personalizado para todas las operaciones de comunidades culturales
 export const useComunidadesCulturales = () => {
   const queryClient = useQueryClient();
 
-  // Query para obtener comunidades culturales con paginación
-  const useComunidadesCulturalesQuery = (
-    page: number = 1, 
-    limit: number = 10, 
-    sortBy: string = 'id_comunidad_cultural', 
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ) => {
+  // 🎯 Query principal unificada - reemplaza las dos queries separadas
+  const useComunidadesCulturalesQuery = (searchTerm?: string) => {
     return useQuery({
-      queryKey: ['comunidades-culturales', page, limit, sortBy, sortOrder],
-      queryFn: () => comunidadesCulturalesService.getComunidadesCulturales(page, limit, sortBy, sortOrder),
+      queryKey: ['comunidades-culturales', searchTerm || 'all'],
+      queryFn: () => {
+        // Si hay término de búsqueda, usar búsqueda; si no, obtener todos
+        return searchTerm && searchTerm.trim()
+          ? comunidadesCulturalesService.searchComunidadesCulturales(searchTerm.trim(), 1, 100)
+          : comunidadesCulturalesService.getComunidadesCulturales(1, 100, 'nombre', 'ASC');
+      },
       staleTime: 1000 * 60 * 5, // 5 minutos
       refetchOnWindowFocus: false,
-    });
-  };
-
-  // Query para buscar comunidades culturales
-  const useSearchComunidadesCulturalesQuery = (search: string, page: number = 1, limit: number = 10) => {
-    return useQuery({
-      queryKey: ['comunidades-culturales-search', search, page, limit],
-      queryFn: () => comunidadesCulturalesService.searchComunidadesCulturales(search, page, limit),
-      enabled: search.length > 0,
-      staleTime: 1000 * 60 * 2, // 2 minutos para búsquedas
-      refetchOnWindowFocus: false,
+      placeholderData: (previousData) => previousData,
     });
   };
 
@@ -179,9 +231,10 @@ export const useComunidadesCulturales = () => {
   };
 
   return {
-    // Queries
+    // ✅ Query principal unificada (reemplaza useComunidadesCulturalesQuery + useSearchComunidadesCulturalesQuery)
     useComunidadesCulturalesQuery,
-    useSearchComunidadesCulturalesQuery,
+    
+    // Queries mantenidas para compatibilidad
     useComunidadCulturalByIdQuery,
     useActiveComunidadesCulturalesQuery,
     useComunidadesCulturalesStatsQuery,
@@ -191,6 +244,10 @@ export const useComunidadesCulturales = () => {
     useUpdateComunidadCulturalMutation,
     useDeleteComunidadCulturalMutation,
     useToggleComunidadCulturalStatusMutation,
+
+    // 🔧 Helper functions exportadas para uso en componentes
+    paginateClientSide,
+    filterBySearch,
   };
 };
 

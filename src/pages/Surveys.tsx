@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Autocomplete, AutocompleteOption } from "@/components/ui/autocomplete";
 import { AutocompleteWithLoading } from "@/components/ui/autocomplete-with-loading";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import {
   FileText,
   Plus,
@@ -44,14 +46,24 @@ import {
 
 // Importar hooks de servicios
 import { useConfigurationData } from "@/hooks/useConfigurationData";
-import { encuestasService, useEncuestas, EncuestaListItem, EncuestasFilters } from "@/services/encuestas";
+import { useEncuestas, useEncuestasList } from "@/hooks/useEncuestas";
+import { EncuestaListItem, EncuestasSearchParams, EncuestasResponse } from "@/services/encuestas";
+import { useResponsiveTable } from "@/hooks/useResponsiveTable";
 
-// Importar modal de detalles
+// Importar modal de detalles y componentes móviles
 import { SurveyDetailModal } from "@/components/modales/SurveyDetailModal";
+import { SurveyMobileCard } from "@/components/ui/SurveyMobileCard";
+
+// Importar estilos para animaciones móviles
+import "@/styles/mobile-animations.css";
+import "@/styles/surveys-mobile.css";
 
 const Surveys = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Hook para responsive design
+  const { shouldUseMobileView, isMobile, isVerySmall } = useResponsiveTable();
   
   // Estados para filtros
   const [searchTerm, setSearchTerm] = useState("");
@@ -59,26 +71,64 @@ const Surveys = () => {
   const [sectorFilter, setSectorFilter] = useState("");
   const [surveyorFilter, setSurveyorFilter] = useState("");
 
-  // Estados para datos de encuestas
-  const [encuestas, setEncuestas] = useState<EncuestaListItem[]>([]);
-  const [encuestasLoading, setEncuestasLoading] = useState(true);
-  const [encuestasError, setEncuestasError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState({
+  // Hook de encuestas con parámetros de consulta
+  const [queryParams, setQueryParams] = useState<EncuestasSearchParams>({
+    page: 1,
+    limit: 10,
+    search: searchTerm,
+    estado: statusFilter !== 'all' ? statusFilter : undefined,
+    sector: sectorFilter || undefined,
+  });
+
+  // Hook de encuestas para obtener datos
+  const encuestasQuery = useEncuestasList(queryParams);
+  
+  // Extraer datos del query
+  const encuestasData = encuestasQuery.data;
+  const encuestasLoading = encuestasQuery.isLoading;
+  const encuestasError = encuestasQuery.error;
+  const refetchEncuestas = encuestasQuery.refetch;
+
+  // Hook para mutations
+  const { 
+    deleteEncuesta,
+    isDeleting 
+  } = useEncuestas();
+
+  // Estados para datos de encuestas (actualizados desde React Query)
+  const encuestas = (encuestasData as EncuestasResponse)?.data || [];
+  const paginationFromAPI = (encuestasData as EncuestasResponse)?.pagination || {
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
-    itemsPerPage: 10
-  });
-  const [stats, setStats] = useState({
-    total: 0,
-    completed: 0,
-    pending: 0,
-    in_progress: 0,
-    cancelled: 0
-  });
+    itemsPerPage: 10,
+    hasNextPage: false,
+    hasPrevPage: false
+  };
+
+  // Calcular estadísticas desde los datos cargados
+  const stats = useMemo(() => {
+    return encuestas.reduce((acc, encuesta) => {
+      acc.total++;
+      switch (encuesta.estado_encuesta) {
+        case 'completed':
+          acc.completed++;
+          break;
+        case 'pending':
+          acc.pending++;
+          break;
+        case 'in_progress':
+          acc.in_progress++;
+          break;
+        default:
+          acc.cancelled++;
+      }
+      return acc;
+    }, { total: 0, completed: 0, pending: 0, in_progress: 0, cancelled: 0 });
+  }, [encuestas]);
 
   // Estados para operaciones CRUD
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<EncuestaListItem | null>(null);
 
@@ -98,103 +148,26 @@ const Surveys = () => {
     isAnyLoading = false
   } = useConfigurationData() || {}; // Fallback en caso de error del hook
 
-  // Hook de encuestas
-  const { getEncuestas, getEncuestasStats, deleteEncuesta } = useEncuestas();
-
   // ============================================================================
-  // EFECTOS Y CARGAR DATOS
+  // EFECTOS Y SINCRONIZACIÓN
   // ============================================================================
 
   /**
-   * Cargar encuestas desde la API
-   */
-  const loadEncuestas = useCallback(async (filters?: EncuestasFilters) => {
-    setEncuestasLoading(true);
-    setEncuestasError(null);
-
-    try {
-      const currentFilters: EncuestasFilters = {
-        page: pagination.currentPage,
-        limit: pagination.itemsPerPage,
-        ...filters
-      };
-
-      // Aplicar filtros de búsqueda
-      if (searchTerm.trim()) {
-        currentFilters.search = searchTerm.trim();
-      }
-
-      // Aplicar filtros de estado
-      if (statusFilter !== "all") {
-        currentFilters.estado = statusFilter;
-      }
-
-      // Aplicar filtros geográficos (si están disponibles en el futuro)
-      if (sectorFilter) {
-        const sectorOption = sectorOptions.find(s => s.value === sectorFilter);
-        if (sectorOption) {
-          currentFilters.sector_id = parseInt(sectorOption.value);
-        }
-      }
-
-      console.log('🔍 Cargando encuestas con filtros:', currentFilters);
-
-      const response = await getEncuestas(currentFilters);
-
-      setEncuestas(response.data.encuestas);
-      setPagination(response.data.pagination);
-
-      // Cargar estadísticas si están disponibles
-      if (response.data.stats) {
-        setStats(response.data.stats);
-      } else {
-        loadStats();
-      }
-
-      console.log('✅ Encuestas cargadas exitosamente:', response.data.encuestas.length);
-
-    } catch (error: any) {
-      console.error('❌ Error al cargar encuestas:', error);
-      setEncuestasError(error.message || 'Error al cargar encuestas');
-      toast({
-        variant: "destructive",
-        title: "Error al cargar encuestas",
-        description: error.message || 'Hubo un problema al cargar las encuestas'
-      });
-    } finally {
-      setEncuestasLoading(false);
-    }
-  }, [pagination.currentPage, pagination.itemsPerPage, searchTerm, statusFilter, sectorFilter, sectorOptions, getEncuestas, toast]);
-
-  /**
-   * Cargar estadísticas de encuestas
-   */
-  const loadStats = useCallback(async () => {
-    try {
-      const statsData = await getEncuestasStats();
-      setStats(statsData);
-    } catch (error: any) {
-      console.error('❌ Error al cargar estadísticas:', error);
-    }
-  }, [getEncuestasStats]);
-
-  /**
-   * Efecto inicial para cargar datos
-   */
-  useEffect(() => {
-    loadEncuestas();
-  }, []);
-
-  /**
-   * Efecto para recargar cuando cambien los filtros
+   * Actualizar parámetros de consulta cuando cambien los filtros
    */
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      loadEncuestas();
+      setQueryParams({
+        page: 1, // Resetear a la primera página al filtrar
+        limit: paginationFromAPI.itemsPerPage,
+        search: searchTerm || undefined,
+        estado: statusFilter !== 'all' ? statusFilter : undefined,
+        sector: sectorFilter || undefined,
+      });
     }, 500); // Debounce de 500ms
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, statusFilter, sectorFilter, surveyorFilter]);
+  }, [searchTerm, statusFilter, sectorFilter, surveyorFilter, paginationFromAPI.itemsPerPage]);
 
   // ============================================================================
   // FUNCIONES CRUD
@@ -214,18 +187,19 @@ const Surveys = () => {
   const handleDeleteConfirm = async () => {
     if (!itemToDelete) return;
 
-    setDeletingId(itemToDelete.id);
+    setDeletingId(itemToDelete.id_encuesta);
 
     try {
-      await deleteEncuesta(itemToDelete.id);
+      await deleteEncuesta.mutateAsync(itemToDelete.id_encuesta);
       
       toast({
         title: "Encuesta eliminada",
         description: `La encuesta de ${itemToDelete.apellido_familiar} ha sido eliminada exitosamente`
       });
 
-      // Recargar lista
-      loadEncuestas();
+      // React Query invalidará automáticamente y recargará los datos
+      // No es necesario llamar loadEncuestas() ya que el hook useEncuestas
+      // maneja la invalidación automática al eliminar
 
     } catch (error: any) {
       console.error('❌ Error al eliminar encuesta:', error);
@@ -244,12 +218,12 @@ const Surveys = () => {
   /**
    * Navegación a detalles
    */
-  const handleViewDetails = (id: number) => {
-    // navigate(`/surveys/${id}`);
+  const handleViewDetails = (id: string | number) => {
+    const idString = typeof id === 'number' ? id.toString() : id;
     
     // Usar modal en lugar de navegación
-    const encuesta = encuestas.find(e => parseInt(e.id_encuesta) === id);
-    setSelectedSurveyId(id.toString());
+    const encuesta = encuestas.find(e => e.id_encuesta === idString);
+    setSelectedSurveyId(idString);
     setSelectedSurveyData(encuesta);
     setDetailModalOpen(true);
   };
@@ -266,9 +240,13 @@ const Surveys = () => {
   /**
    * Navegación a edición
    */
-  const handleEdit = (id: number) => {
-    navigate(`/surveys/${id}/edit`);
+  const handleEdit = (id: string | number) => {
+    const idString = typeof id === 'number' ? id.toString() : id;
+    navigate(`/surveys/${idString}/edit`);
   };
+
+  // Alias para compatibilidad con SurveyMobileCard
+  const handleEditSurvey = handleEdit;
 
   // ============================================================================
   // FUNCIONES DE FILTRADO Y UTILIDADES
@@ -278,11 +256,7 @@ const Surveys = () => {
    * Filtrar encuestas localmente (aplicado sobre los resultados de la API)
    */
   const filteredEncuestas = encuestas.filter(encuesta => {
-    // Filtro por encuestador (si está disponible)
-    if (surveyorFilter && encuesta.surveyor && encuesta.surveyor !== surveyorFilter) {
-      return false;
-    }
-    
+    // La API ya maneja el filtro de encuestador, no necesitamos filtrar localmente
     return true;
   });
 
@@ -290,7 +264,7 @@ const Surveys = () => {
    * Recargar datos manualmente
    */
   const handleRefresh = () => {
-    loadEncuestas();
+    refetchEncuestas();
   };
 
   /**
@@ -314,6 +288,8 @@ const Surveys = () => {
     switch (status) {
       case "completed":
         return <Badge className="bg-green-100 text-green-700 hover:bg-green-200">Completada</Badge>;
+      case "validated":
+        return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200">Validada</Badge>;
       case "in_progress":
         return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200">En Progreso</Badge>;
       case "cancelled":
@@ -333,31 +309,57 @@ const Surveys = () => {
 
   return (
     <div className="container mx-auto p-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      {/* Header - Responsive */}
+      <div className={cn(
+        "flex gap-4 mb-6",
+        shouldUseMobileView ? "flex-col" : "flex-col md:flex-row md:items-center md:justify-between"
+      )}>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <FileText className="w-8 h-8 text-blue-600" />
+          <h1 className={cn(
+            "font-bold text-gray-900 flex items-center gap-3",
+            shouldUseMobileView ? "text-2xl" : "text-3xl"
+          )}>
+            <FileText className={cn(
+              "text-blue-600",
+              shouldUseMobileView ? "w-6 h-6" : "w-8 h-8"
+            )} />
             Gestión de Encuestas
           </h1>
-          <p className="text-gray-600">Administra todas las encuestas de caracterización familiar</p>
+          <p className={cn(
+            "text-gray-600",
+            shouldUseMobileView ? "text-sm mt-1" : ""
+          )}>
+            Administra todas las encuestas de caracterización familiar
+          </p>
         </div>
-        <div className="flex gap-2">
+        <div className={cn(
+          "flex gap-2",
+          shouldUseMobileView ? "flex-col" : ""
+        )}>
           <Button 
             onClick={handleRefresh} 
             variant="outline" 
             className="flex items-center gap-2"
             disabled={encuestasLoading}
+            size={shouldUseMobileView ? "sm" : "default"}
           >
             <RefreshCw className={`w-4 h-4 ${encuestasLoading ? 'animate-spin' : ''}`} />
-            Actualizar
+            {shouldUseMobileView ? "Actualizar" : "Actualizar"}
           </Button>
           <Button 
             onClick={() => navigate("/survey")} 
-            className="flex items-center gap-2"
+            className={cn(
+              "flex items-center gap-2 font-semibold button-ripple",
+              shouldUseMobileView 
+                ? "mobile-primary-button text-white shadow-lg w-full justify-center py-3" 
+                : ""
+            )}
+            size={shouldUseMobileView ? "lg" : "default"}
           >
-            <Plus className="w-4 h-4" />
-            Nueva Encuesta
+            <Plus className={cn(
+              shouldUseMobileView ? "w-5 h-5" : "w-4 h-4"
+            )} />
+            {shouldUseMobileView ? "📝 Nueva Encuesta" : "Nueva Encuesta"}
           </Button>
         </div>
       </div>
@@ -382,109 +384,218 @@ const Surveys = () => {
               <AlertTriangle className="w-5 h-5" />
               <div>
                 <p className="font-medium">Error al cargar encuestas</p>
-                <p className="text-sm">{encuestasError}</p>
+                <p className="text-sm">{encuestasError.message || 'Error desconocido'}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      {/* Stats Cards - Responsive */}
+      <div className={cn(
+        "grid gap-4 mb-6",
+        shouldUseMobileView 
+          ? "grid-cols-2" 
+          : "grid-cols-1 md:grid-cols-5"
+      )}>
         <Card>
-          <CardContent className="p-4">
+          <CardContent className={cn(
+            "p-4",
+            shouldUseMobileView && "p-3"
+          )}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <FileText className="w-5 h-5 text-blue-600" />
+              <div className={cn(
+                "bg-blue-100 rounded-lg flex items-center justify-center",
+                shouldUseMobileView ? "w-8 h-8" : "w-10 h-10"
+              )}>
+                <FileText className={cn(
+                  "text-blue-600",
+                  shouldUseMobileView ? "w-4 h-4" : "w-5 h-5"
+                )} />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Total</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className={cn(
+                  "text-gray-600",
+                  shouldUseMobileView ? "text-xs" : "text-sm"
+                )}>
+                  Total
+                </p>
+                <p className={cn(
+                  "font-bold text-gray-900",
+                  shouldUseMobileView ? "text-lg" : "text-2xl"
+                )}>
+                  {stats.total}
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className={cn(
+            "p-4",
+            shouldUseMobileView && "p-3"
+          )}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+              <div className={cn(
+                "bg-green-100 rounded-lg flex items-center justify-center",
+                shouldUseMobileView ? "w-8 h-8" : "w-10 h-10"
+              )}>
+                <CheckCircle className={cn(
+                  "text-green-600",
+                  shouldUseMobileView ? "w-4 h-4" : "w-5 h-5"
+                )} />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Completadas</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
+                <p className={cn(
+                  "text-gray-600",
+                  shouldUseMobileView ? "text-xs" : "text-sm"
+                )}>
+                  {shouldUseMobileView ? "Compl." : "Completadas"}
+                </p>
+                <p className={cn(
+                  "font-bold text-gray-900",
+                  shouldUseMobileView ? "text-lg" : "text-2xl"
+                )}>
+                  {stats.completed}
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <Clock className="w-5 h-5 text-yellow-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Pendientes</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {!isVerySmall && (
+          <>
+            <Card>
+              <CardContent className={cn(
+                "p-4",
+                shouldUseMobileView && "p-3"
+              )}>
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "bg-yellow-100 rounded-lg flex items-center justify-center",
+                    shouldUseMobileView ? "w-8 h-8" : "w-10 h-10"
+                  )}>
+                    <Clock className={cn(
+                      "text-yellow-600",
+                      shouldUseMobileView ? "w-4 h-4" : "w-5 h-5"
+                    )} />
+                  </div>
+                  <div>
+                    <p className={cn(
+                      "text-gray-600",
+                      shouldUseMobileView ? "text-xs" : "text-sm"
+                    )}>
+                      {shouldUseMobileView ? "Pend." : "Pendientes"}
+                    </p>
+                    <p className={cn(
+                      "font-bold text-gray-900",
+                      shouldUseMobileView ? "text-lg" : "text-2xl"
+                    )}>
+                      {stats.pending}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Clock className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">En Progreso</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.in_progress}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardContent className={cn(
+                "p-4",
+                shouldUseMobileView && "p-3"
+              )}>
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "bg-blue-100 rounded-lg flex items-center justify-center",
+                    shouldUseMobileView ? "w-8 h-8" : "w-10 h-10"
+                  )}>
+                    <Clock className={cn(
+                      "text-blue-600",
+                      shouldUseMobileView ? "w-4 h-4" : "w-5 h-5"
+                    )} />
+                  </div>
+                  <div>
+                    <p className={cn(
+                      "text-gray-600",
+                      shouldUseMobileView ? "text-xs" : "text-sm"
+                    )}>
+                      {shouldUseMobileView ? "En Prog." : "En Progreso"}
+                    </p>
+                    <p className={cn(
+                      "font-bold text-gray-900",
+                      shouldUseMobileView ? "text-lg" : "text-2xl"
+                    )}>
+                      {stats.in_progress}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                <XCircle className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Canceladas</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.cancelled}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardContent className={cn(
+                "p-4",
+                shouldUseMobileView && "p-3"
+              )}>
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "bg-red-100 rounded-lg flex items-center justify-center",
+                    shouldUseMobileView ? "w-8 h-8" : "w-10 h-10"
+                  )}>
+                    <XCircle className={cn(
+                      "text-red-600",
+                      shouldUseMobileView ? "w-4 h-4" : "w-5 h-5"
+                    )} />
+                  </div>
+                  <div>
+                    <p className={cn(
+                      "text-gray-600",
+                      shouldUseMobileView ? "text-xs" : "text-sm"
+                    )}>
+                      {shouldUseMobileView ? "Cancel." : "Canceladas"}
+                    </p>
+                    <p className={cn(
+                      "font-bold text-gray-900",
+                      shouldUseMobileView ? "text-lg" : "text-2xl"
+                    )}>
+                      {stats.cancelled}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
-      {/* Indicador de carga de servicios */}
+      {/* Loading skeleton para servicios */}
       {isAnyLoading && (
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3 text-sm text-gray-600">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Cargando datos de configuración...
-              {sectoresLoading && <span>• Sectores</span>}
-              {usersLoading && <span>• Usuarios</span>}
-            </div>
-          </CardContent>
-        </Card>
+        <LoadingSkeleton 
+          showServices={true}
+          variant="compact"
+          className="mb-6"
+        />
       )}
 
-      {/* Filters */}
+      {/* Filters - Responsive */}
       <Card className="mb-6">
-        <CardContent className="p-4">
-          <div className="flex flex-col lg:flex-row gap-4">
+        <CardContent className={cn(
+          "p-4",
+          shouldUseMobileView && "p-3"
+        )}>
+          <div className={cn(
+            "gap-4",
+            shouldUseMobileView ? "space-y-3" : "flex flex-col lg:flex-row"
+          )}>
+            {/* Búsqueda principal */}
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  placeholder="Buscar por familia, sector o encuestador..."
+                  placeholder={shouldUseMobileView 
+                    ? "Buscar familia..." 
+                    : "Buscar por familia, sector o encuestador..."
+                  }
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -492,59 +603,79 @@ const Surveys = () => {
               </div>
             </div>
             
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Filter className="w-4 h-4" />
-                Filtros:
-              </div>
+            {/* Filtros */}
+            <div className={cn(
+              "gap-3",
+              shouldUseMobileView 
+                ? "space-y-2" 
+                : "flex flex-col md:flex-row items-start md:items-center"
+            )}>
+              {!shouldUseMobileView && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Filter className="w-4 h-4" />
+                  Filtros:
+                </div>
+              )}
               
-              {/* Filtro por Estado */}
-              <div className="min-w-[140px]">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="completed">Completadas</SelectItem>
-                    <SelectItem value="pending">Pendientes</SelectItem>
-                    <SelectItem value="in_progress">En Progreso</SelectItem>
-                    <SelectItem value="cancelled">Canceladas</SelectItem>
-                  </SelectContent>
-                </Select>
+              {/* Grid de filtros - Responsive */}
+              <div className={cn(
+                "gap-2",
+                shouldUseMobileView 
+                  ? "grid grid-cols-2" 
+                  : "flex flex-wrap"
+              )}>
+                {/* Filtro por Estado */}
+                <div className={cn(shouldUseMobileView ? "" : "min-w-[140px]")}>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className={cn(shouldUseMobileView && "h-9 text-sm")}>
+                      <SelectValue placeholder="Estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="completed">Completadas</SelectItem>
+                      <SelectItem value="pending">Pendientes</SelectItem>
+                      <SelectItem value="in_progress">En Progreso</SelectItem>
+                      <SelectItem value="cancelled">Canceladas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Filtro por Sector - Solo desktop */}
+                {!shouldUseMobileView && (
+                  <div className="min-w-[180px]">
+                    <AutocompleteWithLoading
+                      options={sectorOptions}
+                      value={sectorFilter}
+                      onValueChange={setSectorFilter}
+                      placeholder="Filtrar por sector..."
+                      emptyText="No hay sectores disponibles"
+                      searchPlaceholder="Buscar sector..."
+                      isLoading={sectoresLoading}
+                      error={sectoresError}
+                      errorText="Error al cargar sectores"
+                    />
+                  </div>
+                )}
+
+                {/* Filtro por Encuestador - Solo desktop */}
+                {!shouldUseMobileView && (
+                  <div className="min-w-[200px]">
+                    <AutocompleteWithLoading
+                      options={surveyorOptions}
+                      value={surveyorFilter}
+                      onValueChange={setSurveyorFilter}
+                      placeholder="Filtrar por encuestador..."
+                      emptyText="No hay encuestadores disponibles"
+                      searchPlaceholder="Buscar encuestador..."
+                      isLoading={usersLoading}
+                      error={usersError}
+                      errorText="Error al cargar usuarios"
+                    />
+                  </div>
+                )}
               </div>
 
-              {/* Filtro por Sector */}
-              <div className="min-w-[180px]">
-                <AutocompleteWithLoading
-                  options={sectorOptions}
-                  value={sectorFilter}
-                  onValueChange={setSectorFilter}
-                  placeholder="Filtrar por sector..."
-                  emptyText="No hay sectores disponibles"
-                  searchPlaceholder="Buscar sector..."
-                  isLoading={sectoresLoading}
-                  error={sectoresError}
-                  errorText="Error al cargar sectores"
-                />
-              </div>
-
-              {/* Filtro por Encuestador */}
-              <div className="min-w-[200px]">
-                <AutocompleteWithLoading
-                  options={surveyorOptions}
-                  value={surveyorFilter}
-                  onValueChange={setSurveyorFilter}
-                  placeholder="Filtrar por encuestador..."
-                  emptyText="No hay encuestadores disponibles"
-                  searchPlaceholder="Buscar encuestador..."
-                  isLoading={usersLoading}
-                  error={usersError}
-                  errorText="Error al cargar usuarios"
-                />
-              </div>
-
-              {/* Botón para limpiar filtros */}
+              {/* Botón de limpiar filtros */}
               {(sectorFilter || surveyorFilter || statusFilter !== "all" || searchTerm) && (
                 <Button
                   variant="outline"
@@ -552,7 +683,7 @@ const Surveys = () => {
                   onClick={handleClearFilters}
                   className="text-gray-600"
                 >
-                  Limpiar filtros
+                  {shouldUseMobileView ? "Limpiar" : "Limpiar filtros"}
                 </Button>
               )}
             </div>
@@ -568,59 +699,122 @@ const Surveys = () => {
             Lista completa de encuestas de caracterización familiar
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[300px]">Información Familiar</TableHead>
-                <TableHead className="w-[200px]">Ubicación</TableHead>
-                <TableHead className="w-[150px]">Encuestador</TableHead>
-                <TableHead className="w-[120px]">Estado</TableHead>
-                <TableHead className="w-[120px]">Fecha Creación</TableHead>
-                <TableHead className="w-[120px]">Fecha Completada</TableHead>
-                <TableHead className="text-right w-[100px]">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        <CardContent className={cn(shouldUseMobileView && "p-3")}>
+          {shouldUseMobileView ? (
+            // Vista móvil: Cards
+            <div className="space-y-3 mobile-view-transition">
               {encuestasLoading ? (
-                // Estado de carga
+                // Estado de carga móvil
                 Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={`skeleton-${index}`}>
-                    <TableCell><Skeleton className="h-16 w-full" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-8 w-8" /></TableCell>
-                  </TableRow>
+                  <Card key={`skeleton-mobile-${index}`} className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-2 flex-1">
+                          <Skeleton className="h-5 w-32" />
+                          <Skeleton className="h-4 w-24" />
+                        </div>
+                        <Skeleton className="h-8 w-8" />
+                      </div>
+                      <Skeleton className="h-4 w-full" />
+                      <div className="flex justify-between items-center pt-2">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                    </div>
+                  </Card>
                 ))
               ) : filteredEncuestas.length === 0 ? (
-                // Estado vacío
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12">
-                    <div className="flex flex-col items-center gap-3 text-gray-500">
-                      <FileText className="w-12 h-12" />
-                      <p className="text-lg font-medium">No hay encuestas disponibles</p>
-                      <p className="text-sm">
-                        {searchTerm || statusFilter !== "all" || sectorFilter || surveyorFilter
-                          ? "No se encontraron encuestas con los filtros aplicados"
-                          : "Comienza creando tu primera encuesta"
-                        }
-                      </p>
-                      {!(searchTerm || statusFilter !== "all" || sectorFilter || surveyorFilter) && (
-                        <Button 
-                          onClick={() => navigate("/survey")} 
-                          className="mt-2"
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Nueva Encuesta
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
+                // Estado vacío móvil
+                <div className="flex flex-col items-center gap-4 text-gray-500 py-12 px-4 empty-state-mobile">
+                  <div className="text-6xl mb-2">📋</div>
+                  <p className="text-lg font-semibold text-gray-700">No hay encuestas disponibles</p>
+                  <p className="text-sm text-center text-gray-500">
+                    {searchTerm || statusFilter !== "all" || sectorFilter || surveyorFilter
+                      ? "No se encontraron encuestas con los filtros aplicados"
+                      : "Comienza creando tu primera encuesta familiar"
+                    }
+                  </p>
+                  {!(searchTerm || statusFilter !== "all" || sectorFilter || surveyorFilter) && (
+                    <Button 
+                      onClick={() => navigate("/survey")} 
+                      className="mt-3 bg-primary hover:bg-primary/90 text-white font-semibold shadow-lg px-6 py-3 button-ripple mobile-primary-button"
+                      size="lg"
+                    >
+                      <Plus className="w-5 h-5 mr-2" />
+                      📝 Crear Primera Encuesta
+                    </Button>
+                  )}
+                </div>
               ) : (
+                // Renderizar encuestas móviles
+                filteredEncuestas.map((encuesta) => (
+                  <SurveyMobileCard
+                    key={`mobile-encuesta-${encuesta.id_encuesta}`}
+                    encuesta={encuesta}
+                    onViewDetails={handleViewDetails}
+                    onEdit={handleEditSurvey}
+                    onDelete={handleDeleteClick}
+                    isDeleting={deletingId === encuesta.id_encuesta}
+                    compact={isVerySmall}
+                  />
+                ))
+              )}
+            </div>
+          ) : (
+            // Vista desktop: Tabla tradicional
+            <div className="desktop-view-transition">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[300px]">Información Familiar</TableHead>
+                    <TableHead className="w-[200px]">Ubicación</TableHead>
+                    <TableHead className="w-[150px]">Encuestador</TableHead>
+                    <TableHead className="w-[120px]">Estado</TableHead>
+                    <TableHead className="w-[120px]">Fecha Creación</TableHead>
+                    <TableHead className="w-[120px]">Fecha Completada</TableHead>
+                    <TableHead className="text-right w-[100px]">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {encuestasLoading ? (
+                    // Estado de carga
+                    Array.from({ length: 5 }).map((_, index) => (
+                      <TableRow key={`skeleton-${index}`}>
+                        <TableCell><Skeleton className="h-16 w-full" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : filteredEncuestas.length === 0 ? (
+                    // Estado vacío
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-12">
+                        <div className="flex flex-col items-center gap-4 text-gray-500">
+                          <div className="text-6xl mb-2">📋</div>
+                          <p className="text-lg font-semibold text-gray-700">No hay encuestas disponibles</p>
+                          <p className="text-sm text-gray-500">
+                            {searchTerm || statusFilter !== "all" || sectorFilter || surveyorFilter
+                              ? "No se encontraron encuestas con los filtros aplicados"
+                              : "Comienza creando tu primera encuesta familiar"
+                            }
+                          </p>
+                          {!(searchTerm || statusFilter !== "all" || sectorFilter || surveyorFilter) && (
+                            <Button 
+                              onClick={() => navigate("/survey")} 
+                              className="mt-3 bg-primary hover:bg-primary/90 text-white font-semibold shadow-lg button-ripple"
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              📝 Nueva Encuesta
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
                 // Renderizar encuestas
                 filteredEncuestas.map((encuesta) => (
                   <TableRow key={`encuesta-${encuesta.id_encuesta}`}>
@@ -641,12 +835,12 @@ const Surveys = () => {
                         )}
                         <div className="flex items-center gap-4 text-xs text-gray-500">
                           <span>👥 {encuesta.miembros_familia.total_miembros} miembros</span>
-                          {encuesta.personas_fallecidas.total_fallecidos > 0 && (
-                            <span>💀 {encuesta.personas_fallecidas.total_fallecidos} fallecidos</span>
+                          {encuesta.deceasedMembers && encuesta.deceasedMembers.length > 0 && (
+                            <span>💀 {encuesta.deceasedMembers.length} fallecidos</span>
                           )}
                         </div>
                         <div className="text-xs text-gray-500">
-                          🏠 {encuesta.tipo_vivienda.nombre}
+                          🏠 {encuesta.tipo_vivienda?.nombre || "-"}
                         </div>
                       </div>
                     </TableCell>
@@ -669,7 +863,7 @@ const Surveys = () => {
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <User className="w-3 h-3 text-gray-400" />
-                        {encuesta.surveyor || "No asignado"}
+                        Sistema
                       </div>
                     </TableCell>
                     <TableCell>
@@ -702,9 +896,9 @@ const Surveys = () => {
                           <Button 
                             variant="ghost" 
                             className="h-8 w-8 p-0"
-                            disabled={deletingId === parseInt(encuesta.id_encuesta)}
+                            disabled={deletingId === encuesta.id_encuesta}
                           >
-                            {deletingId === parseInt(encuesta.id_encuesta) ? (
+                            {deletingId === encuesta.id_encuesta ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                               <MoreHorizontal className="h-4 w-4" />
@@ -713,20 +907,17 @@ const Surveys = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewDetails(parseInt(encuesta.id_encuesta))}>
+                          <DropdownMenuItem onClick={() => handleViewDetails(encuesta.id_encuesta)}>
                             <Eye className="w-4 h-4 mr-2" />
                             Ver Detalles
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(parseInt(encuesta.id_encuesta))}>
+                          <DropdownMenuItem onClick={() => handleEdit(encuesta.id_encuesta)}>
                             <Edit3 className="w-4 h-4 mr-2" />
                             Editar
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-red-600" 
-                            onClick={() => handleDeleteClick({
-                              ...encuesta,
-                              id: parseInt(encuesta.id_encuesta)
-                            })}
+                            onClick={() => handleDeleteClick(encuesta)}
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Eliminar
@@ -739,34 +930,36 @@ const Surveys = () => {
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      )}
+    </CardContent>
+  </Card>
 
       {/* Paginación */}
-      {pagination.totalPages > 1 && (
+      {paginationFromAPI.totalPages > 1 && (
         <Card className="mt-6">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-600">
-                Mostrando {filteredEncuestas.length} de {pagination.totalItems} encuestas
+                Mostrando {filteredEncuestas.length} de {paginationFromAPI.totalItems} encuestas
               </p>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPagination(prev => ({ ...prev, currentPage: prev.currentPage - 1 }))}
-                  disabled={pagination.currentPage === 1 || encuestasLoading}
+                  onClick={() => setQueryParams(prev => ({ ...prev, page: Math.max(1, (prev.page || 1) - 1) }))}
+                  disabled={paginationFromAPI.currentPage === 1 || encuestasLoading}
                 >
                   Anterior
                 </Button>
                 <span className="text-sm text-gray-600">
-                  Página {pagination.currentPage} de {pagination.totalPages}
+                  Página {paginationFromAPI.currentPage} de {paginationFromAPI.totalPages}
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }))}
-                  disabled={pagination.currentPage === pagination.totalPages || encuestasLoading}
+                  onClick={() => setQueryParams(prev => ({ ...prev, page: (prev.page || 1) + 1 }))}
+                  disabled={paginationFromAPI.currentPage === paginationFromAPI.totalPages || encuestasLoading}
                 >
                   Siguiente
                 </Button>
@@ -815,6 +1008,20 @@ const Surveys = () => {
         surveyId={selectedSurveyId}
         initialData={selectedSurveyData}
       />
+
+      {/* Botón flotante para móviles cuando hay contenido */}
+      {shouldUseMobileView && filteredEncuestas.length > 0 && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <Button 
+            onClick={() => navigate("/survey")} 
+            className="fab-button bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-full w-14 h-14 p-0"
+            size="lg"
+            title="Nueva Encuesta"
+          >
+            <Plus className="w-6 h-6" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

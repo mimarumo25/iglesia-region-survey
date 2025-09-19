@@ -2,6 +2,37 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { MunicipiosService, Municipio, CreateMunicipioRequest, UpdateMunicipioRequest, MunicipiosResponse } from '@/services/municipios';
 
+// Función para filtrar municipios del lado del cliente
+const filterBySearch = (municipios: Municipio[], searchTerm: string): Municipio[] => {
+  if (!searchTerm.trim()) return municipios;
+  
+  const term = searchTerm.toLowerCase().trim();
+  return municipios.filter((municipio) => 
+    municipio.nombre_municipio.toLowerCase().includes(term) ||
+    municipio.codigo_dane.toLowerCase().includes(term) ||
+    municipio.departamento?.nombre?.toLowerCase().includes(term) || false
+  );
+};
+
+// Función para paginación del lado del cliente
+const paginateClientSide = (municipios: Municipio[], page: number, limit: number) => {
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedMunicipios = municipios.slice(startIndex, endIndex);
+  
+  return {
+    municipios: paginatedMunicipios,
+    pagination: {
+      currentPage: page,
+      totalPages: Math.ceil(municipios.length / limit),
+      totalCount: municipios.length,
+      hasNext: endIndex < municipios.length,
+      hasPrev: page > 1,
+      page: page // Para compatibilidad con el componente existente
+    }
+  };
+};
+
 /**
  * Hook personalizado para gestionar municipios con React Query
  */
@@ -11,19 +42,60 @@ export const useMunicipios = () => {
 
   // ===== QUERIES =====
 
-  // Query para obtener municipios con paginación y búsqueda
+  // Query para obtener municipios con paginación y búsqueda (mejorado con cliente-side)
   const useMunicipiosQuery = (
     page: number = 1,
     limit: number = 10,
     sortBy: string = 'nombre_municipio',
     sortOrder: 'ASC' | 'DESC' = 'ASC',
-    search?: string
+    searchTerm?: string
   ) => {
-    return useQuery<MunicipiosResponse, Error>({
-      queryKey: ['municipios', { page, limit, sortBy, sortOrder, search }],
+    return useQuery<any, Error>({
+      queryKey: ['municipios', { page, limit, sortBy, sortOrder, searchTerm }],
       queryFn: async () => {
         try {
-          return await MunicipiosService.getMunicipios({ page, limit, sortBy, sortOrder, search });
+          // Obtener todos los municipios para paginación del lado del cliente
+          const allMunicipiosResponse = await MunicipiosService.getMunicipios({ limit: 1000 });
+          const allMunicipios = allMunicipiosResponse.data.municipios;
+          
+          // Aplicar filtro de búsqueda si existe
+          const filteredMunicipios = searchTerm 
+            ? filterBySearch(allMunicipios, searchTerm)
+            : allMunicipios;
+          
+          // Aplicar ordenamiento
+          const sortedMunicipios = [...filteredMunicipios].sort((a, b) => {
+            let aValue: any, bValue: any;
+            
+            switch (sortBy) {
+              case 'nombre_municipio':
+                aValue = a.nombre_municipio.toLowerCase();
+                bValue = b.nombre_municipio.toLowerCase();
+                break;
+              case 'codigo_dane':
+                aValue = a.codigo_dane;
+                bValue = b.codigo_dane;
+                break;
+              case 'id_municipio':
+                aValue = parseInt(a.id_municipio);
+                bValue = parseInt(b.id_municipio);
+                break;
+              default:
+                aValue = a.nombre_municipio.toLowerCase();
+                bValue = b.nombre_municipio.toLowerCase();
+            }
+            
+            if (aValue < bValue) return sortOrder === 'ASC' ? -1 : 1;
+            if (aValue > bValue) return sortOrder === 'ASC' ? 1 : -1;
+            return 0;
+          });
+          
+          // Aplicar paginación del lado del cliente
+          const paginatedResult = paginateClientSide(sortedMunicipios, page, limit);
+          
+          return {
+            data: paginatedResult
+          };
         } catch (error: any) {
           console.error('Error al cargar municipios:', error);
           toast({

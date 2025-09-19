@@ -22,6 +22,18 @@
   will-change: auto !important;
 }
 
+/* Estabilización específica para pestañas móviles */
+.survey-detail-modal .mobile-tabs [data-radix-tabs-trigger] {
+  /* Mantener altura fija para evitar saltos */
+  min-height: 4rem !important;
+  /* Centrado perfecto en móvil */
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.25rem !important;
+}
+
 /* Optimización del contenedor de scroll */
 .survey-detail-modal [data-radix-scroll-area-viewport] {
   /* Deshabilitar aceleración GPU que puede causar flickering */
@@ -84,4 +96,23 @@
 .survey-detail-modal.loading * {
   transition: none !important;
   animation: none !important;
+}
+
+/* Mejorar la estabilidad de las pestañas móviles */
+.survey-detail-modal .mobile-tabs {
+  /* Evitar cambios de layout */
+  contain: layout !important;
+}
+
+/* Asegurar que las pestañas móviles mantengan su estado visual */
+.survey-detail-modal .mobile-tabs [data-state="active"] {
+  /* Mantener estado visual estable */
+  background-color: rgb(34, 197, 94) !important;
+  color: white !important;
+}
+
+.survey-detail-modal .mobile-tabs [data-state="inactive"] {
+  /* Estado inactivo estable */
+  background-color: rgb(243, 244, 246) !important;
+  color: rgb(75, 85, 99) !important;
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ import { ComunidadCultural, ComunidadCulturalFormData } from '@/types/comunidade
 import {
   Globe,
   Plus,
-  Search,
+  X,
   Edit2,
   Trash2,
   Loader2,
@@ -35,28 +35,37 @@ const ComunidadesCulturalesPage = () => {
   // Estados para paginación y filtros
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [sortBy, setSortBy] = useState('id_comunidad_cultural');
-  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Queries de React Query
-  const { data: comunidadesResponse, isLoading: comunidadesLoading, refetch: refetchComunidades, error: comunidadesError } = comunidadesCulturalesHook.useComunidadesCulturalesQuery(page, limit, sortBy, sortOrder);
-  const { data: searchResponse, isLoading: searchLoading, error: searchError } = comunidadesCulturalesHook.useSearchComunidadesCulturalesQuery(searchTerm, page, limit);
+  // ✅ Query unificada que reemplaza las dos queries separadas
+  const { data: comunidadesResponse, isLoading, refetch, error } = comunidadesCulturalesHook.useComunidadesCulturalesQuery(searchTerm);
+
+  // 🔍 Procesamiento de datos del lado del cliente
+  const { filteredData, paginatedData, stats } = useMemo(() => {
+    const allComunidades = comunidadesResponse?.data?.comunidades_culturales || [];
+    
+    // Filtrar por término de búsqueda del lado del cliente
+    const filtered = comunidadesCulturalesHook.filterBySearch(allComunidades, searchTerm);
+    
+    // Paginación del lado del cliente
+    const paginated = comunidadesCulturalesHook.paginateClientSide(filtered, page, limit);
+    
+    return {
+      filteredData: filtered,
+      paginatedData: paginated,
+      stats: {
+        total: filtered.length,
+        pages: paginated.totalPages,
+      }
+    };
+  }, [comunidadesResponse, searchTerm, page, limit, comunidadesCulturalesHook]);
 
   // Mutaciones de React Query
   const createMutation = comunidadesCulturalesHook.useCreateComunidadCulturalMutation();
   const updateMutation = comunidadesCulturalesHook.useUpdateComunidadCulturalMutation();
   const deleteMutation = comunidadesCulturalesHook.useDeleteComunidadCulturalMutation();
 
-  const comunidades = searchTerm 
-    ? (searchResponse?.data?.comunidades_culturales || []) 
-    : (comunidadesResponse?.data?.comunidades_culturales || []);
-  const pagination = searchTerm 
-    ? (searchResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false }) 
-    : (comunidadesResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false });
-
-  const loading = comunidadesLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
-  const hasError = comunidadesError || searchError;
+  const loading = isLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios
   const {
@@ -147,9 +156,15 @@ const ComunidadesCulturalesPage = () => {
     openDeleteDialog();
   };
 
-  // Manejo de búsqueda
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Manejo de búsqueda en tiempo real
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setPage(1); // Resetear a la primera página al buscar
+  };
+
+  // Limpiar búsqueda
+  const clearSearch = () => {
+    setSearchTerm('');
     setPage(1);
   };
 
@@ -183,7 +198,7 @@ const ComunidadesCulturalesPage = () => {
         <div className="flex gap-2">
           <Button 
             variant="outline" 
-            onClick={() => refetchComunidades()}
+            onClick={() => refetch()}
             disabled={loading}
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
@@ -199,30 +214,26 @@ const ComunidadesCulturalesPage = () => {
       {/* Búsqueda */}
       <Card className="mb-6">
         <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="flex gap-4">
-            <Input
-              placeholder="Buscar por nombre..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1"
-            />
-            <Button type="submit" variant="outline">
-              <Search className="w-4 h-4 mr-2" />
-              Buscar
-            </Button>
-            {searchTerm && (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => {
-                  setSearchTerm('');
-                  setPage(1);
-                }}
-              >
-                Limpiar
-              </Button>
-            )}
-          </form>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Input
+                placeholder="Buscar por nombre o descripción..."
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="pr-10"
+              />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                  onClick={clearSearch}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -233,7 +244,7 @@ const ComunidadesCulturalesPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Comunidades</p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalCount}</p>
+                <p className="text-2xl font-bold text-foreground">{stats.total}</p>
               </div>
               <Globe className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -245,7 +256,7 @@ const ComunidadesCulturalesPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Páginas</p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalPages}</p>
+                <p className="text-2xl font-bold text-foreground">{stats.pages}</p>
               </div>
               <Globe className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -258,19 +269,22 @@ const ComunidadesCulturalesPage = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
             <Globe className="w-5 h-5" />
-            Listado de Comunidades Culturales
+            Lista de Comunidades Culturales
+            <span className="text-sm font-normal text-muted-foreground ml-auto">
+              Total: {stats.total}
+            </span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {hasError ? (
+          {error ? (
             <div className="text-center py-8">
               <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
               <p className="text-red-600 mb-2">Error al cargar comunidades culturales</p>
               <p className="text-sm text-muted-foreground mb-4">
-                {(hasError as any)?.response?.data?.message || (hasError as any)?.message || 'Ha ocurrido un error inesperado'}
+                {(error as any)?.response?.data?.message || (error as any)?.message || 'Ha ocurrido un error inesperado'}
               </p>
               <Button 
-                onClick={() => refetchComunidades()}
+                onClick={() => refetch()}
                 variant="outline"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
@@ -282,10 +296,12 @@ const ComunidadesCulturalesPage = () => {
               <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
               <span className="ml-2 text-muted-foreground">Cargando comunidades culturales...</span>
             </div>
-          ) : comunidades.length === 0 ? (
+          ) : paginatedData.paginatedItems.length === 0 ? (
             <div className="text-center py-8">
               <Globe className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
-              <p className="text-muted-foreground">No se encontraron comunidades culturales</p>
+              <p className="text-muted-foreground">
+                {searchTerm ? 'No se encontraron comunidades culturales que coincidan con tu búsqueda' : 'No se encontraron comunidades culturales'}
+              </p>
               {searchTerm && (
                 <p className="text-sm text-muted-foreground/70">
                   Intenta con otros términos de búsqueda
@@ -306,7 +322,7 @@ const ComunidadesCulturalesPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {comunidades.map((comunidad) => (
+                  {paginatedData.paginatedItems.map((comunidad) => (
                     <TableRow key={comunidad.id_comunidad_cultural}>
                       <TableCell className="font-medium">{comunidad.id_comunidad_cultural}</TableCell>
                       <TableCell>
@@ -362,29 +378,29 @@ const ComunidadesCulturalesPage = () => {
               </Table>
 
               {/* Paginación */}
-              {pagination.totalPages > 1 && (
+              {paginatedData.totalPages > 1 && (
                 <div className="flex items-center justify-between pt-4 border-t border-border">
                   <p className="text-sm text-muted-foreground">
-                    Mostrando {comunidades.length} de {pagination.totalCount} comunidades culturales
+                    Mostrando {paginatedData.paginatedItems.length} de {stats.total} comunidades culturales
                   </p>
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={pagination.currentPage === 1}
+                      onClick={() => handlePageChange(paginatedData.currentPage - 1)}
+                      disabled={paginatedData.currentPage === 1}
                     >
                       <ChevronLeft className="w-4 h-4" />
                       Anterior
                     </Button>
                     <span className="flex items-center px-3 text-sm font-medium text-primary bg-primary/10 rounded-md">
-                      Página {pagination.currentPage} de {pagination.totalPages}
+                      Página {paginatedData.currentPage} de {paginatedData.totalPages}
                     </span>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={pagination.currentPage === pagination.totalPages}
+                      onClick={() => handlePageChange(paginatedData.currentPage + 1)}
+                      disabled={paginatedData.currentPage === paginatedData.totalPages}
                     >
                       Siguiente
                       <ChevronRight className="w-4 h-4" />

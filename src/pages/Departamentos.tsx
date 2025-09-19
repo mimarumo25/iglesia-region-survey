@@ -36,23 +36,18 @@ const DepartamentosPage = () => {
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Queries de React Query
-  const { data: departamentosResponse, isLoading: departamentosLoading, refetch: refetchDepartamentos } = departamentosHook.useDepartamentosQuery(page, limit, sortBy, sortOrder);
-  const { data: searchResponse, isLoading: searchLoading } = departamentosHook.useSearchDepartamentosQuery(searchTerm, page, limit);
+  // Queries de React Query - Ahora usando una sola query que maneja búsqueda y paginación
+  const { data: departamentosResponse, isLoading: departamentosLoading, refetch: refetchDepartamentos } = departamentosHook.useDepartamentosQuery(page, limit, sortBy, sortOrder, searchTerm);
 
   // Mutaciones de React Query
   const createMutation = departamentosHook.useCreateDepartamentoMutation();
   const updateMutation = departamentosHook.useUpdateDepartamentoMutation();
   const deleteMutation = departamentosHook.useDeleteDepartamentoMutation();
 
-  const departamentos = searchTerm 
-    ? (searchResponse?.data?.departamentos || []) 
-    : (departamentosResponse?.data?.departamentos || []);
-  const pagination = searchTerm 
-    ? (searchResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false }) 
-    : (departamentosResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false });
+  const departamentos = departamentosResponse?.data?.departamentos || [];
+  const pagination = departamentosResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false };
 
-  const loading = departamentosLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const loading = departamentosLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios
   const {
@@ -139,10 +134,23 @@ const DepartamentosPage = () => {
     openDeleteDialog();
   };
 
-  // Manejo de búsqueda
+  // Manejo de búsqueda - Ahora con búsqueda en tiempo real
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    // La búsqueda se maneja automáticamente por el hook cuando cambia searchTerm
+    setPage(1); // Resetear a la primera página cuando se busca
+  };
+
+  // Función para limpiar búsqueda
+  const handleClearSearch = () => {
+    setSearchTerm('');
     setPage(1);
+  };
+
+  // Función para manejar cambios en el campo de búsqueda (búsqueda en tiempo real)
+  const handleSearchTermChange = (value: string) => {
+    setSearchTerm(value);
+    setPage(1); // Resetear a la primera página cuando cambia el término de búsqueda
   };
 
   // Manejo de paginación
@@ -176,10 +184,13 @@ const DepartamentosPage = () => {
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Actualizar
           </Button>
-          <Button onClick={handleOpenCreateDialog}>
+            {/* Botón para crear nuevo departamento */}
+            {/* 
+            <Button onClick={handleOpenCreateDialog}>
             <Plus className="w-4 h-4 mr-2" />
             Nuevo Departamento
-          </Button>
+            </Button>
+            */}
         </div>
       </div>
 
@@ -188,9 +199,9 @@ const DepartamentosPage = () => {
         <CardContent className="pt-6">
           <form onSubmit={handleSearch} className="flex gap-4">
             <Input
-              placeholder="Buscar por nombre..."
+              placeholder="Buscar por nombre o código DANE..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearchTermChange(e.target.value)}
               className="flex-1"
             />
             <Button type="submit" variant="outline">
@@ -201,10 +212,7 @@ const DepartamentosPage = () => {
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => {
-                  setSearchTerm('');
-                  setPage(1);
-                }}
+                onClick={handleClearSearch}
               >
                 Limpiar
               </Button>

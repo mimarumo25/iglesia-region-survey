@@ -26,6 +26,7 @@ import {
   ChevronRight,
   Eye,
   EyeOff,
+  X,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -39,27 +40,24 @@ const ParentescosPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [includeInactive, setIncludeInactive] = useState(false);
 
-  // Queries de React Query
-  const { data: parentescosData, isLoading: parentescosLoading, refetch: refetchParentescos } = parentescosHook.useParentescosQuery(page, limit, includeInactive);
-  const { data: searchResponse, isLoading: searchLoading } = parentescosHook.useSearchParentescosQuery(searchTerm, page, limit, includeInactive);
+  // Query unificada - Una sola query que maneja tanto datos normales como búsqueda
+  const { data: parentescosResponse, isLoading: parentescosLoading, refetch: refetchParentescos } = parentescosHook.useParentescosQuery(page, limit, includeInactive, searchTerm);
 
   // Mutaciones de React Query
   const createMutation = parentescosHook.useCreateParentescoMutation();
   const updateMutation = parentescosHook.useUpdateParentescoMutation();
   const deleteMutation = parentescosHook.useDeleteParentescoMutation();
 
-  const parentescos = searchTerm ? (searchResponse || []) : (parentescosData || []);
-  const totalCount = Array.isArray(parentescos) ? parentescos.length : 0;
-  
-  // Crear paginación local ya que la API no maneja paginación del lado del servidor
+  // Datos y paginación simplificados
+  const parentescos = (parentescosResponse as any)?.data || [];
   const pagination = {
-    currentPage: 1,
-    totalPages: 1, 
-    totalCount: totalCount,
-    limit: limit
+    totalItems: (parentescosResponse as any)?.pagination?.totalCount || 0,
+    totalPages: (parentescosResponse as any)?.pagination?.totalPages || 1,
+    currentPage: (parentescosResponse as any)?.pagination?.currentPage || 1,
+    itemsPerPage: (parentescosResponse as any)?.pagination?.limit || 10
   };
 
-  const loading = parentescosLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const loading = parentescosLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios
   const {
@@ -150,11 +148,16 @@ const ParentescosPage = () => {
     openDeleteDialog();
   };
 
-  // Manejo de búsqueda
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1); // Resetear paginación al buscar
-    // searchTerm ya está actualizado por el onChange del Input
+  // Manejo de búsqueda en tiempo real
+  const handleSearchTermChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setPage(1); // Resetear paginación al cambiar búsqueda
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setPage(1);
   };
 
   // Manejo de paginación
@@ -206,18 +209,29 @@ const ParentescosPage = () => {
       </div>
 
       {/* Búsqueda y filtros con diseño mejorado */}
-      <Card className="mb-6  ">
+      <Card className="mb-6">
         <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="space-y-4">
+          <div className="space-y-4">
             <div className="flex flex-col md:flex-row gap-4 items-end">
               {/* Búsqueda por texto */}
-              <div className="flex-1">
+              <div className="flex-1 relative">
                 <Input
                   placeholder="Buscar por nombre o descripción..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="border-input-border focus:ring-primary"
+                  onChange={handleSearchTermChange}
+                  className="border-input-border focus:ring-primary transition-smooth pr-8"
                 />
+                {searchTerm && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
+                    onClick={handleClearSearch}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
               
               {/* Incluir inactivos */}
@@ -229,33 +243,8 @@ const ParentescosPage = () => {
                 />
                 <Label htmlFor="include-inactive">Incluir Inactivos</Label>
               </div>
-
-              {/* Botones de acción */}
-              <div className="flex gap-2">
-                <Button 
-                  type="submit" 
-                  variant="outline"
-                  className=""
-                >
-                  <Search className="w-4 h-4 mr-2" />
-                  Buscar
-                </Button>
-                {searchTerm && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => {
-                      setSearchTerm('');
-                      setPage(1); // Resetear paginación
-                    }}
-                    className=""
-                  >
-                    Limpiar
-                  </Button>
-                )}
-              </div>
             </div>
-          </form>
+          </div>
         </CardContent>
       </Card>
 
@@ -265,8 +254,10 @@ const ParentescosPage = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Parentescos</p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalCount}</p>
+                <p className="text-sm text-muted-foreground">
+                  {searchTerm ? 'Parentescos Filtrados' : 'Total Parentescos'}
+                </p>
+                <p className="text-2xl font-bold text-foreground">{pagination.totalItems}</p>
               </div>
               <Users className="w-8 h-8 text-muted-foreground opacity-70 " />
             </div>

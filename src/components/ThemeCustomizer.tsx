@@ -130,16 +130,16 @@ const ThemeCustomizer: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Palette className="h-6 w-6 text-primary" />
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header responsivo */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-center sm:text-left">
+          <div className="p-2 bg-primary/10 rounded-lg mx-auto sm:mx-0 w-fit">
+            <Palette className="h-5 h-5 sm:h-6 sm:w-6 text-primary" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold">Personalizar Tema</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-xl sm:text-2xl font-bold">Personalizar Tema</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Configura los colores y apariencia del sistema
             </p>
           </div>
@@ -147,32 +147,34 @@ const ThemeCustomizer: React.FC = () => {
         <Button
           onClick={toggleDarkMode}
           variant="outline"
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 w-full sm:w-auto"
         >
           {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
+          <span className="text-sm sm:text-base">
+            {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
+          </span>
         </Button>
       </div>
 
-      <Tabs defaultValue="presets" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="presets" className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4" />
-            Temas Predefinidos
+      <Tabs defaultValue="presets" className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto min-h-[120px] sm:min-h-[50px]">
+          <TabsTrigger value="presets" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-3 text-xs sm:text-sm h-full">
+            <Sparkles className="h-4 w-4 shrink-0" />
+            <span className="text-xs sm:text-sm font-medium text-center">Temas Predefinidos</span>
           </TabsTrigger>
-          <TabsTrigger value="custom" className="flex items-center gap-2">
-            <Paintbrush className="h-4 w-4" />
-            Personalizar
+          <TabsTrigger value="custom" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-3 text-xs sm:text-sm h-full">
+            <Paintbrush className="h-4 w-4 shrink-0" />
+            <span className="text-xs sm:text-sm font-medium text-center">Personalizar</span>
           </TabsTrigger>
-          <TabsTrigger value="advanced" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Avanzado
+          <TabsTrigger value="advanced" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-3 text-xs sm:text-sm h-full">
+            <Settings className="h-4 w-4 shrink-0" />
+            <span className="text-xs sm:text-sm font-medium text-center">Avanzado</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Temas Predefinidos */}
         <TabsContent value="presets" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {themePresets.map((preset) => (
               <Card 
                 key={preset.name}
@@ -183,32 +185,32 @@ const ThemeCustomizer: React.FC = () => {
                 }`}
                 onClick={() => setTheme(preset.name)}
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{preset.displayName}</CardTitle>
+                <CardHeader className="pb-3 p-3 sm:p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <CardTitle className="text-base sm:text-lg text-center sm:text-left">{preset.displayName}</CardTitle>
                     {currentTheme === preset.name && (
-                      <Badge variant="default" className="flex items-center gap-1">
+                      <Badge variant="default" className="flex items-center gap-1 mx-auto sm:mx-0 w-fit">
                         <Check className="h-3 w-3" />
-                        Activo
+                        <span className="text-xs">Activo</span>
                       </Badge>
                     )}
                   </div>
-                  <CardDescription className="text-sm">
+                  <CardDescription className="text-xs sm:text-sm text-center sm:text-left">
                     {preset.description}
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex gap-2">
+                <CardContent className="p-3 sm:p-4 pt-0">
+                  <div className="flex gap-2 justify-center sm:justify-start">
                     <div 
-                      className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
+                      className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white shadow-sm"
                       style={{ backgroundColor: `hsl(${preset.colors.primary})` }}
                     />
                     <div 
-                      className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
+                      className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white shadow-sm"
                       style={{ backgroundColor: `hsl(${preset.colors.secondary})` }}
                     />
                     <div 
-                      className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
+                      className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white shadow-sm"
                       style={{ backgroundColor: `hsl(${preset.colors.sidebarBackground})` }}
                     />
                   </div>
@@ -219,26 +221,26 @@ const ThemeCustomizer: React.FC = () => {
         </TabsContent>
 
         {/* Personalización */}
-        <TabsContent value="custom" className="space-y-6">
+        <TabsContent value="custom" className="space-y-4 sm:space-y-6">
           {/* Colores Principales */}
           <Card>
-            <CardHeader>
-              <CardTitle>Colores Principales</CardTitle>
-              <CardDescription>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base sm:text-lg">Colores Principales</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
                 Personaliza los colores principales del tema
               </CardDescription>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {mainColors.map((color) => (
                 <div key={color.key} className="space-y-2">
-                  <Label htmlFor={color.key}>{color.label}</Label>
-                  <div className="flex items-center gap-2">
+                  <Label htmlFor={color.key} className="text-sm sm:text-base">{color.label}</Label>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <Input
                       id={color.key}
                       type="color"
                       value={hslToHex(getColorValue(color.key))}
                       onChange={(e) => handleColorChange(color.key, e.target.value)}
-                      className="w-12 h-12 p-1 border-0"
+                      className="w-full sm:w-12 h-10 sm:h-12 p-1 border-0"
                     />
                     <div className="flex-1">
                       <Input
@@ -248,10 +250,11 @@ const ThemeCustomizer: React.FC = () => {
                           ...prev,
                           [color.key]: e.target.value
                         }))}
+                        className="h-10 sm:h-12 text-xs sm:text-sm"
                       />
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     {color.description}
                   </p>
                 </div>
@@ -261,23 +264,23 @@ const ThemeCustomizer: React.FC = () => {
 
           {/* Colores del Sidebar */}
           <Card>
-            <CardHeader>
-              <CardTitle>Colores del Menú Lateral</CardTitle>
-              <CardDescription>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base sm:text-lg">Colores del Menú Lateral</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
                 Personaliza la apariencia del menú de navegación
               </CardDescription>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {sidebarColors.map((color) => (
                 <div key={color.key} className="space-y-2">
-                  <Label htmlFor={color.key}>{color.label}</Label>
-                  <div className="flex items-center gap-2">
+                  <Label htmlFor={color.key} className="text-sm sm:text-base">{color.label}</Label>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <Input
                       id={color.key}
                       type="color"
                       value={hslToHex(getColorValue(color.key))}
                       onChange={(e) => handleColorChange(color.key, e.target.value)}
-                      className="w-12 h-12 p-1 border-0"
+                      className="w-full sm:w-12 h-10 sm:h-12 p-1 border-0"
                     />
                     <div className="flex-1">
                       <Input
@@ -287,10 +290,11 @@ const ThemeCustomizer: React.FC = () => {
                           ...prev,
                           [color.key]: e.target.value
                         }))}
+                        className="h-10 sm:h-12 text-xs sm:text-sm"
                       />
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     {color.description}
                   </p>
                 </div>
@@ -299,21 +303,21 @@ const ThemeCustomizer: React.FC = () => {
           </Card>
 
           {/* Acciones */}
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-col sm:flex-row justify-end gap-2">
             <Button
               variant="outline"
               onClick={resetColors}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto"
             >
               <RotateCcw className="h-4 w-4" />
-              Restablecer
+              <span className="text-sm sm:text-base">Restablecer</span>
             </Button>
             <Button
               onClick={applyTempColors}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto"
             >
               <Check className="h-4 w-4" />
-              Aplicar Cambios
+              <span className="text-sm sm:text-base">Aplicar Cambios</span>
             </Button>
           </div>
         </TabsContent>
@@ -321,17 +325,17 @@ const ThemeCustomizer: React.FC = () => {
         {/* Configuración Avanzada */}
         <TabsContent value="advanced" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Configuración Avanzada</CardTitle>
-              <CardDescription>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base sm:text-lg">Configuración Avanzada</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
                 Opciones adicionales de personalización
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="dark-mode">Modo Oscuro</Label>
-                  <p className="text-sm text-muted-foreground">
+            <CardContent className="space-y-4 sm:space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="text-center sm:text-left">
+                  <Label htmlFor="dark-mode" className="text-sm sm:text-base">Modo Oscuro</Label>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Activa el tema oscuro para toda la aplicación
                   </p>
                 </div>
@@ -343,8 +347,8 @@ const ThemeCustomizer: React.FC = () => {
               </div>
               
               <div className="border-t pt-4">
-                <h4 className="font-medium mb-2">Información del Tema Actual</h4>
-                <div className="space-y-2 text-sm">
+                <h4 className="font-medium mb-2 text-sm sm:text-base text-center sm:text-left">Información del Tema Actual</h4>
+                <div className="space-y-2 text-xs sm:text-sm text-center sm:text-left">
                   <p><strong>Tema:</strong> {currentPreset?.displayName}</p>
                   <p><strong>Modo:</strong> {isDarkMode ? 'Oscuro' : 'Claro'}</p>
                   <p><strong>Personalizaciones:</strong> {Object.keys(customColors).length} colores modificados</p>

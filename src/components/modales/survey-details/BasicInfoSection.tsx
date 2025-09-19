@@ -72,13 +72,13 @@ export const BasicInfoSection = ({ data }: BasicInfoSectionProps) => {
             <div className="space-y-4">
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-1">Apellido Familiar</p>
-                <p className="text-lg font-semibold text-gray-900">{data.apellido_familiar}</p>
+                <p className="text-lg font-semibold text-gray-900">{data.apellido_familiar || 'No especificado'}</p>
               </div>
               
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-1">Código de Familia</p>
                 <code className="text-sm bg-gray-100 px-3 py-1 rounded-md font-mono">
-                  {data.codigo_familia}
+                  {data.codigo_familia || 'N/A'}
                 </code>
               </div>
 
@@ -93,7 +93,7 @@ export const BasicInfoSection = ({ data }: BasicInfoSectionProps) => {
                 <p className="text-sm font-medium text-gray-500 mb-1">Dirección Completa</p>
                 <div className="flex items-start gap-2">
                   <MapPin className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
-                  <p className="text-gray-700">{data.direccion_familia}</p>
+                  <p className="text-gray-700">{data.direccion_familia || 'No especificada'}</p>
                 </div>
               </div>
 
@@ -111,7 +111,7 @@ export const BasicInfoSection = ({ data }: BasicInfoSectionProps) => {
                 <p className="text-sm font-medium text-gray-500 mb-1">Tamaño de Familia</p>
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-gray-400" />
-                  <p className="text-gray-700">{data.tamaño_familia} miembros</p>
+                  <p className="text-gray-700">{data.tamaño_familia || 0} miembros</p>
                 </div>
               </div>
             </div>
@@ -138,7 +138,7 @@ export const BasicInfoSection = ({ data }: BasicInfoSectionProps) => {
 
             <div>
               <p className="text-sm font-medium text-gray-500 mb-2">Dirección de la Vivienda</p>
-              <p className="text-gray-700">{data.direccion_familia}</p>
+              <p className="text-gray-700">{data.direccion_familia || 'No especificada'}</p>
             </div>
           </div>
         </CardContent>
@@ -156,28 +156,28 @@ export const BasicInfoSection = ({ data }: BasicInfoSectionProps) => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">
-                {data.miembros_familia.total_miembros}
+                {data.miembros_familia?.total_miembros || 0}
               </div>
               <div className="text-sm text-blue-700">Miembros Activos</div>
             </div>
 
             <div className="text-center p-4 bg-red-50 rounded-lg">
               <div className="text-2xl font-bold text-red-600">
-                {data.personas_fallecidas.total_fallecidos}
+                {data.deceasedMembers?.length || 0}
               </div>
               <div className="text-sm text-red-700">Personas Fallecidas</div>
             </div>
 
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
-                {data.numero_encuestas}
+                {data.numero_encuestas || 0}
               </div>
               <div className="text-sm text-green-700">Total Encuestas</div>
             </div>
 
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
               <div className="text-2xl font-bold text-yellow-600">
-                {data.tamaño_familia}
+                {data.tamaño_familia || 0}
               </div>
               <div className="text-sm text-yellow-700">Tamaño Familia</div>
             </div>
@@ -199,7 +199,7 @@ export const BasicInfoSection = ({ data }: BasicInfoSectionProps) => {
               <p className="text-sm font-medium text-gray-500 mb-1">Fecha de Creación</p>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-gray-400" />
-                <p className="text-gray-700">{formatDate(data.metadatos.fecha_creacion)}</p>
+                <p className="text-gray-700">{formatDate(data.metadatos?.fecha_creacion)}</p>
               </div>
             </div>
 
@@ -220,8 +220,8 @@ export const BasicInfoSection = ({ data }: BasicInfoSectionProps) => {
             <p className="text-sm font-medium text-gray-500 mb-2">Estado Técnico</p>
             <div className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-700">Versión {data.metadatos.version}</span>
-              <Badge variant="outline">{data.metadatos.estado}</Badge>
+              <span className="text-gray-700">Versión {data.metadatos?.version || 'N/A'}</span>
+              <Badge variant="outline">{data.metadatos?.estado || 'Desconocido'}</Badge>
             </div>
           </div>
         </CardContent>

@@ -14,23 +14,9 @@ export const useDisposicionBasura = () => {
 
   // ===== QUERIES =====
 
-  // Query para obtener todos los tipos de disposición de basura con paginación y filtros
+  // Query unificada para tipos de disposición de basura con parámetro de búsqueda opcional
   const useDisposicionBasuraQuery = (
-    page: number = 1,
-    limit: number = 10,
-    sortBy: string = 'nombre',
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ) => {
-    return useQuery<DisposicionBasuraResponse, Error>({
-      queryKey: ['disposicionBasura', { page, limit, sortBy, sortOrder }],
-      queryFn: () => disposicionBasuraService.getDisposicionBasura(limit, page, sortBy, sortOrder),
-      placeholderData: (previousData) => previousData,
-    });
-  };
-
-  // Query para buscar tipos de disposición de basura
-  const useSearchDisposicionBasuraQuery = (
-    searchTerm: string,
+    searchTerm?: string,
     page: number = 1,
     limit: number = 10,
     sortBy: string = 'nombre',
@@ -38,10 +24,46 @@ export const useDisposicionBasura = () => {
   ) => {
     return useQuery<DisposicionBasuraResponse, Error>({
       queryKey: ['disposicionBasura', { searchTerm, page, limit, sortBy, sortOrder }],
-      queryFn: () => disposicionBasuraService.searchDisposicionBasura(searchTerm, limit, page, sortBy, sortOrder),
-      enabled: !!searchTerm,
+      queryFn: () => {
+        if (searchTerm && searchTerm.trim()) {
+          return disposicionBasuraService.searchDisposicionBasura(searchTerm.trim(), limit, page, sortBy, sortOrder);
+        }
+        return disposicionBasuraService.getDisposicionBasura(limit, page, sortBy, sortOrder);
+      },
       placeholderData: (previousData) => previousData,
     });
+  };
+
+  // Función helper para paginación del lado del cliente
+  const paginateClientSide = (items: DisposicionBasura[], page: number, limit: number) => {
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedItems = items.slice(startIndex, endIndex);
+    
+    const totalPages = Math.ceil(items.length / limit);
+    const currentPage = Math.min(page, Math.max(1, totalPages));
+    
+    return {
+      items: paginatedItems,
+      pagination: {
+        currentPage,
+        totalPages,
+        totalCount: items.length,
+        hasNext: currentPage < totalPages,
+        hasPrev: currentPage > 1,
+      },
+    };
+  };
+
+  // Función helper para filtrar por búsqueda del lado del cliente
+  const filterBySearch = (items: DisposicionBasura[], searchTerm: string): DisposicionBasura[] => {
+    if (!searchTerm || !searchTerm.trim()) return items;
+    
+    const term = searchTerm.toLowerCase().trim();
+    return items.filter((disposicion) => 
+      disposicion.nombre.toLowerCase().includes(term) ||
+      (disposicion.descripcion && disposicion.descripcion.toLowerCase().includes(term))
+    );
   };
 
   // ===== MUTATIONS =====
@@ -115,7 +137,8 @@ export const useDisposicionBasura = () => {
 
   return {
     useDisposicionBasuraQuery,
-    useSearchDisposicionBasuraQuery,
+    paginateClientSide,
+    filterBySearch,
     useCreateDisposicionBasuraMutation,
     useUpdateDisposicionBasuraMutation,
     useDeleteDisposicionBasuraMutation,

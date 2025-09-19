@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ import { Estudio, EstudioFormData } from '@/types/estudios';
 import {
   GraduationCap,
   Plus,
-  Search,
+  X,
   Edit2,
   Trash2,
   Loader2,
@@ -35,27 +35,37 @@ const EstudiosPage = () => {
   // Estados para paginación y filtros
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [sortBy, setSortBy] = useState('id');
-  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Queries de React Query
-  const { data: estudiosResponse, isLoading: estudiosLoading, refetch: refetchEstudios } = estudiosHook.useEstudiosQuery(page, limit, sortBy, sortOrder);
-  const { data: searchResponse, isLoading: searchLoading } = estudiosHook.useSearchEstudiosQuery(searchTerm, page, limit);
+  // ✅ Query unificada que reemplaza las dos queries separadas
+  const { data: estudiosResponse, isLoading, refetch, error } = estudiosHook.useEstudiosQuery(searchTerm);
+
+  // 🔍 Procesamiento de datos del lado del cliente
+  const { filteredData, paginatedData, stats } = useMemo(() => {
+    const allEstudios = estudiosResponse?.estudios || [];
+    
+    // Filtrar por término de búsqueda del lado del cliente
+    const filtered = estudiosHook.filterBySearch(allEstudios, searchTerm);
+    
+    // Paginación del lado del cliente
+    const paginated = estudiosHook.paginateClientSide(filtered, page, limit);
+    
+    return {
+      filteredData: filtered,
+      paginatedData: paginated,
+      stats: {
+        total: filtered.length,
+        pages: paginated.totalPages,
+      }
+    };
+  }, [estudiosResponse, searchTerm, page, limit, estudiosHook]);
 
   // Mutaciones de React Query
   const createMutation = estudiosHook.useCreateEstudioMutation();
   const updateMutation = estudiosHook.useUpdateEstudioMutation();
   const deleteMutation = estudiosHook.useDeleteEstudioMutation();
 
-  const estudios = searchTerm 
-    ? (searchResponse?.estudios || []) 
-    : (estudiosResponse?.estudios || []);
-  const totalCount = searchTerm 
-    ? (searchResponse?.total || 0) 
-    : (estudiosResponse?.total || 0);
-
-  const loading = estudiosLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const loading = isLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios
   const {
@@ -150,9 +160,15 @@ const EstudiosPage = () => {
     openDeleteDialog();
   };
 
-  // Manejo de búsqueda
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Manejo de búsqueda en tiempo real
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setPage(1); // Resetear a la primera página al buscar
+  };
+
+  // Limpiar búsqueda
+  const clearSearch = () => {
+    setSearchTerm('');
     setPage(1);
   };
 
@@ -181,7 +197,7 @@ const EstudiosPage = () => {
         <div className="flex gap-2">
           <Button 
             variant="outline" 
-            onClick={() => refetchEstudios()}
+            onClick={() => refetch()}
             disabled={loading}
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
@@ -197,30 +213,26 @@ const EstudiosPage = () => {
       {/* Búsqueda */}
       <Card className="mb-6">
         <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="flex gap-4">
-            <Input
-              placeholder="Buscar por nombre..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1"
-            />
-            <Button type="submit" variant="outline">
-              <Search className="w-4 h-4 mr-2" />
-              Buscar
-            </Button>
-            {searchTerm && (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => {
-                  setSearchTerm('');
-                  setPage(1);
-                }}
-              >
-                Limpiar
-              </Button>
-            )}
-          </form>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Input
+                placeholder="Buscar por nivel o descripción..."
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="pr-10"
+              />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                  onClick={clearSearch}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -231,7 +243,7 @@ const EstudiosPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Estudios</p>
-                <p className="text-2xl font-bold text-foreground">{totalCount}</p>
+                <p className="text-2xl font-bold text-foreground">{stats.total}</p>
               </div>
               <GraduationCap className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -242,8 +254,8 @@ const EstudiosPage = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Estudios Mostrados</p>
-                <p className="text-2xl font-bold text-foreground">{estudios.length}</p>
+                <p className="text-sm text-muted-foreground">Páginas</p>
+                <p className="text-2xl font-bold text-foreground">{stats.pages}</p>
               </div>
               <GraduationCap className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -256,19 +268,39 @@ const EstudiosPage = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
             <GraduationCap className="w-5 h-5" />
-            Listado de Estudios
+            Lista de Estudios
+            <span className="text-sm font-normal text-muted-foreground ml-auto">
+              Total: {stats.total}
+            </span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {error ? (
+            <div className="text-center py-8">
+              <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <p className="text-red-600 mb-2">Error al cargar estudios</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                {(error as any)?.response?.data?.message || (error as any)?.message || 'Ha ocurrido un error inesperado'}
+              </p>
+              <Button 
+                onClick={() => refetch()}
+                variant="outline"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Intentar de nuevo
+              </Button>
+            </div>
+          ) : loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
               <span className="ml-2 text-muted-foreground">Cargando estudios...</span>
             </div>
-          ) : estudios.length === 0 ? (
+          ) : paginatedData.paginatedItems.length === 0 ? (
             <div className="text-center py-8">
               <GraduationCap className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
-              <p className="text-muted-foreground">No se encontraron estudios</p>
+              <p className="text-muted-foreground">
+                {searchTerm ? 'No se encontraron estudios que coincidan con tu búsqueda' : 'No se encontraron estudios'}
+              </p>
               {searchTerm && (
                 <p className="text-sm text-muted-foreground/70">
                   Intenta con otros términos de búsqueda
@@ -290,7 +322,7 @@ const EstudiosPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {estudios.map((estudio) => (
+                  {paginatedData.paginatedItems.map((estudio) => (
                     <TableRow key={estudio.id}>
                       <TableCell className="font-medium">{estudio.id}</TableCell>
                       <TableCell>
@@ -350,12 +382,46 @@ const EstudiosPage = () => {
                 </TableBody>
               </Table>
 
-              {/* Información simple sin paginación ya que la API no la proporciona */}
-              <div className="flex items-center justify-center pt-4 border-t border-border">
-                <p className="text-sm text-muted-foreground">
-                  Mostrando {estudios.length} de {totalCount} estudios
-                </p>
-              </div>
+              {/* Paginación */}
+              {paginatedData.totalPages > 1 && (
+                <div className="flex items-center justify-between pt-4 border-t border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando {paginatedData.paginatedItems.length} de {stats.total} estudios
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(paginatedData.currentPage - 1)}
+                      disabled={paginatedData.currentPage === 1}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Anterior
+                    </Button>
+                    <span className="flex items-center px-3 text-sm font-medium text-primary bg-primary/10 rounded-md">
+                      Página {paginatedData.currentPage} de {paginatedData.totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(paginatedData.currentPage + 1)}
+                      disabled={paginatedData.currentPage === paginatedData.totalPages}
+                    >
+                      Siguiente
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Información simple cuando no hay paginación */}
+              {paginatedData.totalPages <= 1 && (
+                <div className="flex items-center justify-center pt-4 border-t border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando {paginatedData.paginatedItems.length} de {stats.total} estudios
+                  </p>
+                </div>
+              )}
             </>
           )}
         </CardContent>

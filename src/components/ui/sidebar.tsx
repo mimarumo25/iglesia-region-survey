@@ -34,6 +34,10 @@ type SidebarContext = {
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
   toggleSidebar: () => void
+  // Nueva funcionalidad para ocultar completamente en desktop
+  isHidden: boolean
+  setIsHidden: (hidden: boolean) => void
+  toggleHidden: () => void
 }
 
 const SidebarContext = React.createContext<SidebarContext | null>(null)
@@ -89,6 +93,14 @@ const SidebarProvider = React.forwardRef<
       [setOpenProp, open]
     )
 
+    // Nueva funcionalidad para ocultar completamente el sidebar en desktop
+    const [isHidden, setIsHidden] = React.useState(false)
+    
+    // Helper to toggle hidden state
+    const toggleHidden = React.useCallback(() => {
+      setIsHidden((hidden) => !hidden)
+    }, [])
+
     // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {
       return isMobile
@@ -125,8 +137,11 @@ const SidebarProvider = React.forwardRef<
         openMobile,
         setOpenMobile,
         toggleSidebar,
+        isHidden,
+        setIsHidden,
+        toggleHidden,
       }),
-      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, isHidden, setIsHidden, toggleHidden]
     )
 
     return (
@@ -175,7 +190,7 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const { isMobile, state, openMobile, setOpenMobile, isHidden } = useSidebar()
 
     if (collapsible === "none") {
       return (
@@ -210,6 +225,11 @@ const Sidebar = React.forwardRef<
           </SheetContent>
         </Sheet>
       )
+    }
+
+    // Si está oculto en desktop, no mostrar nada
+    if (isHidden) {
+      return null
     }
 
     return (

@@ -1,16 +1,30 @@
+import axios, { AxiosInstance } from 'axios';
+import { TokenManager } from '@/utils/cookies';
+
 /**
  * Configuración centralizada de la API
- * Este archivo centraliza todas las configuraciones relacionadas con la API del backend
+ * Este arch# Configurar interceptors básicos para el cliente autenticado
+authenticatedClient.interceptors.request.use((config) => {
+  // Solo añadir token si está disponible y no estamos en modo SKIP_AUTH
+  if (!DEV_CONFIG.SKIP_AUTH) {
+    try {
+      const accessToken = TokenManager.getAccessToken();
+      if (accessToken && config.headers) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+      }
+    } catch (error) {
+      console.warn('No se pudo obtener el token de acceso:', error);
+    }
+  }
+  return config;
+});das las configuraciones relacionadas con la API del backend
  */
 
 /**
  * URL base del servidor backend
- * Se obtiene desde las variables de entorno o usa un valor por defecto para desarrollo
+ * Se obtiene desde las variables de entorno
  */
-export const API_BASE_URL = (
-  import.meta.env.VITE_BASE_URL_SERVICES || 
-  'http://206.62.139.100:3000'
-).replace(/\/$/, ''); // Remover barra final si existe
+export const API_BASE_URL = import.meta.env.VITE_BASE_URL_SERVICES;
 
 /**
  * Configuración de timeouts para peticiones HTTP
@@ -83,7 +97,7 @@ export const API_ENDPOINTS = {
   PROFILE: '/api/profile',
   
   // Encuestas
-  SURVEYS: '/api/encuentas',
+  SURVEYS: '/api/encuesta',
 } as const;
 
 /**
@@ -137,3 +151,49 @@ export const AXIOS_CONFIG = {
   timeout: API_TIMEOUTS.DEFAULT,
   headers: DEFAULT_HEADERS,
 } as const;
+
+/**
+ * Cliente básico sin autenticación para modo desarrollo
+ */
+export const basicClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: API_TIMEOUTS.DEFAULT,
+  headers: DEFAULT_HEADERS,
+});
+
+// Crear un cliente autenticado aquí para evitar importaciones circulares
+const authenticatedClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: API_TIMEOUTS.DEFAULT,
+  headers: DEFAULT_HEADERS,
+});
+
+// Configurar interceptors básicos para el cliente autenticado
+authenticatedClient.interceptors.request.use((config) => {
+  // Solo añadir token si está disponible y no estamos en modo SKIP_AUTH
+  if (!DEV_CONFIG.SKIP_AUTH) {
+    try {
+      const accessToken = TokenManager.getAccessToken();
+      if (accessToken && config.headers) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+      }
+    } catch (error) {
+      console.warn('No se pudo obtener el token de acceso:', error);
+    }
+  }
+  return config;
+});
+
+/**
+ * Función centralizada para obtener el cliente HTTP correcto
+ * Evita duplicar la lógica de selección de cliente en cada servicio
+ */
+export function getApiClient(): AxiosInstance {
+  // En modo desarrollo y con SKIP_AUTH, usar cliente básico
+  if (DEV_CONFIG.IS_DEVELOPMENT && DEV_CONFIG.SKIP_AUTH) {
+    return basicClient;
+  }
+  
+  // Usar el cliente autenticado local
+  return authenticatedClient;
+}

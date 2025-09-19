@@ -3,14 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { ResponsiveTable, ResponsiveTableColumn } from '@/components/ui/responsive-table';
 import { useConfigModal } from "@/components/ui/config-modal";
 import { useUsers } from "@/hooks/useUsers";
 import { UserResponse, CreateUserRequest, UpdateUserRequest } from "@/services/users";
@@ -311,135 +304,105 @@ const UsersPage = () => {
               <p className="text-muted-foreground">No se encontraron usuarios</p>
             </div>
           ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-muted/50">
-                    <TableHead className="font-semibold text-foreground">Nombre Completo</TableHead>
-                    <TableHead className="font-semibold text-foreground">Email</TableHead>
-                    <TableHead className="font-semibold text-foreground">Teléfono</TableHead>
-                    <TableHead className="font-semibold text-foreground">Estado</TableHead>
-                    <TableHead className="font-semibold text-foreground">Email Verificado</TableHead>
-                    <TableHead className="font-semibold text-foreground">Último Acceso</TableHead>
-                    <TableHead className="font-semibold text-foreground">Fecha Creación</TableHead>
-                    <TableHead className="text-right font-semibold text-primary">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users && users.map((user, index) => (
-                    <TableRow 
-                      key={user.id}
-                      className="hover:bg-muted/50"
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <UserIcon className="w-4 h-4 text-primary" />
-                          <div className="flex flex-col">
-                            <span className="font-medium">{getFullName(user)}</span>
-                            <span className="text-xs text-muted-foreground">{user.numero_documento || 'Sin documento'}</span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                          {user.correo_electronico}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">{user.telefono || '-'}</span>
-                      </TableCell>
-                      <TableCell>
-                        {user.activo ? (
-                          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
-                            <Eye className="w-3 h-3 mr-1" /> Activo
-                          </Badge>
-                        ) : (
-                          <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
-                            <EyeOff className="w-3 h-3 mr-1" /> Inactivo
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {user.email_verificado ? (
-                          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
-                            ✓ Verificado
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                            ⚠ Pendiente
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {formatDate(user.fecha_ultimo_acceso)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                          {formatDate(user.created_at)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenEditDialog(user)}
-                            className="hover:bg-primary/10 hover:text-primary hover:shadow-md"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenDeleteDialog(user)}
-                            className="hover:bg-destructive/10 hover:text-destructive hover:shadow-md"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {/* Paginación (si aplica, no implementada en useUsersQuery) */}
-              {/* {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <p className="text-sm text-muted-foreground">
-                    Mostrando {users.length} de {pagination.totalCount} usuarios
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={pagination.currentPage === 1}
-                      className="hover:shadow-hover disabled:opacity-50"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Anterior
-                    </Button>
-                    <span className="flex items-center px-3 text-sm font-medium text-primary bg-primary/10 rounded-md">
-                      Página {pagination.currentPage} de {pagination.totalPages}
+            <ResponsiveTable
+              data={users || []}
+              columns={[
+                {
+                  key: 'nombre_completo',
+                  label: 'Nombre Completo',
+                  priority: 'high',
+                  render: (value: any, item: UserResponse) => (
+                    <div className="flex items-center gap-2">
+                      <UserIcon className="w-4 h-4 text-primary" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">{getFullName(item)}</span>
+                        <span className="text-xs text-muted-foreground">{item.numero_documento || 'Sin documento'}</span>
+                      </div>
+                    </div>
+                  )
+                },
+                {
+                  key: 'correo_electronico',
+                  label: 'Email',
+                  priority: 'high',
+                  render: (value: any) => (
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                      {value}
+                    </Badge>
+                  )
+                },
+                {
+                  key: 'telefono',
+                  label: 'Teléfono',
+                  priority: 'medium',
+                  render: (value: any) => (
+                    <span className="text-sm">{value || '-'}</span>
+                  )
+                },
+                {
+                  key: 'activo',
+                  label: 'Estado',
+                  priority: 'high',
+                  render: (value: any) => value ? (
+                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                      <Eye className="w-3 h-3 mr-1" /> Activo
+                    </Badge>
+                  ) : (
+                    <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
+                      <EyeOff className="w-3 h-3 mr-1" /> Inactivo
+                    </Badge>
+                  )
+                },
+                {
+                  key: 'email_verificado',
+                  label: 'Email Verificado',
+                  priority: 'medium',
+                  render: (value: any) => value ? (
+                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                      ✓ Verificado
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                      ⚠ Pendiente
+                    </Badge>
+                  )
+                },
+                {
+                  key: 'fecha_ultimo_acceso',
+                  label: 'Último Acceso',
+                  priority: 'low',
+                  render: (value: any) => (
+                    <span className="text-sm text-muted-foreground">
+                      {formatDate(value)}
                     </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={pagination.currentPage === pagination.totalPages}
-                      className="hover:shadow-hover disabled:opacity-50"
-                    >
-                      Siguiente
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )} */}
-            </>
+                  )
+                },
+                {
+                  key: 'created_at',
+                  label: 'Fecha Creación',
+                  priority: 'low',
+                  render: (value: any) => (
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                      {formatDate(value)}
+                    </Badge>
+                  )
+                }
+              ]}
+              actions={[
+                {
+                  label: 'Editar',
+                  icon: <Edit2 className="w-4 h-4" />,
+                  variant: 'default' as const,
+                  onClick: (item: UserResponse) => handleOpenEditDialog(item)
+                },
+                {
+                  label: 'Eliminar',
+                  icon: <Trash2 className="w-4 h-4" />,
+                  variant: 'destructive' as const,
+                  onClick: (item: UserResponse) => handleOpenDeleteDialog(item)
+                }
+              ]}
+            />
           )}
         </CardContent>
       </Card>

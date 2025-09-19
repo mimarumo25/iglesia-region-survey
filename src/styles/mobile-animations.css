@@ -1,0 +1,164 @@
+/**
+ * 🎨 Animaciones para Componentes Móviles Responsive
+ * 
+ * Animaciones optimizadas para tarjetas móviles y transiciones
+ */
+
+/* Animación de entrada para cards móviles */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación de entrada suave */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Animación de slide desde la izquierda */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Animación de slide desde la derecha */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Clases de utilidad para animaciones */
+.mobile-card-enter {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.mobile-card-delayed {
+  opacity: 0;
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.mobile-card-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.mobile-slide-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.mobile-slide-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* Optimizaciones para dispositivos móviles */
+@media (max-width: 768px) {
+  /* Reducir animaciones en dispositivos más lentos */
+  .mobile-card-enter,
+  .mobile-card-delayed {
+    animation-duration: 0.2s;
+  }
+  
+  /* Mejorar scroll en táctil */
+  .mobile-scroll-container {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* Hover states para táctil */
+  .mobile-card:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease-out;
+  }
+}
+
+/* Estados de hover para desktop */
+@media (min-width: 1024px) {
+  .mobile-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-out;
+  }
+}
+
+/* Mejoras de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-card-enter,
+  .mobile-card-delayed,
+  .mobile-card-fade-in,
+  .mobile-slide-left,
+  .mobile-slide-right {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Indicadores de carga */
+.mobile-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Estilos específicos para componentes responsive */
+.responsive-table-container {
+  transition: all 0.3s ease-out;
+}
+
+.mobile-view-transition {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.desktop-view-transition {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Mejoras de scroll para modales en móvil */
+.mobile-modal-content {
+  max-height: 85vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Tabs responsive */
+.mobile-tabs {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mobile-tabs::-webkit-scrollbar {
+  display: none;
+}

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Loader2, FileDown, Send, Database } from "lucide-react";
+import { Loader2, Send } from "lucide-react";
 
 interface SurveyControlsProps {
   currentStage: number;
@@ -8,8 +8,6 @@ interface SurveyControlsProps {
   onPrevious: () => void;
   onNext: () => void;
   onSubmit: () => void;
-  onExport: () => void;
-  onSubmitFromStorage?: () => void;
 }
 
 const SurveyControls = ({
@@ -19,8 +17,6 @@ const SurveyControls = ({
   onPrevious,
   onNext,
   onSubmit,
-  onExport,
-  onSubmitFromStorage,
 }: SurveyControlsProps) => {
   return (
     <div className="mt-8 flex justify-between items-center">
@@ -36,29 +32,6 @@ const SurveyControls = ({
         )}
       </div>
       <div className="flex items-center gap-4">
-        {currentStage === totalStages && (
-          <>
-            <Button
-              onClick={onExport}
-              variant="outline"
-              className="flex items-center gap-2 bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 rounded-xl px-6 py-2.5 font-semibold shadow-sm transition-all duration-200"
-            >
-              <FileDown className="w-4 h-4" />
-              Exportar
-            </Button>
-            {onSubmitFromStorage && (
-              <Button
-                onClick={onSubmitFromStorage}
-                variant="outline"
-                disabled={isSubmitting}
-                className="flex items-center gap-2 bg-orange-50 border-2 border-orange-300 text-orange-700 hover:bg-orange-100 hover:border-orange-400 rounded-xl px-6 py-2.5 font-semibold shadow-sm transition-all duration-200"
-              >
-                <Database className="w-4 h-4" />
-                Enviar Almacenado
-              </Button>
-            )}
-          </>
-        )}
         {currentStage < totalStages ? (
           <Button
             onClick={onNext}

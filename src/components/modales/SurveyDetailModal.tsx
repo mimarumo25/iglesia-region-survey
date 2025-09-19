@@ -5,8 +5,8 @@
  * con navegación interna por pestañas y componentes modulares
  */
 
-import { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React, { useState, useEffect, useRef } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,7 +27,9 @@ import {
 } from "lucide-react";
 
 // Importar servicios
-import { useEncuestas, EncuestaListItem } from "@/services/encuestas";
+import { useEncuestas } from "@/hooks/useEncuestas";
+import { EncuestaListItem } from "@/services/encuestas";
+import { useResponsiveTable } from "@/hooks/useResponsiveTable";
 
 // Import directo de componentes para evitar lazy loading que causa flickering inicial
 import BasicInfoSection from "@/components/modales/survey-details/BasicInfoSection";
@@ -88,16 +90,16 @@ const TAB_CONFIGS: TabConfig[] = [
     label: "Miembros Familia",
     icon: Users,
     component: FamilyMembersSection,
-    showBadge: (data) => data.miembros_familia.total_miembros > 0,
-    badgeCount: (data) => data.miembros_familia.total_miembros,
+    showBadge: (data) => data.miembros_familia?.total_miembros > 0,
+    badgeCount: (data) => data.miembros_familia?.total_miembros || 0,
   },
   {
     id: "deceased",
     label: "Fallecidos",
     icon: Heart,
     component: DeceasedMembersSection,
-    showBadge: (data) => data.personas_fallecidas.total_fallecidos > 0,
-    badgeCount: (data) => data.personas_fallecidas.total_fallecidos,
+    showBadge: (data) => data.deceasedMembers && data.deceasedMembers.length > 0,
+    badgeCount: (data) => data.deceasedMembers ? data.deceasedMembers.length : 0,
   },
   {
     id: "metadata",
@@ -118,67 +120,47 @@ export const SurveyDetailModal = ({
   initialData 
 }: SurveyDetailModalProps) => {
   const { toast } = useToast();
-  const { getEncuestaById } = useEncuestas();
+  
+  // Hook para obtener encuesta (solo cuando tenemos ID)
+  const { 
+    data: encuestaResponse, 
+    isLoading: loading, 
+    error: queryError 
+  } = useEncuestas().getEncuestaById(surveyId || '');
+  
+  // Hook para responsive design
+  const { shouldUseMobileView, isMobile, isVerySmall } = useResponsiveTable();
 
-  // Estados
-  const [surveyData, setSurveyData] = useState<EncuestaListItem | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Estados locales
   const [activeTab, setActiveTab] = useState("basic");
+  
+  // Datos derivados
+  const surveyData = encuestaResponse?.data || (initialData as EncuestaListItem) || null;
+  const error = queryError?.message || null;
 
   // ========================================================================
-  // EFECTOS Y CARGAR DATOS
+  // EFECTOS
   // ========================================================================
 
   /**
-   * Cargar datos de la encuesta cuando se abre el modal
+   * Mostrar toast de error cuando ocurra
    */
-  useEffect(() => {
-    const loadSurveyData = async () => {
-      if (!isOpen || !surveyId) {
-        setSurveyData(null);
-        setError(null);
-        return;
-      }
-
-      // Si tenemos datos iniciales, usarlos temporalmente
-      if (initialData) {
-        setSurveyData(initialData as EncuestaListItem);
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await getEncuestaById(parseInt(surveyId));
-        setSurveyData(response.data as EncuestaListItem);
-
-        console.log('✅ Datos de encuesta cargados en modal:', response.data);
-
-      } catch (error: any) {
-        console.error('❌ Error al cargar encuesta en modal:', error);
-        setError(error.message || 'Error al cargar la encuesta');
-        
-        toast({
-          variant: "destructive",
-          title: "Error al cargar encuesta",
-          description: error.message || 'No se pudo cargar la información de la encuesta'
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadSurveyData();
-  }, [isOpen, surveyId, initialData, getEncuestaById, toast]);
+  React.useEffect(() => {
+    if (error && isOpen) {
+      toast({
+        variant: "destructive",
+        title: "Error al cargar encuesta",
+        description: error
+      });
+    }
+  }, [error, isOpen, toast]);
 
   /**
    * Resetear estado al cerrar modal
    */
-  useEffect(() => {
+  React.useEffect(() => {
     if (!isOpen) {
       setActiveTab("basic");
-      setError(null);
     }
   }, [isOpen]);
 
@@ -192,6 +174,13 @@ export const SurveyDetailModal = ({
   // ========================================================================
   // FUNCIONES AUXILIARES
   // ========================================================================
+
+  /**
+   * Type guard para verificar si es EncuestaListItem
+   */
+  const isEncuestaListItem = (data: any): data is EncuestaListItem => {
+    return data && typeof data.codigo_familia === 'string';
+  };
 
   /**
    * Obtener badge de estado
@@ -213,8 +202,6 @@ export const SurveyDetailModal = ({
    * Manejar cierre del modal
    */
   const handleClose = () => {
-    setSurveyData(null);
-    setError(null);
     onClose();
   };
 
@@ -226,36 +213,64 @@ export const SurveyDetailModal = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent 
         className={cn(
-          "max-w-6xl h-[90vh] p-0 overflow-hidden survey-detail-modal",
+          "p-0 overflow-hidden survey-detail-modal",
+          shouldUseMobileView 
+            ? "max-w-[95vw] h-[95vh] w-[95vw]" 
+            : "max-w-6xl h-[90vh]",
           loading && !surveyData && "loading"
         )}
-        aria-describedby="survey-detail-description"
       >
-        <div id="survey-detail-description" className="sr-only">
+        <DialogDescription className="sr-only">
           Modal que muestra la información completa de una encuesta familiar con detalles organizados por pestañas
-        </div>
-        {/* Header del Modal */}
-        <DialogHeader className="p-6 pb-4 border-b bg-gray-50">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <FileText className="w-5 h-5 text-green-600" />
+        </DialogDescription>
+        
+        {/* Header del Modal - Responsive */}
+        <DialogHeader className={cn(
+          "border-b bg-gray-50",
+          isMobile ? "p-4 pb-3" : "p-6 pb-4"
+        )}>
+          <div className={cn(
+            "flex items-center gap-4",
+            isMobile && "flex-col gap-2"
+          )}>
+            <div className={cn(
+              "bg-green-100 rounded-lg flex items-center justify-center",
+              isMobile ? "w-8 h-8" : "w-10 h-10"
+            )}>
+              <FileText className={cn(
+                "text-green-600",
+                isMobile ? "w-4 h-4" : "w-5 h-5"
+              )} />
             </div>
-            <div>
-              <DialogTitle className="text-xl font-bold text-gray-900">
+            <div className={isMobile ? "text-center" : ""}>
+              <DialogTitle className={cn(
+                "font-bold text-gray-900",
+                isMobile ? "text-lg" : "text-xl"
+              )}>
                 {loading ? (
-                  <Skeleton className="h-6 w-48" />
+                  <Skeleton className={cn(
+                    isMobile ? "h-5 w-32" : "h-6 w-48"
+                  )} />
                 ) : surveyData ? (
                   `Familia ${surveyData.apellido_familiar}`
                 ) : (
                   'Detalles de Encuesta'
                 )}
               </DialogTitle>
-              <div className="flex items-center gap-2 mt-1">
+              <div className={cn(
+                "flex items-center gap-2 mt-1",
+                isMobile && "justify-center"
+              )}>
                 {loading ? (
-                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className={cn(
+                    isMobile ? "h-3 w-24" : "h-4 w-32"
+                  )} />
                 ) : surveyData && (
                   <>
-                    <code className="text-xs bg-gray-200 px-2 py-0.5 rounded">
+                    <code className={cn(
+                      "bg-gray-200 px-2 py-0.5 rounded",
+                      isMobile ? "text-xs" : "text-xs"
+                    )}>
                       {surveyData.codigo_familia}
                     </code>
                     {getStatusBadge(surveyData.estado_encuesta)}
@@ -267,20 +282,29 @@ export const SurveyDetailModal = ({
         </DialogHeader>
 
         {/* Contenido del Modal */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden mobile-modal-content">
           {loading && !surveyData ? (
             // Estado de carga inicial optimizado con skeleton de pestañas
             <div className="h-full flex flex-col">
               {/* Skeleton de pestañas */}
-              <div className="flex-shrink-0 border-b bg-white px-6">
-                <div className="grid grid-cols-6 h-12 bg-gray-50 border border-gray-200 rounded-lg p-1 gap-1 tabs-skeleton">
-                  {Array.from({ length: 6 }).map((_, i) => (
+              <div className={cn(
+                "flex-shrink-0 border-b bg-white",
+                isMobile ? "px-4" : "px-6"
+              )}>
+                <div className={cn(
+                  "h-12 bg-gray-50 border border-gray-200 rounded-lg p-1 gap-1 tabs-skeleton",
+                  isMobile ? "grid grid-cols-3" : "grid grid-cols-6"
+                )}>
+                  {Array.from({ length: isMobile ? 3 : 6 }).map((_, i) => (
                     <Skeleton key={i} className="h-full rounded-md skeleton" />
                   ))}
                 </div>
               </div>
               {/* Skeleton de contenido */}
-              <div className="flex-1 p-6 space-y-6">
+              <div className={cn(
+                "flex-1 space-y-6",
+                isMobile ? "p-4" : "p-6"
+              )}>
                 <div className="flex items-center justify-center gap-3 py-12">
                   <Loader2 className="w-6 h-6 animate-spin text-green-600" />
                   <p className="text-gray-600">Cargando detalles de la encuesta...</p>
@@ -289,7 +313,7 @@ export const SurveyDetailModal = ({
             </div>
           ) : error && !surveyData ? (
             // Estado de error
-            <div className="p-6">
+            <div className={cn(isMobile ? "p-4" : "p-6")}>
               <div className="flex flex-col items-center justify-center gap-4 py-12">
                 <AlertTriangle className="w-16 h-16 text-red-500" />
                 <div className="text-center">
@@ -309,33 +333,50 @@ export const SurveyDetailModal = ({
           ) : surveyData ? (
             // Contenido principal con pestañas
             <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full flex flex-col">
-              {/* Lista de pestañas - Fija en la parte superior */}
-              <div className="flex-shrink-0 border-b bg-white px-6 sticky top-0 z-10">
-                <TabsList className="grid w-full grid-cols-6 h-12 bg-gray-50 border border-gray-200 rounded-lg p-1">
-                  {TAB_CONFIGS.map((tab) => {
+              {/* Lista de pestañas - Responsive */}
+              <div className={cn(
+                "flex-shrink-0 border-b bg-white sticky top-0 z-10",
+                isMobile ? "px-4" : "px-6"
+              )}>
+                <TabsList className={cn(
+                  "w-full bg-gray-50 border border-gray-200 rounded-lg p-1",
+                  isMobile 
+                    ? "grid grid-cols-3 gap-1 h-auto mobile-tabs" 
+                    : "grid grid-cols-6 h-12"
+                )}>
+                  {(isMobile ? TAB_CONFIGS.slice(0, 6) : TAB_CONFIGS).map((tab) => {
                     const IconComponent = tab.icon;
-                    const showBadge = tab.showBadge?.(surveyData);
-                    const badgeCount = tab.badgeCount?.(surveyData);
+                    const showBadge = isEncuestaListItem(surveyData) && tab.showBadge?.(surveyData);
+                    const badgeCount = isEncuestaListItem(surveyData) ? (tab.badgeCount?.(surveyData) || 0) : 0;
                     
                     return (
                       <TabsTrigger 
                         key={tab.id} 
                         value={tab.id}
                         className={cn(
-                          "flex items-center gap-2 text-xs flex-shrink-0",
+                          "flex items-center gap-2 flex-shrink-0",
                           "hover:bg-green-50 hover:text-green-700",
                           "data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-md",
                           "data-[state=active]:border-green-600 data-[state=active]:font-semibold",
                           "text-gray-600 font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2",
-                          "transition-all duration-150 ease-in-out"
+                          "transition-all duration-150 ease-in-out",
+                          isMobile 
+                            ? "text-xs p-2 min-w-0 flex-col h-16 justify-center" 
+                            : "text-xs"
                         )}
                       >
                         <IconComponent className={cn(
-                          "w-4 h-4 flex-shrink-0 tab-icon",
-                          activeTab === tab.id ? "text-white" : "text-gray-500"
+                          "flex-shrink-0 tab-icon",
+                          activeTab === tab.id ? "text-white" : "text-gray-500",
+                          isMobile ? "w-3 h-3" : "w-4 h-4"
                         )} />
-                        <span className="hidden sm:inline truncate">{tab.label}</span>
-                        {showBadge && (
+                        <span className={cn(
+                          "truncate text-center",
+                          isMobile ? "text-xs leading-tight" : "hidden sm:inline"
+                        )}>
+                          {isMobile ? tab.label.split(' ')[0] : tab.label}
+                        </span>
+                        {showBadge && !isMobile && (
                           <Badge 
                             variant={activeTab === tab.id ? "secondary" : "outline"} 
                             className={cn(
@@ -365,9 +406,18 @@ export const SurveyDetailModal = ({
                         <TabsContent 
                           key={tab.id} 
                           value={tab.id} 
-                          className="mt-0 p-6 focus:outline-none data-[state=inactive]:hidden tab-content"
+                          className={cn(
+                            "mt-0 focus:outline-none data-[state=inactive]:hidden tab-content",
+                            isMobile ? "p-4" : "p-6"
+                          )}
                         >
-                          <ComponentToRender data={surveyData} />
+                          {isEncuestaListItem(surveyData) ? (
+                            <ComponentToRender data={surveyData} />
+                          ) : (
+                            <div className="p-8 text-center">
+                              <p className="text-gray-500">Datos no disponibles para este formato</p>
+                            </div>
+                          )}
                         </TabsContent>
                       );
                     })}

@@ -27,6 +27,7 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  X,
 } from 'lucide-react';
 
 const ParroquiasPage = () => {
@@ -40,9 +41,8 @@ const ParroquiasPage = () => {
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Queries de React Query
-  const { data: parroquiasResponse, isLoading: parroquiasLoading, refetch: refetchParroquias } = parroquiasHook.useParroquiasQuery(page, limit, sortBy, sortOrder);
-  const { data: searchResponse, isLoading: searchLoading } = parroquiasHook.useSearchParroquiasQuery(searchTerm, page, limit);
+  // Query unificada de React Query
+  const { data: parroquiasResponse, isLoading: parroquiasLoading, refetch: refetchParroquias } = parroquiasHook.useParroquiasQuery(page, limit, sortBy, sortOrder, searchTerm);
   
   // Query para obtener todos los municipios para el autocomplete
   const { data: municipios, isLoading: municipiosLoading, error: municipiosError } = municipiosHook.useAllMunicipiosQuery();
@@ -55,14 +55,11 @@ const ParroquiasPage = () => {
   // Preparar opciones de municipios para el autocomplete
   const municipiosOptions = municipiosToOptions((municipios as any) || [], true);
 
-  const parroquias = searchTerm 
-    ? (searchResponse?.data?.parroquias || []) 
-    : (parroquiasResponse?.data?.parroquias || []);
-  const pagination = searchTerm 
-    ? (searchResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false }) 
-    : (parroquiasResponse?.data?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false });
+  // Usar datos del query unificado
+  const parroquias = parroquiasResponse?.data || [];
+  const pagination = parroquiasResponse?.pagination || { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false };
 
-  const loading = parroquiasLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const loading = parroquiasLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios
   const {
@@ -161,11 +158,17 @@ const ParroquiasPage = () => {
     openDeleteDialog();
   };
 
-  // Manejo de búsqueda
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1); // Resetear paginación al buscar
-    // searchTerm ya está actualizado por el onChange del Input
+  // Manejo de búsqueda en tiempo real
+  const handleSearchTermChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+    setPage(1); // Resetear a primera página
+  };
+
+  // Limpiar búsqueda
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setPage(1);
   };
 
   // Manejo de paginación
@@ -211,33 +214,24 @@ const ParroquiasPage = () => {
       {/* Búsqueda con diseño neutro */}
       <Card className="mb-6">
         <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="flex gap-4">
+          <div className="flex gap-4">
             <Input
-              placeholder="Buscar por nombre o dirección..."
+              placeholder="Buscar por nombre, dirección, teléfono, email o municipio..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchTermChange}
               className="flex-1"
             />
-            <Button 
-              type="submit" 
-              variant="outline"
-            >
-              <Search className="w-4 h-4 mr-2" />
-              Buscar
-            </Button>
             {searchTerm && (
               <Button
                 type="button"
-                variant="ghost"
-                onClick={() => {
-                  setSearchTerm('');
-                  setPage(1); // Resetear paginación
-                }}
+                variant="outline"
+                onClick={handleClearSearch}
               >
+                <X className="w-4 h-4 mr-2" />
                 Limpiar
               </Button>
             )}
-          </form>
+          </div>
         </CardContent>
       </Card>
 

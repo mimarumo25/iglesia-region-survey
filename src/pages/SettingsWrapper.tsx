@@ -1,7 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import SettingsPage from './Settings';
 import Parroquias from './Parroquias';
-import Sectors from './Sectors';
 import VeredasPage from './Veredas';
 import Municipios from './Municipios';
 import AguasResidualesPage from './AguasResiduales';
@@ -27,8 +26,6 @@ const SettingsWrapper = () => {
         return <Parroquias />;
       case '/settings/veredas':
         return <VeredasPage />;
-      case '/settings/sectors':
-        return <Sectors />;
       case '/settings/municipios':
         return <Municipios />;
       case '/settings/aguas-residuales':

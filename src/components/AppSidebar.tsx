@@ -38,7 +38,10 @@ import {
   Heart,
   User,
   Trash2,
-  Shirt
+  Shirt,
+  ChevronLeft,
+  PanelLeftClose,
+  PanelLeftOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -69,12 +72,7 @@ const navigationItems = [
     icon: Users,
     description: "Registro de familias"
   },
-  {
-    title: "Sectores",
-    url: "/sectors",
-    icon: MapPin,
-    description: "Gestión de sectores"
-  },
+
   {
     title: "Reportes",
     url: "/reports",
@@ -212,7 +210,7 @@ const navigationItems = [
 ];
 
 const AppSidebar = () => {
-  const { state, setOpenMobile, isMobile } = useSidebar();
+  const { state, setOpenMobile, isMobile, toggleHidden, isHidden } = useSidebar();
   const { user, logout } = useAuthContext(); // Agregar logout del contexto
   const { canManageUsers } = usePermissions(); // Usar el hook de permisos
   const location = useLocation();
@@ -425,9 +423,66 @@ const AppSidebar = () => {
         collapsible="icon"
         variant="sidebar"
       >
+      {isHidden && !isMobile ? (
+        // Vista cuando el sidebar está oculto - SOLO EN DESKTOP
+        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary via-primary/95 to-primary/90 text-white">
+          <div className="text-center space-y-4 p-6">
+            <div className="w-16 h-16 bg-white/95 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-md mx-auto border border-white/20">
+              <img 
+                src="/mia-logo.svg" 
+                alt="MIA Logo" 
+                className="w-10 h-10 object-contain" 
+              />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-1">Sidebar Oculto</h3>
+              <p className="text-white/70 text-sm mb-4">El menú lateral está oculto</p>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  toggleHidden();
+                }}
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20 hover:border-white/40"
+              >
+                <PanelLeftOpen className="h-4 w-4 mr-2" />
+                Mostrar Sidebar
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
       {/* Header */}
       <SidebarHeader className="p-6 border-b border-sidebar-border/50">
         <div className="flex flex-col items-center justify-center space-y-3">
+          {/* Botón para ocultar sidebar - Disponible tanto en mobile como en desktop */}
+          <div className="absolute top-4 right-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                toggleHidden();
+                // En móvil también cerrar el Sheet
+                if (isMobile) {
+                  setOpenMobile(false);
+                }
+              }}
+              className={cn(
+                "p-2 h-8 w-8 rounded-lg",
+                "text-white/70 hover:text-white hover:bg-white/10",
+                "transition-all duration-200"
+              )}
+              title={isHidden ? "Mostrar sidebar" : "Ocultar sidebar"}
+            >
+              {isHidden ? (
+                <PanelLeftOpen className="h-4 w-4" />
+              ) : (
+                <PanelLeftClose className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          
           <div className="w-20 h-20 bg-white/95 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-md hover:shadow-lg transition-shadow duration-300 border border-white/20">
             <Logo size="lg" showText={false} className="w-16 h-16" />
           </div>
@@ -655,6 +710,8 @@ const AppSidebar = () => {
           )}
         </div>
       </SidebarContent>
+      </>
+      )}
     </Sidebar>
     </div>
   );

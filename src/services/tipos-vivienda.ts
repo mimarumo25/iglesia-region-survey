@@ -1,5 +1,4 @@
-import { apiClient } from '@/interceptors/axios';
-import axios from 'axios';
+import { getApiClient } from '@/config/api';
 import { 
   TipoVivienda,
   TipoViviendaCreate, 
@@ -8,27 +7,6 @@ import {
   ServerResponse,
   ApiTiposViviendaResponse
 } from '@/types/tipos-vivienda';
-
-const API_BASE_URL = import.meta.env.VITE_BASE_URL_SERVICES || 'http://206.62.139.100:3000';
-
-// Cliente básico sin autenticación para modo desarrollo
-const basicClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-});
-
-// Función para obtener el cliente correcto
-const getApiClient = () => {
-  // En modo desarrollo y con SKIP_AUTH, usar cliente básico
-  if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
-    return basicClient;
-  }
-  return apiClient;
-};
 
 class TiposViviendaService {
   

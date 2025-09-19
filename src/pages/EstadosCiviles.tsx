@@ -1,54 +1,71 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { ConfigurationTable, TableColumn, TableAction, PaginationData } from '@/components/ui/configuration-table';
+import { ResponsiveTable, ResponsiveTableColumn } from '@/components/ui/responsive-table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
-import { useEstadosCiviles } from '@/hooks/useEstadosCiviles';
+import { useEstadosCivilesQuery, useEstadosCiviles, paginateClientSide, filterBySearch } from '@/hooks/useEstadosCiviles';
 import { EstadoCivil, EstadoCivilCreate } from '@/types/estados-civiles';
 import {
   Heart,
   Plus,
-  Search,
   Edit2,
   Trash2,
   Loader2,
   RefreshCw,
   Eye,
   EyeOff,
+  X
 } from 'lucide-react';
 
 const EstadosCivilesPage = () => {
   const estadosCivilesHook = useEstadosCiviles();
 
-  // Estados para paginación y filtros
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [sortBy, setSortBy] = useState('orden');
-  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
+  // Estados para búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState('');
   const [includeInactive, setIncludeInactive] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
-  // Queries de React Query
-  const { data: estadosCivilesResponse, isLoading: estadosCivilesLoading, refetch: refetchEstadosCiviles } = estadosCivilesHook.useEstadosCivilesQuery(page, limit, sortBy, sortOrder, includeInactive);
-  const { data: searchResponse, isLoading: searchLoading } = estadosCivilesHook.useSearchEstadosCivilesQuery(searchTerm, page, limit, sortBy, sortOrder, includeInactive);
+  // ✅ USAR PATRÓN UNIFICADO - Single query 
+  const { data: response, isLoading, refetch } = useEstadosCivilesQuery(searchTerm, includeInactive);
+
+  // Procesar datos del lado del cliente
+  const processedData = useMemo(() => {
+    if (!response?.data) return {
+      items: [],
+      pagination: {
+        totalPages: 1,
+        totalCount: 0,
+        currentPage: 1,
+        hasNext: false,
+        hasPrev: false
+      }
+    };
+
+    const allItems = Array.isArray(response.data) ? response.data : [];
+    
+    // Filtrar por búsqueda del lado del cliente si es necesario
+    const filteredItems = searchTerm ? filterBySearch(allItems, searchTerm) : allItems;
+    
+    // Paginar del lado del cliente
+    const paginationResult = paginateClientSide(filteredItems, currentPage, itemsPerPage);
+    
+    return {
+      items: paginationResult.paginatedItems,
+      pagination: paginationResult
+    };
+  }, [response, searchTerm, currentPage, itemsPerPage]);
 
   // Mutaciones de React Query
   const createMutation = estadosCivilesHook.useCreateEstadoCivilMutation();
   const updateMutation = estadosCivilesHook.useUpdateEstadoCivilMutation();
   const deleteMutation = estadosCivilesHook.useDeleteEstadoCivilMutation();
 
-  const estadosCiviles = searchTerm
-    ? ((searchResponse as any)?.data || [])
-    : ((estadosCivilesResponse as any)?.data || []);
-  const pagination = searchTerm
-    ? ((searchResponse as any)?.pagination || { totalItems: 0, totalPages: 1, currentPage: 1, itemsPerPage: 10 })
-    : ((estadosCivilesResponse as any)?.pagination || { totalItems: 0, totalPages: 1, currentPage: 1, itemsPerPage: 10 });
-
-  const loading = estadosCivilesLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const loading = isLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios
   const {
@@ -147,22 +164,27 @@ const EstadosCivilesPage = () => {
     openDeleteDialog();
   };
 
-  // Manejo de búsqueda
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1); // Resetear paginación al buscar
-    // searchTerm ya está actualizado por el onChange del Input
+  // ✅ REAL-TIME SEARCH HANDLER - Sin botón "Buscar"
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Resetear a la primera página al buscar
   };
 
-  // Manejo de paginación
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
+  // ✅ CLEAR SEARCH HANDLER - Botón X
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setCurrentPage(1);
   };
 
   // Manejo del filtro de inactivos
   const handleIncludeInactiveChange = (checked: boolean) => {
     setIncludeInactive(checked);
-    setPage(1); // Resetear paginación al cambiar filtro
+    setCurrentPage(1); // Resetear paginación al cambiar filtro
+  };
+
+  // Manejo de paginación
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
   };
 
   // Formatear fecha
@@ -185,7 +207,7 @@ const EstadosCivilesPage = () => {
         <div className="flex gap-2 ">
           <Button
             variant="outline"
-            onClick={() => refetchEstadosCiviles()}
+            onClick={() => refetch()}
             disabled={loading}
             className=""
           >
@@ -202,68 +224,50 @@ const EstadosCivilesPage = () => {
         </div>
       </div>
 
-      {/* Búsqueda y filtros con diseño mejorado */}
+      {/* ✅ BÚSQUEDA EN TIEMPO REAL - Sin botón manual */}
       <Card className="mb-6  ">
         <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="space-y-4">
-            <div className="flex flex-col md:flex-row gap-4 items-end">
-              {/* Búsqueda por texto */}
-              <div className="flex-1">
-                <Input
-                  placeholder="Buscar por nombre o descripción..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="border-input-border focus:ring-primary transition-smooth"
-                />
-              </div>
-
-              {/* Incluir inactivos */}
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="include-inactive"
-                  checked={includeInactive}
-                  onCheckedChange={handleIncludeInactiveChange}
-                />
-                <Label htmlFor="include-inactive">Incluir Inactivos</Label>
-              </div>
-
-              {/* Botones de acción */}
-              <div className="flex gap-2">
-                <Button
-                  type="submit"
-                  variant="outline"
-                  className=""
+          <div className="flex flex-col md:flex-row gap-4 items-end">
+            {/* Búsqueda en tiempo real */}
+            <div className="flex-1 relative">
+              <Input
+                placeholder="Buscar por nombre o descripción..."
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="border-input-border focus:ring-primary transition-smooth pr-10"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
                 >
-                  <Search className="w-4 h-4 mr-2" />
-                  Buscar
-                </Button>
-                {searchTerm && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => {
-                      setSearchTerm('');
-                      setPage(1); // Resetear paginación
-                    }}
-                    className=""
-                  >
-                    Limpiar
-                  </Button>
-                )}
-              </div>
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
-          </form>
+
+            {/* Incluir inactivos */}
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="include-inactive"
+                checked={includeInactive}
+                onCheckedChange={handleIncludeInactiveChange}
+              />
+              <Label htmlFor="include-inactive">Incluir Inactivos</Label>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Estadísticas con diseño mejorado */}
+      {/* ✅ ESTADÍSTICAS DINÁMICAS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <Card className="  ">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Estados Civiles</p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalItems}</p>
+                <p className="text-2xl font-bold text-foreground">{processedData.pagination.totalCount}</p>
               </div>
               <Heart className="w-8 h-8 text-muted-foreground opacity-70 " />
             </div>
@@ -275,7 +279,7 @@ const EstadosCivilesPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Páginas</p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalPages}</p>
+                <p className="text-2xl font-bold text-foreground">{processedData.pagination.totalPages}</p>
               </div>
               <Heart className="w-8 h-8 text-secondary opacity-70 " />
             </div>
@@ -289,6 +293,7 @@ const EstadosCivilesPage = () => {
           <CardTitle className="flex items-center gap-2 text-foreground">
             <Heart className="w-5 h-5" />
             Listado de Estados Civiles
+            <span className="text-sm font-normal text-muted-foreground">Total: {processedData.pagination.totalCount}</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -297,7 +302,7 @@ const EstadosCivilesPage = () => {
               <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
               <span className="ml-2 text-muted-foreground">Cargando estados civiles...</span>
             </div>
-          ) : estadosCiviles.length === 0 ? (
+          ) : processedData.items.length === 0 ? (
             <div className="text-center py-8">
               <Heart className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4 " />
               <p className="text-muted-foreground">No se encontraron estados civiles</p>
@@ -308,96 +313,126 @@ const EstadosCivilesPage = () => {
               )}
             </div>
           ) : (
-            <ConfigurationTable
-              data={estadosCiviles}
-              columns={[
-                {
-                  key: 'id',
-                  label: 'ID',
-                  render: (value: any) => <span className="font-medium text-foreground">{value}</span>
-                },
-                {
-                  key: 'nombre',
-                  label: 'Nombre',
-                  render: (value: any) => (
-                    <div className="flex items-center gap-2">
-                      <Heart className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium">{value}</span>
-                    </div>
-                  )
-                },
-                {
-                  key: 'codigo',
-                  label: 'Código',
-                  render: (value: any) => (
-                    <span >
-                      {value}
+            <>
+              <ResponsiveTable
+                data={processedData.items}
+                columns={[
+                  {
+                    key: 'id',
+                    label: 'ID',
+                    priority: 'medium',
+                    render: (value: any) => <span className="font-medium text-foreground">{value}</span>
+                  },
+                  {
+                    key: 'nombre',
+                    label: 'Nombre',
+                    priority: 'high',
+                    render: (value: any) => (
+                      <div className="flex items-center gap-2">
+                        <Heart className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium">{value}</span>
+                      </div>
+                    )
+                  },
+                  {
+                    key: 'codigo',
+                    label: 'Código',
+                    priority: 'medium',
+                    render: (value: any) => (
+                      <span>{value}</span>
+                    )
+                  },
+                  {
+                    key: 'descripcion',
+                    label: 'Descripción',
+                    priority: 'low',
+                    render: (value: any) => (
+                      <span>{value || 'N/A'}</span>
+                    )
+                  },
+                  {
+                    key: 'orden',
+                    label: 'Orden',
+                    priority: 'medium',
+                    render: (value: any) => (
+                      <span className="font-medium text-foreground">
+                        {value}
+                      </span>
+                    )
+                  },
+                  {
+                    key: 'activo',
+                    label: 'Estado',
+                    priority: 'high',
+                    render: (value: any) => value ? (
+                      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                        <Eye className="w-3 h-3 mr-1" /> Activo
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
+                        <EyeOff className="w-3 h-3 mr-1" /> Inactivo
+                      </Badge>
+                    )
+                  },
+                  {
+                    key: 'createdAt',
+                    label: 'Fecha Creación',
+                    priority: 'low',
+                    render: (value: any) => (
+                      <Badge variant="outline">
+                        {formatDate(value)}
+                      </Badge>
+                    )
+                  }
+                ]}
+                actions={[
+                  {
+                    label: 'Editar',
+                    icon: <Edit2 className="w-4 h-4" />,
+                    variant: 'default' as const,
+                    onClick: (item: any) => handleOpenEditDialog(item)
+                  },
+                  {
+                    label: 'Eliminar',
+                    icon: <Trash2 className="w-4 h-4" />,
+                    variant: 'destructive' as const,
+                    onClick: (item: any) => handleOpenDeleteDialog(item)
+                  }
+                ]}
+              />
+              
+              {/* ✅ PAGINACIÓN DINÁMICA */}
+              {processedData.items.length > 0 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando {processedData.items.length} de {processedData.pagination.totalCount} estados civiles
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(processedData.pagination.currentPage - 1)}
+                      disabled={!processedData.pagination.hasPrev || loading}
+                    >
+                      <RefreshCw className="w-4 h-4 mr-1" />
+                      Anterior
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      Página {processedData.pagination.currentPage} de {processedData.pagination.totalPages}
                     </span>
-                  )
-                },
-                {
-                  key: 'descripcion',
-                  label: 'Descripción',
-                  render: (value: any) => (
-                    <span>{value || 'N/A'}</span>
-                  )
-                },
-                {
-                  key: 'orden',
-                  label: 'Orden',
-                  render: (value: any) => (
-                    <span className="font-medium text-foreground">
-                      {value}
-                    </span>
-                  )
-                },
-                {
-                  key: 'activo',
-                  label: 'Estado',
-                  render: (value: any) => value ? (
-                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
-                      <Eye className="w-3 h-3 mr-1" /> Activo
-                    </Badge>
-                  ) : (
-                    <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
-                      <EyeOff className="w-3 h-3 mr-1" /> Inactivo
-                    </Badge>
-                  )
-                },
-                {
-                  key: 'createdAt',
-                  label: 'Fecha Creación',
-                  render: (value: any) => (
-                    <Badge variant="outline">
-                      {formatDate(value)}
-                    </Badge>
-                  )
-                }
-              ]}
-              actions={[
-                {
-                  type: 'edit' as const,
-                  label: 'Editar',
-                  icon: <Edit2 className="w-4 h-4" />,
-                  color: 'default' as const,
-                  onClick: (item: any) => handleOpenEditDialog(item)
-                },
-                {
-                  type: 'delete' as const,
-                  label: 'Eliminar',
-                  icon: <Trash2 className="w-4 h-4" />,
-                  color: 'destructive' as const,
-                  onClick: (item: any) => handleOpenDeleteDialog(item)
-                }
-              ]}
-              pagination={{
-                currentPage: pagination.currentPage,
-                totalPages: pagination.totalPages,
-                totalItems: pagination.totalItems,
-                itemsPerPage: pagination.itemsPerPage
-              }}
-              onPageChange={handlePageChange}
-            />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(processedData.pagination.currentPage + 1)}
+                      disabled={!processedData.pagination.hasNext || loading}
+                    >
+                      Siguiente
+                      <RefreshCw className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

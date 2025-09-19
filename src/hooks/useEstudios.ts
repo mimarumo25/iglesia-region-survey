@@ -1,32 +1,86 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { estudiosService } from '@/services/estudios';
-import { EstudioFormData, EstudioUpdateData } from '@/types/estudios';
+import { EstudioFormData, EstudioUpdateData, Estudio } from '@/types/estudios';
+import { useMemo } from 'react';
+
+// ✅ PATRÓN UNIFICADO - Single Query con búsqueda opcional
+export const useEstudiosQuery = (searchTerm?: string) => {
+  return useQuery({
+    queryKey: ['estudios', searchTerm || 'all'],
+    queryFn: () => {
+      // Si hay término de búsqueda, usar búsqueda; si no, obtener todos
+      return searchTerm && searchTerm.trim()
+        ? estudiosService.searchEstudios(searchTerm.trim(), 1, 100)
+        : estudiosService.getEstudios(1, 100, 'ordenNivel', 'ASC');
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData,
+  });
+};
+
+// 🔧 Helper function para paginación del lado del cliente
+export const paginateClientSide = <T>(
+  items: T[],
+  page: number,
+  limit: number
+): {
+  paginatedItems: T[];
+  totalPages: number;
+  currentPage: number;
+  totalCount: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+} => {
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedItems = items.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(items.length / limit);
+
+  return {
+    paginatedItems,
+    totalPages,
+    currentPage: page,
+    totalCount: items.length,
+    hasNext: page < totalPages,
+    hasPrev: page > 1,
+  };
+};
+
+// 🔍 Helper function para filtrar búsquedas del lado del cliente
+export const filterBySearch = (
+  estudios: Estudio[],
+  searchTerm: string
+): Estudio[] => {
+  if (!searchTerm || !searchTerm.trim()) {
+    return estudios;
+  }
+
+  const term = searchTerm.toLowerCase().trim();
+  
+  return estudios.filter((estudio) =>
+    estudio.nivel.toLowerCase().includes(term) ||
+    (estudio.descripcion && estudio.descripcion.toLowerCase().includes(term))
+  );
+};
 
 // Hook personalizado para todas las operaciones de estudios
 export const useEstudios = () => {
   const queryClient = useQueryClient();
 
-  // Query para obtener estudios con paginación
-  const useEstudiosQuery = (
-    page: number = 1, 
-    limit: number = 10, 
-    sortBy: string = 'id', 
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ) => {
+  // 🎯 Query principal unificada - reemplaza las dos queries separadas
+  const useEstudiosQuery = (searchTerm?: string) => {
     return useQuery({
-      queryKey: ['estudios', { page, limit, sortBy, sortOrder }],
-      queryFn: () => estudiosService.getEstudios(page, limit, sortBy, sortOrder),
-      placeholderData: (previousData) => previousData,
-    });
-  };
-
-  // Query para buscar estudios
-  const useSearchEstudiosQuery = (search: string, page: number = 1, limit: number = 10) => {
-    return useQuery({
-      queryKey: ['estudios', { search, page, limit }],
-      queryFn: () => estudiosService.searchEstudios(search, page, limit),
-      enabled: !!search.trim(),
+      queryKey: ['estudios', searchTerm || 'all'],
+      queryFn: () => {
+        // Si hay término de búsqueda, usar búsqueda; si no, obtener todos
+        return searchTerm && searchTerm.trim()
+          ? estudiosService.searchEstudios(searchTerm.trim(), 1, 100)
+          : estudiosService.getEstudios(1, 100, 'ordenNivel', 'ASC');
+      },
+      staleTime: 1000 * 60 * 5, // 5 minutos
+      refetchOnWindowFocus: false,
       placeholderData: (previousData) => previousData,
     });
   };
@@ -175,9 +229,10 @@ export const useEstudios = () => {
   };
 
   return {
-    // Queries
+    // ✅ Query principal unificada (reemplaza useEstudiosQuery + useSearchEstudiosQuery)
     useEstudiosQuery,
-    useSearchEstudiosQuery,
+    
+    // Queries mantenidas para compatibilidad
     useEstudioByIdQuery,
     useActiveEstudiosQuery,
     useEstudiosStatsQuery,
@@ -187,6 +242,10 @@ export const useEstudios = () => {
     useUpdateEstudioMutation,
     useDeleteEstudioMutation,
     useToggleEstudioStatusMutation,
+
+    // 🔧 Helper functions exportadas para uso en componentes
+    paginateClientSide,
+    filterBySearch,
   };
 };
 

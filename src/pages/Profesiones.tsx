@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,12 +13,11 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
-import { useProfesiones } from '@/hooks/useProfesiones';
+import { useProfesionesQuery, useProfesiones, paginateClientSide, filterBySearch } from '@/hooks/useProfesiones';
 import { Profesion, ProfesionFormData } from '@/types/profesiones';
 import {
   Briefcase,
   Plus,
-  Search,
   Edit2,
   Trash2,
   Loader2,
@@ -27,49 +26,53 @@ import {
   ChevronRight,
   CheckCircle2,
   XCircle,
+  X
 } from 'lucide-react';
 
 const ProfesionesPage = () => {
   const profesionesHook = useProfesiones();
 
-  // Estados para paginación y filtros
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [sortBy, setSortBy] = useState('id_profesion');
-  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
+  // Estados para búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
-  // Queries de React Query
-  const { data: profesionesResponse, isLoading: profesionesLoading, refetch: refetchProfesiones } = profesionesHook.useProfesionesQuery(page, limit, sortBy, sortOrder);
-  const { data: searchResponse, isLoading: searchLoading } = profesionesHook.useSearchProfesionesQuery(searchTerm, page, limit);
+  // ✅ USAR PATRÓN UNIFICADO - Single query 
+  const { data: response, isLoading, refetch } = useProfesionesQuery(searchTerm);
+
+  // Procesar datos del lado del cliente
+  const processedData = useMemo(() => {
+    if (!response?.data) return {
+      items: [],
+      pagination: {
+        totalPages: 1,
+        totalCount: 0,
+        currentPage: 1,
+        hasNext: false,
+        hasPrev: false
+      }
+    };
+
+    const allItems = Array.isArray(response.data) ? response.data : [];
+    
+    // Filtrar por búsqueda del lado del cliente si es necesario
+    const filteredItems = searchTerm ? filterBySearch(allItems, searchTerm) : allItems;
+    
+    // Paginar del lado del cliente
+    const paginationResult = paginateClientSide(filteredItems, currentPage, itemsPerPage);
+    
+    return {
+      items: paginationResult.paginatedItems,
+      pagination: paginationResult
+    };
+  }, [response, searchTerm, currentPage, itemsPerPage]);
 
   // Mutaciones de React Query
   const createMutation = profesionesHook.useCreateProfesionMutation();
   const updateMutation = profesionesHook.useUpdateProfesionMutation();
   const deleteMutation = profesionesHook.useDeleteProfesionMutation();
 
-  const profesiones = searchTerm 
-    ? (searchResponse?.data || []) 
-    : (profesionesResponse?.data || []);
-    
-  // Adaptar la respuesta de la API al formato esperado por el frontend
-  const pagination = searchTerm 
-    ? {
-        currentPage: page,
-        totalPages: Math.ceil((searchResponse?.total || 0) / limit),
-        totalCount: searchResponse?.total || 0,
-        hasNext: page < Math.ceil((searchResponse?.total || 0) / limit),
-        hasPrev: page > 1,
-      }
-    : {
-        currentPage: page,
-        totalPages: Math.ceil((profesionesResponse?.total || 0) / limit),
-        totalCount: profesionesResponse?.total || 0,
-        hasNext: page < Math.ceil((profesionesResponse?.total || 0) / limit),
-        hasPrev: page > 1,
-      };
-
-  const loading = profesionesLoading || searchLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const loading = isLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios
   const {
@@ -156,15 +159,21 @@ const ProfesionesPage = () => {
     openDeleteDialog();
   };
 
-  // Manejo de búsqueda
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1);
+  // ✅ REAL-TIME SEARCH HANDLER - Sin botón "Buscar"
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Resetear a la primera página al buscar
+  };
+
+  // ✅ CLEAR SEARCH HANDLER - Botón X
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setCurrentPage(1);
   };
 
   // Manejo de paginación
   const handlePageChange = (newPage: number) => {
-    setPage(newPage);
+    setCurrentPage(newPage);
   };
 
   // Formatear fecha
@@ -187,7 +196,7 @@ const ProfesionesPage = () => {
         <div className="flex gap-2">
           <Button 
             variant="outline" 
-            onClick={() => refetchProfesiones()}
+            onClick={() => refetch()}
             disabled={loading}
           >
             <RefreshCw className="w-4 h-4 mr-2" />
@@ -200,44 +209,37 @@ const ProfesionesPage = () => {
         </div>
       </div>
 
-      {/* Búsqueda */}
+      {/* ✅ BÚSQUEDA EN TIEMPO REAL - Sin botón manual */}
       <Card className="mb-6">
         <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="flex gap-4">
+          <div className="relative">
             <Input
-              placeholder="Buscar por nombre..."
+              placeholder="Buscar por nombre o descripción..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1"
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="pr-10"
             />
-            <Button type="submit" variant="outline">
-              <Search className="w-4 h-4 mr-2" />
-              Buscar
-            </Button>
             {searchTerm && (
-              <Button
+              <button
                 type="button"
-                variant="ghost"
-                onClick={() => {
-                  setSearchTerm('');
-                  setPage(1);
-                }}
+                onClick={handleClearSearch}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
               >
-                Limpiar
-              </Button>
+                <X className="h-4 w-4" />
+              </button>
             )}
-          </form>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Estadísticas */}
+      {/* ✅ ESTADÍSTICAS DINÁMICAS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Profesiones</p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalCount}</p>
+                <p className="text-2xl font-bold text-foreground">{processedData.pagination.totalCount}</p>
               </div>
               <Briefcase className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -249,7 +251,7 @@ const ProfesionesPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Páginas</p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalPages}</p>
+                <p className="text-2xl font-bold text-foreground">{processedData.pagination.totalPages}</p>
               </div>
               <Briefcase className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -263,15 +265,16 @@ const ProfesionesPage = () => {
           <CardTitle className="flex items-center gap-2 text-foreground">
             <Briefcase className="w-5 h-5" />
             Listado de Profesiones
+            <span className="text-sm font-normal text-muted-foreground">Total: {processedData.pagination.totalCount}</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-8 h-8 text-muted-foreground" />
+              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
               <span className="ml-2 text-muted-foreground">Cargando profesiones...</span>
             </div>
-          ) : profesiones.length === 0 ? (
+          ) : processedData.items.length === 0 ? (
             <div className="text-center py-8">
               <Briefcase className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
               <p className="text-muted-foreground">No se encontraron profesiones</p>
@@ -294,7 +297,7 @@ const ProfesionesPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {profesiones.map((profesion) => (
+                  {processedData.items.map((profesion) => (
                     <TableRow key={profesion.id_profesion}>
                       <TableCell className="font-medium">{profesion.id_profesion}</TableCell>
                       <TableCell>
@@ -336,30 +339,30 @@ const ProfesionesPage = () => {
                 </TableBody>
               </Table>
 
-              {/* Paginación */}
-              {pagination.totalPages > 1 && (
+              {/* ✅ PAGINACIÓN DINÁMICA */}
+              {processedData.pagination.totalPages > 1 && (
                 <div className="flex items-center justify-between pt-4 border-t border-border">
                   <p className="text-sm text-muted-foreground">
-                    Mostrando {profesiones.length} de {pagination.totalCount} profesiones
+                    Mostrando {processedData.items.length} de {processedData.pagination.totalCount} profesiones
                   </p>
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={pagination.currentPage === 1}
+                      onClick={() => handlePageChange(processedData.pagination.currentPage - 1)}
+                      disabled={!processedData.pagination.hasPrev}
                     >
                       <ChevronLeft className="w-4 h-4" />
                       Anterior
                     </Button>
                     <span className="flex items-center px-3 text-sm font-medium text-primary bg-primary/10 rounded-md">
-                      Página {pagination.currentPage} de {pagination.totalPages}
+                      Página {processedData.pagination.currentPage} de {processedData.pagination.totalPages}
                     </span>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={pagination.currentPage === pagination.totalPages}
+                      onClick={() => handlePageChange(processedData.pagination.currentPage + 1)}
+                      disabled={!processedData.pagination.hasNext}
                     >
                       Siguiente
                       <ChevronRight className="w-4 h-4" />
