@@ -19,8 +19,8 @@ export const useEstadosCivilesQuery = (searchTerm?: string, includeInactive: boo
     queryFn: () => {
       // Si hay término de búsqueda, usar búsqueda; si no, obtener todos
       return searchTerm && searchTerm.trim()
-        ? estadosCivilesService.searchEstadosCiviles(searchTerm.trim(), includeInactive, 100, 1, 'orden', 'ASC')
-        : estadosCivilesService.getEstadosCiviles(includeInactive, 100, 1, 'orden', 'ASC');
+        ? estadosCivilesService.searchEstadosCiviles(searchTerm.trim(), includeInactive, 100, 1, 'id', 'ASC')
+        : estadosCivilesService.getEstadosCiviles(includeInactive, 100, 1, 'id', 'ASC');
     },
     staleTime: 1000 * 60 * 5, // 5 minutos
     refetchOnWindowFocus: false,
@@ -68,7 +68,6 @@ export const filterBySearch = (
   const lowercaseSearch = searchTerm.toLowerCase().trim();
   return items.filter(item =>
     item.nombre?.toLowerCase().includes(lowercaseSearch) ||
-    item.codigo?.toLowerCase().includes(lowercaseSearch) ||
     item.descripcion?.toLowerCase().includes(lowercaseSearch)
   );
 };

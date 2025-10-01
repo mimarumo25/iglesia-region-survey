@@ -59,11 +59,9 @@ export const UserMenuWorking: React.FC = () => {
   };
 
   const handleProfileClick = () => {
-    console.log('🔍 UserMenuWorking: Navegando al perfil...');
     setIsOpen(false);
     try {
       navigate('/profile');
-      console.log('✅ UserMenuWorking: Navegación al perfil iniciada');
     } catch (error) {
       console.error('❌ UserMenuWorking: Error al navegar al perfil:', error);
     }
@@ -88,16 +86,6 @@ export const UserMenuWorking: React.FC = () => {
     };
   }, []);
 
-  // Debug en desarrollo
-  if (import.meta.env.DEV) {
-    console.log('🔍 UserMenuWorking Debug:', { 
-      user, 
-      hasUser: !!user, 
-      isAuthenticated,
-      skipAuth: import.meta.env.VITE_SKIP_AUTH 
-    });
-  }
-
   // Si no hay usuario y no estamos en modo skip auth, no mostrar nada
   if (!user && import.meta.env.VITE_SKIP_AUTH !== 'true') {
     return null;
@@ -114,9 +102,6 @@ export const UserMenuWorking: React.FC = () => {
     );
   }
 
-  // Si llegamos aquí, tenemos un usuario válido
-  console.log('🔍 UserMenuWorking: Renderizando con usuario válido:', user.firstName, user.lastName);
-
   const fullName = getFullName();
 
   return (
@@ -127,7 +112,6 @@ export const UserMenuWorking: React.FC = () => {
         style={{ pointerEvents: 'auto' }}
         title={`Menú de ${fullName}`}
         onClick={() => {
-          console.log('🔍 UserMenuWorking: Button onClick disparado');
           setIsOpen(!isOpen);
         }}
       >

@@ -572,14 +572,31 @@ export const useConfigurationData = (): ConfigurationData => {
   }, [tiposIdentificacionData]);
 
   const parentescosOptions = useMemo((): AutocompleteOption[] => {
-    if (!parentescosData || !Array.isArray(parentescosData)) {
+    // El hook useParentescosQuery devuelve una estructura {data: Array, pagination: Object}
+    // Necesitamos extraer el array de parentescos
+    let parentescosArray: any[] = [];
+    
+    if (parentescosData) {
+      if (Array.isArray(parentescosData)) {
+        // Si es directamente un array
+        parentescosArray = parentescosData;
+      } else if (parentescosData.data && Array.isArray(parentescosData.data)) {
+        // Si es un objeto con propiedad data que contiene el array
+        parentescosArray = parentescosData.data;
+      }
+    }
+    
+    if (!parentescosArray || parentescosArray.length === 0) {
       return [];
     }
-    return parentescosData.map((parentesco: any) => ({
+    
+    const options = parentescosArray.map((parentesco: any) => ({
       value: parentesco.id_parentesco?.toString() || '',
       label: parentesco.nombre || 'Sin nombre'
     }));
-  }, [parentescosData]);
+    
+    return options;
+  }, [parentescosData, parentescosLoading, parentescosError]);
 
   const estudiosOptions = useMemo((): AutocompleteOption[] => {
     // Verificamos la estructura de datos que devuelve la API: EstudiosResponse

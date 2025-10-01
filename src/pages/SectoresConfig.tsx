@@ -1,10 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -17,18 +15,17 @@ import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/co
 import { useSectores } from '@/hooks/useSectores';
 import { useMunicipios } from '@/hooks/useMunicipios';
 import { Sector, SectorFormData } from '@/types/sectores';
+import { Municipio } from '@/services/municipios';
+import { municipiosToOptions } from '@/lib/utils';
 import {
   Building2,
   Plus,
-  Search,
   Edit2,
   Trash2,
   Loader2,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  CheckCircle2,
-  XCircle,
   X,
 } from 'lucide-react';
 
@@ -46,6 +43,70 @@ const SectoresPage = () => {
   // Queries de React Query - Ahora con query unificado
   const { data: sectoresResponse, isLoading: sectoresLoading, refetch: refetchSectores } = sectoresHook.useSectoresQuery(page, limit, sortBy, sortOrder, searchTerm);
   const { data: municipios, isLoading: municipiosLoading } = municipiosHook.useAllMunicipiosQuery();
+
+  const municipioOptions = useMemo(() => {
+    const allMunicipios = (municipios ?? []) as Municipio[];
+    if (allMunicipios.length === 0) return [];
+
+    return municipiosToOptions(
+      allMunicipios.map((municipio) => ({
+        id_municipio: municipio.id_municipio ?? '',
+        nombre_municipio: municipio.nombre_municipio ?? 'Sin nombre',
+        departamento: municipio.departamento
+          ? { nombre: municipio.departamento.nombre }
+          : undefined,
+      })),
+      false
+    );
+  }, [municipios]);
+
+  const municipioNameMap = useMemo(() => {
+    const map = new Map<string | number, string>();
+    const allMunicipios = (municipios ?? []) as Municipio[];
+
+    allMunicipios.forEach((municipio) => {
+      if (!municipio) return;
+      const displayName = municipio.nombre_municipio ?? 'Sin municipio';
+      const rawId = municipio.id_municipio;
+
+      if (rawId !== undefined && rawId !== null) {
+        map.set(rawId, displayName);
+
+        const numericId = Number(rawId);
+        if (!Number.isNaN(numericId)) {
+          map.set(numericId, displayName);
+        }
+      }
+    });
+
+    return map;
+  }, [municipios]);
+
+  const resolveMunicipioName = useCallback(
+    (sectorItem: Sector): string => {
+      if (typeof sectorItem.municipioNombre === 'string' && sectorItem.municipioNombre.trim().length > 0) {
+        return sectorItem.municipioNombre;
+      }
+
+      const rawId = sectorItem.id_municipio;
+      if (rawId === null || rawId === undefined) {
+        return 'Sin municipio';
+      }
+
+      const numericId = typeof rawId === 'string' ? Number(rawId) : rawId;
+
+      if (typeof rawId === 'string' && municipioNameMap.has(rawId)) {
+        return municipioNameMap.get(rawId) ?? 'Sin municipio';
+      }
+
+      if (!Number.isNaN(numericId) && municipioNameMap.has(numericId)) {
+        return municipioNameMap.get(numericId) ?? 'Sin municipio';
+      }
+
+      return municipioNameMap.get(rawId) ?? 'Sin municipio';
+    },
+    [municipioNameMap]
+  );
 
   // Mutaciones de React Query
   const createMutation = sectoresHook.useCreateSectorMutation();
@@ -80,9 +141,6 @@ const SectoresPage = () => {
   const [formData, setFormData] = useState<SectorFormData>({
     nombre: '',
     id_municipio: 0,
-    descripcion: '',
-    codigo: '',
-    estado: 'activo',
   });
 
   // Manejo del formulario
@@ -93,18 +151,12 @@ const SectoresPage = () => {
     createMutation.mutate({
       nombre: formData.nombre.trim(),
       id_municipio: formData.id_municipio,
-      descripcion: formData.descripcion?.trim(),
-      codigo: formData.codigo?.trim(),
-      estado: formData.estado,
     }, {
       onSuccess: () => {
         setShowCreateDialog(false);
         setFormData({ 
           nombre: '', 
           id_municipio: 0,
-          descripcion: '', 
-          codigo: '',
-          estado: 'activo' 
         });
       }
     });
@@ -119,9 +171,6 @@ const SectoresPage = () => {
       data: {
         nombre: formData.nombre.trim(),
         id_municipio: formData.id_municipio,
-        descripcion: formData.descripcion?.trim(),
-        codigo: formData.codigo?.trim(),
-        estado: formData.estado,
       }
     }, {
       onSuccess: () => {
@@ -130,9 +179,6 @@ const SectoresPage = () => {
         setFormData({ 
           nombre: '', 
           id_municipio: 0,
-          descripcion: '', 
-          codigo: '',
-          estado: 'activo' 
         });
       }
     });
@@ -151,13 +197,7 @@ const SectoresPage = () => {
 
   // Funciones para abrir diálogos
   const handleOpenCreateDialog = () => {
-    setFormData({ 
-      nombre: '', 
-      id_municipio: 0,
-      descripcion: '', 
-      codigo: '',
-      estado: 'activo' 
-    });
+    setFormData({ nombre: '', id_municipio: 0 });
     openCreateDialog();
   };
 
@@ -165,16 +205,18 @@ const SectoresPage = () => {
     setSelectedSector(sector);
     setFormData({
       nombre: sector.nombre,
-      id_municipio: typeof sector.id_municipio === 'string' 
-        ? parseInt(sector.id_municipio) 
-        : (sector.municipio?.id_municipio 
-          ? (typeof sector.municipio.id_municipio === 'string' 
-            ? parseInt(sector.municipio.id_municipio) 
-            : sector.municipio.id_municipio)
-          : (sector.id_municipio || 0)),
-      descripcion: sector.descripcion || '',
-      codigo: sector.codigo || '',
-      estado: sector.estado || (sector.activo ? 'activo' : 'inactivo'),
+      id_municipio: (() => {
+        if (typeof sector.id_municipio === 'number') {
+          return sector.id_municipio;
+        }
+
+        if (typeof sector.id_municipio === 'string') {
+          const parsed = Number(sector.id_municipio);
+          return Number.isNaN(parsed) ? 0 : parsed;
+        }
+
+        return 0;
+      })(),
     });
     openEditDialog();
   };
@@ -205,7 +247,11 @@ const SectoresPage = () => {
   // Formatear fecha
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('es-ES');
+    const parsedDate = new Date(dateString);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return '-';
+    }
+    return parsedDate.toLocaleDateString('es-ES');
   };
 
   return (
@@ -240,7 +286,7 @@ const SectoresPage = () => {
         <CardContent className="pt-6">
           <div className="flex gap-4">
             <Input
-              placeholder="Buscar por nombre o código..."
+              placeholder="Buscar por nombre o municipio..."
               value={searchTerm}
               onChange={handleSearchTermChange}
               className="flex-1"
@@ -317,11 +363,9 @@ const SectoresPage = () => {
                   <TableRow>
                     <TableHead>ID</TableHead>
                     <TableHead>Nombre</TableHead>
-                    <TableHead>Código</TableHead>
                     <TableHead>Municipio</TableHead>
-                    <TableHead>Descripción</TableHead>
-                    <TableHead>Estado</TableHead>
                     <TableHead>Fecha Creación</TableHead>
+                    <TableHead>Fecha Actualización</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -336,36 +380,18 @@ const SectoresPage = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">
-                          {sector.codigo || 'N/A'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
                         <span className="text-sm text-muted-foreground">
-                          {sector.municipio?.nombre_municipio || sector.municipio?.nombre || 'N/A'}
+                          {resolveMunicipioName(sector)}
                         </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {sector.descripcion || 'N/A'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {(sector.estado === 'activo' || sector.activo) ? (
-                          <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Activo
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
-                            <XCircle className="w-3 h-3 mr-1" />
-                            Inactivo
-                          </Badge>
-                        )}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
                           {formatDate(sector.created_at)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {formatDate(sector.updated_at)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -448,66 +474,24 @@ const SectoresPage = () => {
           required
         />
         
-        <div className="space-y-2">
-          <label htmlFor="municipio" className="text-sm font-medium">
-            Municipio <span className="text-red-500">*</span>
-          </label>
-          <Select
-            value={formData.id_municipio.toString()}
-            onValueChange={(value) => setFormData({ ...formData, id_municipio: parseInt(value) })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecciona un municipio" />
-            </SelectTrigger>
-            <SelectContent>
-              {municipios && Array.isArray(municipios) && municipios.map((municipio) => (
-                <SelectItem 
-                  key={municipio.id_municipio} 
-                  value={municipio.id_municipio.toString()}
-                >
-                  {municipio.nombre_municipio}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {municipiosLoading && (
-            <p className="text-xs text-muted-foreground">Cargando municipios...</p>
-          )}
-        </div>
-
         <ConfigFormField
-          id="codigo"
-          label="Código"
-          placeholder="Ej: SEC001"
-          value={formData.codigo}
-          onChange={(value) => setFormData({ ...formData, codigo: value })}
+          id="municipio"
+          label="Municipio"
+          type="autocomplete"
+          placeholder="Selecciona un municipio"
+          searchPlaceholder="Buscar municipio..."
+          emptyText="No se encontraron municipios"
+          value={formData.id_municipio ? formData.id_municipio.toString() : ''}
+          onChange={(value) => setFormData({
+            ...formData,
+            id_municipio: value ? Number.parseInt(value, 10) || 0 : 0,
+          })}
+          options={municipioOptions}
+          loading={municipiosLoading}
+          disabled={municipiosLoading}
+          required
         />
 
-        <ConfigFormField
-          id="descripcion"
-          label="Descripción"
-          placeholder="Descripción del sector"
-          value={formData.descripcion}
-          onChange={(value) => setFormData({ ...formData, descripcion: value })}
-        />
-
-        <div className="space-y-2">
-          <label htmlFor="estado" className="text-sm font-medium">
-            Estado
-          </label>
-          <Select
-            value={formData.estado}
-            onValueChange={(value: 'activo' | 'inactivo') => setFormData({ ...formData, estado: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecciona el estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="activo">Activo</SelectItem>
-              <SelectItem value="inactivo">Inactivo</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
       </ConfigModal>
 
       {/* Modal de Editar Sector */}
@@ -531,66 +515,24 @@ const SectoresPage = () => {
           required
         />
         
-        <div className="space-y-2">
-          <label htmlFor="edit-municipio" className="text-sm font-medium">
-            Municipio <span className="text-red-500">*</span>
-          </label>
-          <Select
-            value={formData.id_municipio.toString()}
-            onValueChange={(value) => setFormData({ ...formData, id_municipio: parseInt(value) })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecciona un municipio" />
-            </SelectTrigger>
-            <SelectContent>
-              {municipios && Array.isArray(municipios) && municipios.map((municipio) => (
-                <SelectItem 
-                  key={municipio.id_municipio} 
-                  value={municipio.id_municipio.toString()}
-                >
-                  {municipio.nombre_municipio}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {municipiosLoading && (
-            <p className="text-xs text-muted-foreground">Cargando municipios...</p>
-          )}
-        </div>
-
         <ConfigFormField
-          id="edit-codigo"
-          label="Código"
-          placeholder="Ej: SEC001"
-          value={formData.codigo}
-          onChange={(value) => setFormData({ ...formData, codigo: value })}
+          id="edit-municipio"
+          label="Municipio"
+          type="autocomplete"
+          placeholder="Selecciona un municipio"
+          searchPlaceholder="Buscar municipio..."
+          emptyText="No se encontraron municipios"
+          value={formData.id_municipio ? formData.id_municipio.toString() : ''}
+          onChange={(value) => setFormData({
+            ...formData,
+            id_municipio: value ? Number.parseInt(value, 10) || 0 : 0,
+          })}
+          options={municipioOptions}
+          loading={municipiosLoading}
+          disabled={municipiosLoading}
+          required
         />
 
-        <ConfigFormField
-          id="edit-descripcion"
-          label="Descripción"
-          placeholder="Descripción del sector"
-          value={formData.descripcion}
-          onChange={(value) => setFormData({ ...formData, descripcion: value })}
-        />
-
-        <div className="space-y-2">
-          <label htmlFor="edit-estado" className="text-sm font-medium">
-            Estado
-          </label>
-          <Select
-            value={formData.estado}
-            onValueChange={(value: 'activo' | 'inactivo') => setFormData({ ...formData, estado: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecciona el estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="activo">Activo</SelectItem>
-              <SelectItem value="inactivo">Inactivo</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
       </ConfigModal>
 
       {/* Modal de Eliminar Sector */}

@@ -1,4 +1,5 @@
 export interface Parroquia {
+  [x: string]: string;
   id_parroquia: string;
   nombre: string;
   direccion?: string;

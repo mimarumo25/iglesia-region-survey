@@ -50,7 +50,7 @@ export const useMunicipios = () => {
     sortOrder: 'ASC' | 'DESC' = 'ASC',
     searchTerm?: string
   ) => {
-    return useQuery<any, Error>({
+    return useQuery<{ data: { data: Municipio[]; page: number; limit: number; total: number; totalPages: number } }, Error>({
       queryKey: ['municipios', { page, limit, sortBy, sortOrder, searchTerm }],
       queryFn: async () => {
         try {
@@ -65,7 +65,7 @@ export const useMunicipios = () => {
           
           // Aplicar ordenamiento
           const sortedMunicipios = [...filteredMunicipios].sort((a, b) => {
-            let aValue: any, bValue: any;
+            let aValue: string | number, bValue: string | number;
             
             switch (sortBy) {
               case 'nombre_municipio':
@@ -96,11 +96,11 @@ export const useMunicipios = () => {
           return {
             data: paginatedResult
           };
-        } catch (error: any) {
+        } catch (error: Error & { message?: string }) {
           console.error('Error al cargar municipios:', error);
           toast({
             title: "Error",
-            description: error.message || "No se pudieron cargar los municipios",
+            description: errorMsg || "No se pudieron cargar los municipios",
             variant: "destructive"
           });
           throw error;
@@ -117,11 +117,12 @@ export const useMunicipios = () => {
       queryFn: async () => {
         try {
           return await MunicipiosService.getMunicipioById(id);
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
           console.error('Error al cargar municipio por ID:', error);
           toast({
             title: "Error",
-            description: error.message || "No se pudo cargar el municipio",
+            description: errorMsg || "No se pudo cargar el municipio",
             variant: "destructive"
           });
           throw error;
@@ -138,11 +139,12 @@ export const useMunicipios = () => {
       queryFn: async () => {
         try {
           return await MunicipiosService.getAllMunicipios();
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
           console.error('Error al cargar todos los municipios:', error);
           toast({
             title: "Error",
-            description: error.message || "No se pudieron cargar todos los municipios",
+            description: errorMsg || "No se pudieron cargar todos los municipios",
             variant: "destructive"
           });
           throw error;
@@ -167,11 +169,12 @@ export const useMunicipios = () => {
           variant: "default"
         });
       },
-      onError: (error: any) => {
+      onError: (error: unknown) => {
+        const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
         console.error('Error al crear municipio:', error);
         toast({
           title: "Error al crear municipio",
-          description: error.message || "No se pudo crear el municipio",
+          description: errorMsg || "No se pudo crear el municipio",
           variant: "destructive"
         });
       },
@@ -191,11 +194,12 @@ export const useMunicipios = () => {
           variant: "default"
         });
       },
-      onError: (error: any) => {
+      onError: (error: unknown) => {
+        const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
         console.error('Error al actualizar municipio:', error);
         toast({
           title: "Error al actualizar municipio",
-          description: error.message || "No se pudo actualizar el municipio",
+          description: errorMsg || "No se pudo actualizar el municipio",
           variant: "destructive"
         });
       },
@@ -214,11 +218,12 @@ export const useMunicipios = () => {
           variant: "default"
         });
       },
-      onError: (error: any) => {
+      onError: (error: unknown) => {
+        const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
         console.error('Error al eliminar municipio:', error);
         toast({
           title: "Error al eliminar municipio",
-          description: error.message || "No se pudo eliminar el municipio",
+          description: errorMsg || "No se pudo eliminar el municipio",
           variant: "destructive"
         });
       },

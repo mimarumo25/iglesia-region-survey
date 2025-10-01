@@ -3,12 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ResponsiveTable, ResponsiveTableColumn } from '@/components/ui/responsive-table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
 import { useEstadosCivilesQuery, useEstadosCiviles, paginateClientSide, filterBySearch } from '@/hooks/useEstadosCiviles';
 import { EstadoCivil, EstadoCivilCreate } from '@/types/estados-civiles';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { toast } from '@/hooks/use-toast';
 import {
   Heart,
   Plus,
@@ -16,22 +19,43 @@ import {
   Trash2,
   Loader2,
   RefreshCw,
-  Eye,
-  EyeOff,
-  X
+  X,
+  AlertCircle,
+  Search
 } from 'lucide-react';
+
+// 🔍 Esquema de validación con Zod
+const estadoCivilSchema = z.object({
+  nombre: z
+    .string()
+    .min(1, "El nombre es requerido")
+    .min(2, "El nombre debe tener al menos 2 caracteres")
+    .max(100, "El nombre no puede exceder 100 caracteres")
+    .regex(/^[a-zA-ZÀ-ſ\s]+$/, "El nombre solo puede contener letras y espacios")
+    .transform(val => val.trim()),
+  descripcion: z
+    .string()
+    .min(1, "La descripción es requerida")
+    .min(5, "La descripción debe tener al menos 5 caracteres")
+    .max(500, "La descripción no puede exceder 500 caracteres")
+    .transform(val => val.trim()),
+});
+
+type EstadoCivilFormData = z.infer<typeof estadoCivilSchema>;
 
 const EstadosCivilesPage = () => {
   const estadosCivilesHook = useEstadosCiviles();
 
   // Estados para búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState('');
-  const [includeInactive, setIncludeInactive] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
   // ✅ USAR PATRÓN UNIFICADO - Single query 
-  const { data: response, isLoading, refetch } = useEstadosCivilesQuery(searchTerm, includeInactive);
+  const { data: response, isLoading, error, refetch } = useEstadosCivilesQuery(searchTerm, false);
+
+  // 🚨 Manejo de errores de red/servidor
+  const hasError = error && !isLoading;
 
   // Procesar datos del lado del cliente
   const processedData = useMemo(() => {
@@ -81,80 +105,133 @@ const EstadosCivilesPage = () => {
   } = useConfigModal();
 
   const [selectedEstadoCivil, setSelectedEstadoCivil] = useState<EstadoCivil | null>(null);
-  const [formData, setFormData] = useState<EstadoCivilCreate>({
-    nombre: '',
-    descripcion: '',
-    codigo: '',
-    orden: 1,
-    activo: true,
+  
+  // 🗝️ Formulario con React Hook Form + Zod
+  const form = useForm<EstadoCivilFormData>({
+    resolver: zodResolver(estadoCivilSchema),
+    defaultValues: {
+      nombre: '',
+      descripcion: '',
+    },
+    mode: 'onChange', // Validación en tiempo real
   });
 
-  // Manejo del formulario
-  const handleCreateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.nombre.trim()) return;
+  const { register, handleSubmit, reset, formState: { errors, isValid, isDirty } } = form;
 
-    createMutation.mutate({
-      nombre: formData.nombre.trim(),
-      descripcion: formData.descripcion?.trim() || '',
-      codigo: formData.codigo.trim(),
-      orden: formData.orden,
-      activo: formData.activo,
-    }, {
-      onSuccess: () => {
-        setShowCreateDialog(false);
-        setFormData({ nombre: '', descripcion: '', codigo: '', orden: 1, activo: true });
-      }
-    });
+  // 📋 Manejo del formulario de creación
+  const handleCreateSubmit = async (data: EstadoCivilFormData) => {
+    // ⚠️ Validación adicional antes de enviar
+    if (!isValid || !isDirty) {
+      toast({
+        title: "⚠️ Formulario Incompleto",
+        description: "Por favor completa todos los campos correctamente antes de continuar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await createMutation.mutateAsync({
+        nombre: data.nombre,
+        descripcion: data.descripcion,
+      });
+      
+      // ✅ Éxito - cerrar modal y resetear formulario
+      setShowCreateDialog(false);
+      reset();
+      
+      toast({
+        title: "✅ Estado Civil Creado",
+        description: `"${data.nombre}" se ha creado exitosamente`,
+      });
+    } catch (error: any) {
+      // ⚠️ Error ya manejado por el mutation, pero podemos agregar feedback adicional
+      toast({
+        title: "❌ Error al Crear",
+        description: error?.response?.data?.message || "No se pudo crear el estado civil",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedEstadoCivil || !formData.nombre.trim()) return;
-
-    updateMutation.mutate({
-      id: selectedEstadoCivil.id,
-      data: {
-        nombre: formData.nombre.trim(),
-        descripcion: formData.descripcion?.trim() || '',
-        codigo: formData.codigo.trim(),
-        orden: formData.orden,
-        activo: formData.activo,
-      }
-    }, {
-      onSuccess: () => {
-        setShowEditDialog(false);
-        setSelectedEstadoCivil(null);
-        setFormData({ nombre: '', descripcion: '', codigo: '', orden: 1, activo: true });
-      }
-    });
+  // ✏️ Manejo del formulario de edición
+  const handleEditSubmit = async (data: EstadoCivilFormData) => {
+    if (!selectedEstadoCivil) return;
+    
+    // ⚠️ Validación adicional antes de enviar
+    if (!isValid) {
+      toast({
+        title: "⚠️ Datos Inválidos",
+        description: "Por favor corrige los errores antes de guardar los cambios.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      await updateMutation.mutateAsync({
+        id: selectedEstadoCivil.id,
+        data: {
+          nombre: data.nombre,
+          descripcion: data.descripcion,
+        }
+      });
+      
+      // ✅ Éxito - cerrar modal y limpiar estado
+      setShowEditDialog(false);
+      setSelectedEstadoCivil(null);
+      reset();
+      
+      toast({
+        title: "✅ Estado Civil Actualizado",
+        description: `"${data.nombre}" se ha actualizado exitosamente`,
+      });
+    } catch (error: any) {
+      // ⚠️ Error ya manejado por el mutation
+      toast({
+        title: "❌ Error al Actualizar",
+        description: error?.response?.data?.message || "No se pudo actualizar el estado civil",
+        variant: "destructive",
+      });
+    }
   };
 
+  // 🗑️ Manejo de eliminación
   const handleDelete = async () => {
     if (!selectedEstadoCivil) return;
 
-    deleteMutation.mutate(selectedEstadoCivil.id, {
-      onSuccess: () => {
-        setShowDeleteDialog(false);
-        setSelectedEstadoCivil(null);
-      }
-    });
+    try {
+      await deleteMutation.mutateAsync(selectedEstadoCivil.id);
+      
+      // ✅ Éxito - cerrar modal y limpiar estado
+      setShowDeleteDialog(false);
+      setSelectedEstadoCivil(null);
+      
+      toast({
+        title: "✅ Estado Civil Eliminado",
+        description: `"${selectedEstadoCivil.nombre}" se ha eliminado exitosamente`,
+      });
+    } catch (error: any) {
+      // ⚠️ Error ya manejado por el mutation
+      toast({
+        title: "❌ Error al Eliminar",
+        description: error?.response?.data?.message || "No se pudo eliminar el estado civil",
+        variant: "destructive",
+      });
+    }
   };
 
-  // Funciones para abrir diálogos
+  // 📝 Funciones para abrir diálogos
   const handleOpenCreateDialog = () => {
-    setFormData({ nombre: '', descripcion: '', codigo: '', orden: 1, activo: true });
+    reset({ nombre: '', descripcion: '' });
     openCreateDialog();
   };
 
   const handleOpenEditDialog = (estadoCivil: EstadoCivil) => {
     setSelectedEstadoCivil(estadoCivil);
-    setFormData({
+    reset({
       nombre: estadoCivil.nombre,
       descripcion: estadoCivil.descripcion || '',
-      codigo: estadoCivil.codigo,
-      orden: estadoCivil.orden,
-      activo: estadoCivil.activo,
     });
     openEditDialog();
   };
@@ -174,12 +251,6 @@ const EstadosCivilesPage = () => {
   const handleClearSearch = () => {
     setSearchTerm('');
     setCurrentPage(1);
-  };
-
-  // Manejo del filtro de inactivos
-  const handleIncludeInactiveChange = (checked: boolean) => {
-    setIncludeInactive(checked);
-    setCurrentPage(1); // Resetear paginación al cambiar filtro
   };
 
   // Manejo de paginación
@@ -224,38 +295,51 @@ const EstadosCivilesPage = () => {
         </div>
       </div>
 
-      {/* ✅ BÚSQUEDA EN TIEMPO REAL - Sin botón manual */}
-      <Card className="mb-6  ">
+      {/* 🔍 BÚSQUEDA EN TIEMPO REAL - Con feedback visual mejorado */}
+      <Card className="mb-6">
         <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4 items-end">
-            {/* Búsqueda en tiempo real */}
+          <div className="space-y-4">
+            {/* Campo de búsqueda mejorado */}
             <div className="flex-1 relative">
-              <Input
-                placeholder="Buscar por nombre o descripción..."
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="border-input-border focus:ring-primary transition-smooth pr-10"
-              />
-              {searchTerm && (
-                <button
-                  type="button"
-                  onClick={handleClearSearch}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Buscar por nombre o descripción..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className={`pl-10 pr-10 transition-all duration-200 ${
+                    searchTerm 
+                      ? 'border-primary ring-2 ring-primary/20 bg-primary/5' 
+                      : 'border-input focus:ring-primary'
+                  }`}
+                />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 hover:bg-muted rounded transition-colors"
+                    title="Limpiar búsqueda"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
             </div>
-
-            {/* Incluir inactivos */}
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="include-inactive"
-                checked={includeInactive}
-                onCheckedChange={handleIncludeInactiveChange}
-              />
-              <Label htmlFor="include-inactive">Incluir Inactivos</Label>
-            </div>
+            
+            {/* Indicadores de búsqueda */}
+            {searchTerm && (
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Search className="w-4 h-4" />
+                  <span>Buscando: <strong className="text-foreground">"{searchTerm}"</strong></span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                    {processedData.pagination.totalCount} resultado{processedData.pagination.totalCount !== 1 ? 's' : ''}
+                  </Badge>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -297,19 +381,106 @@ const EstadosCivilesPage = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-              <span className="ml-2 text-muted-foreground">Cargando estados civiles...</span>
+          {/* 🚨 Estado de Error */}
+          {hasError ? (
+            <div className="text-center py-12">
+              <div className="relative mb-6">
+                <AlertCircle className="w-16 h-16 text-red-500/30 mx-auto" />
+                <X className="w-6 h-6 absolute top-0 right-6 text-red-500" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                Error al cargar los datos
+              </h3>
+              <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                {error?.message || 'No se pudieron cargar los estados civiles. Verifica tu conexión a internet.'}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <Button 
+                  variant="outline" 
+                  onClick={() => refetch()}
+                  disabled={isLoading}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  Reintentar
+                </Button>
+                <Button 
+                  onClick={handleOpenCreateDialog}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Crear Estado Civil
+                </Button>
+              </div>
+            </div>
+          ) : loading ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="relative">
+                <Heart className="w-16 h-16 text-muted-foreground/30 mb-4" />
+                <Loader2 className="w-8 h-8 absolute top-2 left-4 animate-spin text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Cargando Estados Civiles</h3>
+              <p className="text-muted-foreground text-center max-w-md">
+                Estamos obteniendo la información más reciente...
+              </p>
             </div>
           ) : processedData.items.length === 0 ? (
-            <div className="text-center py-8">
-              <Heart className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4 " />
-              <p className="text-muted-foreground">No se encontraron estados civiles</p>
-              {searchTerm && (
-                <p className="text-sm text-muted-foreground/70">
-                  Intenta con otros términos de búsqueda
-                </p>
+            <div className="text-center py-12">
+              {searchTerm ? (
+                // 🔍 Estado: Sin resultados de búsqueda
+                <>
+                  <div className="relative mb-6">
+                    <Search className="w-16 h-16 text-muted-foreground/30 mx-auto" />
+                    <X className="w-6 h-6 absolute top-0 right-6 text-destructive" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">
+                    No se encontraron resultados
+                  </h3>
+                  <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                    No hay estados civiles que coincidan con <strong>"{searchTerm}"</strong>.
+                    Intenta con otros términos de búsqueda.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleClearSearch}
+                      className="flex items-center gap-2"
+                    >
+                      <X className="w-4 h-4" />
+                      Limpiar búsqueda
+                    </Button>
+                    <Button 
+                      onClick={handleOpenCreateDialog}
+                      className="flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Crear Estado Civil
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                // 📋 Estado: Lista vacía (sin datos)
+                <>
+                  <div className="relative mb-6">
+                    <Heart className="w-20 h-20 text-muted-foreground/20 mx-auto mb-4" />
+                    <AlertCircle className="w-8 h-8 absolute top-6 right-6 text-amber-500" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">
+                    Aún no hay estados civiles registrados
+                  </h3>
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    Comienza creando el primer estado civil para tu sistema de encuestas.
+                    Ejemplos: Soltero(a), Casado(a), Divorciado(a), Viudo(a).
+                  </p>
+                  <Button 
+                    onClick={handleOpenCreateDialog}
+                    size="lg"
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Crear Primer Estado Civil
+                  </Button>
+                </>
               )}
             </div>
           ) : (
@@ -335,43 +506,11 @@ const EstadosCivilesPage = () => {
                     )
                   },
                   {
-                    key: 'codigo',
-                    label: 'Código',
-                    priority: 'medium',
-                    render: (value: any) => (
-                      <span>{value}</span>
-                    )
-                  },
-                  {
                     key: 'descripcion',
                     label: 'Descripción',
                     priority: 'low',
                     render: (value: any) => (
                       <span>{value || 'N/A'}</span>
-                    )
-                  },
-                  {
-                    key: 'orden',
-                    label: 'Orden',
-                    priority: 'medium',
-                    render: (value: any) => (
-                      <span className="font-medium text-foreground">
-                        {value}
-                      </span>
-                    )
-                  },
-                  {
-                    key: 'activo',
-                    label: 'Estado',
-                    priority: 'high',
-                    render: (value: any) => value ? (
-                      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
-                        <Eye className="w-3 h-3 mr-1" /> Activo
-                      </Badge>
-                    ) : (
-                      <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
-                        <EyeOff className="w-3 h-3 mr-1" /> Inactivo
-                      </Badge>
                     )
                   },
                   {
@@ -437,111 +576,160 @@ const EstadosCivilesPage = () => {
         </CardContent>
       </Card>
 
-      {/* Modal de Crear Estado Civil */}
+      {/* 🎆 Modal de Crear Estado Civil con Validaciones */}
       <ConfigModal
         open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
+        onOpenChange={(open) => {
+          setShowCreateDialog(open);
+          if (!open) reset(); // Limpiar formulario al cerrar
+        }}
         type="create"
-        title="Nuevo Estado Civil"
-        description="Crea un nuevo estado civil para las encuestas"
+        title="🎆 Nuevo Estado Civil"
+        description="Crea un nuevo estado civil con validaciones en tiempo real"
         icon={Heart}
         loading={createMutation.isPending}
-        onSubmit={handleCreateSubmit}
+        onSubmit={handleSubmit(handleCreateSubmit)}
         submitText="Crear Estado Civil"
       >
-        <ConfigFormField
-          id="nombre"
-          label="Nombre del Estado Civil"
-          placeholder="Ej: Soltero"
-          value={formData.nombre}
-          onChange={(value) => setFormData({ ...formData, nombre: value })}
-          required
-        />
-        <ConfigFormField
-          id="descripcion"
-          label="Descripción"
-          placeholder="Breve descripción del estado civil"
-          value={formData.descripcion}
-          onChange={(value) => setFormData({ ...formData, descripcion: value })}
-        />
-        <ConfigFormField
-          id="codigo"
-          label="Código"
-          placeholder="Ej: SL, CS, DP"
-          value={formData.codigo}
-          onChange={(value) => setFormData({ ...formData, codigo: value })}
-          required
-        />
-        <ConfigFormField
-          id="orden"
-          label="Orden"
-          placeholder="Ej: 1"
-          value={formData.orden.toString()}
-          onChange={(value) => setFormData({ ...formData, orden: parseInt(value) || 1 })}
-          type="text"
-          required
-        />
-        <div className="flex items-center space-x-2 mt-4">
-          <Switch
-            id="activo"
-            checked={formData.activo}
-            onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
+        {/* Campo Nombre con validación */}
+        <div className="space-y-2">
+          <Label htmlFor="nombre" className="flex items-center gap-2">
+            Nombre del Estado Civil 
+            <span className="text-red-500">*</span>
+            {errors.nombre && <AlertCircle className="w-4 h-4 text-red-500" />}
+          </Label>
+          <Input
+            id="nombre"
+            placeholder="Ej: Soltero(a), Casado(a), Divorciado(a)"
+            {...register('nombre')}
+            className={`transition-all duration-200 ${
+              errors.nombre 
+                ? 'border-red-500 bg-red-50 focus:ring-red-200' 
+                : isDirty ? 'border-green-500 bg-green-50 focus:ring-green-200' : ''
+            }`}
           />
-          <Label htmlFor="activo">Activo</Label>
+          {errors.nombre && (
+            <p className="text-sm text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              {errors.nombre.message}
+            </p>
+          )}
+        </div>
+
+        {/* Campo Descripción con validación */}
+        <div className="space-y-2">
+          <Label htmlFor="descripcion" className="flex items-center gap-2">
+            Descripción 
+            <span className="text-red-500">*</span>
+            {errors.descripcion && <AlertCircle className="w-4 h-4 text-red-500" />}
+          </Label>
+          <Input
+            id="descripcion"
+            placeholder="Breve descripción del estado civil"
+            {...register('descripcion')}
+            className={`transition-all duration-200 ${
+              errors.descripcion 
+                ? 'border-red-500 bg-red-50 focus:ring-red-200' 
+                : isDirty ? 'border-green-500 bg-green-50 focus:ring-green-200' : ''
+            }`}
+          />
+          {errors.descripcion && (
+            <p className="text-sm text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              {errors.descripcion.message}
+            </p>
+          )}
+        </div>
+
+        {/* Indicador de estado del formulario */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/30 p-2 rounded">
+          <span>Estado del formulario:</span>
+          <span className={`font-medium ${
+            isValid && isDirty ? 'text-green-600' : 'text-amber-600'
+          }`}>
+            {!isDirty ? '📋 Completa los campos' : 
+             !isValid ? '⚠️ Revisa los errores' : '✅ Listo para crear'}
+          </span>
         </div>
       </ConfigModal>
 
-      {/* Modal de Editar Estado Civil */}
+      {/* ✏️ Modal de Editar Estado Civil con Validaciones */}
       <ConfigModal
         open={showEditDialog}
-        onOpenChange={setShowEditDialog}
+        onOpenChange={(open) => {
+          setShowEditDialog(open);
+          if (!open) {
+            setSelectedEstadoCivil(null);
+            reset();
+          }
+        }}
         type="edit"
-        title="Editar Estado Civil"
-        description="Modifica los datos del estado civil"
+        title="✏️ Editar Estado Civil"
+        description={`Modifica los datos de "${selectedEstadoCivil?.nombre || ''}"`}
         icon={Edit2}
         loading={updateMutation.isPending}
-        onSubmit={handleEditSubmit}
+        onSubmit={handleSubmit(handleEditSubmit)}
         submitText="Guardar Cambios"
       >
-        <ConfigFormField
-          id="edit-nombre"
-          label="Nombre del Estado Civil"
-          placeholder="Ej: Soltero"
-          value={formData.nombre}
-          onChange={(value) => setFormData({ ...formData, nombre: value })}
-          required
-        />
-        <ConfigFormField
-          id="edit-descripcion"
-          label="Descripción"
-          placeholder="Breve descripción del estado civil"
-          value={formData.descripcion}
-          onChange={(value) => setFormData({ ...formData, descripcion: value })}
-        />
-        <ConfigFormField
-          id="edit-codigo"
-          label="Código"
-          placeholder="Ej: SL, CS, DP"
-          value={formData.codigo}
-          onChange={(value) => setFormData({ ...formData, codigo: value })}
-          required
-        />
-        <ConfigFormField
-          id="edit-orden"
-          label="Orden"
-          placeholder="Ej: 1"
-          value={formData.orden.toString()}
-          onChange={(value) => setFormData({ ...formData, orden: parseInt(value) || 1 })}
-          type="text"
-          required
-        />
-        <div className="flex items-center space-x-2 mt-4">
-          <Switch
-            id="edit-activo"
-            checked={formData.activo}
-            onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
+        {/* Campo Nombre con validación */}
+        <div className="space-y-2">
+          <Label htmlFor="edit-nombre" className="flex items-center gap-2">
+            Nombre del Estado Civil 
+            <span className="text-red-500">*</span>
+            {errors.nombre && <AlertCircle className="w-4 h-4 text-red-500" />}
+          </Label>
+          <Input
+            id="edit-nombre"
+            placeholder="Ej: Soltero(a), Casado(a), Divorciado(a)"
+            {...register('nombre')}
+            className={`transition-all duration-200 ${
+              errors.nombre 
+                ? 'border-red-500 bg-red-50 focus:ring-red-200' 
+                : isDirty ? 'border-green-500 bg-green-50 focus:ring-green-200' : ''
+            }`}
           />
-          <Label htmlFor="edit-activo">Activo</Label>
+          {errors.nombre && (
+            <p className="text-sm text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              {errors.nombre.message}
+            </p>
+          )}
+        </div>
+
+        {/* Campo Descripción con validación */}
+        <div className="space-y-2">
+          <Label htmlFor="edit-descripcion" className="flex items-center gap-2">
+            Descripción 
+            <span className="text-red-500">*</span>
+            {errors.descripcion && <AlertCircle className="w-4 h-4 text-red-500" />}
+          </Label>
+          <Input
+            id="edit-descripcion"
+            placeholder="Breve descripción del estado civil"
+            {...register('descripcion')}
+            className={`transition-all duration-200 ${
+              errors.descripcion 
+                ? 'border-red-500 bg-red-50 focus:ring-red-200' 
+                : isDirty ? 'border-green-500 bg-green-50 focus:ring-green-200' : ''
+            }`}
+          />
+          {errors.descripcion && (
+            <p className="text-sm text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              {errors.descripcion.message}
+            </p>
+          )}
+        </div>
+
+        {/* Indicador de estado del formulario */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/30 p-2 rounded">
+          <span>Estado del formulario:</span>
+          <span className={`font-medium ${
+            isValid && isDirty ? 'text-green-600' : 'text-amber-600'
+          }`}>
+            {!isDirty ? '📋 Sin cambios' : 
+             !isValid ? '⚠️ Revisa los errores' : '✅ Listo para guardar'}
+          </span>
         </div>
       </ConfigModal>
 

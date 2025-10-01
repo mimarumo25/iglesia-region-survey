@@ -98,6 +98,9 @@ export const API_ENDPOINTS = {
   
   // Encuestas
   SURVEYS: '/api/encuesta',
+  
+  // Difuntos
+  DIFUNTOS: '/api/difuntos',
 } as const;
 
 /**

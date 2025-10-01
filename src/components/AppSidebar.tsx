@@ -51,6 +51,7 @@ import { useAuthContext } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useRouteTransition, useRoutePreloader } from "@/hooks/useRouteTransition";
 import { lazyRoutes, getPreloadPriority } from "@/config/routes";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const navigationItems = [
   {
@@ -71,6 +72,12 @@ const navigationItems = [
     url: "/families",
     icon: Users,
     description: "Registro de familias"
+  },
+  {
+    title: "Reporte Familias",
+    url: "/familias-reporte",
+    icon: Heart,
+    description: "Familias consolidadas"
   },
 
   {
@@ -215,6 +222,7 @@ const AppSidebar = () => {
   const { canManageUsers } = usePermissions(); // Usar el hook de permisos
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobileDevice = useIsMobile(); // Agregar detección específica de móvil
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
   const [activeItem, setActiveItem] = useState(currentPath);
@@ -372,23 +380,29 @@ const AppSidebar = () => {
   };
 
   const getNavCls = (path?: string, isSubItem: boolean = false) => {
-    const baseClasses = `
-      flex items-center gap-3 px-4 py-3 w-full rounded-xl
-      relative overflow-hidden group min-h-[56px]
-      ${isSubItem ? 'ml-3 py-2 min-h-[48px] px-5' : ''}
-      ${shouldRenderContent && !isInitialMount ? 'transition-all duration-300 ease-out hover-lift click-effect' : ''}
-    `;
+    // Clases base adaptadas para móvil
+    const baseClasses = cn(
+      "flex items-center gap-3 px-4 py-3 w-full rounded-xl relative overflow-hidden group",
+      isSubItem ? "ml-3 py-2 px-5" : "",
+      isSubItem 
+        ? (isMobileDevice ? "min-h-[44px]" : "min-h-[48px]") 
+        : (isMobileDevice ? "min-h-[52px]" : "min-h-[56px]"),
+      shouldRenderContent && !isInitialMount && 'transition-all duration-300 ease-out',
+      isMobileDevice 
+        ? "active:bg-sidebar-accent/30 active:scale-[0.98] touch-manipulation" 
+        : "hover-lift click-effect"
+    );
     
     // Solo marcar como activo si la ruta coincide exactamente
     if (path && isActive(path)) {
-      return `${baseClasses} active-menu-item`;
+      return cn(baseClasses, "active-menu-item");
     }
     
-    return `${baseClasses} 
-      text-sidebar-foreground/80 hover:text-sidebar-foreground 
-      hover:bg-sidebar-accent/20 hover:shadow-md
-      hover:border-l-4 hover:border-secondary
-    `;
+    return cn(
+      baseClasses,
+      "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/20",
+      !isMobileDevice && "hover:shadow-md hover:border-l-4 hover:border-secondary"
+    );
   };
 
   // Función para manejar el logout
@@ -453,42 +467,55 @@ const AppSidebar = () => {
         </div>
       ) : (
         <>
-      {/* Header */}
-      <SidebarHeader className="p-6 border-b border-sidebar-border/50">
+      {/* Header optimizado para móvil */}
+      <SidebarHeader className={cn(
+        "border-b border-sidebar-border/50",
+        isMobileDevice ? "p-4" : "p-6"
+      )}>
         <div className="flex flex-col items-center justify-center space-y-3">
-          {/* Botón para ocultar sidebar - Disponible tanto en mobile como en desktop */}
-          <div className="absolute top-4 right-4">
+          {/* Botón para ocultar sidebar - Más grande en móvil */}
+          <div className="absolute top-3 right-3">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => {
                 toggleHidden();
-                // En móvil también cerrar el Sheet
+                // En móvil también cerrar el Sheet con animación suave
                 if (isMobile) {
                   setOpenMobile(false);
                 }
               }}
               className={cn(
-                "p-2 h-8 w-8 rounded-lg",
-                "text-white/70 hover:text-white hover:bg-white/10",
-                "transition-all duration-200"
+                "rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200",
+                isMobileDevice ? "p-3 h-10 w-10 active:bg-white/20 active:scale-95" : "p-2 h-8 w-8"
               )}
               title={isHidden ? "Mostrar sidebar" : "Ocultar sidebar"}
             >
               {isHidden ? (
-                <PanelLeftOpen className="h-4 w-4" />
+                <PanelLeftOpen className={cn(isMobileDevice ? "h-5 w-5" : "h-4 w-4")} />
               ) : (
-                <PanelLeftClose className="h-4 w-4" />
+                <PanelLeftClose className={cn(isMobileDevice ? "h-5 w-5" : "h-4 w-4")} />
               )}
             </Button>
           </div>
           
-          <div className="w-20 h-20 bg-white/95 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-md hover:shadow-lg transition-shadow duration-300 border border-white/20">
-            <Logo size="lg" showText={false} className="w-16 h-16" />
+          {/* Logo adaptivo para móvil */}
+          <div className={cn(
+            "bg-white/95 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-md hover:shadow-lg transition-shadow duration-300 border border-white/20",
+            isMobileDevice ? "w-16 h-16" : "w-20 h-20"
+          )}>
+            <Logo 
+              size={isMobileDevice ? "md" : "lg"} 
+              showText={false} 
+              className={cn(isMobileDevice ? "w-12 h-12" : "w-16 h-16")} 
+            />
           </div>
           {!isCollapsed && (
             <div className="text-center">
-              <h2 className="text-white font-bold text-lg leading-tight">
+              <h2 className={cn(
+                "text-white font-bold leading-tight",
+                isMobileDevice ? "text-base" : "text-lg"
+              )}>
                 Sistema MIA
               </h2>
             </div>
@@ -496,7 +523,10 @@ const AppSidebar = () => {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="flex flex-col h-full p-4 overflow-hidden">
+      <SidebarContent className={cn(
+        "flex flex-col h-full overflow-hidden",
+        isMobileDevice ? "p-3" : "p-4"
+      )}>
         {/* Navigation Section - Scrollable */}
         <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-sidebar-border/50 scrollbar-track-transparent">
           <SidebarGroup>
@@ -670,12 +700,15 @@ const AppSidebar = () => {
           </SidebarGroup>
         </div>
 
-        {/* User Profile Section - Fixed at bottom */}
+        {/* User Profile Section - Fixed at bottom, optimizada para móvil */}
         <div className="flex-shrink-0 pt-4 border-t border-sidebar-border/50 mt-4">
           <div 
             className={cn(
-              "flex items-center gap-3 p-4 rounded-2xl bg-white/90 hover:bg-white mb-4 shadow-sm border border-gray-200/50 cursor-pointer",
-              shouldRenderContent && !isInitialMount && 'hover-lift card-enhanced transition-all duration-200'
+              "flex items-center gap-3 rounded-2xl bg-white/90 hover:bg-white mb-4 shadow-sm border border-gray-200/50 cursor-pointer",
+              isMobileDevice 
+                ? "p-3 active:bg-white/95 active:scale-[0.98] transition-all duration-150" 
+                : "p-4 hover-lift card-enhanced transition-all duration-200",
+              shouldRenderContent && !isInitialMount && 'transition-all duration-200'
             )}
             onClick={() => navigate('/profile')}
             title="Ver perfil"

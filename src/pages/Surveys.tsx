@@ -106,7 +106,7 @@ const Surveys = () => {
     hasPrevPage: false
   };
 
-  // Calcular estadísticas desde los datos cargados
+  // Calcular estadísticas desde los 756w
   const stats = useMemo(() => {
     return encuestas.reduce((acc, encuesta) => {
       acc.total++;

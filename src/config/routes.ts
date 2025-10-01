@@ -5,6 +5,7 @@ export const lazyRoutes = {
   '/surveys': () => import('@/pages/Surveys'),
   '/surveys/:id': () => import('@/pages/SurveyDetails'),
   '/families': () => import('@/pages/Families'),
+  '/familias-reporte': () => import('@/pages/FamiliasReporte'),
 
   '/reports': () => import('@/pages/Reports'),
   '/users': () => import('@/pages/Users'),
@@ -70,6 +71,11 @@ export const routeMetadata: Record<string, {
   },
   '/families': {
     skeletonType: 'table',
+    priority: 'high',
+    preloadTrigger: 'hover'
+  },
+  '/familias-reporte': {
+    skeletonType: 'dashboard',
     priority: 'high',
     preloadTrigger: 'hover'
   },

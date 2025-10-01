@@ -4,9 +4,6 @@ export interface EstadoCivil {
   id: number;
   nombre: string;
   descripcion: string;
-  codigo: string;
-  orden: number;
-  activo: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -14,17 +11,11 @@ export interface EstadoCivil {
 export interface EstadoCivilCreate {
   nombre: string;
   descripcion: string;
-  codigo: string;
-  orden: number;
-  activo: boolean;
 }
 
 export interface EstadoCivilUpdate {
   nombre?: string;
   descripcion?: string;
-  codigo?: string;
-  orden?: number;
-  activo?: boolean;
 }
 
 export interface EstadoCivilPagination {

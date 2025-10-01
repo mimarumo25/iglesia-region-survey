@@ -101,7 +101,7 @@ export const profesionesService = {
 
   // Obtener profesiones activas
   getActiveProfesiones: async (): Promise<ServerResponse<Profesion[]>> => {
-    const response = await apiClient.get('/api/catalog/profesiones/active');
+    const response = await apiClient.get('/api/catalog/profesiones');
     return response.data;
   },
 

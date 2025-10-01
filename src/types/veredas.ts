@@ -17,24 +17,27 @@ export interface Municipio {
 
 // Tipos para Veredas
 export interface Vereda {
-  id_vereda: number;
+  id_vereda: number | string; // API puede devolver string o number
   nombre: string;
-  codigo_vereda: string;
-  id_municipio: number;
-  municipio?: Municipio; // Para incluir datos del municipio en consultas
+  codigo_vereda?: string | null;
+  id_municipio_municipios?: number | string; // Campo que viene de la API
+  id_municipio?: number; // Campo procesado para compatibilidad
+  municipio?: {
+    id_municipio: number | string;
+    nombre: string;
+    codigo: string;
+  }; // Para incluir datos del municipio en consultas
   created_at?: string;
   updated_at?: string;
 }
 
 export interface VeredaCreate {
   nombre: string;
-  codigo_vereda: string;
   id_municipio: number;
 }
 
 export interface VeredaUpdate {
   nombre: string;
-  codigo_vereda: string;
   id_municipio: number;
 }
 
@@ -57,15 +60,28 @@ export interface ServerResponse<T> {
 export interface VeredasResponse {
   data: Vereda[];
   total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  page?: number;
+  limit?: number;
+  totalPages?: number;
+  message?: string;
+}
+
+// Respuesta completa de la API (estructura real)
+export interface VeredasApiResponse {
+  success: boolean;
+  message: string;
+  data: {
+    status: string;
+    data: Vereda[];
+    total: number;
+    message: string;
+  };
+  timestamp: string;
 }
 
 // Formularios
 export interface VeredaFormData {
   nombre: string;
-  codigo_vereda: string;
   id_municipio: number;
 }
 

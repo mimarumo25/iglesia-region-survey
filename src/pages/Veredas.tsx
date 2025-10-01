@@ -1,14 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { ResponsiveTable } from '@/components/ui/responsive-table';
 import { Autocomplete, AutocompleteOption } from '@/components/ui/autocomplete';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
 import { useVeredas } from '@/hooks/useVeredas';
-import { useMunicipios } from '@/hooks/useMunicipios';
-import { Vereda, VeredaFormData, VeredaPagination } from '@/types/veredas';
+import { Vereda, VeredaFormData } from '@/types/veredas';
 import { Municipio } from '@/services/municipios';
 import { municipiosToOptions, formatDate } from '@/lib/utils';
 import {
@@ -20,7 +18,6 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  Filter,
   Building2,
 } from 'lucide-react';
 
@@ -69,43 +66,42 @@ const VeredasPage = () => {
   const [selectedVereda, setSelectedVereda] = useState<Vereda | null>(null);
   const [formData, setFormData] = useState<VeredaFormData>({
     nombre: '',
-    codigo_vereda: '',
     id_municipio: 0
   });
 
   // Manejo del formulario
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nombre.trim() || !formData.codigo_vereda.trim() || formData.id_municipio === 0) return;
+    if (!formData.nombre.trim() || formData.id_municipio === 0) return;
 
     createMutation.mutate({
       nombre: formData.nombre.trim(),
-      codigo_vereda: formData.codigo_vereda.trim(),
       id_municipio: formData.id_municipio
     }, {
       onSuccess: () => {
         setShowCreateDialog(false);
-        setFormData({ nombre: '', codigo_vereda: '', id_municipio: 0 });
+        setFormData({ nombre: '', id_municipio: 0 });
       }
     });
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedVereda || !formData.nombre.trim() || !formData.codigo_vereda.trim() || formData.id_municipio === 0) return;
+    if (!selectedVereda || !formData.nombre.trim() || formData.id_municipio === 0) return;
 
     updateMutation.mutate({
-      id: selectedVereda.id_vereda,
+      id: typeof selectedVereda.id_vereda === 'string' 
+        ? parseInt(selectedVereda.id_vereda) 
+        : selectedVereda.id_vereda,
       data: {
         nombre: formData.nombre.trim(),
-        codigo_vereda: formData.codigo_vereda.trim(),
         id_municipio: formData.id_municipio
       }
     }, {
       onSuccess: () => {
         setShowEditDialog(false);
         setSelectedVereda(null);
-        setFormData({ nombre: '', codigo_vereda: '', id_municipio: 0 });
+        setFormData({ nombre: '', id_municipio: 0 });
       }
     });
   };
@@ -113,7 +109,11 @@ const VeredasPage = () => {
   const handleDelete = async () => {
     if (!selectedVereda) return;
 
-    deleteMutation.mutate(selectedVereda.id_vereda, {
+    deleteMutation.mutate(
+      typeof selectedVereda.id_vereda === 'string' 
+        ? parseInt(selectedVereda.id_vereda) 
+        : selectedVereda.id_vereda, 
+      {
       onSuccess: () => {
         setShowDeleteDialog(false);
         setSelectedVereda(null);
@@ -123,7 +123,7 @@ const VeredasPage = () => {
 
   // Funciones para abrir diálogos
   const handleOpenCreateDialog = () => {
-    setFormData({ nombre: '', codigo_vereda: '', id_municipio: 0 });
+    setFormData({ nombre: '', id_municipio: 0 });
     openCreateDialog();
   };
 
@@ -131,7 +131,6 @@ const VeredasPage = () => {
     setSelectedVereda(vereda);
     setFormData({
       nombre: vereda.nombre,
-      codigo_vereda: vereda.codigo_vereda,
       id_municipio: vereda.id_municipio
     });
     openEditDialog();
@@ -167,33 +166,31 @@ const VeredasPage = () => {
 
   // Convertir municipios a opciones de autocompletado
   const getMunicipiosOptions = (): AutocompleteOption[] => {
-    return municipiosToOptions((municipios as any) || [], false);
+    return municipiosToOptions(municipios || [], false);
   };
 
   return (
     <div className="container mx-auto p-6 max-w-7xl ">
       {/* Header con diseño mejorado */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 ">
-        <div className="">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div>
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <MapPin className="w-8 h-8 text-muted-foreground " />
+            <MapPin className="w-8 h-8 text-muted-foreground" />
             Gestión de Veredas
           </h1>
           <p className="text-muted-foreground mt-2">Administra las veredas por municipio</p>
         </div>
-        <div className="flex gap-2 ">
+        <div className="flex gap-2">
           <Button
             variant="outline"
             onClick={() => refetchVeredas()}
             disabled={loading}
-            className=""
           >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? '' : ''}`} />
+            <RefreshCw className="w-4 h-4 mr-2" />
             Actualizar
           </Button>
           <Button
             onClick={handleOpenCreateDialog}
-            className=""
           >
             <Plus className="w-4 h-4 mr-2" />
             Nueva Vereda
@@ -202,14 +199,14 @@ const VeredasPage = () => {
       </div>
 
       {/* Búsqueda y filtros con diseño mejorado */}
-      <Card className="mb-6  ">
+      <Card className="mb-6">
         <CardContent className="pt-6">
           <div className="space-y-4">
             <div className="flex flex-col md:flex-row gap-4">
               {/* Búsqueda por texto con búsqueda en tiempo real */}
               <div className="flex-1 relative">
                 <Input
-                  placeholder="Buscar veredas por nombre o código..."
+                  placeholder="Buscar veredas por nombre..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="border-input-border focus:ring-primary pr-10"
@@ -251,7 +248,7 @@ const VeredasPage = () => {
 
       {/* Estadísticas con diseño mejorado */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <Card className="  ">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -260,27 +257,27 @@ const VeredasPage = () => {
                 </p>
                 <p className="text-2xl font-bold text-foreground">{pagination.total}</p>
               </div>
-              <MapPin className="w-8 h-8 text-muted-foreground opacity-70 " />
+              <MapPin className="w-8 h-8 text-muted-foreground opacity-70" />
             </div>
           </CardContent>
         </Card>
         
-        <Card className="  ">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Municipios</p>
                 <p className="text-2xl font-bold text-foreground">{municipios.length}</p>
               </div>
-              <Building2 className="w-8 h-8 text-secondary opacity-70 " />
+              <Building2 className="w-8 h-8 text-secondary opacity-70" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Tabla de veredas con diseño mejorado */}
-      <Card className=" ">
-        <CardHeader className="">
+      <Card>
+        <CardHeader>
           <CardTitle className="flex items-center gap-2 text-muted-foreground">
             <MapPin className="w-5 h-5" />
             Listado de Veredas
@@ -294,7 +291,7 @@ const VeredasPage = () => {
             </div>
           ) : veredas.length === 0 ? (
             <div className="text-center py-8">
-              <MapPin className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4 " />
+              <MapPin className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
               <p className="text-muted-foreground">No se encontraron veredas</p>
               {(searchTerm || selectedMunicipioFilter) && (
                 <p className="text-sm text-muted-foreground/70">
@@ -333,7 +330,12 @@ const VeredasPage = () => {
                     key: 'codigo_vereda',
                     label: 'Código',
                     priority: 'medium',
-                    render: (value) => value || '-',
+                    hideOnMobile: true,
+                    render: (value) => (
+                      <span >
+                        {value || 'Sin código'}
+                      </span>
+                    ),
                   },
                   {
                     key: 'municipio',
@@ -352,9 +354,9 @@ const VeredasPage = () => {
                     priority: 'low',
                     hideOnMobile: true,
                     render: (value) => (
-                      <Badge variant="outline">
+                      <span className="inline-flex items-center px-2 py-1 rounded-md bg-background border border-border text-foreground text-xs">
                         {formatDate(value)}
-                      </Badge>
+                      </span>
                     ),
                   },
                 ]}
@@ -398,7 +400,6 @@ const VeredasPage = () => {
                       size="sm"
                       onClick={() => handlePageChange(pagination.page - 1)}
                       disabled={pagination.page === 1}
-                      className=""
                     >
                       <ChevronLeft className="w-4 h-4" />
                       Anterior
@@ -411,7 +412,6 @@ const VeredasPage = () => {
                       size="sm"
                       onClick={() => handlePageChange(pagination.page + 1)}
                       disabled={pagination.page === pagination.totalPages}
-                      className=""
                     >
                       Siguiente
                       <ChevronRight className="w-4 h-4" />
@@ -442,15 +442,6 @@ const VeredasPage = () => {
           placeholder="Ej: El Poblado"
           value={formData.nombre}
           onChange={(value) => setFormData({ ...formData, nombre: value })}
-          required
-        />
-        
-        <ConfigFormField
-          id="codigo_vereda"
-          label="Código de Vereda"
-          placeholder="Ej: EP001"
-          value={formData.codigo_vereda}
-          onChange={(value) => setFormData({ ...formData, codigo_vereda: value })}
           required
         />
         
@@ -487,15 +478,6 @@ const VeredasPage = () => {
           placeholder="Ej: El Poblado"
           value={formData.nombre}
           onChange={(value) => setFormData({ ...formData, nombre: value })}
-          required
-        />
-        
-        <ConfigFormField
-          id="edit-codigo_vereda"
-          label="Código de Vereda"
-          placeholder="Ej: EP001"
-          value={formData.codigo_vereda}
-          onChange={(value) => setFormData({ ...formData, codigo_vereda: value })}
           required
         />
         

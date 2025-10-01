@@ -25,7 +25,7 @@ export class EstadosCivilesService {
     includeInactive: boolean = false,
     limit: number = 10,
     page: number = 1,
-    orderBy: string = 'orden',
+    orderBy: string = 'id',
     orderDirection: 'ASC' | 'DESC' = 'ASC'
   ): Promise<EstadoCivilResponse> {
     const params = new URLSearchParams({
@@ -50,7 +50,7 @@ export class EstadosCivilesService {
     includeInactive: boolean = false,
     limit: number = 10,
     page: number = 1,
-    orderBy: string = 'orden',
+    orderBy: string = 'id',
     orderDirection: 'ASC' | 'DESC' = 'ASC'
   ): Promise<EstadoCivilResponse> {
     const params = new URLSearchParams({

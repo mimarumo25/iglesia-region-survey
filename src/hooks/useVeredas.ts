@@ -38,7 +38,6 @@ export const filterBySearch = (
   return veredas.filter(
     (vereda) =>
       vereda.nombre?.toLowerCase().includes(term) ||
-      vereda.codigo_vereda?.toLowerCase().includes(term) ||
       (vereda.municipio?.nombre?.toLowerCase().includes(term)) ||
       vereda.id_vereda?.toString().includes(term)
   );
@@ -110,7 +109,7 @@ export const useVeredas = () => {
           description: "Vereda creada correctamente",
         });
       },
-      onError: (error: any) => {
+      onError: (error: Error & { response?: { data?: { message?: string } } }) => {
         console.error('Error al crear vereda:', error);
         toast({
           title: "Error",
@@ -131,7 +130,7 @@ export const useVeredas = () => {
           description: "Vereda actualizada correctamente",
         });
       },
-      onError: (error: any) => {
+      onError: (error: Error & { response?: { data?: { message?: string } } }) => {
         console.error('Error al actualizar vereda:', error);
         toast({
           title: "Error",
@@ -152,7 +151,7 @@ export const useVeredas = () => {
           description: "Vereda eliminada correctamente",
         });
       },
-      onError: (error: any) => {
+      onError: (error: Error & { response?: { data?: { message?: string } } }) => {
         console.error('Error al eliminar vereda:', error);
         toast({
           title: "Error",

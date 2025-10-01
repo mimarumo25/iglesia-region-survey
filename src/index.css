@@ -13,6 +13,9 @@
 /* Import survey modal flickering fixes */
 @import './styles/survey-modal-fixes.css';
 
+/* Import mobile optimizations for header and sidebar */
+@import './styles/mobile-optimizations.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

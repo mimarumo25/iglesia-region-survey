@@ -6,6 +6,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useSectores } from '@/hooks/useSectores';
 import { useUsers } from '@/hooks/useUsers';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 // Base de datos completa de funcionalidades del sitio
 const siteFunctionalities = [
@@ -58,12 +60,14 @@ interface WorkingSearchProps {
  * - Busca en funcionalidades del sitio (Dashboard, Configuraciones, etc.)
  * - Busca en datos dinámicos (Sectores, Usuarios)
  * - Incluye navegación inteligente con relevancia
+ * - Optimizado para móvil con interfaz adaptiva
  */
 export const WorkingSearch: React.FC<WorkingSearchProps> = ({
   className = '',
   placeholder = 'Buscar funcionalidades, usuarios, sectores...'
 }) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
@@ -226,26 +230,40 @@ export const WorkingSearch: React.FC<WorkingSearchProps> = ({
   };
 
   return (
-    <div className={`working-search-container relative w-full ${className}`}>
-      {/* Input de búsqueda con icono visible y centrado */}
+    <div className={cn("working-search-container relative w-full", className)}>
+      {/* Input de búsqueda con diseño adaptivo */}
       <div className="relative w-full">
-        {/* Icono de búsqueda - visible y bien posicionado */}
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none z-10" />
+        {/* Icono de búsqueda - adaptado para móvil */}
+        <Search className={cn(
+          "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none z-10",
+          isMobile ? "w-4 h-4" : "w-5 h-5"
+        )} />
         
         <Input
           type="text"
-          placeholder={placeholder}
+          placeholder={isMobile ? "Buscar..." : placeholder}
           value={query}
           onChange={handleInputChange}
-          className="w-full pl-12 pr-12 py-3 text-sm text-left rounded-xl border-border/50 bg-gray-100 dark:bg-gray-800 backdrop-blur-sm hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 shadow-sm"
+          className={cn(
+            "w-full pr-12 text-sm text-left rounded-xl border-border/50 bg-gray-100 dark:bg-gray-800 backdrop-blur-sm hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 shadow-sm",
+            isMobile 
+              ? "pl-10 py-2.5 text-base min-h-[44px]" // Más altura en móvil para mejor touch target
+              : "pl-12 py-3"
+          )}
         />
         
-        {/* Botón para limpiar y indicador de carga */}
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center z-10">
+        {/* Botón para limpiar y indicador de carga - optimizado para móvil */}
+        <div className={cn(
+          "absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center z-10",
+          isMobile && "right-2"
+        )}>
           {query && (
             <button
               onClick={handleClear}
-              className="p-1 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110"
+              className={cn(
+                "hover:bg-muted rounded-full transition-all duration-200 hover:scale-110",
+                isMobile ? "p-2" : "p-1"
+              )}
               aria-label="Limpiar búsqueda"
             >
               <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
@@ -257,45 +275,79 @@ export const WorkingSearch: React.FC<WorkingSearchProps> = ({
         </div>
       </div>
 
-      {/* Resultados */}
+      {/* Resultados con diseño adaptivo */}
       {isOpen && (
-        <Card className="absolute top-full left-0 right-0 mt-1 z-50 shadow-lg border">
+        <Card className={cn(
+          "absolute left-0 right-0 mt-1 z-50 shadow-lg border",
+          isMobile ? "top-full max-h-[70vh]" : "top-full"
+        )}>
           <CardContent className="p-0">
-            {/* Header */}
-            <div className="flex items-center justify-between p-3 border-b bg-muted/30">
-              <span className="font-medium text-sm">Resultados para "{query}"</span>
-              <Badge variant="outline" className="text-xs">
+            {/* Header compacto para móvil */}
+            <div className={cn(
+              "flex items-center justify-between border-b bg-muted/30",
+              isMobile ? "p-2" : "p-3"
+            )}>
+              <span className={cn(
+                "font-medium",
+                isMobile ? "text-xs" : "text-sm"
+              )}>
+                {isMobile ? `"${query}"` : `Resultados para "${query}"`}
+              </span>
+              <Badge variant="outline" className={cn(
+                isMobile ? "text-xs px-1" : "text-xs"
+              )}>
                 {searchResults.length}
               </Badge>
             </div>
 
-            {/* Resultados */}
+            {/* Resultados optimizados para touch */}
             {searchResults.length > 0 ? (
-              <div className="max-h-96 overflow-y-auto">
+              <div className={cn(
+                "overflow-y-auto",
+                isMobile ? "max-h-60" : "max-h-96"
+              )}>
                 {searchResults.map((result) => {
                   const IconComponent = result.icon;
                   return (
                     <div
                       key={result.id}
                       onClick={() => handleResultClick(result)}
-                      className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0 transition-colors"
+                      className={cn(
+                        "flex items-center gap-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0 transition-colors",
+                        isMobile ? "p-3 active:bg-muted/70" : "p-3"
+                      )}
                     >
-                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <IconComponent className="w-5 h-5 text-primary" />
+                      <div className={cn(
+                        "bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0",
+                        isMobile ? "w-8 h-8" : "w-10 h-10"
+                      )}>
+                        <IconComponent className={cn(
+                          "text-primary",
+                          isMobile ? "w-4 h-4" : "w-5 h-5"
+                        )} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium text-foreground truncate">
+                          <h4 className={cn(
+                            "font-medium text-foreground truncate",
+                            isMobile ? "text-sm" : ""
+                          )}>
                             {result.title}
                           </h4>
-                          <Badge variant="secondary" className={`text-xs ${getTypeColor(result.type)}`}>
+                          <Badge variant="secondary" className={cn(
+                            `${getTypeColor(result.type)}`,
+                            isMobile ? "text-xs px-1" : "text-xs"
+                          )}>
                             {getTypeLabel(result.type)}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground truncate">
+                        <p className={cn(
+                          "text-muted-foreground truncate",
+                          isMobile ? "text-xs" : "text-sm"
+                        )}>
                           {result.subtitle}
                         </p>
-                        {result.description && (
+                        {result.description && !isMobile && (
                           <p className="text-xs text-muted-foreground truncate">
                             {result.description}
                           </p>
@@ -306,10 +358,23 @@ export const WorkingSearch: React.FC<WorkingSearchProps> = ({
                 })}
               </div>
             ) : query.length >= 2 ? (
-              <div className="p-4 text-center">
-                <Search className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">No se encontraron resultados</p>
-                <p className="text-xs text-muted-foreground/70">Intenta con otros términos</p>
+              <div className={cn(
+                "text-center",
+                isMobile ? "p-3" : "p-4"
+              )}>
+                <Search className={cn(
+                  "text-muted-foreground/50 mx-auto mb-2",
+                  isMobile ? "w-6 h-6" : "w-8 h-8"
+                )} />
+                <p className={cn(
+                  "text-muted-foreground",
+                  isMobile ? "text-xs" : "text-sm"
+                )}>
+                  No se encontraron resultados
+                </p>
+                {!isMobile && (
+                  <p className="text-xs text-muted-foreground/70">Intenta con otros términos</p>
+                )}
               </div>
             ) : null}
           </CardContent>

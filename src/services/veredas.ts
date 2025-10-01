@@ -65,105 +65,6 @@ class VeredasService {
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ): Promise<VeredasResponse> {
     try {
-      // Mock temporal para testing - data del JSON proporcionado
-      const mockData = {
-        "success": true,
-        "message": "Veredas retrieved successfully",
-        "data": {
-          "status": "success",
-          "data": [
-            {
-              "id_vereda": "1",
-              "nombre": "Vereda Central Abejorral",
-              "codigo_vereda": "V001",
-              "id_municipio_municipios": "1",
-              "created_at": "2025-09-05T06:36:25.352Z",
-              "updated_at": "2025-09-05T06:36:25.352Z",
-              "municipio": {
-                "id_municipio": "1",
-                "nombre": "Abejorral",
-                "codigo": "00013"
-              }
-            },
-            {
-              "id_vereda": "2",
-              "nombre": "Vereda Central Abrego",
-              "codigo_vereda": "V002",
-              "id_municipio_municipios": "2",
-              "created_at": "2025-09-05T06:36:25.352Z",
-              "updated_at": "2025-09-05T06:36:25.352Z",
-              "municipio": {
-                "id_municipio": "2",
-                "nombre": "Abrego",
-                "codigo": "00859"
-              }
-            },
-            {
-              "id_vereda": "11",
-              "nombre": "El Paso",
-              "codigo_vereda": "001",
-              "id_municipio_municipios": "1",
-              "created_at": "2025-09-09T04:20:42.050Z",
-              "updated_at": "2025-09-09T04:20:42.050Z",
-              "municipio": {
-                "id_municipio": "1",
-                "nombre": "Abejorral",
-                "codigo": "00013"
-              }
-            },
-            {
-              "id_vereda": "12",
-              "nombre": "Miguel Mariano",
-              "codigo_vereda": "dfdfdf",
-              "id_municipio_municipios": "1120",
-              "created_at": "2025-09-09T04:23:23.959Z",
-              "updated_at": "2025-09-09T04:23:23.959Z",
-              "municipio": {
-                "id_municipio": "1120",
-                "nombre": "Zetaquira",
-                "codigo": "00324"
-              }
-            }
-          ],
-          "total": 12,
-          "message": "Se encontraron 12 veredas"
-        },
-        "timestamp": "2025-09-10T03:52:05.567Z"
-      };
-
-      // Para testing, retornar mock data directamente
-      if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
-        console.log('🧪 MOCK: Usando datos de prueba para veredas');
-        
-        const veredas = mockData.data.data || [];
-        const totalCount = mockData.data.total || 0;
-        const totalPages = Math.ceil(totalCount / limit);
-        
-        // Procesar los datos para asegurar que el id_municipio sea numérico
-        const processedVeredas = veredas.map((vereda: any) => ({
-          ...vereda,
-          id_vereda: parseInt(vereda.id_vereda),
-          id_municipio: typeof vereda.id_municipio_municipios === 'string' 
-            ? parseInt(vereda.id_municipio_municipios) 
-            : vereda.id_municipio_municipios || vereda.id_municipio,
-          municipio: vereda.municipio ? {
-            ...vereda.municipio,
-            id_municipio: typeof vereda.municipio.id_municipio === 'string'
-              ? parseInt(vereda.municipio.id_municipio)
-              : vereda.municipio.id_municipio
-          } : undefined
-        }));
-        
-        return {
-          data: processedVeredas,
-          total: totalCount,
-          page: page,
-          limit: limit,
-          totalPages: totalPages,
-        };
-      }
-
-      // Lógica normal de la API
       const client = getApiClient();
       const response = await client.get(
         `/api/catalog/veredas`,
@@ -178,10 +79,11 @@ class VeredasService {
       );
       
       // La API devuelve: { success: true, data: { data: [...], total: X } }
-      // Verificar si hay error en el backend (problema de asociación de tablas)
-      if (response.data.data.status === 'error' && response.data.data.message?.includes('not associated')) {
-        console.warn('⚠️ Error de backend detectado:', response.data.data.message);
-        // Retornar respuesta vacía válida cuando hay error de asociación
+      console.log('📡 API Response para veredas:', response.data);
+      
+      // Verificar si hay error en el backend
+      if (!response.data.success || response.data.data.status === 'error') {
+        console.warn('⚠️ Error en respuesta de API:', response.data);
         return {
           data: [],
           total: 0,
@@ -195,12 +97,17 @@ class VeredasService {
       const totalCount = response.data.data.total || 0;
       const totalPages = Math.ceil(totalCount / limit);
       
-      // Procesar los datos para asegurar que el id_municipio sea numérico
+      // Procesar los datos para asegurar compatibilidad
       const processedVeredas = veredas.map((vereda: any) => ({
         ...vereda,
+        id_vereda: typeof vereda.id_vereda === 'string' 
+          ? parseInt(vereda.id_vereda) 
+          : vereda.id_vereda,
+        // Mapear id_municipio_municipios a id_municipio para compatibilidad
         id_municipio: typeof vereda.id_municipio_municipios === 'string' 
           ? parseInt(vereda.id_municipio_municipios) 
           : vereda.id_municipio_municipios || vereda.id_municipio,
+        // Asegurar que el objeto municipio tenga la estructura correcta
         municipio: vereda.municipio ? {
           ...vereda.municipio,
           id_municipio: typeof vereda.municipio.id_municipio === 'string'
@@ -209,15 +116,18 @@ class VeredasService {
         } : undefined
       }));
       
+      console.log('✅ Veredas procesadas:', processedVeredas.length);
+      
       return {
         data: processedVeredas,
         total: totalCount,
         page: page,
         limit: limit,
         totalPages: totalPages,
+        message: response.data.data.message,
       };
     } catch (error) {
-      console.error('Error al obtener veredas:', error);
+      console.error('❌ Error al obtener veredas:', error);
       throw error;
     }
   }
@@ -298,11 +208,11 @@ class VeredasService {
         }
       );
       
-      // La API devuelve: { success: true, data: { data: [...], total: X } }
-      // Verificar si hay error en el backend (problema de asociación de tablas)
-      if (response.data.data.status === 'error' && response.data.data.message?.includes('not associated')) {
-        console.warn('⚠️ Error de backend detectado en búsqueda:', response.data.data.message);
-        // Retornar respuesta vacía válida cuando hay error de asociación
+      console.log('📡 API Search Response para veredas:', response.data);
+      
+      // Verificar si hay error en el backend
+      if (!response.data.success || response.data.data.status === 'error') {
+        console.warn('⚠️ Error en búsqueda de veredas:', response.data);
         return {
           data: [],
           total: 0,
@@ -316,9 +226,13 @@ class VeredasService {
       const totalCount = response.data.data.total || 0;
       const totalPages = Math.ceil(totalCount / limit);
       
-      // Procesar los datos para asegurar que el id_municipio sea numérico
+      // Procesar los datos para asegurar compatibilidad
       const processedVeredas = veredas.map((vereda: any) => ({
         ...vereda,
+        id_vereda: typeof vereda.id_vereda === 'string' 
+          ? parseInt(vereda.id_vereda) 
+          : vereda.id_vereda,
+        // Mapear id_municipio_municipios a id_municipio para compatibilidad
         id_municipio: typeof vereda.id_municipio_municipios === 'string' 
           ? parseInt(vereda.id_municipio_municipios) 
           : vereda.id_municipio_municipios || vereda.id_municipio,
@@ -336,9 +250,10 @@ class VeredasService {
         page: page,
         limit: limit,
         totalPages: totalPages,
+        message: response.data.data.message,
       };
     } catch (error) {
-      console.error('Error al buscar veredas:', error);
+      console.error('❌ Error al buscar veredas:', error);
       throw error;
     }
   }
@@ -361,11 +276,11 @@ class VeredasService {
         }
       );
       
-      // La API devuelve: { success: true, data: { data: [...], total: X } }
-      // Verificar si hay error en el backend (problema de asociación de tablas)
-      if (response.data.data.status === 'error' && response.data.data.message?.includes('not associated')) {
-        console.warn('⚠️ Error de backend detectado por municipio:', response.data.data.message);
-        // Retornar respuesta vacía válida cuando hay error de asociación
+      console.log('📡 API Response veredas por municipio:', response.data);
+      
+      // Verificar si hay error en el backend
+      if (!response.data.success || response.data.data.status === 'error') {
+        console.warn('⚠️ Error en veredas por municipio:', response.data);
         return {
           data: [],
           total: 0,
@@ -379,9 +294,13 @@ class VeredasService {
       const totalCount = response.data.data.total || 0;
       const totalPages = Math.ceil(totalCount / limit);
       
-      // Procesar los datos para asegurar que el id_municipio sea numérico
+      // Procesar los datos para asegurar compatibilidad
       const processedVeredas = veredas.map((vereda: any) => ({
         ...vereda,
+        id_vereda: typeof vereda.id_vereda === 'string' 
+          ? parseInt(vereda.id_vereda) 
+          : vereda.id_vereda,
+        // Mapear id_municipio_municipios a id_municipio para compatibilidad
         id_municipio: typeof vereda.id_municipio_municipios === 'string' 
           ? parseInt(vereda.id_municipio_municipios) 
           : vereda.id_municipio_municipios || vereda.id_municipio,
@@ -399,9 +318,10 @@ class VeredasService {
         page: page,
         limit: limit,
         totalPages: totalPages,
+        message: response.data.data.message,
       };
     } catch (error) {
-      console.error('Error al obtener veredas por municipio:', error);
+      console.error('❌ Error al obtener veredas por municipio:', error);
       throw error;
     }
   }

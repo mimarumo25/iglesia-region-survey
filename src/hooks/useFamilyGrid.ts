@@ -55,14 +55,6 @@ interface UseFamilyGridProps {
  */
 const familyMemberToFormData = (member: FamilyMember): Partial<FamilyMemberFormData> => {
   try {
-    console.log('🔄 Transformando member a formData:', {
-      id: member?.id,
-      nombres: member?.nombres,
-      talla_camisa: member?.talla_camisa,
-      talla_pantalon: member?.talla_pantalon,
-      talla_zapato: member?.talla_zapato
-    });
-
     const formData = {
       nombres: member?.nombres || '',
       fechaNacimiento: member?.fechaNacimiento && member.fechaNacimiento instanceof Date && !isNaN(member.fechaNacimiento.getTime()) 
@@ -265,8 +257,6 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
     try {
       setEditingFamilyMember(null);
       form.reset();
-      
-      console.log('🔄 Formulario reseteado');
     } catch (error) {
       console.error('Error al resetear formulario:', error);
     }
@@ -377,18 +367,7 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
       }
 
       const migratedMember = migrateDateFormat(memberWithId);
-      console.log('🔄 Member después de migración:', {
-        id: migratedMember.id,
-        nombres: migratedMember.nombres,
-        fechaNacimiento: migratedMember.fechaNacimiento
-      });
-      
       const formData = familyMemberToFormData(migratedMember);
-      console.log('📋 FormData generado:', {
-        nombres: formData.nombres,
-        talla: formData.talla,
-        hasId: !!migratedMember.id
-      });
       
       setEditingFamilyMember(migratedMember);
       form.reset(formData);

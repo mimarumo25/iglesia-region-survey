@@ -27,18 +27,20 @@ import {
   Clock, 
   Palette, 
   Eye, 
-  Save,
   Camera,
   Edit3,
   Shield,
-  Star
+  Star,
+  Save
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const ProfilePage = () => {
   const { user } = useAuthContext();
   const { currentTheme, themePresets } = useTheme();
+  const isMobile = useIsMobile();
   
   // Estados locales para manejar los datos sin React Query
   const [profile, setProfile] = useState<User | null>(null);
@@ -329,42 +331,75 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
-      {/* Header Superior Profesional */}
+      {/* Header Superior Profesional - Optimizado para móvil */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary via-primary/95 to-primary/85 shadow-2xl">
-        {/* Patrón de fondo decorativo */}
+        {/* Patrón de fondo decorativo - Reducido en móvil */}
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-50" />
         <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-4 left-4 w-32 h-32 bg-primary-foreground/10 rounded-full blur-3xl" />
-          <div className="absolute top-12 right-8 w-24 h-24 bg-primary-foreground/5 rounded-full blur-2xl" />
-          <div className="absolute bottom-4 left-1/3 w-40 h-40 bg-primary-foreground/5 rounded-full blur-3xl" />
+          <div className={cn(
+            "absolute top-4 left-4 bg-primary-foreground/10 rounded-full blur-3xl",
+            isMobile ? "w-20 h-20" : "w-32 h-32"
+          )} />
+          <div className={cn(
+            "absolute top-12 right-8 bg-primary-foreground/5 rounded-full blur-2xl",
+            isMobile ? "w-16 h-16" : "w-24 h-24"
+          )} />
+          <div className={cn(
+            "absolute bottom-4 left-1/3 bg-primary-foreground/5 rounded-full blur-3xl",
+            isMobile ? "w-24 h-24" : "w-40 h-40"
+          )} />
         </div>
         
-        <div className="relative container mx-auto px-6 py-12 max-w-7xl">
+        <div className={cn(
+          "relative container mx-auto max-w-7xl",
+          isMobile ? "px-4 py-8" : "px-6 py-12"
+        )}>
           <div className="flex flex-col items-center text-center">
-            {/* Avatar Central con Arco del Tema */}
-            <div className="relative mb-6 group">
+            {/* Avatar Central con Arco del Tema - Adaptativo */}
+            <div className={cn(
+              "relative group",
+              isMobile ? "mb-4" : "mb-6"
+            )}>
               {/* Arco decorativo alrededor del avatar */}
-              <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-primary-foreground/20 via-primary-foreground/10 to-primary-foreground/20 blur-lg group-hover:blur-xl transition-all duration-300" />
-              <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-primary-foreground/30 to-primary-foreground/10 animate-pulse" />
+              <div className={cn(
+                "absolute rounded-full bg-gradient-to-r from-primary-foreground/20 via-primary-foreground/10 to-primary-foreground/20 blur-lg group-hover:blur-xl transition-all duration-300",
+                isMobile ? "-inset-3" : "-inset-4"
+              )} />
+              <div className={cn(
+                "absolute rounded-full bg-gradient-to-r from-primary-foreground/30 to-primary-foreground/10 animate-pulse",
+                isMobile ? "-inset-1.5" : "-inset-2"
+              )} />
               
               <div className="relative">
-                <Avatar className="w-32 h-32 border-4 border-primary-foreground/20 shadow-2xl ring-2 ring-primary-foreground/10 ring-offset-2 ring-offset-primary/50">
+                <Avatar className={cn(
+                  "border-4 border-primary-foreground/20 shadow-2xl ring-2 ring-primary-foreground/10 ring-offset-2 ring-offset-primary/50",
+                  isMobile ? "w-24 h-24" : "w-32 h-32"
+                )}>
                   <AvatarImage 
                     src={profile?.profilePictureUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent((profile?.firstName || '') + ' ' + (profile?.lastName || ''))}&background=ffffff&color=1e40af&bold=true&size=256`}
                     alt="Avatar del usuario" 
                     className="object-cover"
                   />
-                  <AvatarFallback className="bg-gradient-to-br from-primary-foreground to-primary-foreground/80 text-primary text-2xl font-bold">
+                  <AvatarFallback className={cn(
+                    "bg-gradient-to-br from-primary-foreground to-primary-foreground/80 text-primary font-bold",
+                    isMobile ? "text-xl" : "text-2xl"
+                  )}>
                     {profile?.firstName?.charAt(0)}{profile?.lastName?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 
-                {/* Botón de edición de foto */}
+                {/* Botón de edición de foto - Más pequeño en móvil */}
                 <Label 
                   htmlFor="profile-picture-upload" 
-                  className="absolute bottom-2 right-2 bg-primary-foreground text-primary p-3 rounded-full cursor-pointer hover:scale-110 hover:bg-primary-foreground/90 transition-all duration-300 shadow-xl border-2 border-primary/20 group"
+                  className={cn(
+                    "absolute bg-primary-foreground text-primary rounded-full cursor-pointer hover:scale-110 hover:bg-primary-foreground/90 transition-all duration-300 shadow-xl border-2 border-primary/20 group",
+                    isMobile ? "bottom-1 right-1 p-2" : "bottom-2 right-2 p-3"
+                  )}
                 >
-                  <Camera className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  <Camera className={cn(
+                    "group-hover:scale-110 transition-transform",
+                    isMobile ? "w-3 h-3" : "w-4 h-4"
+                  )} />
                   <Input
                     id="profile-picture-upload"
                     type="file"
@@ -377,39 +412,78 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* Información del Usuario */}
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-primary-foreground mb-2 tracking-tight">
+            {/* Información del Usuario - Adaptativa para móvil */}
+            <div className={cn(
+              "text-center",
+              isMobile ? "mb-6" : "mb-8"
+            )}>
+              <h1 className={cn(
+                "font-bold text-primary-foreground mb-2 tracking-tight",
+                isMobile ? "text-2xl" : "text-4xl"
+              )}>
                 {profile?.firstName} {profile?.lastName}
               </h1>
-              <p className="text-primary-foreground/80 text-lg font-medium mb-1">
+              <p className={cn(
+                "text-primary-foreground/80 font-medium mb-1",
+                isMobile ? "text-base" : "text-lg"
+              )}>
                 {profile?.email}
               </p>
-              <div className="inline-flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm px-4 py-2 rounded-full">
-                <Shield className="w-4 h-4 text-primary-foreground/80" />
-                <span className="text-primary-foreground/90 font-medium capitalize">
+              <div className={cn(
+                "inline-flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm rounded-full",
+                isMobile ? "px-3 py-1.5" : "px-4 py-2"
+              )}>
+                <Shield className={cn(
+                  "text-primary-foreground/80",
+                  isMobile ? "w-3 h-3" : "w-4 h-4"
+                )} />
+                <span className={cn(
+                  "text-primary-foreground/90 font-medium capitalize",
+                  isMobile ? "text-sm" : ""
+                )}>
                   {profile?.role === 'admin' ? 'Administrador' : profile?.role}
                 </span>
               </div>
             </div>
 
-            {/* Botones de Acción */}
-            <div className="flex gap-4">
+            {/* Botones de Acción - Stack vertical en móvil */}
+            <div className={cn(
+              "gap-4",
+              isMobile ? "flex flex-col w-full max-w-sm" : "flex"
+            )}>
               <Button 
                 onClick={() => setIsEditingProfile(!isEditingProfile)}
                 variant="secondary"
-                size="lg"
-                className="bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground border border-primary-foreground/20 backdrop-blur-sm font-medium"
+                size={isMobile ? "default" : "lg"}
+                className={cn(
+                  "bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground border border-primary-foreground/20 backdrop-blur-sm font-medium",
+                  isMobile && "w-full min-h-[44px] active:scale-[0.98] transition-transform"
+                )}
               >
-                <Edit3 className="w-4 h-4 mr-2" />
+                <Edit3 className={cn(
+                  "mr-2",
+                  isMobile ? "w-4 h-4" : "w-4 h-4"
+                )} />
                 {isEditingProfile ? 'Cancelar Edición' : 'Editar Perfil'}
+              </Button>
+              <Button 
+                variant="secondary"
+                size={isMobile ? "default" : "lg"}
+                className={cn(
+                  "bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground border border-primary-foreground/20 backdrop-blur-sm font-medium",
+                  isMobile && "w-full min-h-[44px] active:scale-[0.98] transition-transform"
+                )}
+              >
               </Button>
               <Button 
                 variant="secondary"
                 size="lg"
                 className="bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground border border-primary-foreground/20 backdrop-blur-sm"
               >
-                <Settings className="w-4 h-4 mr-2" />
+                <Settings className={cn(
+                  "mr-2",
+                  isMobile ? "w-4 h-4" : "w-4 h-4"
+                )} />
                 Configuración
               </Button>
             </div>
@@ -417,27 +491,57 @@ const ProfilePage = () => {
         </div>
       </div>
 
-      {/* Contenido Principal */}
-      <div className="container mx-auto p-6 max-w-7xl -mt-8 relative z-10">
-        <div className="grid gap-8 lg:grid-cols-3">
+      {/* Contenido Principal - Layout responsive */}
+      <div className={cn(
+        "container mx-auto relative z-10 -mt-8",
+        isMobile ? "px-4" : "px-6 max-w-7xl"
+      )}>
+        <div className={cn(
+          isMobile ? "space-y-4" : "grid gap-8 lg:grid-cols-3"
+        )}>
           
           {/* Columna Principal - Información Personal */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className={cn(
+            isMobile ? "space-y-4" : "lg:col-span-2 space-y-6"
+          )}>
             
-            {/* Card de Información Personal */}
-            <Card className="shadow-xl border-0 bg-card/95 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-              <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b border-border/50">
-                <CardTitle className="flex items-center gap-3 text-xl">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <UserIcon className="w-5 h-5 text-primary" />
+            {/* Card de Información Personal - Adaptativa */}
+            <Card className={cn(
+              "border-0 backdrop-blur-sm transition-all duration-300",
+              isMobile 
+                ? "shadow-lg bg-card/95 hover:shadow-xl" 
+                : "shadow-xl bg-card/95 hover:shadow-2xl"
+            )}>
+              <CardHeader className={cn(
+                "bg-gradient-to-r from-primary/5 to-transparent border-b border-border/50",
+                isMobile ? "px-4 py-3" : ""
+              )}>
+                <CardTitle className={cn(
+                  "flex items-center gap-3",
+                  isMobile ? "text-lg" : "text-xl"
+                )}>
+                  <div className={cn(
+                    "bg-primary/10 rounded-lg",
+                    isMobile ? "p-1.5" : "p-2"
+                  )}>
+                    <UserIcon className={cn(
+                      "text-primary",
+                      isMobile ? "w-4 h-4" : "w-5 h-5"
+                    )} />
                   </div>
                   Información Personal
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6">
+              <CardContent className={cn(
+                isMobile ? "px-4 py-4" : "pt-6"
+              )}>
                 {isEditingProfile ? (
-                  <form onSubmit={handleProfileSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <form onSubmit={handleProfileSubmit} className={cn(
+                    isMobile ? "space-y-4" : "space-y-6"
+                  )}>
+                    <div className={cn(
+                      isMobile ? "space-y-4" : "grid grid-cols-1 md:grid-cols-2 gap-6"
+                    )}>
                       <div className="space-y-2">
                         <Label htmlFor="firstName" className="text-sm font-medium flex items-center gap-2">
                           <UserIcon className="w-4 h-4 text-primary" />
@@ -448,7 +552,10 @@ const ProfilePage = () => {
                           value={profileFormData.firstName} 
                           onChange={(e) => setProfileFormData({ ...profileFormData, firstName: e.target.value })} 
                           disabled={isUpdating}
-                          className="h-11 border-2 focus:border-primary/50 rounded-lg"
+                          className={cn(
+                            "border-2 focus:border-primary/50 rounded-lg",
+                            isMobile ? "h-12 text-base" : "h-11"
+                          )}
                         />
                       </div>
                       <div className="space-y-2">
@@ -461,7 +568,10 @@ const ProfilePage = () => {
                           value={profileFormData.lastName} 
                           onChange={(e) => setProfileFormData({ ...profileFormData, lastName: e.target.value })} 
                           disabled={isUpdating}
-                          className="h-11 border-2 focus:border-primary/50 rounded-lg"
+                          className={cn(
+                            "border-2 focus:border-primary/50 rounded-lg",
+                            isMobile ? "h-12 text-base" : "h-11"
+                          )}
                         />
                       </div>
                       <div className="space-y-2">
@@ -471,7 +581,10 @@ const ProfilePage = () => {
                           value={profileFormData.secondName} 
                           onChange={(e) => setProfileFormData({ ...profileFormData, secondName: e.target.value })} 
                           disabled={isUpdating}
-                          className="h-11 border-2 focus:border-primary/50 rounded-lg"
+                          className={cn(
+                            "border-2 focus:border-primary/50 rounded-lg",
+                            isMobile ? "h-12 text-base" : "h-11"
+                          )}
                         />
                       </div>
                       <div className="space-y-2">
@@ -481,7 +594,10 @@ const ProfilePage = () => {
                           value={profileFormData.secondLastName} 
                           onChange={(e) => setProfileFormData({ ...profileFormData, secondLastName: e.target.value })} 
                           disabled={isUpdating}
-                          className="h-11 border-2 focus:border-primary/50 rounded-lg"
+                          className={cn(
+                            "border-2 focus:border-primary/50 rounded-lg",
+                            isMobile ? "h-12 text-base" : "h-11"
+                          )}
                         />
                       </div>
                       <div className="space-y-2">
@@ -494,7 +610,10 @@ const ProfilePage = () => {
                           value={profileFormData.phone} 
                           onChange={(e) => setProfileFormData({ ...profileFormData, phone: e.target.value })} 
                           disabled={isUpdating}
-                          className="h-11 border-2 focus:border-primary/50 rounded-lg"
+                          className={cn(
+                            "border-2 focus:border-primary/50 rounded-lg",
+                            isMobile ? "h-12 text-base" : "h-11"
+                          )}
                         />
                       </div>
                       <div className="space-y-2">
@@ -521,7 +640,27 @@ const ProfilePage = () => {
                           value={profileFormData.birthDate} 
                           onChange={(e) => setProfileFormData({ ...profileFormData, birthDate: e.target.value })} 
                           disabled={isUpdating}
-                          className="h-11 border-2 focus:border-primary/50 rounded-lg"
+                          className={cn(
+                            "border-2 focus:border-primary/50 rounded-lg",
+                            isMobile ? "h-12 text-base" : "h-11"
+                          )}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="birthDate" className="text-sm font-medium flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-primary" />
+                          Fecha de Nacimiento
+                        </Label>
+                        <Input 
+                          id="birthDate" 
+                          type="date" 
+                          value={profileFormData.birthDate} 
+                          onChange={(e) => setProfileFormData({ ...profileFormData, birthDate: e.target.value })} 
+                          disabled={isUpdating}
+                          className={cn(
+                            "border-2 focus:border-primary/50 rounded-lg",
+                            isMobile ? "h-12 text-base" : "h-11"
+                          )}
                         />
                       </div>
                       <div className="space-y-2">
@@ -534,7 +673,10 @@ const ProfilePage = () => {
                           value={profileFormData.sector} 
                           onChange={(e) => setProfileFormData({ ...profileFormData, sector: e.target.value })} 
                           disabled={isUpdating}
-                          className="h-11 border-2 focus:border-primary/50 rounded-lg"
+                          className={cn(
+                            "border-2 focus:border-primary/50 rounded-lg",
+                            isMobile ? "h-12 text-base" : "h-11"
+                          )}
                         />
                       </div>
                     </div>
@@ -550,11 +692,16 @@ const ProfilePage = () => {
                           value={profileFormData.address} 
                           onChange={(e) => setProfileFormData({ ...profileFormData, address: e.target.value })} 
                           disabled={isUpdating}
-                          className="h-11 border-2 focus:border-primary/50 rounded-lg"
+                          className={cn(
+                            "border-2 focus:border-primary/50 rounded-lg",
+                            isMobile ? "h-12 text-base" : "h-11"
+                          )}
                         />
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className={cn(
+                        isMobile ? "space-y-4" : "grid grid-cols-1 md:grid-cols-2 gap-6"
+                      )}>
                         <div className="space-y-2">
                           <Label htmlFor="emergencyContact" className="text-sm font-medium">Contacto de Emergencia</Label>
                           <Input 
@@ -562,7 +709,10 @@ const ProfilePage = () => {
                             value={profileFormData.emergencyContact} 
                             onChange={(e) => setProfileFormData({ ...profileFormData, emergencyContact: e.target.value })} 
                             disabled={isUpdating}
-                            className="h-11 border-2 focus:border-primary/50 rounded-lg"
+                            className={cn(
+                              "border-2 focus:border-primary/50 rounded-lg",
+                              isMobile ? "h-12 text-base" : "h-11"
+                            )}
                           />
                         </div>
                         <div className="space-y-2">
@@ -572,7 +722,10 @@ const ProfilePage = () => {
                             value={profileFormData.emergencyPhone} 
                             onChange={(e) => setProfileFormData({ ...profileFormData, emergencyPhone: e.target.value })} 
                             disabled={isUpdating}
-                            className="h-11 border-2 focus:border-primary/50 rounded-lg"
+                            className={cn(
+                              "border-2 focus:border-primary/50 rounded-lg",
+                              isMobile ? "h-12 text-base" : "h-11"
+                            )}
                           />
                         </div>
                       </div>
@@ -587,26 +740,38 @@ const ProfilePage = () => {
                           value={profileFormData.bio} 
                           onChange={(e) => setProfileFormData({ ...profileFormData, bio: e.target.value })} 
                           disabled={isUpdating}
-                          className="min-h-[100px] border-2 focus:border-primary/50 rounded-lg resize-none"
+                          className={cn(
+                            "border-2 focus:border-primary/50 rounded-lg resize-none",
+                            isMobile ? "min-h-[120px] text-base" : "min-h-[100px]"
+                          )}
                           placeholder="Cuéntanos un poco sobre ti..."
                         />
                       </div>
                     </div>
                     
-                    <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+                    <div className={cn(
+                      "pt-4 border-t border-border/50",
+                      isMobile ? "flex flex-col gap-3" : "flex justify-end gap-3"
+                    )}>
                       <Button 
                         type="button" 
                         variant="outline" 
                         onClick={() => setIsEditingProfile(false)}
                         disabled={isUpdating}
-                        className="font-medium"
+                        className={cn(
+                          "font-medium",
+                          isMobile && "w-full min-h-[44px] order-2"
+                        )}
                       >
                         Cancelar
                       </Button>
                       <Button 
                         type="submit" 
                         disabled={isUpdating}
-                        className="bg-primary hover:bg-primary/90 font-medium"
+                        className={cn(
+                          "bg-primary hover:bg-primary/90 font-medium",
+                          isMobile && "w-full min-h-[44px] order-1"
+                        )}
                       >
                         {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         <Save className="mr-2 h-4 w-4" />
@@ -615,12 +780,21 @@ const ProfilePage = () => {
                     </div>
                   </form>
                 ) : (
-                  // Vista de solo lectura
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  // Vista de solo lectura - Optimizada para móvil
+                  <div className={cn(
+                    isMobile ? "space-y-4" : "space-y-6"
+                  )}>
+                    <div className={cn(
+                      isMobile ? "space-y-4" : "grid grid-cols-1 md:grid-cols-2 gap-6"
+                    )}>
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-muted-foreground">Nombre Completo</p>
-                        <p className="text-lg font-semibold">{profile?.firstName} {profile?.secondName} {profile?.lastName} {profile?.secondLastName}</p>
+                        <p className={cn(
+                          "font-semibold",
+                          isMobile ? "text-base" : "text-lg"
+                        )}>
+                          {profile?.firstName} {profile?.secondName} {profile?.lastName} {profile?.secondLastName}
+                        </p>
                       </div>
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-muted-foreground">Teléfono</p>
@@ -655,37 +829,77 @@ const ProfilePage = () => {
             </Card>
           </div>
 
-          {/* Columna Lateral - Preferencias y Seguridad */}
-          <div className="space-y-6">
+          {/* Columna Lateral - Preferencias y Seguridad - Mobile responsive */}
+          <div className={cn(
+            isMobile ? "space-y-4" : "space-y-6"
+          )}>
             
-            {/* Card de Preferencias */}
-            <Card className="shadow-xl border-0 bg-card/95 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-              <CardHeader className="bg-gradient-to-r from-secondary/5 to-transparent border-b border-border/50">
-                <CardTitle className="flex items-center gap-3">
-                  <div className="p-2 bg-secondary/10 rounded-lg">
-                    <Settings className="w-5 h-5 text-secondary" />
+            {/* Card de Preferencias - Optimizada */}
+            <Card className={cn(
+              "border-0 backdrop-blur-sm transition-all duration-300",
+              isMobile 
+                ? "shadow-lg bg-card/95 hover:shadow-xl" 
+                : "shadow-xl bg-card/95 hover:shadow-2xl"
+            )}>
+              <CardHeader className={cn(
+                "bg-gradient-to-r from-secondary/5 to-transparent border-b border-border/50",
+                isMobile ? "px-4 py-3" : ""
+              )}>
+                <CardTitle className={cn(
+                  "flex items-center gap-3",
+                  isMobile ? "text-lg" : ""
+                )}>
+                  <div className={cn(
+                    "bg-secondary/10 rounded-lg",
+                    isMobile ? "p-1.5" : "p-2"
+                  )}>
+                    <Settings className={cn(
+                      "text-secondary",
+                      isMobile ? "w-4 h-4" : "w-5 h-5"
+                    )} />
                   </div>
                   Preferencias
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6">
+              <CardContent className={cn(
+                isMobile ? "px-4 py-4" : "pt-6"
+              )}>
                 <form onSubmit={handlePreferencesSubmit} className="space-y-4">
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="emailNotifications" className="text-sm font-medium">Notificaciones por Email</Label>
-                        <p className="text-xs text-muted-foreground">Recibir actualizaciones por correo</p>
+                    <div className={cn(
+                      "flex items-center justify-between",
+                      isMobile && "py-1"
+                    )}>
+                      <div className="space-y-0.5 flex-1 pr-4">
+                        <Label htmlFor="emailNotifications" className={cn(
+                          "font-medium",
+                          isMobile ? "text-sm" : "text-sm"
+                        )}>
+                          Notificaciones por Email
+                        </Label>
+                        <p className={cn(
+                          "text-muted-foreground",
+                          isMobile ? "text-xs" : "text-xs"
+                        )}>
+                          Recibir actualizaciones por correo
+                        </p>
                       </div>
                       <Switch 
                         id="emailNotifications" 
                         checked={preferencesFormData.emailNotifications} 
                         onCheckedChange={(checked) => setPreferencesFormData({ ...preferencesFormData, emailNotifications: checked })} 
-                        disabled={isUpdating} 
+                        disabled={isUpdating}
+                        className={cn(
+                          isMobile && "scale-110"
+                        )}
                       />
                     </div>
                     
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
+                    <div className={cn(
+                      "flex items-center justify-between",
+                      isMobile && "py-1"
+                    )}>
+                      <div className="space-y-0.5 flex-1 pr-4">
                         <Label htmlFor="pushNotifications" className="text-sm font-medium">Notificaciones Push</Label>
                         <p className="text-xs text-muted-foreground">Alertas en tiempo real</p>
                       </div>
@@ -693,12 +907,18 @@ const ProfilePage = () => {
                         id="pushNotifications" 
                         checked={preferencesFormData.pushNotifications} 
                         onCheckedChange={(checked) => setPreferencesFormData({ ...preferencesFormData, pushNotifications: checked })} 
-                        disabled={isUpdating} 
+                        disabled={isUpdating}
+                        className={cn(
+                          isMobile && "scale-110"
+                        )}
                       />
                     </div>
                     
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
+                    <div className={cn(
+                      "flex items-center justify-between",
+                      isMobile && "py-1"
+                    )}>
+                      <div className="space-y-0.5 flex-1 pr-4">
                         <Label htmlFor="reportNotifications" className="text-sm font-medium">Reportes</Label>
                         <p className="text-xs text-muted-foreground">Notificaciones de reportes</p>
                       </div>
@@ -706,7 +926,10 @@ const ProfilePage = () => {
                         id="reportNotifications" 
                         checked={preferencesFormData.reportNotifications} 
                         onCheckedChange={(checked) => setPreferencesFormData({ ...preferencesFormData, reportNotifications: checked })} 
-                        disabled={isUpdating} 
+                        disabled={isUpdating}
+                        className={cn(
+                          isMobile && "scale-110"
+                        )}
                       />
                     </div>
                   </div>
@@ -715,7 +938,10 @@ const ProfilePage = () => {
                     <Button 
                       type="submit" 
                       disabled={isUpdating}
-                      className="w-full bg-secondary hover:bg-secondary/90"
+                      className={cn(
+                        "w-full bg-secondary hover:bg-secondary/90",
+                        isMobile && "min-h-[44px] text-base font-medium"
+                      )}
                     >
                       {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Guardar Preferencias
@@ -725,17 +951,36 @@ const ProfilePage = () => {
               </CardContent>
             </Card>
 
-            {/* Card de Seguridad */}
-            <Card className="shadow-xl border-0 bg-card/95 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-              <CardHeader className="bg-gradient-to-r from-destructive/5 to-transparent border-b border-border/50">
-                <CardTitle className="flex items-center gap-3">
-                  <div className="p-2 bg-destructive/10 rounded-lg">
-                    <Lock className="w-5 h-5 text-destructive" />
+            {/* Card de Seguridad - Optimizada para móvil */}
+            <Card className={cn(
+              "border-0 backdrop-blur-sm transition-all duration-300",
+              isMobile 
+                ? "shadow-lg bg-card/95 hover:shadow-xl" 
+                : "shadow-xl bg-card/95 hover:shadow-2xl"
+            )}>
+              <CardHeader className={cn(
+                "bg-gradient-to-r from-destructive/5 to-transparent border-b border-border/50",
+                isMobile ? "px-4 py-3" : ""
+              )}>
+                <CardTitle className={cn(
+                  "flex items-center gap-3",
+                  isMobile ? "text-lg" : ""
+                )}>
+                  <div className={cn(
+                    "bg-destructive/10 rounded-lg",
+                    isMobile ? "p-1.5" : "p-2"
+                  )}>
+                    <Lock className={cn(
+                      "text-destructive",
+                      isMobile ? "w-4 h-4" : "w-5 h-5"
+                    )} />
                   </div>
                   Seguridad
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6">
+              <CardContent className={cn(
+                isMobile ? "px-4 py-4" : "pt-6"
+              )}>
                 <form onSubmit={handlePasswordSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="currentPassword" className="text-sm font-medium">Contraseña Actual</Label>
@@ -745,7 +990,10 @@ const ProfilePage = () => {
                       value={passwordFormData.currentPassword} 
                       onChange={(e) => setPasswordFormData({ ...passwordFormData, currentPassword: e.target.value })} 
                       disabled={isChangingPassword}
-                      className="h-11 border-2 focus:border-destructive/50 rounded-lg"
+                      className={cn(
+                        "border-2 focus:border-destructive/50 rounded-lg",
+                        isMobile ? "h-12 text-base" : "h-11"
+                      )}
                       placeholder="••••••••"
                     />
                   </div>
@@ -757,14 +1005,20 @@ const ProfilePage = () => {
                       value={passwordFormData.newPassword} 
                       onChange={(e) => setPasswordFormData({ ...passwordFormData, newPassword: e.target.value })} 
                       disabled={isChangingPassword}
-                      className="h-11 border-2 focus:border-destructive/50 rounded-lg"
+                      className={cn(
+                        "border-2 focus:border-destructive/50 rounded-lg",
+                        isMobile ? "h-12 text-base" : "h-11"
+                      )}
                       placeholder="••••••••"
                     />
                   </div>
                   <Button 
                     type="submit" 
                     disabled={isChangingPassword}
-                    className="w-full bg-destructive hover:bg-destructive/90"
+                    className={cn(
+                      "w-full bg-destructive hover:bg-destructive/90",
+                      isMobile && "min-h-[44px] text-base font-medium"
+                    )}
                   >
                     {isChangingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     <Lock className="mr-2 h-4 w-4" />

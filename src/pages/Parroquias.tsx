@@ -1,26 +1,28 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table';
-import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
-import { AutocompleteWithLoading } from '@/components/ui/autocomplete-with-loading';
+import { Form } from '@/components/ui/form';
+import { ConfigModal, useConfigModal } from '@/components/ui/config-modal';
+import { RHFConfigFormField } from '@/components/ui/rhf-config-form';
+import { ResponsiveParroquiasList } from '@/components/parroquias/ResponsiveParroquiasList';
 import { useParroquias } from '@/hooks/useParroquias';
 import { useMunicipios } from '@/hooks/useMunicipios';
 import { Parroquia, ParroquiaFormData } from '@/types/parroquias';
 import { municipiosToOptions, formatDate } from '@/lib/utils';
+import { 
+  parroquiaCreateSchema, 
+  parroquiaUpdateSchema, 
+  ParroquiaCreateData, 
+  ParroquiaUpdateData,
+  formatTelefono 
+} from '@/schemas/parroquias';
 import {
   Church,
   Plus,
-  Search,
   Edit2,
   Trash2,
   Loader2,
@@ -28,6 +30,7 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  Search,
 } from 'lucide-react';
 
 const ParroquiasPage = () => {
@@ -75,51 +78,67 @@ const ParroquiasPage = () => {
   } = useConfigModal();
   
   const [selectedParroquia, setSelectedParroquia] = useState<Parroquia | null>(null);
-  const [formData, setFormData] = useState<ParroquiaFormData>({
-    nombre: '',
-    direccion: '',
-    telefono: '',
-    email: '',
-    id_municipio: '',
+
+  // Formularios con React Hook Form y validación Zod
+  const createForm = useForm<ParroquiaCreateData>({
+    resolver: zodResolver(parroquiaCreateSchema),
+    defaultValues: {
+      nombre: '',
+      direccion: '',
+      telefono: '',
+      email: '',
+      id_municipio: '',
+    },
   });
 
-  // Manejo del formulario
-  const handleCreateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.nombre.trim() || !formData.direccion.trim() || !formData.id_municipio) return;
+  const editForm = useForm<ParroquiaUpdateData>({
+    resolver: zodResolver(parroquiaUpdateSchema),
+    defaultValues: {
+      nombre: '',
+      direccion: '',
+      telefono: '',
+      email: '',
+      id_municipio: '',
+    },
+  });
 
-    createMutation.mutate({
-      nombre: formData.nombre.trim(),
-      direccion: formData.direccion.trim(),
-      telefono: formData.telefono?.trim() || undefined,
-      email: formData.email?.trim() || undefined,
-      id_municipio: formData.id_municipio,
-    }, {
+  // Manejo del formulario con React Hook Form
+  const handleCreateSubmit = (data: ParroquiaCreateData) => {
+    const submitData = {
+      ...data,
+      nombre: data.nombre.trim(),
+      direccion: data.direccion.trim(),
+      telefono: data.telefono?.trim() || undefined,
+      email: data.email?.trim() || undefined,
+    };
+
+    createMutation.mutate(submitData, {
       onSuccess: () => {
         setShowCreateDialog(false);
-        setFormData({ nombre: '', direccion: '', telefono: '', email: '', id_municipio: '' });
+        createForm.reset();
       }
     });
   };
 
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedParroquia || !formData.nombre.trim() || !formData.direccion.trim() || !formData.id_municipio) return;
+  const handleEditSubmit = (data: ParroquiaUpdateData) => {
+    if (!selectedParroquia) return;
+
+    const submitData = {
+      ...data,
+      nombre: data.nombre.trim(),
+      direccion: data.direccion.trim(),
+      telefono: data.telefono?.trim() || undefined,
+      email: data.email?.trim() || undefined,
+    };
 
     updateMutation.mutate({
       id: selectedParroquia.id_parroquia,
-      data: {
-        nombre: formData.nombre.trim(),
-        direccion: formData.direccion.trim(),
-        telefono: formData.telefono?.trim() || undefined,
-        email: formData.email?.trim() || undefined,
-        id_municipio: formData.id_municipio,
-      }
+      data: submitData
     }, {
       onSuccess: () => {
         setShowEditDialog(false);
         setSelectedParroquia(null);
-        setFormData({ nombre: '', direccion: '', telefono: '', email: '', id_municipio: '' });
+        editForm.reset();
       }
     });
   };
@@ -137,13 +156,19 @@ const ParroquiasPage = () => {
 
   // Funciones para abrir diálogos
   const handleOpenCreateDialog = () => {
-    setFormData({ nombre: '', direccion: '', telefono: '', email: '', id_municipio: '' });
+    createForm.reset({
+      nombre: '',
+      direccion: '',
+      telefono: '',
+      email: '',
+      id_municipio: '',
+    });
     openCreateDialog();
   };
 
   const handleOpenEditDialog = (parroquia: Parroquia) => {
     setSelectedParroquia(parroquia);
-    setFormData({
+    editForm.reset({
       nombre: parroquia.nombre,
       direccion: parroquia.direccion,
       telefono: parroquia.telefono || '',
@@ -183,103 +208,130 @@ const ParroquiasPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      {/* Header con diseño neutro */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <Church className="w-8 h-8 text-muted-foreground" />
-            Gestión de Parroquias
+    <div className="container mx-auto p-3 sm:p-6 max-w-7xl">
+      {/* Header responsive */}
+      <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 mb-6">
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2 sm:gap-3">
+            <Church className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground flex-shrink-0" />
+            <span className="truncate">Gestión de Parroquias</span>
           </h1>
-          <p className="text-muted-foreground mt-2">Administra las parroquias para encuestas</p>
+          <p className="text-sm sm:text-base text-muted-foreground">Administra las parroquias para encuestas</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button 
             variant="outline" 
             onClick={() => refetchParroquias()}
             disabled={loading}
+            className="w-full sm:w-auto"
           >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? '' : ''}`} />
-            Actualizar
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            <span className="sm:inline">Actualizar</span>
           </Button>
           <Button 
             onClick={handleOpenCreateDialog}
+            className="w-full sm:w-auto"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Nueva Parroquia
+            <span className="sm:inline">Nueva Parroquia</span>
           </Button>
         </div>
       </div>
 
-      {/* Búsqueda con diseño neutro */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="flex gap-4">
-            <Input
-              placeholder="Buscar por nombre, dirección, teléfono, email o municipio..."
-              value={searchTerm}
-              onChange={handleSearchTermChange}
-              className="flex-1"
-            />
+      {/* Búsqueda responsive */}
+      <Card className="mb-4 sm:mb-6">
+        <CardContent className="p-3 sm:p-6">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar parroquias..."
+                value={searchTerm}
+                onChange={handleSearchTermChange}
+                className="pl-10 w-full"
+              />
+            </div>
             {searchTerm && (
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleClearSearch}
+                className="w-full sm:w-auto"
               >
                 <X className="w-4 h-4 mr-2" />
                 Limpiar
               </Button>
             )}
           </div>
+          {searchTerm && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Búsqueda por: nombre, dirección, teléfono, email o municipio
+            </p>
+          )}
         </CardContent>
       </Card>
 
-      {/* Estadísticas con diseño neutro */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      {/* Estadísticas responsive */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Parroquias</p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalCount}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Total</p>
+                <p className="text-lg sm:text-2xl font-bold text-foreground">{pagination.totalCount}</p>
               </div>
-              <Church className="w-8 h-8 text-muted-foreground" />
+              <Church className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Páginas</p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalPages}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Páginas</p>
+                <p className="text-lg sm:text-2xl font-bold text-foreground">{pagination.totalPages}</p>
               </div>
-              <Church className="w-8 h-8 text-muted-foreground" />
+              <Church className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground flex-shrink-0" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="col-span-2 lg:col-span-2">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground">Página actual</p>
+                <p className="text-lg sm:text-2xl font-bold text-foreground">
+                  {pagination.currentPage} de {pagination.totalPages}
+                </p>
+              </div>
+              <Church className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tabla de parroquias con diseño neutro */}
+      {/* Lista/Tabla responsive de parroquias */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-foreground">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-foreground text-lg sm:text-xl">
             <Church className="w-5 h-5" />
             Listado de Parroquias
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-6">
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-8 h-8 text-muted-foreground" />
-              <span className="ml-2 text-muted-foreground">Cargando parroquias...</span>
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <Loader2 className="w-8 h-8 text-muted-foreground animate-spin mx-auto mb-2" />
+                <span className="text-sm text-muted-foreground">Cargando parroquias...</span>
+              </div>
             </div>
           ) : parroquias.length === 0 ? (
-            <div className="text-center py-8">
+            <div className="text-center py-12">
               <Church className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
-              <p className="text-muted-foreground">No se encontraron parroquias</p>
+              <p className="text-muted-foreground mb-2">No se encontraron parroquias</p>
               {searchTerm && (
                 <p className="text-sm text-muted-foreground/70">
                   Intenta con otros términos de búsqueda
@@ -288,115 +340,70 @@ const ParroquiasPage = () => {
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-muted/50">
-                    <TableHead className="font-semibold text-foreground">ID</TableHead>
-                    <TableHead className="font-semibold text-foreground">Nombre</TableHead>
-                    <TableHead className="font-semibold text-foreground">Dirección</TableHead>
-                    <TableHead className="font-semibold text-foreground">Teléfono</TableHead>
-                    <TableHead className="font-semibold text-foreground">Email</TableHead>
-                    <TableHead className="font-semibold text-foreground">Municipio</TableHead>
-                    <TableHead className="font-semibold text-foreground">Fecha Creación</TableHead>
-                    <TableHead className="text-right font-semibold text-primary">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {parroquias.map((parroquia, index) => (
-                    <TableRow 
-                      key={parroquia.id_parroquia}
-                      className="hover:bg-muted/50"
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
-                      <TableCell className="font-medium text-foreground">
-                        {parroquia.id_parroquia}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Church className="w-4 h-4 text-primary" />
-                          <span className="font-medium">{parroquia.nombre}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                          {parroquia.direccion}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="bg-secondary/10 text-secondary border-secondary/20">
-                          {parroquia.telefono || 'N/A'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="bg-secondary/10 text-secondary border-secondary/20">
-                          {parroquia.email || 'N/A'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                          {parroquia.municipio?.nombre_municipio || 'N/A'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                          {formatDate(parroquia.fecha_creacion)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenEditDialog(parroquia)}
-                            className="hover:bg-primary/10 hover:text-primary hover:shadow-md"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenDeleteDialog(parroquia)}
-                            className="hover:bg-destructive/10 hover:text-destructive hover:shadow-md"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <ResponsiveParroquiasList
+                parroquias={parroquias}
+                onEdit={handleOpenEditDialog}
+                onDelete={handleOpenDeleteDialog}
+                loading={loading}
+              />
 
-              {/* Paginación con diseño mejorado */}
+              {/* Paginación responsive */}
               {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <p className="text-sm text-muted-foreground">
-                    Mostrando {parroquias.length} de {pagination.totalCount} parroquias
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={pagination.currentPage === 1}
-                      className="hover:shadow-hover disabled:opacity-50"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Anterior
-                    </Button>
-                    <span className="flex items-center px-3 text-sm font-medium text-primary bg-primary/10 rounded-md">
+                <div className="mt-6 pt-4 border-t border-border">
+                  {/* Info de paginación - solo en desktop */}
+                  <div className="hidden sm:flex items-center justify-between mb-4">
+                    <p className="text-sm text-muted-foreground">
+                      Mostrando {parroquias.length} de {pagination.totalCount} parroquias
+                    </p>
+                    <p className="text-sm text-muted-foreground">
                       Página {pagination.currentPage} de {pagination.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={pagination.currentPage === pagination.totalPages}
-                      className="hover:shadow-hover disabled:opacity-50"
-                    >
-                      Siguiente
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
+                    </p>
+                  </div>
+                  
+                  {/* Controles de paginación */}
+                  <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3">
+                    {/* Info compacta para móviles */}
+                    <div className="sm:hidden text-center">
+                      <p className="text-xs text-muted-foreground mb-1">
+                        {parroquias.length} de {pagination.totalCount} parroquias
+                      </p>
+                      <p className="text-sm font-medium text-primary">
+                        Página {pagination.currentPage} de {pagination.totalPages}
+                      </p>
+                    </div>
+                    
+                    {/* Botones de navegación */}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(pagination.currentPage - 1)}
+                        disabled={pagination.currentPage === 1}
+                        className="disabled:opacity-50"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        <span className="hidden sm:inline ml-1">Anterior</span>
+                      </Button>
+                      
+                      {/* Número de página actual */}
+                      <div className="flex items-center px-3 py-1 text-sm font-medium text-primary bg-primary/10 rounded-md">
+                        {pagination.currentPage}
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(pagination.currentPage + 1)}
+                        disabled={pagination.currentPage === pagination.totalPages}
+                        className="disabled:opacity-50"
+                      >
+                        <span className="hidden sm:inline mr-1">Siguiente</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    {/* Espaciador para centrar en desktop */}
+                    <div className="hidden sm:block w-0"></div>
                   </div>
                 </div>
               )}
@@ -414,57 +421,59 @@ const ParroquiasPage = () => {
         description="Crea una nueva parroquia en el sistema"
         icon={Church}
         loading={createMutation.isPending}
-        onSubmit={handleCreateSubmit}
+        onSubmit={createForm.handleSubmit(handleCreateSubmit)}
         submitText="Crear Parroquia"
       >
-        <ConfigFormField
-          id="nombre"
-          label="Nombre de la Parroquia"
-          placeholder="Ej: Parroquia San Juan"
-          value={formData.nombre}
-          onChange={(value) => setFormData({ ...formData, nombre: value })}
-          required
-        />
-        <ConfigFormField
-          id="direccion"
-          label="Dirección"
-          placeholder="Ej: Calle 10 # 20-30"
-          value={formData.direccion}
-          onChange={(value) => setFormData({ ...formData, direccion: value })}
-          required
-        />
-        <ConfigFormField
-          id="telefono"
-          label="Teléfono"
-          placeholder="Ej: 1234567"
-          value={formData.telefono}
-          onChange={(value) => setFormData({ ...formData, telefono: value })}
-        />
-        <ConfigFormField
-          id="email"
-          label="Email"
-          placeholder="Ej: parroquia@ejemplo.com"
-          value={formData.email}
-          onChange={(value) => setFormData({ ...formData, email: value })}
-        />
-        
-        {/* Campo de Municipio con Autocomplete */}
-        <div className="space-y-2">
-          <label htmlFor="municipio" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Municipio <span className="text-red-500">*</span>
-          </label>
-          <AutocompleteWithLoading
-            options={municipiosOptions}
-            value={formData.id_municipio}
-            onValueChange={(value) => setFormData({ ...formData, id_municipio: value })}
-            placeholder="Seleccionar municipio..."
-            searchPlaceholder="Buscar municipio..."
-            emptyText="No se encontraron municipios"
-            isLoading={municipiosLoading}
-            error={municipiosError}
-            errorText="Error al cargar municipios"
-          />
-        </div>
+        <Form {...createForm}>
+          <div className="space-y-6">
+            <RHFConfigFormField
+              control={createForm.control}
+              name="nombre"
+              label="Nombre de la Parroquia"
+              placeholder="Ej: Parroquia San Juan"
+              required
+            />
+            
+            <RHFConfigFormField
+              control={createForm.control}
+              name="direccion"
+              label="Dirección"
+              placeholder="Ej: Calle 10 # 20-30"
+              required
+            />
+            
+            <RHFConfigFormField
+              control={createForm.control}
+              name="telefono"
+              type="tel"
+              label="Teléfono"
+              placeholder="Ej: 1234567, 3001234567, +57 300 123 4567"
+            />
+            
+            <RHFConfigFormField
+              control={createForm.control}
+              name="email"
+              type="email"
+              label="Email"
+              placeholder="Ej: parroquia@ejemplo.com"
+            />
+            
+            <RHFConfigFormField
+              control={createForm.control}
+              name="id_municipio"
+              type="autocomplete"
+              label="Municipio"
+              placeholder="Seleccionar municipio..."
+              searchPlaceholder="Buscar municipio..."
+              emptyText="No se encontraron municipios"
+              options={municipiosOptions}
+              isLoading={municipiosLoading}
+              error={municipiosError}
+              errorText="Error al cargar municipios"
+              required
+            />
+          </div>
+        </Form>
       </ConfigModal>
 
       {/* Modal de Editar Parroquia */}
@@ -476,57 +485,59 @@ const ParroquiasPage = () => {
         description="Modifica los datos de la parroquia"
         icon={Edit2}
         loading={updateMutation.isPending}
-        onSubmit={handleEditSubmit}
+        onSubmit={editForm.handleSubmit(handleEditSubmit)}
         submitText="Guardar Cambios"
       >
-        <ConfigFormField
-          id="edit-nombre"
-          label="Nombre de la Parroquia"
-          placeholder="Ej: Parroquia San Juan"
-          value={formData.nombre}
-          onChange={(value) => setFormData({ ...formData, nombre: value })}
-          required
-        />
-        <ConfigFormField
-          id="edit-direccion"
-          label="Dirección"
-          placeholder="Ej: Calle 10 # 20-30"
-          value={formData.direccion}
-          onChange={(value) => setFormData({ ...formData, direccion: value })}
-          required
-        />
-        <ConfigFormField
-          id="edit-telefono"
-          label="Teléfono"
-          placeholder="Ej: 1234567"
-          value={formData.telefono}
-          onChange={(value) => setFormData({ ...formData, telefono: value })}
-        />
-        <ConfigFormField
-          id="edit-email"
-          label="Email"
-          placeholder="Ej: parroquia@ejemplo.com"
-          value={formData.email}
-          onChange={(value) => setFormData({ ...formData, email: value })}
-        />
-        
-        {/* Campo de Municipio con Autocomplete para Edición */}
-        <div className="space-y-2">
-          <label htmlFor="edit-municipio" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Municipio <span className="text-red-500">*</span>
-          </label>
-          <AutocompleteWithLoading
-            options={municipiosOptions}
-            value={formData.id_municipio}
-            onValueChange={(value) => setFormData({ ...formData, id_municipio: value })}
-            placeholder="Seleccionar municipio..."
-            searchPlaceholder="Buscar municipio..."
-            emptyText="No se encontraron municipios"
-            isLoading={municipiosLoading}
-            error={municipiosError}
-            errorText="Error al cargar municipios"
-          />
-        </div>
+        <Form {...editForm}>
+          <div className="space-y-6">
+            <RHFConfigFormField
+              control={editForm.control}
+              name="nombre"
+              label="Nombre de la Parroquia"
+              placeholder="Ej: Parroquia San Juan"
+              required
+            />
+            
+            <RHFConfigFormField
+              control={editForm.control}
+              name="direccion"
+              label="Dirección"
+              placeholder="Ej: Calle 10 # 20-30"
+              required
+            />
+            
+            <RHFConfigFormField
+              control={editForm.control}
+              name="telefono"
+              type="tel"
+              label="Teléfono"
+              placeholder="Ej: 1234567, 3001234567, +57 300 123 4567"
+            />
+            
+            <RHFConfigFormField
+              control={editForm.control}
+              name="email"
+              type="email"
+              label="Email"
+              placeholder="Ej: parroquia@ejemplo.com"
+            />
+            
+            <RHFConfigFormField
+              control={editForm.control}
+              name="id_municipio"
+              type="autocomplete"
+              label="Municipio"
+              placeholder="Seleccionar municipio..."
+              searchPlaceholder="Buscar municipio..."
+              emptyText="No se encontraron municipios"
+              options={municipiosOptions}
+              isLoading={municipiosLoading}
+              error={municipiosError}
+              errorText="Error al cargar municipios"
+              required
+            />
+          </div>
+        </Form>
       </ConfigModal>
 
       {/* Modal de Eliminar Parroquia */}

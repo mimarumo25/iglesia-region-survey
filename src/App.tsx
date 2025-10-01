@@ -24,6 +24,7 @@ const NotFound = React.lazy(() => import("./pages/NotFound"));
 const Surveys = React.lazy(() => import("./pages/Surveys"));
 const SurveyDetails = React.lazy(() => import("./pages/SurveyDetails"));
 const Families = React.lazy(() => import("./pages/Families"));
+const FamiliasReporte = React.lazy(() => import("./pages/FamiliasReporte"));
 const Reports = React.lazy(() => import("./pages/Reports"));
 const Users = React.lazy(() => import("./pages/Users"));
 const SettingsWrapper = React.lazy(() => import("./pages/SettingsWrapper"));
@@ -176,6 +177,17 @@ const App = () => (
                     <PrivateRoute>
                       <Layout>
                         <Families />
+                      </Layout>
+                    </PrivateRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/familias-reporte" 
+                  element={
+                    <PrivateRoute>
+                      <Layout>
+                        <FamiliasReporte />
                       </Layout>
                     </PrivateRoute>
                   } 

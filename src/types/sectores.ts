@@ -2,26 +2,19 @@
 export interface Sector {
   id_sector: string;
   nombre: string;
-  descripcion?: string;
-  codigo?: string;
-  estado?: string;
-  activo?: boolean;
-  id_municipio?: string | number;
-  municipio?: {
-    id_municipio: string | number;
-    nombre: string;
-    nombre_municipio?: string;
-  } | null;
+  id_municipio: string | number | null;
   created_at?: string;
   updated_at?: string;
+  /**
+   * Nombre del municipio resuelto desde el catálogo general.
+   * No proviene del backend de sectores; se calcula en el frontend.
+   */
+  municipioNombre?: string | null;
 }
 
 export interface SectorFormData {
   nombre: string;
-  descripcion?: string;
   id_municipio: number;
-  codigo?: string;
-  estado?: string;
 }
 
 export interface SectorUpdateData extends SectorFormData {}

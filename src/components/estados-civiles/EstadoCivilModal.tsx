@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,9 +14,6 @@ import { EstadoCivil, CreateEstadoCivilRequest, UpdateEstadoCivilRequest } from 
 const estadoCivilSchema = z.object({
   nombre: z.string().min(1, "El nombre es requerido").max(100, "El nombre no puede exceder 100 caracteres"),
   descripcion: z.string().min(1, "La descripción es requerida").max(500, "La descripción no puede exceder 500 caracteres"),
-  codigo: z.string().min(1, "El código es requerido").max(10, "El código no puede exceder 10 caracteres").regex(/^[A-Z0-9]+$/, "El código solo puede contener letras mayúsculas y números"),
-  orden: z.number().min(1, "El orden debe ser mayor a 0").max(999, "El orden no puede ser mayor a 999"),
-  activo: z.boolean(),
 });
 
 type EstadoCivilFormData = z.infer<typeof estadoCivilSchema>;
@@ -49,14 +45,10 @@ export const EstadoCivilModal: React.FC<EstadoCivilModalProps> = ({
     defaultValues: {
       nombre: '',
       descripcion: '',
-      codigo: '',
-      orden: 1,
-      activo: true,
     }
   });
 
-  // Observar el valor del switch
-  const activoValue = watch('activo');
+
 
   // Cargar datos del estado civil a editar
   useEffect(() => {
@@ -65,17 +57,11 @@ export const EstadoCivilModal: React.FC<EstadoCivilModalProps> = ({
         reset({
           nombre: estadoCivil.nombre,
           descripcion: estadoCivil.descripcion,
-          codigo: estadoCivil.codigo,
-          orden: estadoCivil.orden,
-          activo: estadoCivil.activo,
         });
       } else {
         reset({
           nombre: '',
           descripcion: '',
-          codigo: '',
-          orden: 1,
-          activo: true,
         });
       }
     }
@@ -112,44 +98,19 @@ export const EstadoCivilModal: React.FC<EstadoCivilModalProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            {/* Nombre */}
-            <div className="space-y-2">
-              <Label htmlFor="nombre">
-                Nombre <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nombre"
-                placeholder="ej. Soltero(a)"
-                {...register('nombre')}
-                className={errors.nombre ? 'border-red-500' : ''}
-              />
-              {errors.nombre && (
-                <p className="text-sm text-red-500">{errors.nombre.message}</p>
-              )}
-            </div>
-
-            {/* Código */}
-            <div className="space-y-2">
-              <Label htmlFor="codigo">
-                Código <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="codigo"
-                placeholder="ej. SOL"
-                maxLength={10}
-                style={{ textTransform: 'uppercase' }}
-                {...register('codigo', {
-                  onChange: (e) => {
-                    e.target.value = e.target.value.toUpperCase();
-                  }
-                })}
-                className={errors.codigo ? 'border-red-500' : ''}
-              />
-              {errors.codigo && (
-                <p className="text-sm text-red-500">{errors.codigo.message}</p>
-              )}
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="nombre">
+              Nombre <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="nombre"
+              placeholder="ej. Soltero(a)"
+              {...register('nombre')}
+              className={errors.nombre ? 'border-red-500' : ''}
+            />
+            {errors.nombre && (
+              <p className="text-sm text-red-500">{errors.nombre.message}</p>
+            )}
           </div>
 
           {/* Descripción */}
@@ -168,48 +129,6 @@ export const EstadoCivilModal: React.FC<EstadoCivilModalProps> = ({
             {errors.descripcion && (
               <p className="text-sm text-red-500">{errors.descripcion.message}</p>
             )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {/* Orden */}
-            <div className="space-y-2">
-              <Label htmlFor="orden">
-                Orden <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="orden"
-                type="number"
-                min="1"
-                max="999"
-                placeholder="1"
-                {...register('orden', { valueAsNumber: true })}
-                className={errors.orden ? 'border-red-500' : ''}
-              />
-              {errors.orden && (
-                <p className="text-sm text-red-500">{errors.orden.message}</p>
-              )}
-            </div>
-
-            {/* Estado Activo */}
-            <div className="space-y-2">
-              <Label htmlFor="activo">Estado</Label>
-              <div className="flex items-center space-x-2 pt-2">
-                <Switch
-                  id="activo"
-                  checked={activoValue}
-                  onCheckedChange={(checked) => setValue('activo', checked)}
-                  className="data-[state=checked]:bg-pink-600"
-                />
-                <div className="grid gap-1.5 leading-none">
-                  <Label htmlFor="activo" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    {activoValue ? 'Activo' : 'Inactivo'}
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    {activoValue ? '(Disponible para seleccionar)' : '(No disponible para seleccionar)'}
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Botones */}

@@ -22,13 +22,13 @@ import {
   Download,
   FileText,
   FileSpreadsheet,
-  TrendingUp,
   Activity,
   Filter,
   RefreshCw
 } from "lucide-react";
 import { Autocomplete } from "@/components/ui/autocomplete";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
+import DifuntosReportPage from "@/components/difuntos/DifuntosReportPage";
 
 /**
  * 📊 Módulo de Reportes y Estadísticas - Sistema MIA
@@ -146,14 +146,6 @@ const Reports = () => {
     limite: 100
   });
 
-  // Datos de resumen para las cards superiores
-  const summaryData = {
-    totalParroquias: 12,
-    totalFamilias: 1247,
-    totalPersonas: 4834,
-    reportesGenerados: 67
-  };
-
   /**
    * Maneja cambios en filtros de Parroquias
    */
@@ -240,80 +232,6 @@ const Reports = () => {
           <h1 className="text-3xl font-bold tracking-tight parish-text-primary">
             Reportes y Estadísticas
           </h1>
-          <p className="text-muted-foreground">
-            Genera reportes detallados y visualiza estadísticas del sistema parroquial
-          </p>
-        </div>
-
-        {/* Cards de resumen */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="parish-card-hover">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Parroquias
-              </CardTitle>
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold parish-text-primary">
-                {summaryData.totalParroquias}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Parroquias registradas
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="parish-card-hover">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Familias
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold parish-text-primary">
-                {summaryData.totalFamilias.toLocaleString()}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Familias registradas
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="parish-card-hover">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Personas
-              </CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold parish-text-primary">
-                {summaryData.totalPersonas.toLocaleString()}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Personas en todas las familias
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="parish-card-hover">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Reportes Generados
-              </CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold parish-text-primary">
-                {summaryData.reportesGenerados}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                En los últimos 30 días
-              </p>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Tabs de reportes */}
@@ -781,68 +699,8 @@ const Reports = () => {
           </TabsContent>
 
           {/* Tab Content: Difuntos */}
-          <TabsContent value="difuntos" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      Reportes de Difuntos
-                    </CardTitle>
-                    <CardDescription>
-                      Registros de mortalidad, causas de muerte y estadísticas vitales
-                    </CardDescription>
-                  </div>
-                  <Badge variant="outline">En desarrollo</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <Card className="border-dashed hover:border-solid cursor-pointer transition-all">
-                    <CardContent className="flex flex-col items-center justify-center p-6">
-                      <Calendar className="h-8 w-8 text-muted-foreground mb-2" />
-                      <h4 className="font-semibold">Registro de Defunciones</h4>
-                      <p className="text-sm text-muted-foreground text-center">
-                        Listado por período
-                      </p>
-                      <Button variant="outline" className="mt-3 w-full">
-                        <Download className="h-4 w-4 mr-2" />
-                        Generar
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-dashed hover:border-solid cursor-pointer transition-all">
-                    <CardContent className="flex flex-col items-center justify-center p-6">
-                      <BarChart3 className="h-8 w-8 text-muted-foreground mb-2" />
-                      <h4 className="font-semibold">Mortalidad por Edad</h4>
-                      <p className="text-sm text-muted-foreground text-center">
-                        Análisis demográfico
-                      </p>
-                      <Button variant="outline" className="mt-3 w-full">
-                        <Download className="h-4 w-4 mr-2" />
-                        Generar
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-dashed hover:border-solid cursor-pointer transition-all">
-                    <CardContent className="flex flex-col items-center justify-center p-6">
-                      <TrendingUp className="h-8 w-8 text-muted-foreground mb-2" />
-                      <h4 className="font-semibold">Causas de Muerte</h4>
-                      <p className="text-sm text-muted-foreground text-center">
-                        Estadísticas por causas
-                      </p>
-                      <Button variant="outline" className="mt-3 w-full">
-                        <Download className="h-4 w-4 mr-2" />
-                        Generar
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="difuntos" className="space-y-6">
+            <DifuntosReportPage />
           </TabsContent>
         </Tabs>
       </div>
