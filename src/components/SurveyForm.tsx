@@ -10,6 +10,7 @@ import StandardFormField from "./survey/StandardFormField";
 import FamilyGrid from "./survey/FamilyGrid";
 import DeceasedGrid from "./survey/DeceasedGrid";
 import SurveyControls from "./survey/SurveyControls";
+import FormDataLoadingError from "./survey/FormDataLoadingError";
 import { FamilyMember, DeceasedFamilyMember, FormStage } from "@/types/survey";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
 import { getAutocompleteOptions, getLoadingState, getErrorState } from "@/utils/formFieldHelpers";
@@ -308,6 +309,27 @@ const SurveyForm = () => {
     return <SurveyFormSkeleton />;
   }
 
+  // Mostrar errores críticos que impiden el uso del formulario
+  if (configurationData.hasAnyError) {
+    const hasCriticalErrors = !!(
+      configurationData.municipiosError || 
+      configurationData.parroquiasError || 
+      configurationData.sectoresError
+    );
+
+    if (hasCriticalErrors) {
+      return (
+        <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 lg:py-8 bg-background min-h-screen">
+          <FormDataLoadingError 
+            configurationData={configurationData}
+            onRetryAll={() => window.location.reload()}
+            criticalOnly={false}
+          />
+        </div>
+      );
+    }
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 lg:py-8 bg-background dark:bg-background min-h-screen">
       {/* Header con progreso usando componente refactorizado */}
@@ -318,6 +340,16 @@ const SurveyForm = () => {
         currentStage={currentStage}
         formStages={formStages}
       />
+
+      {/* Mostrar advertencias para errores no críticos */}
+      {configurationData.hasAnyError && (
+        <FormDataLoadingError 
+          configurationData={configurationData}
+          onRetryAll={() => window.location.reload()}
+          criticalOnly={false}
+          className="mb-6"
+        />
+      )}
 
       {/* Formulario actual con Tailwind CSS compatible con tema oscuro */}
       <Card className="shadow-lg border-border rounded-xl bg-card dark:bg-card dark:border-border">

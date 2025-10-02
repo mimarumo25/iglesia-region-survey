@@ -3,7 +3,6 @@ export interface Parentesco {
   id_parentesco: string;
   nombre: string;
   descripcion: string;
-  activo: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -11,13 +10,11 @@ export interface Parentesco {
 export interface ParentescoCreate {
   nombre: string;
   descripcion: string;
-  activo?: boolean;
 }
 
 export interface ParentescoUpdate {
   nombre: string;
   descripcion: string;
-  activo: boolean;
 }
 
 // Respuestas de la API
@@ -43,7 +40,6 @@ export interface ServerResponse<T> {
 export interface ParentescoFormData {
   nombre: string;
   descripcion: string;
-  activo: boolean;
 }
 
 // Paginación
@@ -58,6 +54,5 @@ export interface ParentescoPagination {
 // Filtros de búsqueda
 export interface ParentescoFilters {
   searchTerm?: string;
-  includeInactive?: boolean;
   limit?: number;
 }

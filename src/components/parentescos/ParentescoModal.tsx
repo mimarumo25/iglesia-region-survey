@@ -35,7 +35,6 @@ export const ParentescoModal: React.FC<ParentescoModalProps> = ({
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
-    activo: true,
   });
 
   const [errors, setErrors] = useState({
@@ -50,13 +49,11 @@ export const ParentescoModal: React.FC<ParentescoModalProps> = ({
         setFormData({
           nombre: parentesco.nombre || '',
           descripcion: parentesco.descripcion || '',
-          activo: parentesco.activo !== undefined ? parentesco.activo : true,
         });
       } else {
         setFormData({
           nombre: '',
           descripcion: '',
-          activo: true,
         });
       }
       setErrors({ nombre: '', descripcion: '' });
@@ -99,7 +96,6 @@ export const ParentescoModal: React.FC<ParentescoModalProps> = ({
     const success = await onSubmit({
       nombre: formData.nombre.trim(),
       descripcion: formData.descripcion.trim(),
-      activo: formData.activo,
     });
 
     if (success) {
@@ -107,14 +103,14 @@ export const ParentescoModal: React.FC<ParentescoModalProps> = ({
     }
   };
 
-  const handleInputChange = (field: keyof typeof formData, value: string | boolean) => {
+  const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
     
     // Limpiar error cuando el usuario empiece a escribir
-    if (field !== 'activo' && errors[field as keyof typeof errors]) {
+    if (errors[field as keyof typeof errors]) {
       setErrors(prev => ({
         ...prev,
         [field]: ''
@@ -175,22 +171,6 @@ export const ParentescoModal: React.FC<ParentescoModalProps> = ({
             {errors.descripcion && (
               <p className="text-sm text-red-600">{errors.descripcion}</p>
             )}
-          </div>
-
-          {/* Campo Activo */}
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="activo"
-              checked={formData.activo}
-              onCheckedChange={(checked) => handleInputChange('activo', checked)}
-              disabled={isLoading}
-            />
-            <Label htmlFor="activo" className="text-sm font-medium">
-              Activo
-            </Label>
-            <span className="text-sm text-gray-500">
-              {formData.activo ? '(Disponible para seleccionar)' : '(No disponible)'}
-            </span>
           </div>
 
           <DialogFooter>

@@ -24,12 +24,8 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  Eye,
-  EyeOff,
   X,
 } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 
 const ParentescosPage = () => {
   const parentescosHook = useParentescos();
@@ -38,10 +34,9 @@ const ParentescosPage = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
-  const [includeInactive, setIncludeInactive] = useState(false);
 
   // Query unificada - Una sola query que maneja tanto datos normales como búsqueda
-  const { data: parentescosResponse, isLoading: parentescosLoading, refetch: refetchParentescos } = parentescosHook.useParentescosQuery(page, limit, includeInactive, searchTerm);
+  const { data: parentescosResponse, isLoading: parentescosLoading, refetch: refetchParentescos } = parentescosHook.useParentescosQuery(page, limit, searchTerm);
 
   // Mutaciones de React Query
   const createMutation = parentescosHook.useCreateParentescoMutation();
@@ -76,7 +71,6 @@ const ParentescosPage = () => {
   const [formData, setFormData] = useState<ParentescoFormData>({
     nombre: '',
     descripcion: '',
-    activo: true,
   });
 
   // Manejo del formulario
@@ -87,11 +81,10 @@ const ParentescosPage = () => {
     createMutation.mutate({
       nombre: formData.nombre.trim(),
       descripcion: formData.descripcion?.trim() || null,
-      activo: formData.activo,
     }, {
       onSuccess: () => {
         setShowCreateDialog(false);
-        setFormData({ nombre: '', descripcion: '', activo: true });
+        setFormData({ nombre: '', descripcion: '' });
       }
     });
   };
@@ -105,13 +98,12 @@ const ParentescosPage = () => {
       data: {
         nombre: formData.nombre.trim(),
         descripcion: formData.descripcion?.trim() || null,
-        activo: formData.activo,
       }
     }, {
       onSuccess: () => {
         setShowEditDialog(false);
         setSelectedParentesco(null);
-        setFormData({ nombre: '', descripcion: '', activo: true });
+        setFormData({ nombre: '', descripcion: '' });
       }
     });
   };
@@ -129,7 +121,7 @@ const ParentescosPage = () => {
 
   // Funciones para abrir diálogos
   const handleOpenCreateDialog = () => {
-    setFormData({ nombre: '', descripcion: '', activo: true });
+    setFormData({ nombre: '', descripcion: '' });
     openCreateDialog();
   };
 
@@ -138,7 +130,6 @@ const ParentescosPage = () => {
     setFormData({
       nombre: parentesco.nombre,
       descripcion: parentesco.descripcion || '',
-      activo: parentesco.activo,
     });
     openEditDialog();
   };
@@ -165,11 +156,7 @@ const ParentescosPage = () => {
     setPage(newPage);
   };
 
-  // Manejo del filtro de inactivos
-  const handleIncludeInactiveChange = (checked: boolean) => {
-    setIncludeInactive(checked);
-    setPage(1); // Resetear paginación al cambiar filtro
-  };
+
 
   // Formatear fecha
   const formatDate = (dateString?: string) => {
@@ -232,16 +219,6 @@ const ParentescosPage = () => {
                     <X className="h-4 w-4" />
                   </Button>
                 )}
-              </div>
-              
-              {/* Incluir inactivos */}
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="include-inactive"
-                  checked={includeInactive}
-                  onCheckedChange={handleIncludeInactiveChange}
-                />
-                <Label htmlFor="include-inactive">Incluir Inactivos</Label>
               </div>
             </div>
           </div>
@@ -309,7 +286,6 @@ const ParentescosPage = () => {
                     <TableHead className="font-semibold">ID</TableHead>
                     <TableHead className="font-semibold">Nombre</TableHead>
                     <TableHead className="font-semibold">Descripción</TableHead>
-                    <TableHead className="font-semibold">Activo</TableHead>
                     <TableHead className="font-semibold">Fecha Creación</TableHead>
                     <TableHead className="text-right font-semibold text-muted-foreground">Acciones</TableHead>
                   </TableRow>
@@ -331,24 +307,11 @@ const ParentescosPage = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="bg-primary/10 text-muted-foreground border-primary/20">
                           {parentesco.descripcion || 'N/A'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {parentesco.activo ? (
-                          <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
-                            <Eye className="w-3 h-3 mr-1" /> Activo
-                          </Badge>
-                        ) : (
-                          <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
-                            <EyeOff className="w-3 h-3 mr-1" /> Inactivo
-                          </Badge>
-                        )}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="">
-                          {formatDate(parentesco.created_at)}
+                          {formatDate(parentesco.createdAt)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -377,6 +340,64 @@ const ParentescosPage = () => {
               </Table>
 
               {/* Sin paginación ya que la API devuelve todos los datos */}
+              {/* Controles de paginación */}
+              {pagination.totalPages > 1 && (
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    Mostrando {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} - {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} de {pagination.totalItems} registros
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage - 1)}
+                      disabled={pagination.currentPage <= 1}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Anterior
+                    </Button>
+                    
+                    <div className="flex items-center gap-1">
+                      {[...Array(pagination.totalPages)].map((_, index) => {
+                        const pageNumber = index + 1;
+                        if (
+                          pageNumber === 1 || 
+                          pageNumber === pagination.totalPages || 
+                          (pageNumber >= pagination.currentPage - 1 && pageNumber <= pagination.currentPage + 1)
+                        ) {
+                          return (
+                            <Button
+                              key={pageNumber}
+                              variant={pageNumber === pagination.currentPage ? "default" : "outline"}
+                              size="sm"
+                              className="w-8 h-8 p-0"
+                              onClick={() => handlePageChange(pageNumber)}
+                            >
+                              {pageNumber}
+                            </Button>
+                          );
+                        } else if (
+                          pageNumber === pagination.currentPage - 2 || 
+                          pageNumber === pagination.currentPage + 2
+                        ) {
+                          return <span key={pageNumber} className="text-muted-foreground">...</span>;
+                        }
+                        return null;
+                      })}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage + 1)}
+                      disabled={pagination.currentPage >= pagination.totalPages}
+                    >
+                      Siguiente
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </CardContent>
@@ -409,14 +430,6 @@ const ParentescosPage = () => {
           value={formData.descripcion}
           onChange={(value) => setFormData({ ...formData, descripcion: value })}
         />
-        <div className="flex items-center space-x-2 mt-4">
-          <Switch
-            id="activo"
-            checked={formData.activo}
-            onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
-          />
-          <Label htmlFor="activo">Activo</Label>
-        </div>
       </ConfigModal>
 
       {/* Modal de Editar Parentesco */}
@@ -446,14 +459,6 @@ const ParentescosPage = () => {
           value={formData.descripcion}
           onChange={(value) => setFormData({ ...formData, descripcion: value })}
         />
-        <div className="flex items-center space-x-2 mt-4">
-          <Switch
-            id="edit-activo"
-            checked={formData.activo}
-            onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
-          />
-          <Label htmlFor="edit-activo">Activo</Label>
-        </div>
       </ConfigModal>
 
       {/* Modal de Eliminar Parentesco */}

@@ -6,7 +6,9 @@ import { AutocompleteWithLoading } from "@/components/ui/autocomplete-with-loadi
 import { AutocompleteOption } from "@/components/ui/autocomplete";
 import ModernDatePicker from "@/components/ui/modern-date-picker";
 import CurrentDateDisplay from "@/components/ui/current-date-display";
+import ServiceErrorDisplay from "@/components/ui/service-error-display";
 import { FormField as FormFieldType } from "@/types/survey";
+import { Loader2 } from "lucide-react";
 
 interface StandardFormFieldProps {
   field: FormFieldType;
@@ -172,7 +174,8 @@ const StandardFormField = ({
           <div className={STANDARD_STYLES.fieldContainer}>
             {renderLabel()}
             <div className={STANDARD_STYLES.loadingContainer}>
-              <span className="text-muted-foreground font-medium">Cargando opciones...</span>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <span className="text-muted-foreground font-medium">Cargando opciones de {field.label.toLowerCase()}...</span>
             </div>
           </div>
         );
@@ -182,9 +185,13 @@ const StandardFormField = ({
         return (
           <div className={STANDARD_STYLES.fieldContainer}>
             {renderLabel()}
-            <div className={STANDARD_STYLES.errorContainer}>
-              <span className="text-destructive font-medium">Error al cargar opciones</span>
-            </div>
+            <ServiceErrorDisplay
+              error={error}
+              serviceName={field.label.toLowerCase()}
+              inline={true}
+              size="sm"
+              className="p-3 bg-destructive/5 rounded-lg border border-destructive/20"
+            />
           </div>
         );
       }

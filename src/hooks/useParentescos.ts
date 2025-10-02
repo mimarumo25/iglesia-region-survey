@@ -51,14 +51,13 @@ export const useParentescos = () => {
   const useParentescosQuery = (
     page: number = 1,
     limit: number = 10,
-    includeInactive: boolean = false,
     searchTerm: string = ''
   ) => {
     return useQuery({
-      queryKey: ['parentescos', { page, limit, includeInactive, searchTerm }],
+      queryKey: ['parentescos', { page, limit, searchTerm }],
       queryFn: async () => {
         // Obtener todos los datos sin paginación del backend
-        const response = await parentescosService.getParentescos(includeInactive, 1000, 1);
+        const response = await parentescosService.getParentescos(1000, 1);
         const allParentescos = Array.isArray(response) ? response : [];
         
         // Aplicar filtro de búsqueda
@@ -75,26 +74,10 @@ export const useParentescos = () => {
   const useSearchParentescosQuery = (
     searchTerm: string,
     page: number = 1,
-    limit: number = 10,
-    includeInactive: boolean = false
-  ) => {
-    // Reutilizar la query principal con el término de búsqueda
-    return useParentescosQuery(page, limit, includeInactive, searchTerm);
-  };
-
-  // Query para obtener parentescos activos solamente
-  const useParentescosActivosQuery = (
-    page: number = 1,
     limit: number = 10
   ) => {
-    return useQuery({
-      queryKey: ['parentescos', 'activos', { page, limit }],
-      queryFn: async () => {
-        const response = await parentescosService.getParentescosActivos(limit, page);
-        return response;
-      },
-      placeholderData: (previousData) => previousData,
-    });
+    // Reutilizar la query principal con el término de búsqueda
+    return useParentescosQuery(page, limit, searchTerm);
   };
 
   // Query para obtener un parentesco por ID
@@ -177,7 +160,6 @@ export const useParentescos = () => {
   return {
     useParentescosQuery,
     useSearchParentescosQuery,
-    useParentescosActivosQuery,
     useParentescoByIdQuery,
     useCreateParentescoMutation,
     useUpdateParentescoMutation,

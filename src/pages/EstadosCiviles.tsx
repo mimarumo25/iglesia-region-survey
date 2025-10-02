@@ -641,16 +641,6 @@ const EstadosCivilesPage = () => {
           )}
         </div>
 
-        {/* Indicador de estado del formulario */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/30 p-2 rounded">
-          <span>Estado del formulario:</span>
-          <span className={`font-medium ${
-            isValid && isDirty ? 'text-green-600' : 'text-amber-600'
-          }`}>
-            {!isDirty ? '📋 Completa los campos' : 
-             !isValid ? '⚠️ Revisa los errores' : '✅ Listo para crear'}
-          </span>
-        </div>
       </ConfigModal>
 
       {/* ✏️ Modal de Editar Estado Civil con Validaciones */}
@@ -721,16 +711,6 @@ const EstadosCivilesPage = () => {
           )}
         </div>
 
-        {/* Indicador de estado del formulario */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/30 p-2 rounded">
-          <span>Estado del formulario:</span>
-          <span className={`font-medium ${
-            isValid && isDirty ? 'text-green-600' : 'text-amber-600'
-          }`}>
-            {!isDirty ? '📋 Sin cambios' : 
-             !isValid ? '⚠️ Revisa los errores' : '✅ Listo para guardar'}
-          </span>
-        </div>
       </ConfigModal>
 
       {/* Modal de Eliminar Estado Civil */}

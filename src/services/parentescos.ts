@@ -11,7 +11,6 @@ class ParentescosService {
   
   // Obtener todos los parentescos
   async getParentescos(
-    includeInactive: boolean = true,
     limit: number = 10,
     page: number = 1
   ): Promise<Parentesco[]> {
@@ -21,15 +20,14 @@ class ParentescosService {
         `/api/catalog/parentescos`,
         {
           params: {
-            includeInactive,
             limit,
             page,
           },
         }
       );
       
-      // La API devuelve {success: true, message: {data: [...], total: X}}
-      if (response.data?.success && response.data?.message && Array.isArray(response.data.message.data)) {
+      // La API devuelve {success: true, message: {status: "success", data: [...], total: X}}
+      if (response.data?.success && response.data?.message?.data && Array.isArray(response.data.message.data)) {
         return response.data.message.data;
       }
       
@@ -53,7 +51,7 @@ class ParentescosService {
       
       return {
         status: response.data?.success ? 'success' : 'error',
-        message: response.data?.data || 'Parentesco obtenido correctamente',
+        message: response.data?.message?.message || response.data?.data || 'Parentesco obtenido correctamente',
         data: parentesco
       };
     } catch (error) {
@@ -68,10 +66,7 @@ class ParentescosService {
       const client = getApiClient();
       const response = await client.post(
         `/api/catalog/parentescos`,
-        {
-          ...parentesco,
-          activo: parentesco.activo !== undefined ? parentesco.activo : true
-        }
+        parentesco
       );
       
       // La API devuelve {success: true, message: {parentesco_data}, data: "mensaje"}
@@ -98,7 +93,7 @@ class ParentescosService {
       );
       
       // La API podría tener estructura anidada, manejamos ambos casos
-      const updatedParentesco = response.data?.message?.data || response.data?.data || response.data;
+      const updatedParentesco = response.data?.message?.data || response.data?.data || response.data?.message;
       
       return {
         status: response.data?.success ? 'success' : 'error',
@@ -127,7 +122,6 @@ class ParentescosService {
   // Buscar parentescos por nombre o descripción
   async searchParentescos(
     searchTerm: string,
-    includeInactive: boolean = true,
     limit: number = 10,
     page: number = 1
   ): Promise<Parentesco[]> {
@@ -138,51 +132,20 @@ class ParentescosService {
         {
           params: {
             q: searchTerm,
-            includeInactive,
             limit,
             page,
           },
         }
       );
       
-      // La API devuelve {success: true, message: {data: [...], total: X}}
-      if (response.data?.success && response.data?.message && Array.isArray(response.data.message.data)) {
+      // La API devuelve {success: true, message: {status: "success", data: [...], total: X}}
+      if (response.data?.success && response.data?.message?.data && Array.isArray(response.data.message.data)) {
         return response.data.message.data;
       }
       
       return [];
     } catch (error) {
       console.error('Error al buscar parentescos:', error);
-      throw error;
-    }
-  }
-
-  // Obtener parentescos activos solamente
-  async getParentescosActivos(
-    limit: number = 10,
-    page: number = 1
-  ): Promise<Parentesco[]> {
-    try {
-      const client = getApiClient();
-      const response = await client.get(
-        `/api/catalog/parentescos`,
-        {
-          params: {
-            includeInactive: false,
-            limit,
-            page,
-          },
-        }
-      );
-      
-      // La API devuelve {success: true, message: {data: [...], total: X}}
-      if (response.data?.success && response.data?.message && Array.isArray(response.data.message.data)) {
-        return response.data.message.data;
-      }
-      
-      return [];
-    } catch (error) {
-      console.error('Error al obtener parentescos activos:', error);
       throw error;
     }
   }
