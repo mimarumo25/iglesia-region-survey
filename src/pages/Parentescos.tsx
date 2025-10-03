@@ -12,6 +12,7 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
+import ConfigPagination from '@/components/ui/config-pagination';
 import { useParentescos } from '@/hooks/useParentescos';
 import { Parentesco, ParentescoFormData } from '@/types/parentescos';
 import {
@@ -22,8 +23,6 @@ import {
   Trash2,
   Loader2,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
   X,
 } from 'lucide-react';
 
@@ -43,14 +42,22 @@ const ParentescosPage = () => {
   const updateMutation = parentescosHook.useUpdateParentescoMutation();
   const deleteMutation = parentescosHook.useDeleteParentescoMutation();
 
-  // Datos y paginación simplificados
+    // Datos y paginación simplificados
   const parentescos = (parentescosResponse as any)?.data || [];
   const pagination = {
     totalItems: (parentescosResponse as any)?.pagination?.totalCount || 0,
     totalPages: (parentescosResponse as any)?.pagination?.totalPages || 1,
     currentPage: (parentescosResponse as any)?.pagination?.currentPage || 1,
-    itemsPerPage: (parentescosResponse as any)?.pagination?.limit || 10
+    hasNext: (parentescosResponse as any)?.pagination?.hasNext || false,
+    hasPrev: (parentescosResponse as any)?.pagination?.hasPrev || false,
+    itemsPerPage: (parentescosResponse as any)?.pagination?.limit || limit
   };
+
+  // Debug logs
+  console.log('🎯 Página: parentescosResponse:', parentescosResponse);
+  console.log('📊 Página: parentescos array:', parentescos);
+  console.log('📄 Página: pagination:', pagination);
+  console.log('⏳ Página: isLoading:', parentescosLoading);
 
   const loading = parentescosLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
@@ -156,6 +163,11 @@ const ParentescosPage = () => {
     setPage(newPage);
   };
 
+  const handleItemsPerPageChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1); // Reset a primera página cuando cambie el límite
+  };
+
 
 
   // Formatear fecha
@@ -226,7 +238,7 @@ const ParentescosPage = () => {
       </Card>
 
       {/* Estadísticas con diseño mejorado */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 gap-4 mb-6">
         <Card className="  ">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -237,18 +249,6 @@ const ParentescosPage = () => {
                 <p className="text-2xl font-bold text-foreground">{pagination.totalItems}</p>
               </div>
               <Users className="w-8 h-8 text-muted-foreground opacity-70 " />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="  ">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Páginas</p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalPages}</p>
-              </div>
-              <Users className="w-8 h-8 text-secondary opacity-70 " />
             </div>
           </CardContent>
         </Card>
@@ -339,65 +339,19 @@ const ParentescosPage = () => {
                 </TableBody>
               </Table>
 
-              {/* Sin paginación ya que la API devuelve todos los datos */}
-              {/* Controles de paginación */}
-              {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="text-sm text-muted-foreground">
-                    Mostrando {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} - {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} de {pagination.totalItems} registros
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={pagination.currentPage <= 1}
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Anterior
-                    </Button>
-                    
-                    <div className="flex items-center gap-1">
-                      {[...Array(pagination.totalPages)].map((_, index) => {
-                        const pageNumber = index + 1;
-                        if (
-                          pageNumber === 1 || 
-                          pageNumber === pagination.totalPages || 
-                          (pageNumber >= pagination.currentPage - 1 && pageNumber <= pagination.currentPage + 1)
-                        ) {
-                          return (
-                            <Button
-                              key={pageNumber}
-                              variant={pageNumber === pagination.currentPage ? "default" : "outline"}
-                              size="sm"
-                              className="w-8 h-8 p-0"
-                              onClick={() => handlePageChange(pageNumber)}
-                            >
-                              {pageNumber}
-                            </Button>
-                          );
-                        } else if (
-                          pageNumber === pagination.currentPage - 2 || 
-                          pageNumber === pagination.currentPage + 2
-                        ) {
-                          return <span key={pageNumber} className="text-muted-foreground">...</span>;
-                        }
-                        return null;
-                      })}
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={pagination.currentPage >= pagination.totalPages}
-                    >
-                      Siguiente
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              {/* Paginación unificada con patrón completo */}
+              <ConfigPagination
+                variant="complete"
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.totalItems}
+                itemsPerPage={limit}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+                showInfo={true}
+                showItemsPerPageSelector={true}
+                itemsPerPageOptions={[5, 10, 25, 50]}
+              />
             </>
           )}
         </CardContent>

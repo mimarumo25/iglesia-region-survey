@@ -14,8 +14,12 @@ class ParentescosService {
     limit: number = 10,
     page: number = 1
   ): Promise<Parentesco[]> {
+    console.log('🚀 Servicio: Iniciando getParentescos con limit:', limit, 'page:', page);
+    
     try {
       const client = getApiClient();
+      console.log('📡 Servicio: Cliente obtenido, haciendo petición...');
+      
       const response = await client.get(
         `/api/catalog/parentescos`,
         {
@@ -26,14 +30,43 @@ class ParentescosService {
         }
       );
       
-      // La API devuelve {success: true, message: {status: "success", data: [...], total: X}}
+      console.log('🔍 Respuesta completa de la API parentescos:', response.data);
+      console.log('🔍 Estructura de response.data.message:', response.data?.message);
+      console.log('🔍 Datos array:', response.data?.message?.data);
+      console.log('🔍 Success flag:', response.data?.success);
+      
+      // Probemos diferentes estructuras de respuesta
       if (response.data?.success && response.data?.message?.data && Array.isArray(response.data.message.data)) {
+        console.log('✅ Parentescos encontrados (estructura anidada):', response.data.message.data.length);
         return response.data.message.data;
       }
       
+      // Estructura alternativa: respuesta directa
+      if (response.data && Array.isArray(response.data)) {
+        console.log('✅ Parentescos encontrados (estructura directa):', response.data.length);
+        return response.data;
+      }
+      
+      // Estructura alternativa: data en primer nivel
+      if (response.data?.data && Array.isArray(response.data.data)) {
+        console.log('✅ Parentescos encontrados (data en primer nivel):', response.data.data.length);
+        return response.data.data;
+      }
+      
+      console.log('⚠️ No se encontraron parentescos o estructura incorrecta');
+      console.log('🔍 Estructura completa:', JSON.stringify(response.data, null, 2));
       return [];
-    } catch (error) {
-      console.error('Error al obtener parentescos:', error);
+      
+    } catch (error: any) {
+      console.error('❌ Error en getParentescos:', error);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
+      
+      // Si es error de autenticación, lanzar error específico
+      if (error.response?.status === 401) {
+        throw new Error('Debe iniciar sesión para acceder a los datos de parentescos');
+      }
+      
       throw error;
     }
   }

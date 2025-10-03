@@ -16,10 +16,9 @@ import {
   Trash2,
   Loader2,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
   Building2,
 } from 'lucide-react';
+import { ConfigPagination } from '@/components/ui/config-pagination';
 
 const VeredasPage = () => {
   const veredasHook = useVeredas();
@@ -28,7 +27,7 @@ const VeredasPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMunicipioFilter, setSelectedMunicipioFilter] = useState<string>('');
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit, setLimit] = useState(10);
 
   // Queries usando patrón unificado
   const { data: municipiosData, isLoading: municipiosLoading } = veredasHook.useMunicipiosQuery();
@@ -144,6 +143,11 @@ const VeredasPage = () => {
   // Manejo de paginación
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+  };
+
+  const handleItemsPerPageChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1); // Reset a primera página cuando cambie el límite
   };
 
   // Obtener nombre del municipio desde la vereda o desde la lista de municipios como fallback
@@ -388,37 +392,23 @@ const VeredasPage = () => {
                 itemKey="id_vereda"
               />
 
-              {/* Paginación con diseño mejorado */}
-              {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <p className="text-sm text-muted-foreground">
-                    Mostrando {veredas.length} de {pagination.total} veredas
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.page - 1)}
-                      disabled={pagination.page === 1}
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Anterior
-                    </Button>
-                    <span className="flex items-center px-3 text-sm font-medium text-muted-foreground bg-primary/10 rounded-md">
-                      Página {pagination.page} de {pagination.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.page + 1)}
-                      disabled={pagination.page === pagination.totalPages}
-                    >
-                      Siguiente
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              {/* Paginación unificada con patrón completo */}
+              <ConfigPagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.total}
+                itemsPerPage={limit}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+                showItemsPerPageSelector={true}
+                itemsPerPageOptions={[5, 10, 25, 50]}
+                variant="complete"
+                showInfo={true}
+                showFirstLast={false}
+                maxVisiblePages={5}
+                loading={loading}
+                infoText="Mostrando {start}-{end} de {total} registros"
+              />
             </>
           )}
         </CardContent>

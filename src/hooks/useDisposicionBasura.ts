@@ -14,55 +14,52 @@ export const useDisposicionBasura = () => {
 
   // ===== QUERIES =====
 
-  // Query unificada para tipos de disposición de basura con parámetro de búsqueda opcional
-  const useDisposicionBasuraQuery = (
-    searchTerm?: string,
-    page: number = 1,
-    limit: number = 10,
-    sortBy: string = 'nombre',
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ) => {
+  // Query unificada para obtener todos los tipos de disposición de basura
+  const useDisposicionBasuraQuery = () => {
     return useQuery<DisposicionBasuraResponse, Error>({
-      queryKey: ['disposicionBasura', { searchTerm, page, limit, sortBy, sortOrder }],
-      queryFn: () => {
-        if (searchTerm && searchTerm.trim()) {
-          return disposicionBasuraService.searchDisposicionBasura(searchTerm.trim(), limit, page, sortBy, sortOrder);
-        }
-        return disposicionBasuraService.getDisposicionBasura(limit, page, sortBy, sortOrder);
+      queryKey: ['disposicionBasura'],
+      queryFn: async () => {
+        console.log('🔄 Hook: Ejecutando query para disposición basura...');
+        
+        // Obtener todos los datos sin paginación del backend
+        const response = await disposicionBasuraService.getDisposicionBasura(1000, 1);
+        console.log('📦 Hook: Respuesta del servicio:', response);
+        
+        return response;
       },
       placeholderData: (previousData) => previousData,
     });
   };
 
   // Función helper para paginación del lado del cliente
-  const paginateClientSide = (items: DisposicionBasura[], page: number, limit: number) => {
+  const paginateClientSide = <T>(data: T[], page: number, limit: number) => {
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
-    const paginatedItems = items.slice(startIndex, endIndex);
-    
-    const totalPages = Math.ceil(items.length / limit);
-    const currentPage = Math.min(page, Math.max(1, totalPages));
+    const paginatedData = data.slice(startIndex, endIndex);
     
     return {
-      items: paginatedItems,
+      items: paginatedData,
       pagination: {
-        currentPage,
-        totalPages,
-        totalCount: items.length,
-        hasNext: currentPage < totalPages,
-        hasPrev: currentPage > 1,
-      },
+        currentPage: page,
+        totalPages: Math.ceil(data.length / limit),
+        totalCount: data.length,
+        hasNext: page < Math.ceil(data.length / limit),
+        hasPrev: page > 1,
+        limit: limit
+      }
     };
   };
 
   // Función helper para filtrar por búsqueda del lado del cliente
   const filterBySearch = (items: DisposicionBasura[], searchTerm: string): DisposicionBasura[] => {
-    if (!searchTerm || !searchTerm.trim()) return items;
+    if (!searchTerm || !searchTerm.trim()) {
+      return items;
+    }
     
     const term = searchTerm.toLowerCase().trim();
-    return items.filter((disposicion) => 
-      disposicion.nombre.toLowerCase().includes(term) ||
-      (disposicion.descripcion && disposicion.descripcion.toLowerCase().includes(term))
+    return items.filter(disposicion => 
+      disposicion.nombre?.toLowerCase().includes(term) ||
+      disposicion.descripcion?.toLowerCase().includes(term)
     );
   };
 

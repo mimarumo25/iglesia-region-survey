@@ -12,6 +12,7 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
+import { ConfigPagination } from '@/components/ui/config-pagination';
 import { useDisposicionBasura } from '@/hooks/useDisposicionBasura';
 import { DisposicionBasura, DisposicionBasuraCreate } from '@/types/disposicion-basura';
 import {
@@ -22,8 +23,6 @@ import {
   Trash2,
   Loader2,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
   X,
 } from 'lucide-react';
 
@@ -44,39 +43,58 @@ const DisposicionBasuraPage = () => {
 
   // Estados para paginación y filtros
   const [page, setPage] = useState(1);
-  const [limit] = useState(50); // Límite alto para paginación del lado del cliente
-  const [sortBy] = useState('nombre');
-  const [sortOrder] = useState<'ASC' | 'DESC'>('ASC');
+  const [limit, setLimit] = useState(5); // Controlado por el usuario
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Query unificada con búsqueda opcional
-  const { data: disposicionBasuraResponse, isLoading, refetch } = useDisposicionBasuraQuery(
-    searchTerm,
-    1, // Siempre página 1 porque paginamos del lado del cliente
-    limit,
-    sortBy,
-    sortOrder
-  );
+  // Query unificada - Una sola query que maneja tanto datos normales como búsqueda
+  const { data: disposicionBasuraResponse, isLoading, refetch } = useDisposicionBasuraQuery();
 
   // Mutaciones
   const createMutation = useCreateDisposicionBasuraMutation();
   const updateMutation = useUpdateDisposicionBasuraMutation();
   const deleteMutation = useDeleteDisposicionBasuraMutation();
 
-  // Procesamiento de datos con filtros del lado del cliente
-  const { items: disposicionBasura, pagination } = useMemo(() => {
+  // Procesamiento de datos con filtros del lado del cliente - Patrón de Parentescos
+  const { disposicionBasura, pagination } = useMemo(() => {
+    // Obtener array de datos directamente
     let allItems: DisposicionBasura[] = [];
 
+    // Manejar diferentes estructuras de respuesta del backend
     if (disposicionBasuraResponse?.status === 'success') {
-      allItems = disposicionBasuraResponse.data?.data || [];
+      // Si tiene data.data, usar esa estructura
+      if (disposicionBasuraResponse.data?.data) {
+        allItems = Array.isArray(disposicionBasuraResponse.data.data) 
+          ? disposicionBasuraResponse.data.data 
+          : [];
+      }
+      // Si no, usar directamente data
+      else if (Array.isArray(disposicionBasuraResponse.data)) {
+        allItems = disposicionBasuraResponse.data;
+      }
+    }
+    // También manejar si viene directamente como array
+    else if (Array.isArray(disposicionBasuraResponse)) {
+      allItems = disposicionBasuraResponse;
     }
 
-    // Filtrar por búsqueda del lado del cliente (para búsquedas en tiempo real)
+    // Aplicar filtro de búsqueda del lado del cliente
     const filteredItems = filterBySearch(allItems, searchTerm);
-
-    // Paginar del lado del cliente
-    return paginateClientSide(filteredItems, page, 10); // 10 items por página en la vista
-  }, [disposicionBasuraResponse, searchTerm, page, filterBySearch, paginateClientSide]);
+    
+    // Aplicar paginación client-side usando la función helper
+    const result = paginateClientSide(filteredItems, page, limit);
+    
+    return {
+      disposicionBasura: result.items,
+      pagination: {
+        totalItems: result.pagination.totalCount,
+        totalPages: result.pagination.totalPages,
+        currentPage: result.pagination.currentPage,
+        hasNext: result.pagination.hasNext,
+        hasPrev: result.pagination.hasPrev,
+        itemsPerPage: limit
+      }
+    };
+  }, [disposicionBasuraResponse, searchTerm, page, limit, filterBySearch, paginateClientSide]);
 
   const loading = isLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
@@ -99,7 +117,6 @@ const DisposicionBasuraPage = () => {
     descripcion: '',
   });
 
-  // Manejo del formulario
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.nombre.trim()) return;
@@ -145,7 +162,6 @@ const DisposicionBasuraPage = () => {
     });
   };
 
-  // Funciones para abrir diálogos
   const handleOpenCreateDialog = () => {
     setFormData({ nombre: '', descripcion: '' });
     openCreateDialog();
@@ -165,149 +181,169 @@ const DisposicionBasuraPage = () => {
     openDeleteDialog();
   };
 
-  // Manejo de paginación
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
   };
 
-  // Limpiar búsqueda
+  const handleItemsPerPageChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1); // Reset a primera página cuando cambie el límite
+  };
+
   const handleClearSearch = () => {
     setSearchTerm('');
     setPage(1);
   };
 
-  // Formatear fecha
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('es-ES');
   };
 
   return (
-    <div className="min-h-screen bg-background/95 dark:bg-background/95 transition-colors duration-200">
-      <div className="container mx-auto p-4 space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex items-center space-x-2">
-            <Trash className="h-6 w-6 text-primary" />
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Disposición de Basura</h1>
-              <p className="text-sm text-muted-foreground">
-                Gestión de tipos de disposición de basura del sistema
-              </p>
-            </div>
-          </div>
-          <Button
-            onClick={handleOpenCreateDialog}
-            className="flex items-center space-x-2"
+    <div className="container mx-auto p-6 max-w-7xl">
+      {/* Header con diseño mejorado */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+            <Trash className="w-8 h-8 text-muted-foreground" />
+            Gestión de Disposición de Basura
+          </h1>
+          <p className="text-muted-foreground mt-2">Administra los tipos de disposición de basura para encuestas</p>
+        </div>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => refetch()}
             disabled={loading}
           >
-            <Plus className="h-4 w-4" />
-            <span>Nuevo Tipo</span>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Actualizar
+          </Button>
+          <Button 
+            onClick={handleOpenCreateDialog}
+            disabled={loading}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo Tipo
           </Button>
         </div>
+      </div>
 
-        {/* Search and Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Buscar tipos de disposición..."
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setPage(1); // Resetear paginación al buscar
-                  }}
-                  className="pl-10 pr-10"
-                />
-                {searchTerm && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleClearSearch}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-              <div className="flex items-center space-x-2">
+      {/* Búsqueda y filtros */}
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Buscar tipos de disposición..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setPage(1);
+                }}
+                className="pl-10 pr-10"
+              />
+              {searchTerm && (
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  onClick={() => refetch()}
-                  disabled={loading}
+                  onClick={handleClearSearch}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
                 >
-                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  <X className="w-4 h-4" />
                 </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Estadísticas */}
+      <div className="grid grid-cols-1 gap-4 mb-6">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Tipos</p>
+                <p className="text-2xl font-bold text-foreground">{pagination.totalItems}</p>
               </div>
+              <Trash className="w-8 h-8 text-muted-foreground opacity-70" />
             </div>
           </CardContent>
         </Card>
+      </div>
 
-        {/* Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Lista de Tipos de Disposición</span>
-              <Badge variant="secondary">
-                Total: {pagination.totalCount}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Descripción</TableHead>
-                    <TableHead>Fecha Creación</TableHead>
-                    <TableHead className="w-[100px]">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
+      {/* Tabla */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Trash className="w-5 h-5" />
+            Listado de Tipos de Disposición
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-8 h-8 text-muted-foreground animate-spin" />
+              <span className="ml-2">Cargando...</span>
+            </div>
+          ) : disposicionBasura.length === 0 ? (
+            <div className="text-center py-8">
+              <Trash className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
+              <p className="text-muted-foreground">
+                {searchTerm ? 'No se encontraron resultados' : 'No hay tipos registrados'}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="rounded-md border overflow-x-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={4} className="h-32">
-                        <div className="flex items-center justify-center">
-                          <Loader2 className="h-6 w-6 animate-spin" />
-                          <span className="ml-2">Cargando tipos de disposición...</span>
-                        </div>
-                      </TableCell>
+                      <TableHead className="font-semibold">ID</TableHead>
+                      <TableHead className="font-semibold">Nombre</TableHead>
+                      <TableHead className="font-semibold">Descripción</TableHead>
+                      <TableHead className="font-semibold">Fecha Creación</TableHead>
+                      <TableHead className="text-right font-semibold">Acciones</TableHead>
                     </TableRow>
-                  ) : disposicionBasura.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="h-32 text-center">
-                        {searchTerm
-                          ? 'No se encontraron tipos que coincidan con la búsqueda'
-                          : 'No hay tipos de disposición registrados'}
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    disposicionBasura.map((disposicion) => (
-                      <TableRow key={disposicion.id_tipo_disposicion_basura}>
+                  </TableHeader>
+                  <TableBody>
+                    {disposicionBasura.map((disposicion) => (
+                      <TableRow 
+                        key={disposicion.id_tipo_disposicion_basura}
+                        className="hover:bg-muted/50"
+                      >
                         <TableCell className="font-medium">
-                          {disposicion.nombre}
-                        </TableCell>
-                        <TableCell className="max-w-xs truncate">
-                          {disposicion.descripcion}
+                          {disposicion.id_tipo_disposicion_basura}
                         </TableCell>
                         <TableCell>
-                          {formatDate(disposicion.created_at)}
+                          <div className="flex items-center gap-2">
+                            <Trash className="w-4 h-4 text-muted-foreground" />
+                            <span className="font-medium">{disposicion.nombre}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-xs">
+                          <span className="truncate block">
+                            {disposicion.descripcion || 'N/A'}
+                          </span>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center space-x-1">
+                          <Badge variant="outline">
+                            {formatDate(disposicion.created_at)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex gap-2 justify-end">
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleOpenEditDialog(disposicion)}
                               disabled={loading}
                             >
-                              <Edit2 className="h-4 w-4" />
+                              <Edit2 className="w-4 h-4" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -316,119 +352,106 @@ const DisposicionBasuraPage = () => {
                               disabled={loading}
                               className="text-destructive hover:text-destructive"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between space-x-2 py-4">
-                <div className="text-sm text-muted-foreground">
-                  Página {pagination.currentPage} de {pagination.totalPages}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(pagination.currentPage - 1)}
-                    disabled={!pagination.hasPrev || loading}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    Anterior
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(pagination.currentPage + 1)}
-                    disabled={!pagination.hasNext || loading}
-                  >
-                    Siguiente
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Modal de Crear Tipo */}
-        <ConfigModal
-          open={showCreateDialog}
-          onOpenChange={setShowCreateDialog}
-          type="create"
-          title="Nuevo Tipo de Disposición"
-          description="Crea un nuevo tipo de disposición de basura"
-          icon={Trash}
-          loading={createMutation.isPending}
-          onSubmit={handleCreateSubmit}
-          submitText="Crear Tipo"
-        >
-          <ConfigFormField
-            id="nombre"
-            label="Nombre del Tipo"
-            placeholder="Ej: Relleno sanitario"
-            value={formData.nombre}
-            onChange={(value) => setFormData({ ...formData, nombre: value })}
-            required
-          />
-          <ConfigFormField
-            id="descripcion"
-            label="Descripción"
-            placeholder="Breve descripción del tipo de disposición"
-            value={formData.descripcion}
-            onChange={(value) => setFormData({ ...formData, descripcion: value })}
-          />
-        </ConfigModal>
+              {/* Paginación unificada con patrón completo */}
+              <ConfigPagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.totalItems}
+                itemsPerPage={pagination.itemsPerPage}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+                showItemsPerPageSelector={true}
+                itemsPerPageOptions={[5, 10, 25, 50]}
+                variant="complete"
+                showInfo={true}
+                showFirstLast={false}
+                maxVisiblePages={5}
+                loading={loading}
+                infoText="Mostrando {start}-{end} de {total} registros"
+              />
+            </>
+          )}
+        </CardContent>
+      </Card>
 
-        {/* Modal de Editar Tipo */}
-        <ConfigModal
-          open={showEditDialog}
-          onOpenChange={setShowEditDialog}
-          type="edit"
-          title="Editar Tipo de Disposición"
-          description="Modifica los datos del tipo de disposición"
-          icon={Edit2}
-          loading={updateMutation.isPending}
-          onSubmit={handleEditSubmit}
-          submitText="Guardar Cambios"
-        >
-          <ConfigFormField
-            id="nombre"
-            label="Nombre del Tipo"
-            placeholder="Ej: Relleno sanitario"
-            value={formData.nombre}
-            onChange={(value) => setFormData({ ...formData, nombre: value })}
-            required
-          />
-          <ConfigFormField
-            id="descripcion"
-            label="Descripción"
-            placeholder="Breve descripción del tipo de disposición"
-            value={formData.descripcion}
-            onChange={(value) => setFormData({ ...formData, descripcion: value })}
-          />
-        </ConfigModal>
-
-        {/* Modal de Eliminar Tipo */}
-        <ConfigModal
-          open={showDeleteDialog}
-          onOpenChange={setShowDeleteDialog}
-          type="delete"
-          title="Eliminar Tipo de Disposición"
-          description="¿Estás seguro de que deseas eliminar este tipo de disposición?"
-          icon={Trash2}
-          loading={deleteMutation.isPending}
-          onConfirm={handleDelete}
-          entityName={selectedDisposicionBasura?.nombre}
+      {/* Modales */}
+      <ConfigModal
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        type="create"
+        title="Nuevo Tipo de Disposición"
+        description="Crea un nuevo tipo de disposición de basura"
+        icon={Trash}
+        loading={createMutation.isPending}
+        onSubmit={handleCreateSubmit}
+        submitText="Crear Tipo"
+      >
+        <ConfigFormField
+          id="nombre"
+          label="Nombre del Tipo"
+          placeholder="Ej: Relleno sanitario"
+          value={formData.nombre}
+          onChange={(value) => setFormData({ ...formData, nombre: value })}
+          required
         />
-      </div>
+        <ConfigFormField
+          id="descripcion"
+          label="Descripción"
+          placeholder="Breve descripción del tipo de disposición"
+          value={formData.descripcion}
+          onChange={(value) => setFormData({ ...formData, descripcion: value })}
+        />
+      </ConfigModal>
+
+      <ConfigModal
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        type="edit"
+        title="Editar Tipo de Disposición"
+        description="Modifica los datos del tipo de disposición"
+        icon={Edit2}
+        loading={updateMutation.isPending}
+        onSubmit={handleEditSubmit}
+        submitText="Guardar Cambios"
+      >
+        <ConfigFormField
+          id="nombre"
+          label="Nombre del Tipo"
+          placeholder="Ej: Relleno sanitario"
+          value={formData.nombre}
+          onChange={(value) => setFormData({ ...formData, nombre: value })}
+          required
+        />
+        <ConfigFormField
+          id="descripcion"
+          label="Descripción"
+          placeholder="Breve descripción del tipo de disposición"
+          value={formData.descripcion}
+          onChange={(value) => setFormData({ ...formData, descripcion: value })}
+        />
+      </ConfigModal>
+
+      <ConfigModal
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        type="delete"
+        title="Eliminar Tipo de Disposición"
+        description="¿Estás seguro de que deseas eliminar este tipo de disposición?"
+        icon={Trash2}
+        loading={deleteMutation.isPending}
+        onConfirm={handleDelete}
+        entityName={selectedDisposicionBasura?.nombre}
+      />
     </div>
   );
 };

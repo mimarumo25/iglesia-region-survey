@@ -5,7 +5,7 @@ export interface SituacionCivil {
   descripcion?: string;
   codigo?: string;
   orden?: number;
-  activo: boolean;
+  activo?: boolean;
   createdAt?: string; // La API usa camelCase
   updatedAt?: string; // La API usa camelCase
 }
@@ -14,8 +14,6 @@ export interface SituacionCivilFormData {
   nombre: string;
   descripcion?: string;
   codigo?: string;
-  orden?: number;
-  activo: boolean;
 }
 
 export interface SituacionCivilUpdateData extends SituacionCivilFormData {}

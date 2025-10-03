@@ -12,6 +12,7 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
+import ConfigPagination from '@/components/ui/config-pagination';
 import { useTiposVivienda } from '@/hooks/useTiposVivienda';
 import { TipoVivienda, TipoViviendaFormData, ServerResponse, TiposViviendaResponse } from '@/types/tipos-vivienda';
 import {
@@ -22,10 +23,6 @@ import {
   Trash2,
   Loader2,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-  Eye,
-  EyeOff,
   X,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
@@ -43,7 +40,7 @@ const TiposViviendaPage = () => {
 
   // Estados para paginación y filtros
   const [page, setPage] = useState(1);
-  const [limit] = useState(50); // Límite alto para paginación del lado del cliente
+  const [limit, setLimit] = useState(50); // Límite alto para paginación del lado del cliente
   const [sortBy] = useState('nombre');
   const [sortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState('');
@@ -177,6 +174,11 @@ const TiposViviendaPage = () => {
   // Manejo de paginación
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+  };
+
+  const handleItemsPerPageChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1); // Reset a primera página cuando cambie el límite
   };
 
   // Manejo del filtro de activos
@@ -331,7 +333,6 @@ const TiposViviendaPage = () => {
                     <TableHead className="font-semibold">ID</TableHead>
                     <TableHead className="font-semibold">Nombre</TableHead>
                     <TableHead className="font-semibold">Descripción</TableHead>
-                    <TableHead className="font-semibold">Estado</TableHead>
                     <TableHead className="font-semibold">Fecha Creación</TableHead>
                     <TableHead className="text-right font-semibold text-muted-foreground">Acciones</TableHead>
                   </TableRow>
@@ -356,24 +357,6 @@ const TiposViviendaPage = () => {
                        
                           {tipo.descripcion || 'N/A'}
                        
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={tipo.activo ? "default" : "secondary"} 
-                          className={tipo.activo ? "bg-green-100 text-green-800 hover:bg-green-200" : ""}
-                        >
-                          {tipo.activo ? (
-                            <>
-                              <Eye className="w-3 h-3 mr-1" />
-                              Activo
-                            </>
-                          ) : (
-                            <>
-                              <EyeOff className="w-3 h-3 mr-1" />
-                              Inactivo
-                            </>
-                          )}
-                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="">
@@ -405,39 +388,23 @@ const TiposViviendaPage = () => {
                 </TableBody>
               </Table>
 
-              {/* Paginación con diseño mejorado */}
-              {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <p className="text-sm text-muted-foreground">
-                    Mostrando {tiposVivienda.length} de {pagination.totalCount} tipos
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={pagination.currentPage === 1}
-                      className=""
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Anterior
-                    </Button>
-                    <span className="flex items-center px-3 text-sm font-medium text-muted-foreground bg-primary/10 rounded-md">
-                      Página {pagination.currentPage} de {pagination.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={pagination.currentPage === pagination.totalPages}
-                      className=""
-                    >
-                      Siguiente
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              {/* Paginación unificada con patrón completo */}
+              <ConfigPagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.totalCount}
+                itemsPerPage={10}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+                showItemsPerPageSelector={true}
+                itemsPerPageOptions={[5, 10, 25, 50]}
+                variant="complete"
+                showInfo={true}
+                showFirstLast={false}
+                maxVisiblePages={5}
+                loading={loading}
+                infoText="Mostrando {start}-{end} de {total} registros"
+              />
             </>
           )}
         </CardContent>
@@ -470,14 +437,6 @@ const TiposViviendaPage = () => {
           value={formData.descripcion}
           onChange={(value) => setFormData({ ...formData, descripcion: value })}
         />
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="activo"
-            checked={formData.activo}
-            onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
-          />
-          <Label htmlFor="activo">Activo</Label>
-        </div>
       </ConfigModal>
 
       {/* Modal de Editar Tipo de Vivienda */}

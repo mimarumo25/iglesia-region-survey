@@ -13,6 +13,7 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
+import ConfigPagination from '@/components/ui/config-pagination';
 import { useProfesionesQuery, useProfesiones, paginateClientSide, filterBySearch } from '@/hooks/useProfesiones';
 import { Profesion, ProfesionFormData } from '@/types/profesiones';
 import {
@@ -22,8 +23,6 @@ import {
   Trash2,
   Loader2,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
   CheckCircle2,
   XCircle,
   X
@@ -35,7 +34,7 @@ const ProfesionesPage = () => {
   // Estados para búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // ✅ USAR PATRÓN UNIFICADO - Single query 
   const { data: response, isLoading, refetch } = useProfesionesQuery(searchTerm);
@@ -174,6 +173,11 @@ const ProfesionesPage = () => {
   // Manejo de paginación
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
+  };
+
+  const handleItemsPerPageChange = (newLimit: number) => {
+    setItemsPerPage(newLimit);
+    setCurrentPage(1); // Reset a primera página cuando cambie el límite
   };
 
   // Formatear fecha
@@ -339,37 +343,23 @@ const ProfesionesPage = () => {
                 </TableBody>
               </Table>
 
-              {/* ✅ PAGINACIÓN DINÁMICA */}
-              {processedData.pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <p className="text-sm text-muted-foreground">
-                    Mostrando {processedData.items.length} de {processedData.pagination.totalCount} profesiones
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(processedData.pagination.currentPage - 1)}
-                      disabled={!processedData.pagination.hasPrev}
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Anterior
-                    </Button>
-                    <span className="flex items-center px-3 text-sm font-medium text-primary bg-primary/10 rounded-md">
-                      Página {processedData.pagination.currentPage} de {processedData.pagination.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(processedData.pagination.currentPage + 1)}
-                      disabled={!processedData.pagination.hasNext}
-                    >
-                      Siguiente
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              {/* Paginación unificada con patrón completo */}
+              <ConfigPagination
+                currentPage={processedData.pagination.currentPage}
+                totalPages={processedData.pagination.totalPages}
+                totalItems={processedData.pagination.totalCount}
+                itemsPerPage={itemsPerPage}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+                showItemsPerPageSelector={true}
+                itemsPerPageOptions={[5, 10, 25, 50]}
+                variant="complete"
+                showInfo={true}
+                showFirstLast={false}
+                maxVisiblePages={5}
+                loading={loading}
+                infoText="Mostrando {start}-{end} de {total} registros"
+              />
             </>
           )}
         </CardContent>

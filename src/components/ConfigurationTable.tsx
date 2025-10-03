@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResponsiveTable, ResponsiveTableColumn, ResponsiveTableAction } from '@/components/ui/responsive-table';
+import { ConfigPagination, ConfigPaginationVariant } from '@/components/ui/config-pagination';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit2, Trash2, Loader2 } from 'lucide-react';
@@ -28,6 +29,15 @@ export interface ConfigurationTableProps<T = any> {
     title: string;
     description: string;
   };
+  // ✅ Soporte opcional para paginación
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+    onPageChange: (page: number) => void;
+    variant?: ConfigPaginationVariant;
+  };
 }
 
 export default function ConfigurationTable<T = any>({
@@ -38,6 +48,7 @@ export default function ConfigurationTable<T = any>({
   onDelete,
   onRowClick,
   emptyState,
+  pagination,
 }: ConfigurationTableProps<T>) {
   const { getResponsiveTypographyClass } = useResponsiveTypography();
 
@@ -75,14 +86,28 @@ export default function ConfigurationTable<T = any>({
   }
 
   return (
-    <ResponsiveTable
-      data={data}
-      columns={responsiveColumns}
-      actions={actions}
-      loading={loading}
-      loadingText="Cargando datos..."
-      emptyState={emptyState}
-      onRowClick={onRowClick}
-    />
+    <div className="space-y-4">
+      <ResponsiveTable
+        data={data}
+        columns={responsiveColumns}
+        actions={actions}
+        loading={loading}
+        loadingText="Cargando datos..."
+        emptyState={emptyState}
+        onRowClick={onRowClick}
+      />
+      
+      {/* ✅ Paginación opcional usando ConfigPagination */}
+      {pagination && (
+        <ConfigPagination
+          variant={pagination.variant || 'simple'}
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          itemsPerPage={pagination.itemsPerPage}
+          onPageChange={pagination.onPageChange}
+        />
+      )}
+    </div>
   );
 }

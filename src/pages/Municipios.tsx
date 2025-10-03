@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ResponsiveTable, ResponsiveTableColumn } from '@/components/ui/responsive-table';
 import { ConfigModal, ConfigFormField, useConfigModal } from "@/components/ui/config-modal";
+import ConfigPagination from '@/components/ui/config-pagination';
 import { useMunicipios } from "@/hooks/useMunicipios";
 import { useDepartamentos } from "@/hooks/useDepartamentos";
 import { Municipio } from "@/services/municipios";
@@ -25,8 +26,6 @@ import {
   Trash2,
   Loader2,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
   FileText,
 } from "lucide-react";
 
@@ -51,12 +50,13 @@ const MunicipiosPage = () => {
   const deleteMutation = municipiosHook.useDeleteMunicipioMutation();
 
   const municipios = (municipiosResponse as any)?.data?.municipios || [];
-  const pagination = (municipiosResponse as any)?.data?.pagination || {
-    currentPage: 1,
-    totalPages: 1,
-    totalCount: 0,
-    hasNext: false,
-    hasPrev: false,
+  const pagination = {
+    totalItems: (municipiosResponse as any)?.data?.pagination?.totalCount || 0,
+    totalPages: (municipiosResponse as any)?.data?.pagination?.totalPages || 1,
+    currentPage: (municipiosResponse as any)?.data?.pagination?.currentPage || 1,
+    hasNext: (municipiosResponse as any)?.data?.pagination?.hasNext || false,
+    hasPrev: (municipiosResponse as any)?.data?.pagination?.hasPrev || false,
+    itemsPerPage: (municipiosResponse as any)?.data?.pagination?.limit || limit
   };
 
   // Lista de departamentos para el dropdown
@@ -174,6 +174,11 @@ const MunicipiosPage = () => {
     setPage(newPage);
   };
 
+  const handleItemsPerPageChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1); // Reset a primera página cuando cambie el límite
+  };
+
   // Formatear fecha
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
@@ -252,7 +257,7 @@ const MunicipiosPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs sm:text-sm text-muted-foreground">Total Municipios</p>
-                <p className="text-xl sm:text-2xl font-bold text-foreground">{pagination.totalCount}</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground">{pagination.totalItems}</p>
               </div>
               <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground opacity-70" />
             </div>
@@ -282,7 +287,7 @@ const MunicipiosPage = () => {
             </CardTitle>
             <div className="text-center sm:text-right">
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Página {pagination.page} de {pagination.totalPages}
+                Página {pagination.currentPage} de {pagination.totalPages}
               </p>
             </div>
           </div>
@@ -372,39 +377,23 @@ const MunicipiosPage = () => {
                 ]}
               />
               
-              {/* Paginación responsiva */}
-              {municipios.length > 0 && (
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 p-4 border-t">
-                  <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-                    Mostrando {municipios.length} de {pagination.totalCount} municipios
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={!pagination.hasPrev || loading}
-                      className="h-8 w-8 p-0"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </Button>
-                    
-                    <span className="text-xs sm:text-sm text-muted-foreground min-w-[100px] text-center">
-                      Página {pagination.currentPage} de {pagination.totalPages}
-                    </span>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={!pagination.hasNext || loading}
-                      className="h-8 w-8 p-0"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              {/* Paginación unificada con patrón completo */}
+              <ConfigPagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.totalItems}
+                itemsPerPage={pagination.itemsPerPage}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+                showItemsPerPageSelector={true}
+                itemsPerPageOptions={[5, 10, 25, 50]}
+                variant="complete"
+                showInfo={true}
+                showFirstLast={false}
+                maxVisiblePages={5}
+                loading={loading}
+                infoText="Mostrando {start}-{end} de {total} registros"
+              />
             </>
           )}
         </CardContent>

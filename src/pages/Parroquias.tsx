@@ -27,11 +27,10 @@ import {
   Trash2,
   Loader2,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
   X,
   Search,
 } from 'lucide-react';
+import { ConfigPagination } from '@/components/ui/config-pagination';
 
 const ParroquiasPage = () => {
   const parroquiasHook = useParroquias();
@@ -201,6 +200,11 @@ const ParroquiasPage = () => {
     setPage(newPage);
   };
 
+  const handleItemsPerPageChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1); // Reset a primera página cuando cambie el límite
+  };
+
   // Formatear fecha
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
@@ -296,20 +300,6 @@ const ParroquiasPage = () => {
             </div>
           </CardContent>
         </Card>
-        
-        <Card className="col-span-2 lg:col-span-2">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm text-muted-foreground">Página actual</p>
-                <p className="text-lg sm:text-2xl font-bold text-foreground">
-                  {pagination.currentPage} de {pagination.totalPages}
-                </p>
-              </div>
-              <Church className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground flex-shrink-0" />
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Lista/Tabla responsive de parroquias */}
@@ -347,66 +337,23 @@ const ParroquiasPage = () => {
                 loading={loading}
               />
 
-              {/* Paginación responsive */}
-              {pagination.totalPages > 1 && (
-                <div className="mt-6 pt-4 border-t border-border">
-                  {/* Info de paginación - solo en desktop */}
-                  <div className="hidden sm:flex items-center justify-between mb-4">
-                    <p className="text-sm text-muted-foreground">
-                      Mostrando {parroquias.length} de {pagination.totalCount} parroquias
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Página {pagination.currentPage} de {pagination.totalPages}
-                    </p>
-                  </div>
-                  
-                  {/* Controles de paginación */}
-                  <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3">
-                    {/* Info compacta para móviles */}
-                    <div className="sm:hidden text-center">
-                      <p className="text-xs text-muted-foreground mb-1">
-                        {parroquias.length} de {pagination.totalCount} parroquias
-                      </p>
-                      <p className="text-sm font-medium text-primary">
-                        Página {pagination.currentPage} de {pagination.totalPages}
-                      </p>
-                    </div>
-                    
-                    {/* Botones de navegación */}
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(pagination.currentPage - 1)}
-                        disabled={pagination.currentPage === 1}
-                        className="disabled:opacity-50"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                        <span className="hidden sm:inline ml-1">Anterior</span>
-                      </Button>
-                      
-                      {/* Número de página actual */}
-                      <div className="flex items-center px-3 py-1 text-sm font-medium text-primary bg-primary/10 rounded-md">
-                        {pagination.currentPage}
-                      </div>
-                      
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(pagination.currentPage + 1)}
-                        disabled={pagination.currentPage === pagination.totalPages}
-                        className="disabled:opacity-50"
-                      >
-                        <span className="hidden sm:inline mr-1">Siguiente</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    
-                    {/* Espaciador para centrar en desktop */}
-                    <div className="hidden sm:block w-0"></div>
-                  </div>
-                </div>
-              )}
+              {/* Paginación unificada con patrón completo */}
+              <ConfigPagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.totalCount}
+                itemsPerPage={limit}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+                showItemsPerPageSelector={true}
+                itemsPerPageOptions={[5, 10, 25, 50]}
+                variant="complete"
+                showInfo={true}
+                showFirstLast={false}
+                maxVisiblePages={5}
+                loading={loading}
+                infoText="Mostrando {start}-{end} de {total} registros"
+              />
             </>
           )}
         </CardContent>

@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ResponsiveTable, ResponsiveTableColumn } from '@/components/ui/responsive-table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
+import { ConfigPagination } from '@/components/ui/config-pagination';
 import { useEnfermedades } from '@/hooks/useEnfermedades';
 import { Enfermedad, EnfermedadCreate } from '@/types/enfermedades';
 import {
@@ -151,6 +152,11 @@ const EnfermedadesPage = () => {
   // Manejo de paginación
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+  };
+
+  const handleItemsPerPageChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1); // Reset a primera página cuando cambie el límite
   };
 
   // Formatear fecha
@@ -338,35 +344,23 @@ const EnfermedadesPage = () => {
                 ]}
               />
               
-              {/* Paginación */}
-              {enfermedades.length > 0 && (
-                <div className="flex items-center justify-between mt-4">
-                  <p className="text-sm text-muted-foreground">
-                    Mostrando {enfermedades.length} de {pagination.totalItems} enfermedades
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={pagination.currentPage <= 1 || loading}
-                    >
-                      Anterior
-                    </Button>
-                    <span className="text-sm text-muted-foreground">
-                      Página {pagination.currentPage} de {pagination.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={pagination.currentPage >= pagination.totalPages || loading}
-                    >
-                      Siguiente
-                    </Button>
-                  </div>
-                </div>
-              )}
+              {/* Paginación unificada con patrón completo */}
+              <ConfigPagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.totalItems}
+                itemsPerPage={pagination.itemsPerPage}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+                showItemsPerPageSelector={true}
+                itemsPerPageOptions={[5, 10, 25, 50]}
+                variant="complete"
+                showInfo={true}
+                showFirstLast={false}
+                maxVisiblePages={5}
+                loading={loading}
+                infoText="Mostrando {start}-{end} de {total} registros"
+              />
             </>
           )}
         </CardContent>

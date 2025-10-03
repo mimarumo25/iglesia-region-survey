@@ -13,6 +13,7 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
+import ConfigPagination from '@/components/ui/config-pagination';
 import { useComunidadesCulturales } from '@/hooks/useComunidadesCulturales';
 import { ComunidadCultural, ComunidadCulturalFormData } from '@/types/comunidades-culturales';
 import {
@@ -23,9 +24,6 @@ import {
   Trash2,
   Loader2,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-  CheckCircle2,
   XCircle,
 } from 'lucide-react';
 
@@ -173,6 +171,11 @@ const ComunidadesCulturalesPage = () => {
     setPage(newPage);
   };
 
+  const handleItemsPerPageChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1); // Reset a primera página cuando cambie el límite
+  };
+
   // Formatear fecha
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
@@ -316,7 +319,6 @@ const ComunidadesCulturalesPage = () => {
                     <TableHead>ID</TableHead>
                     <TableHead>Nombre</TableHead>
                     <TableHead>Descripción</TableHead>
-                    <TableHead>Estado</TableHead>
                     <TableHead>Fecha Creación</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
@@ -335,19 +337,6 @@ const ComunidadesCulturalesPage = () => {
                         <span className="text-sm text-muted-foreground">
                           {comunidad.descripcion || 'N/A'}
                         </span>
-                      </TableCell>
-                      <TableCell>
-                        {comunidad.activo ? (
-                          <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Activo
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
-                            <XCircle className="w-3 h-3 mr-1" />
-                            Inactivo
-                          </Badge>
-                        )}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
@@ -377,37 +366,23 @@ const ComunidadesCulturalesPage = () => {
                 </TableBody>
               </Table>
 
-              {/* Paginación */}
-              {paginatedData.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <p className="text-sm text-muted-foreground">
-                    Mostrando {paginatedData.paginatedItems.length} de {stats.total} comunidades culturales
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(paginatedData.currentPage - 1)}
-                      disabled={paginatedData.currentPage === 1}
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Anterior
-                    </Button>
-                    <span className="flex items-center px-3 text-sm font-medium text-primary bg-primary/10 rounded-md">
-                      Página {paginatedData.currentPage} de {paginatedData.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(paginatedData.currentPage + 1)}
-                      disabled={paginatedData.currentPage === paginatedData.totalPages}
-                    >
-                      Siguiente
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              {/* Paginación unificada con patrón completo */}
+              <ConfigPagination
+                currentPage={paginatedData.currentPage}
+                totalPages={paginatedData.totalPages}
+                totalItems={stats.total}
+                itemsPerPage={limit}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+                showItemsPerPageSelector={true}
+                itemsPerPageOptions={[5, 10, 25, 50]}
+                variant="complete"
+                showInfo={true}
+                showFirstLast={false}
+                maxVisiblePages={5}
+                loading={loading}
+                infoText="Mostrando {start}-{end} de {total} registros"
+              />
             </>
           )}
         </CardContent>
@@ -440,16 +415,6 @@ const ComunidadesCulturalesPage = () => {
           value={formData.descripcion}
           onChange={(value) => setFormData({ ...formData, descripcion: value })}
         />
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="activo"
-            checked={formData.activo}
-            onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
-          />
-          <label htmlFor="activo" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Activo
-          </label>
-        </div>
       </ConfigModal>
 
       {/* Modal de Editar Comunidad Cultural */}

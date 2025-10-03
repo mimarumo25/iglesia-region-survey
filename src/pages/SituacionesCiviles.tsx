@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import {
   Table,
   TableBody,
@@ -13,6 +12,7 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
+import ConfigPagination from '@/components/ui/config-pagination';
 import { useSituacionesCiviles } from '@/hooks/useSituacionesCiviles';
 import { SituacionCivil, SituacionCivilFormData } from '@/types/situaciones-civiles';
 import {
@@ -23,10 +23,6 @@ import {
   Trash2,
   Loader2,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-  CheckCircle2,
-  XCircle,
 } from 'lucide-react';
 
 const SituacionesCivilesPage = () => {
@@ -75,8 +71,6 @@ const SituacionesCivilesPage = () => {
     nombre: '',
     descripcion: '',
     codigo: '',
-    orden: 1,
-    activo: true,
   });
 
   // Manejo del formulario
@@ -88,12 +82,10 @@ const SituacionesCivilesPage = () => {
       nombre: formData.nombre.trim(),
       descripcion: formData.descripcion?.trim() || undefined,
       codigo: formData.codigo?.trim() || undefined,
-      orden: formData.orden || 1,
-      activo: formData.activo,
     }, {
       onSuccess: () => {
         setShowCreateDialog(false);
-        setFormData({ nombre: '', descripcion: '', codigo: '', orden: 1, activo: true });
+        setFormData({ nombre: '', descripcion: '', codigo: '' });
       }
     });
   };
@@ -108,14 +100,12 @@ const SituacionesCivilesPage = () => {
         nombre: formData.nombre.trim(),
         descripcion: formData.descripcion?.trim() || undefined,
         codigo: formData.codigo?.trim() || undefined,
-        orden: formData.orden || 1,
-        activo: formData.activo,
       }
     }, {
       onSuccess: () => {
         setShowEditDialog(false);
         setSelectedSituacion(null);
-        setFormData({ nombre: '', descripcion: '', codigo: '', orden: 1, activo: true });
+        setFormData({ nombre: '', descripcion: '', codigo: '' });
       }
     });
   };
@@ -133,7 +123,7 @@ const SituacionesCivilesPage = () => {
 
   // Funciones para abrir diálogos
   const handleOpenCreateDialog = () => {
-    setFormData({ nombre: '', descripcion: '', codigo: '', orden: 1, activo: true });
+    setFormData({ nombre: '', descripcion: '', codigo: '' });
     openCreateDialog();
   };
 
@@ -143,8 +133,6 @@ const SituacionesCivilesPage = () => {
       nombre: situacion.nombre,
       descripcion: situacion.descripcion || '',
       codigo: situacion.codigo || '',
-      orden: situacion.orden || 1,
-      activo: situacion.activo,
     });
     openEditDialog();
   };
@@ -163,6 +151,11 @@ const SituacionesCivilesPage = () => {
   // Manejo de paginación
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+  };
+
+  const handleItemsPerPageChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1); // Reset a primera página cuando cambie el límite
   };
 
   // Formatear fecha
@@ -287,9 +280,7 @@ const SituacionesCivilesPage = () => {
                     <TableHead>ID</TableHead>
                     <TableHead>Nombre</TableHead>
                     <TableHead>Código</TableHead>
-                    <TableHead>Orden</TableHead>
                     <TableHead>Descripción</TableHead>
-                    <TableHead>Estado</TableHead>
                     <TableHead>Fecha Creación</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
@@ -310,27 +301,9 @@ const SituacionesCivilesPage = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">
-                          {situacion.orden || 'N/A'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
                         <span className="text-sm text-muted-foreground">
                           {situacion.descripcion || 'N/A'}
                         </span>
-                      </TableCell>
-                      <TableCell>
-                        {situacion.activo ? (
-                          <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Activo
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
-                            <XCircle className="w-3 h-3 mr-1" />
-                            Inactivo
-                          </Badge>
-                        )}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
@@ -360,37 +333,23 @@ const SituacionesCivilesPage = () => {
                 </TableBody>
               </Table>
 
-              {/* Paginación */}
-              {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <p className="text-sm text-muted-foreground">
-                    Mostrando {situaciones.length} de {pagination.totalCount} situaciones civiles
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={pagination.currentPage === 1}
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Anterior
-                    </Button>
-                    <span className="flex items-center px-3 text-sm font-medium text-primary bg-primary/10 rounded-md">
-                      Página {pagination.currentPage} de {pagination.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={pagination.currentPage === pagination.totalPages}
-                    >
-                      Siguiente
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              {/* Paginación unificada con patrón completo */}
+              <ConfigPagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.totalCount}
+                itemsPerPage={situaciones.length > 0 ? Math.ceil(pagination.totalCount / pagination.totalPages) : 10}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+                showItemsPerPageSelector={true}
+                itemsPerPageOptions={[5, 10, 25, 50]}
+                variant="complete"
+                showInfo={true}
+                showFirstLast={false}
+                maxVisiblePages={5}
+                loading={loading}
+                infoText="Mostrando {start}-{end} de {total} registros"
+              />
             </>
           )}
         </CardContent>
@@ -430,23 +389,6 @@ const SituacionesCivilesPage = () => {
           value={formData.codigo}
           onChange={(value) => setFormData({ ...formData, codigo: value })}
         />
-        <ConfigFormField
-          id="orden"
-          label="Orden"
-          placeholder="1"
-          value={formData.orden?.toString() || '1'}
-          onChange={(value) => setFormData({ ...formData, orden: parseInt(value) || 1 })}
-        />
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="activo"
-            checked={formData.activo}
-            onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
-          />
-          <label htmlFor="activo" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Activo
-          </label>
-        </div>
       </ConfigModal>
 
       {/* Modal de Editar Situación Civil */}
@@ -483,23 +425,6 @@ const SituacionesCivilesPage = () => {
           value={formData.codigo}
           onChange={(value) => setFormData({ ...formData, codigo: value })}
         />
-        <ConfigFormField
-          id="edit-orden"
-          label="Orden"
-          placeholder="1"
-          value={formData.orden?.toString() || '1'}
-          onChange={(value) => setFormData({ ...formData, orden: parseInt(value) || 1 })}
-        />
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="edit-activo"
-            checked={formData.activo}
-            onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
-          />
-          <label htmlFor="edit-activo" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Activo
-          </label>
-        </div>
       </ConfigModal>
 
       {/* Modal de Eliminar Situación Civil */}

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { ResponsiveTable, ResponsiveTableColumn } from '@/components/ui/responsive-table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
+import { ConfigPagination } from '@/components/ui/config-pagination';
 import { useEstadosCivilesQuery, useEstadosCiviles, paginateClientSide, filterBySearch } from '@/hooks/useEstadosCiviles';
 import { EstadoCivil, EstadoCivilCreate } from '@/types/estados-civiles';
 import { useForm } from 'react-hook-form';
@@ -49,7 +50,7 @@ const EstadosCivilesPage = () => {
   // Estados para búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // ✅ USAR PATRÓN UNIFICADO - Single query 
   const { data: response, isLoading, error, refetch } = useEstadosCivilesQuery(searchTerm, false);
@@ -256,6 +257,11 @@ const EstadosCivilesPage = () => {
   // Manejo de paginación
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
+  };
+
+  const handleItemsPerPageChange = (newLimit: number) => {
+    setItemsPerPage(newLimit);
+    setCurrentPage(1); // Reset a primera página cuando cambie el límite
   };
 
   // Formatear fecha
@@ -540,37 +546,23 @@ const EstadosCivilesPage = () => {
                 ]}
               />
               
-              {/* ✅ PAGINACIÓN DINÁMICA */}
-              {processedData.items.length > 0 && (
-                <div className="flex items-center justify-between mt-4">
-                  <p className="text-sm text-muted-foreground">
-                    Mostrando {processedData.items.length} de {processedData.pagination.totalCount} estados civiles
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(processedData.pagination.currentPage - 1)}
-                      disabled={!processedData.pagination.hasPrev || loading}
-                    >
-                      <RefreshCw className="w-4 h-4 mr-1" />
-                      Anterior
-                    </Button>
-                    <span className="text-sm text-muted-foreground">
-                      Página {processedData.pagination.currentPage} de {processedData.pagination.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(processedData.pagination.currentPage + 1)}
-                      disabled={!processedData.pagination.hasNext || loading}
-                    >
-                      Siguiente
-                      <RefreshCw className="w-4 h-4 ml-1" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              {/* Paginación unificada con patrón completo */}
+              <ConfigPagination
+                currentPage={processedData.pagination.currentPage}
+                totalPages={processedData.pagination.totalPages}
+                totalItems={processedData.pagination.totalCount}
+                itemsPerPage={itemsPerPage}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+                showItemsPerPageSelector={true}
+                itemsPerPageOptions={[5, 10, 25, 50]}
+                variant="complete"
+                showInfo={true}
+                showFirstLast={false}
+                maxVisiblePages={5}
+                loading={loading}
+                infoText="Mostrando {start}-{end} de {total} registros"
+              />
             </>
           )}
         </CardContent>
