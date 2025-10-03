@@ -266,8 +266,6 @@ export class AuthService {
 
       return response.data;
     } catch (error: any) {
-      console.error('Error en solicitud de recuperación:', error);
-      
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);
       }
@@ -295,8 +293,6 @@ export class AuthService {
 
       return response.data;
     } catch (error: any) {
-      console.error('Error al restablecer contraseña:', error);
-      
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);
       }

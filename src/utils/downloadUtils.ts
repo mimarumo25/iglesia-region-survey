@@ -34,7 +34,6 @@ export const downloadBlob = (blob: Blob, filename: string, mimeType?: string) =>
     window.URL.revokeObjectURL(url);
     
   } catch (error) {
-    console.error('Error al descargar el archivo:', error);
     throw new Error('No se pudo descargar el archivo');
   }
 };

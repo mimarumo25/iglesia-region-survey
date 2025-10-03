@@ -68,10 +68,9 @@ export const useRoutePreloader = () => {
 
     try {
       await loadPromise;
-      console.log(`✅ Ruta precargada: ${routePath}`);
+      // Ruta precargada exitosamente
     } catch (error) {
-      console.warn(`❌ Error precargando ruta ${routePath}:`, error);
-      // Remover del cache si falló
+      // Error precargando ruta - removiendo del cache
       preloadCache.delete(routePath);
     }
 

@@ -126,8 +126,6 @@ export const handleApiError = (
   config: FallbackDataConfig
 ): AutocompleteOption[] => {
   if (error) {
-    console.warn(`API error for ${config.type}, using fallback data:`, error);
-    
     const fallbackItems = FALLBACK_DATA[config.type] || [];
     const fieldMapping = FIELD_MAPPING[config.type];
     
@@ -169,7 +167,7 @@ export const logApiError = (
     timestamp: new Date().toISOString()
   };
   
-  console.error(`API Error [${entityName}]:`, errorInfo);
+  // Error logging silenciado
 };
 
 /**

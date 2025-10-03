@@ -24,7 +24,6 @@ export interface ConfigurationItem {
  */
 export const safeAutocompleteOptions = (options?: any[]): AutocompleteOption[] => {
   if (!Array.isArray(options)) {
-    console.warn('safeAutocompleteOptions: Expected array, received:', typeof options);
     return [];
   }
 
@@ -64,7 +63,6 @@ export const createConfigurationItemHandler = (
         nombre: selectedOption.label
       });
     } else {
-      console.warn(`Selected option not found for value: ${value}`);
       onChange(null);
     }
   };
@@ -121,17 +119,14 @@ export const validateAutocompleteProps = (props: any): boolean => {
   const missingProps = requiredProps.filter(prop => !(prop in props));
   
   if (missingProps.length > 0) {
-    console.error('Missing required autocomplete props:', missingProps);
     return false;
   }
 
   if (!Array.isArray(props.options)) {
-    console.error('Autocomplete options must be an array, received:', typeof props.options);
     return false;
   }
 
   if (typeof props.onValueChange !== 'function') {
-    console.error('onValueChange must be a function, received:', typeof props.onValueChange);
     return false;
   }
 

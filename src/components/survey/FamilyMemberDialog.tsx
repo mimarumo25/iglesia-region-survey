@@ -99,7 +99,7 @@ const FamilyMemberDialog = ({
         
         // Logging específico para errores de Portal/DOM
         if (error.message?.includes('removeChild') || error.message?.includes('Portal') || error.message?.includes('NotFoundError')) {
-          console.warn('🔧 Portal/DOM manipulation error detected - attempting recovery');
+          // Portal/DOM manipulation error - attempting recovery
           
           // Ejecutar onCancel de forma inmediata y segura sin setTimeout
           try {

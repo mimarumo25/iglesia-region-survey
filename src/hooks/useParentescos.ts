@@ -56,22 +56,16 @@ export const useParentescos = () => {
     return useQuery({
       queryKey: ['parentescos', { page, limit, searchTerm }],
       queryFn: async () => {
-        console.log('🔄 Hook: Ejecutando query para parentescos...');
-        
         // Obtener todos los datos sin paginación del backend
         const response = await parentescosService.getParentescos(1000, 1);
-        console.log('📦 Hook: Respuesta del servicio:', response);
         
         const allParentescos = Array.isArray(response) ? response : [];
-        console.log('📋 Hook: Parentescos como array:', allParentescos.length, 'elementos');
         
         // Aplicar filtro de búsqueda
         const filteredParentescos = filterBySearch(allParentescos, searchTerm);
-        console.log('🔍 Hook: Después del filtro de búsqueda:', filteredParentescos.length, 'elementos');
         
         // Aplicar paginación client-side
         const paginatedResult = paginateClientSide(filteredParentescos, page, limit);
-        console.log('📄 Hook: Resultado paginado:', paginatedResult);
         
         return paginatedResult;
       },

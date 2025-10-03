@@ -53,11 +53,7 @@ const ParentescosPage = () => {
     itemsPerPage: (parentescosResponse as any)?.pagination?.limit || limit
   };
 
-  // Debug logs
-  console.log('🎯 Página: parentescosResponse:', parentescosResponse);
-  console.log('📊 Página: parentescos array:', parentescos);
-  console.log('📄 Página: pagination:', pagination);
-  console.log('⏳ Página: isLoading:', parentescosLoading);
+  // Debug logs removidos para producción
 
   const loading = parentescosLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 

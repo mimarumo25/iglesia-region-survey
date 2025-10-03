@@ -13,7 +13,7 @@ authenticatedClient.interceptors.request.use((config) => {
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
     } catch (error) {
-      console.warn('No se pudo obtener el token de acceso:', error);
+      // Error silenciado - fallo al obtener token
     }
   }
   return config;
@@ -181,7 +181,7 @@ authenticatedClient.interceptors.request.use((config) => {
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
     } catch (error) {
-      console.warn('No se pudo obtener el token de acceso:', error);
+      // Error silenciado - fallo al obtener token
     }
   }
   return config;

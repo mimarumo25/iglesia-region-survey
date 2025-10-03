@@ -21,7 +21,7 @@ export class TokenManager {
       // También almacenar en cookie como respaldo (no httpOnly para JavaScript)
       this.setCookie(this.ACCESS_TOKEN_KEY, token, expiresInSeconds);
     } catch (error) {
-      console.error('Error almacenando access token:', error);
+      // Error silenciado
     }
   }
 
@@ -40,7 +40,7 @@ export class TokenManager {
       // También almacenar en cookie
       this.setCookie(this.REFRESH_TOKEN_KEY, token, expiresInSeconds);
     } catch (error) {
-      console.error('Error almacenando refresh token:', error);
+      // Error silenciado
     }
   }
 
@@ -52,7 +52,7 @@ export class TokenManager {
     try {
       sessionStorage.setItem(this.USER_DATA_KEY, JSON.stringify(userData));
     } catch (error) {
-      console.error('Error almacenando datos de usuario:', error);
+      // Error silenciado
     }
   }
 
@@ -86,7 +86,7 @@ export class TokenManager {
       
       return token;
     } catch (error) {
-      console.error('Error obteniendo access token:', error);
+      // Error silenciado
       return null;
     }
   }
@@ -107,7 +107,7 @@ export class TokenManager {
       
       return token;
     } catch (error) {
-      console.error('Error obteniendo refresh token:', error);
+      // Error silenciado
       return null;
     }
   }
@@ -121,7 +121,7 @@ export class TokenManager {
       const userData = sessionStorage.getItem(this.USER_DATA_KEY);
       return userData ? JSON.parse(userData) : null;
     } catch (error) {
-      console.error('Error obteniendo datos de usuario:', error);
+      // Error silenciado
       return null;
     }
   }
@@ -145,7 +145,7 @@ export class TokenManager {
       sessionStorage.removeItem(this.TOKEN_EXPIRY_KEY);
       this.removeCookie(this.ACCESS_TOKEN_KEY);
     } catch (error) {
-      console.error('Error limpiando access token:', error);
+      // Error silenciado
     }
   }
 
@@ -167,7 +167,7 @@ export class TokenManager {
       this.removeCookie(this.REFRESH_TOKEN_KEY);
       
     } catch (error) {
-      console.error('Error limpiando tokens:', error);
+      // Error silenciado
     }
   }
 
@@ -190,7 +190,7 @@ export class TokenManager {
       
       document.cookie = cookieString;
     } catch (error) {
-      console.error('Error estableciendo cookie:', error);
+      // Error silenciado
     }
   }
 
@@ -211,7 +211,7 @@ export class TokenManager {
       
       return null;
     } catch (error) {
-      console.error('Error obteniendo cookie:', error);
+      // Error silenciado
       return null;
     }
   }
@@ -224,7 +224,7 @@ export class TokenManager {
     try {
       document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
     } catch (error) {
-      console.error('Error eliminando cookie:', error);
+      // Error silenciado
     }
   }
 

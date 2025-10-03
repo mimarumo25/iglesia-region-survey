@@ -1,56 +1,73 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { ResponsiveTable, ResponsiveTableColumn } from '@/components/ui/responsive-table';
+import { ResponsiveTable } from '@/components/ui/responsive-table';
 import { ConfigModal, ConfigFormField, useConfigModal } from '@/components/ui/config-modal';
 import { ConfigPagination } from '@/components/ui/config-pagination';
-import { useEnfermedades } from '@/hooks/useEnfermedades';
+import { useEnfermedadesQuery, useEnfermedades, paginateClientSide, filterBySearch } from '@/hooks/useEnfermedades';
 import { Enfermedad, EnfermedadCreate } from '@/types/enfermedades';
 import {
   Activity,
   Plus,
-  Search,
   Edit2,
   Trash2,
   Loader2,
   RefreshCw,
-  Eye,
-  EyeOff,
   X,
+  AlertCircle,
+  Search,
 } from 'lucide-react';
 
 const EnfermedadesPage = () => {
   const enfermedadesHook = useEnfermedades();
 
-  // Estados para paginación y filtros
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [sortBy, setSortBy] = useState('id_enfermedad');
-  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
+  // Estados para búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Query unificada - Una sola query que maneja tanto datos normales como búsqueda
-  const { data: enfermedadesResponse, isLoading: enfermedadesLoading, refetch: refetchEnfermedades } = enfermedadesHook.useEnfermedadesQuery(page, limit, sortBy, sortOrder, searchTerm);
+  // ✅ USAR PATRÓN UNIFICADO - Single query 
+  const { data: response, isLoading, error, refetch } = useEnfermedadesQuery(searchTerm);
+
+  // 🚨 Manejo de errores de red/servidor
+  const hasError = error && !isLoading;
+
+  // Procesar datos del lado del cliente
+  const processedData = useMemo(() => {
+    if (!response?.data) return {
+      items: [],
+      pagination: {
+        totalPages: 1,
+        totalCount: 0,
+        currentPage: 1,
+        hasNext: false,
+        hasPrev: false
+      }
+    };
+
+    const allItems = Array.isArray(response.data) ? response.data : [];
+    
+    // Filtrar por búsqueda del lado del cliente si es necesario
+    const filteredItems = searchTerm ? filterBySearch(allItems, searchTerm) : allItems;
+    
+    // Paginar del lado del cliente
+    const paginationResult = paginateClientSide(filteredItems, currentPage, itemsPerPage);
+    
+    return {
+      items: paginationResult.paginatedItems,
+      pagination: paginationResult
+    };
+  }, [response, searchTerm, currentPage, itemsPerPage]);
 
   // Mutaciones de React Query
   const createMutation = enfermedadesHook.useCreateEnfermedadMutation();
   const updateMutation = enfermedadesHook.useUpdateEnfermedadMutation();
   const deleteMutation = enfermedadesHook.useDeleteEnfermedadMutation();
 
-  // Datos y paginación simplificados
-  const enfermedades = (enfermedadesResponse as any)?.data || [];
-  const pagination = {
-    totalItems: (enfermedadesResponse as any)?.total || 0,
-    totalPages: (enfermedadesResponse as any)?.totalPages || 1,
-    currentPage: (enfermedadesResponse as any)?.page || 1,
-    itemsPerPage: (enfermedadesResponse as any)?.limit || 10
-  };
-
-  const loading = enfermedadesLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const loading = isLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Estados para diálogos y formularios
   const {
@@ -141,22 +158,22 @@ const EnfermedadesPage = () => {
   const handleSearchTermChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
-    setPage(1); // Resetear paginación al cambiar búsqueda
+    setCurrentPage(1); // Resetear paginación al cambiar búsqueda
   };
 
   const handleClearSearch = () => {
     setSearchTerm('');
-    setPage(1);
+    setCurrentPage(1);
   };
 
   // Manejo de paginación
   const handlePageChange = (newPage: number) => {
-    setPage(newPage);
+    setCurrentPage(newPage);
   };
 
   const handleItemsPerPageChange = (newLimit: number) => {
-    setLimit(newLimit);
-    setPage(1); // Reset a primera página cuando cambie el límite
+    setItemsPerPage(newLimit);
+    setCurrentPage(1); // Reset a primera página cuando cambie el límite
   };
 
   // Formatear fecha
@@ -179,7 +196,7 @@ const EnfermedadesPage = () => {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => refetchEnfermedades()}
+            onClick={() => refetch()}
             disabled={loading}
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
@@ -233,7 +250,7 @@ const EnfermedadesPage = () => {
                 <p className="text-sm text-muted-foreground">
                   {searchTerm ? 'Enfermedades Filtradas' : 'Total Enfermedades'}
                 </p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalItems}</p>
+                <p className="text-2xl font-bold text-foreground">{processedData.pagination.totalCount}</p>
               </div>
               <Activity className="w-8 h-8 text-muted-foreground opacity-70" />
             </div>
@@ -245,7 +262,7 @@ const EnfermedadesPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Páginas</p>
-                <p className="text-2xl font-bold text-foreground">{pagination.totalPages}</p>
+                <p className="text-2xl font-bold text-foreground">{processedData.pagination.totalPages}</p>
               </div>
               <Activity className="w-8 h-8 text-secondary opacity-70" />
             </div>
@@ -267,7 +284,7 @@ const EnfermedadesPage = () => {
               <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
               <span className="ml-2 text-muted-foreground">Cargando enfermedades...</span>
             </div>
-          ) : enfermedades.length === 0 ? (
+          ) : processedData.items.length === 0 ? (
             <div className="text-center py-8">
               <Activity className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
               <p className="text-muted-foreground">No se encontraron enfermedades</p>
@@ -280,7 +297,7 @@ const EnfermedadesPage = () => {
           ) : (
             <>
               <ResponsiveTable
-                data={enfermedades}
+                data={processedData.items}
                 columns={[
                   {
                     key: 'id_enfermedad',
@@ -346,10 +363,10 @@ const EnfermedadesPage = () => {
               
               {/* Paginación unificada con patrón completo */}
               <ConfigPagination
-                currentPage={pagination.currentPage}
-                totalPages={pagination.totalPages}
-                totalItems={pagination.totalItems}
-                itemsPerPage={pagination.itemsPerPage}
+                currentPage={processedData.pagination.currentPage}
+                totalPages={processedData.pagination.totalPages}
+                totalItems={processedData.pagination.totalCount}
+                itemsPerPage={itemsPerPage}
                 onPageChange={handlePageChange}
                 onItemsPerPageChange={handleItemsPerPageChange}
                 showItemsPerPageSelector={true}

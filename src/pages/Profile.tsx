@@ -74,9 +74,8 @@ const ProfilePage = () => {
         // Usar principalmente los datos del contexto de autenticación
         if (user) {
           setProfile(user);
-          console.log('✅ Datos del usuario cargados desde el contexto:', user);
         } else {
-          console.warn('⚠️  No hay datos de usuario en el contexto');
+          // No hay datos de usuario en el contexto
         }
 
         // Intentar cargar datos adicionales del perfil como fallback

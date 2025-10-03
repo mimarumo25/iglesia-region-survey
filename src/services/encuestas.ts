@@ -276,8 +276,6 @@ class EncuestasService {
    */
   async getEncuestas(params: EncuestasSearchParams = {}): Promise<EncuestasResponse> {
     try {
-      console.log('📡 Obteniendo encuestas...', params);
-      
       const response = await apiClient.get('/api/encuesta', { 
         params: {
           page: params.page || 1,
@@ -293,8 +291,6 @@ class EncuestasService {
         }
       });
       
-      console.log('✅ Encuestas obtenidas exitosamente', response.data);
-      
       // La API devuelve directamente el formato esperado
       return response.data;
       
@@ -309,11 +305,8 @@ class EncuestasService {
    */
   async getEncuestaById(id: string): Promise<EncuestaResponse> {
     try {
-      console.log(`📡 Obteniendo encuesta ${id}...`);
-      
       const response = await apiClient.get(`/api/encuesta/${id}`);
       
-      console.log('✅ Encuesta obtenida exitosamente');
       return response.data;
       
     } catch (error) {
@@ -327,11 +320,9 @@ class EncuestasService {
    */
   async createEncuesta(encuestaData: Omit<EncuestaCompleta, 'id_encuesta'>): Promise<EncuestaResponse> {
     try {
-      console.log('📡 Creando nueva encuesta...', encuestaData);
-      
       const response = await apiClient.post('/api/encuesta', encuestaData);
       
-      console.log('✅ Encuesta creada exitosamente');
+      return response.data;
       return response.data;
       
     } catch (error) {
@@ -345,11 +336,8 @@ class EncuestasService {
    */
   async updateEncuesta(id: string, encuestaData: Partial<EncuestaCompleta>): Promise<EncuestaResponse> {
     try {
-      console.log(`📡 Actualizando encuesta ${id}...`, encuestaData);
-      
       const response = await apiClient.put(`/api/encuesta/${id}`, encuestaData);
       
-      console.log('✅ Encuesta actualizada exitosamente');
       return response.data;
       
     } catch (error) {
@@ -363,11 +351,8 @@ class EncuestasService {
    */
   async deleteEncuesta(id: string): Promise<{ success: boolean; message: string }> {
     try {
-      console.log(`📡 Eliminando encuesta ${id}...`);
-      
       const response = await apiClient.delete(`/api/encuesta/${id}`);
       
-      console.log('✅ Encuesta eliminada exitosamente');
       return response.data;
       
     } catch (error) {
@@ -381,11 +366,8 @@ class EncuestasService {
    */
   async validarEncuesta(id: string): Promise<EncuestaResponse> {
     try {
-      console.log(`📡 Validando encuesta ${id}...`);
-      
       const response = await apiClient.patch(`/api/encuesta/${id}/validar`);
       
-      console.log('✅ Encuesta validada exitosamente');
       return response.data;
       
     } catch (error) {
@@ -399,11 +381,8 @@ class EncuestasService {
    */
   async getEstadisticas(): Promise<any> {
     try {
-      console.log('📡 Obteniendo estadísticas de encuestas...');
-      
       const response = await apiClient.get('/api/encuesta/estadisticas');
       
-      console.log('✅ Estadísticas obtenidas exitosamente');
       return response.data;
       
     } catch (error) {

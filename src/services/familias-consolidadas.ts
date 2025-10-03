@@ -50,12 +50,6 @@ export async function obtenerFamiliasConsolidadas(
       throw new Error(response.data.mensaje || 'Error en la consulta de familias');
     }
 
-    console.log('✅ Familias consolidadas obtenidas:', {
-      total: response.data.total,
-      familias: response.data.datos.length,
-      estadisticas: response.data.estadisticas
-    });
-
     return response.data;
     
   } catch (error: any) {

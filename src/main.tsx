@@ -12,7 +12,18 @@ import '@/interceptors/axios'
 import './index.css'
 import '@/config/dateFormat' // Configurar date-fns en español
 
-// Removed debug utilities import - file was cleaned up
+// Suprimir advertencias de React DevTools en desarrollo
+if (import.meta.env.DEV) {
+  const originalWarn = console.warn;
+  console.warn = (...args) => {
+    const message = args[0];
+    // Suprimir advertencia de React DevTools
+    if (typeof message === 'string' && message.includes('Download the React DevTools')) {
+      return;
+    }
+    originalWarn.apply(console, args);
+  };
+}
 
 // Create a client with optimized settings for DOM stability
 const queryClient = new QueryClient({
@@ -39,8 +50,7 @@ const handleDOMError = (error: any, context: string) => {
                     error?.stack?.includes('commitDeletionEffectsOnFiber');
   
   if (isDOMError) {
-    console.warn(`🔧 DOM Error handled in ${context}:`, error.message);
-    // Don't propagate DOM errors to avoid cascading failures
+    // DOM Error handled - no propagation to avoid cascading failures
     return true;
   }
   return false;

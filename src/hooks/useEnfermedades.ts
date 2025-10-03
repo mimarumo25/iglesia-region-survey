@@ -8,36 +8,63 @@ import {
 } from '@/types/enfermedades';
 import { useToast } from '@/hooks/use-toast';
 
-// Función para paginar datos del lado del cliente
-const paginateClientSide = <T>(data: T[], page: number, limit: number) => {
+// 🔧 Helper function para paginación del lado del cliente
+export const paginateClientSide = <T>(
+  items: T[],
+  page: number,
+  limit: number
+): {
+  paginatedItems: T[];
+  totalPages: number;
+  currentPage: number;
+  totalCount: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+} => {
   const startIndex = (page - 1) * limit;
   const endIndex = startIndex + limit;
-  const paginatedData = data.slice(startIndex, endIndex);
-  
+  const paginatedItems = items.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(items.length / limit);
+
   return {
-    data: paginatedData,
-    pagination: {
-      currentPage: page,
-      totalPages: Math.ceil(data.length / limit),
-      totalCount: data.length,
-      hasNext: page < Math.ceil(data.length / limit),
-      hasPrev: page > 1,
-      limit: limit
-    }
+    paginatedItems,
+    totalPages,
+    currentPage: page,
+    totalCount: items.length,
+    hasNext: page < totalPages,
+    hasPrev: page > 1,
   };
 };
 
-// Función para filtrar enfermedades por término de búsqueda
-const filterBySearch = (enfermedades: Enfermedad[], searchTerm: string): Enfermedad[] => {
+// 🔍 Helper function para filtrar búsquedas del lado del cliente
+export const filterBySearch = (
+  items: Enfermedad[],
+  searchTerm: string
+): Enfermedad[] => {
   if (!searchTerm || !searchTerm.trim()) {
-    return enfermedades;
+    return items;
   }
-  
-  const term = searchTerm.toLowerCase().trim();
-  return enfermedades.filter(enfermedad => 
-    enfermedad.nombre?.toLowerCase().includes(term) ||
-    enfermedad.descripcion?.toLowerCase().includes(term)
+
+  const lowercaseSearch = searchTerm.toLowerCase().trim();
+  return items.filter(item =>
+    item.nombre?.toLowerCase().includes(lowercaseSearch) ||
+    item.descripcion?.toLowerCase().includes(lowercaseSearch)
   );
+};
+
+// ✅ PATRÓN UNIFICADO - Single Query con búsqueda opcional
+export const useEnfermedadesQuery = (searchTerm?: string) => {
+  return useQuery({
+    queryKey: ['enfermedades', searchTerm || 'all'],
+    queryFn: async () => {
+      // Obtener todos los datos del backend
+      const response = await enfermedadesService.getEnfermedades(1, 1000, 'id_enfermedad', 'ASC');
+      return response;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData,
+  });
 };
 
 export const useEnfermedades = () => {
@@ -46,61 +73,13 @@ export const useEnfermedades = () => {
 
   // ===== QUERIES =====
 
-  // Query unificada para obtener enfermedades con paginación y búsqueda
-  const useEnfermedadesQuery = (
-    page: number = 1,
-    limit: number = 10,
-    sortBy: string = 'id_enfermedad',
-    sortOrder: 'ASC' | 'DESC' = 'ASC',
-    searchTerm: string = ''
-  ) => {
-    return useQuery({
-      queryKey: ['enfermedades', { page, limit, sortBy, sortOrder, searchTerm }],
-      queryFn: async () => {
-        // Obtener todos los datos sin paginación del backend
-        const response = await enfermedadesService.getEnfermedades(1, 1000, sortBy, sortOrder);
-        const allEnfermedades = response?.data || [];
-        
-        // Aplicar filtro de búsqueda
-        const filteredEnfermedades = filterBySearch(allEnfermedades, searchTerm);
-        
-        // Aplicar paginación client-side
-        return paginateClientSide(filteredEnfermedades, page, limit);
-      },
-      placeholderData: (previousData) => previousData,
-    });
-  };
-
-  // Query simplificada para búsqueda - reutiliza la query principal
-  const useSearchEnfermedadesQuery = (
-    query: string,
-    page: number = 1,
-    limit: number = 10
-  ) => {
-    // Reutilizar la query principal con el término de búsqueda
-    return useEnfermedadesQuery(page, limit, 'nombre', 'ASC', query);
-  };
-
-  // Query para filtrar enfermedades por categoría
-  const useEnfermedadesByCategoriaQuery = (
-    categoria: string,
-    page: number = 1,
-    limit: number = 10
-  ) => {
-    return useQuery<EnfermedadesResponse, Error>({
-      queryKey: ['enfermedades', { category: categoria, page, limit }],
-      queryFn: () => enfermedadesService.getEnfermedadesByCategoria(categoria, page, limit),
-      enabled: !!categoria.trim(),
-      placeholderData: (previousData) => previousData,
-    });
-  };
-
   // Query para obtener una enfermedad por ID
   const useEnfermedadByIdQuery = (id: string) => {
     return useQuery<Enfermedad, Error>({
       queryKey: ['enfermedad', id],
       queryFn: () => enfermedadesService.getEnfermedadById(id),
       enabled: !!id,
+      staleTime: 1000 * 60 * 5,
     });
   };
 
@@ -119,7 +98,6 @@ export const useEnfermedades = () => {
       },
       onError: (err: any) => {
         const errorMessage = err.response?.data?.message || 'Error al crear enfermedad';
-        console.error('Error creating enfermedad:', err);
         toast({
           title: 'Error',
           description: errorMessage,
@@ -142,7 +120,6 @@ export const useEnfermedades = () => {
       },
       onError: (err: any) => {
         const errorMessage = err.response?.data?.message || 'Error al actualizar enfermedad';
-        console.error('Error updating enfermedad:', err);
         toast({
           title: 'Error',
           description: errorMessage,
@@ -165,7 +142,6 @@ export const useEnfermedades = () => {
       },
       onError: (err: any) => {
         const errorMessage = err.response?.data?.message || 'Error al eliminar enfermedad';
-        console.error('Error deleting enfermedad:', err);
         toast({
           title: 'Error',
           description: errorMessage,
@@ -178,9 +154,7 @@ export const useEnfermedades = () => {
   // ===== RETURN OBJECT =====
   return {
     // Queries
-    useEnfermedadesQuery,
-    useSearchEnfermedadesQuery,
-    useEnfermedadesByCategoriaQuery,
+    useEnfermedadesQuery, // ✅ Exportar el hook principal de queries
     useEnfermedadByIdQuery,
     // Mutations
     useCreateEnfermedadMutation,

@@ -94,14 +94,4 @@ const datosParaBackend = {
   }
 };
 
-console.log("✅ Transformación completada:");
-console.log("- IDs temporales eliminados");
-console.log("- savedAt eliminado");
-console.log("- Strings convertidos a objetos {id, nombre} para:");
-console.log("  - tipoIdentificacion");
-console.log("  - sexo");
-console.log("  - situacionCivil");
-console.log("  - estudio");
-console.log("  - parentesco");
-console.log("  - comunidadCultural");
-console.log("  - profesion (dentro de profesionMotivoFechaCelebrar)");
+// Transformación completada (logging removido)

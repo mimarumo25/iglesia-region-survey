@@ -177,7 +177,6 @@ function transformDate(date: Date | string | null): string {
     const parsedDate = new Date(date);
     return parsedDate.toISOString().split('T')[0];
   } catch (error) {
-    console.warn('Error parsing date:', date, error);
     return new Date().toISOString().split('T')[0];
   }
 }
@@ -240,8 +239,6 @@ function transformDeceasedMember(member: DeceasedFamilyMember): APIDeceasedMembe
  * Función principal para transformar SurveySessionData al formato API
  */
 export function transformSurveyDataForAPI(data: SurveySessionData): APIEncuestaFormat {
-  console.log('🔄 Transformando datos para API:', data);
-
   // Transformar información general
   const informacionGeneral = {
     municipio: transformConfigurationItem(data.informacionGeneral.municipio) || { id: 1, nombre: 'Medellín' },
@@ -287,8 +284,6 @@ export function transformSurveyDataForAPI(data: SurveySessionData): APIEncuestaF
     metadata: data.metadata
   };
 
-  console.log('✅ Datos transformados para API:', transformedData);
-  
   return transformedData;
 }
 
@@ -350,21 +345,5 @@ export function validateAPIFormat(data: APIEncuestaFormat): { isValid: boolean; 
  * Función de utilidad para logging de diferencias (para debugging)
  */
 export function logDataDifferences(original: SurveySessionData, transformed: APIEncuestaFormat) {
-  console.group('📊 Diferencias en transformación de datos:');
-  
-  console.log('📥 Datos originales:', {
-    familyMembersCount: original.familyMembers.length,
-    deceasedMembersCount: original.deceasedMembers.length,
-    municipio: original.informacionGeneral.municipio,
-    firstFamilyMember: original.familyMembers[0]
-  });
-  
-  console.log('📤 Datos transformados:', {
-    familyMembersCount: transformed.familyMembers.length,
-    deceasedMembersCount: transformed.deceasedMembers.length,
-    municipio: transformed.informacionGeneral.municipio,
-    firstFamilyMember: transformed.familyMembers[0]
-  });
-  
-  console.groupEnd();
+  // Logging silenciado en producción
 }

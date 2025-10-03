@@ -88,11 +88,7 @@ const familyMemberToFormData = (member: FamilyMember): Partial<FamilyMemberFormD
       }
     };
 
-    console.log('✅ FormData transformado exitosamente:', {
-      nombres: formData.nombres,
-      talla: formData.talla,
-      tipoIdentificacion: formData.tipoIdentificacion
-    });
+    // FormData transformado exitosamente
 
     return formData;
   } catch (error) {
@@ -151,7 +147,6 @@ const formDataToFamilyMember = (data: FamilyMemberFormData, id: string, configur
     }
     
     // Fallback: si no se encuentra la opción, crear con el valor como ID y nombre
-    console.warn(`Option not found for value: ${value} in ${optionsKey}`);
     return {
       id: value,
       nombre: value
@@ -244,7 +239,6 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
 
   const openDialogForNew = () => {
     try {
-      console.log('🟢 Abriendo diálogo para nuevo miembro');
       setEditingFamilyMember(null);
       form.reset();
       setShowFamilyDialog(true);
@@ -317,17 +311,6 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
 
   const handleEdit = (member: FamilyMember) => {
     try {
-      // Log detallado para diagnosticar el problema
-      console.log('📝 handleEdit llamado con member:', {
-        hasId: !!member?.id,
-        id: member?.id,
-        nombres: member?.nombres,
-        memberKeys: member ? Object.keys(member) : 'member is null/undefined',
-        memberType: typeof member,
-        memberIsNull: member === null,
-        memberIsUndefined: member === undefined
-      });
-
       // Validar que el miembro existe
       if (!member) {
         console.error('❌ Member es null o undefined:', member);
@@ -343,7 +326,6 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
       // Si no tiene ID, vamos a generar uno temporal
       let memberWithId = member;
       if (!member.id) {
-        console.warn('⚠️ Member sin ID, generando uno temporal:', member);
         memberWithId = { 
           ...member, 
           id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` 

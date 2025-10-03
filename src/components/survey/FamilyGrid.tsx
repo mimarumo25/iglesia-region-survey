@@ -45,7 +45,6 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
   const configurationData = useConfigurationData();
 
   const handleAddFirst = () => {
-    console.log('🎯 handleAddFirst llamado - usando openDialogForNew');
     openDialogForNew();
   };
 
@@ -82,7 +81,6 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
           <DialogTrigger asChild>
             <Button 
               onClick={() => {
-                console.log('🎯 Botón Agregar Miembro clickeado - usando openDialogForNew');
                 openDialogForNew();
               }}
               className={DIALOG_BUTTONS.trigger.className}
@@ -123,7 +121,7 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
           
           // Logging específico para errores de DOM
           if (error.message?.includes('removeChild') || error.message?.includes('NotFoundError')) {
-            console.warn('🔧 DOM manipulation error en tabla familiar - aplicando recovery automático');
+            // DOM manipulation error - recovery automático aplicado
           }
         }}
       >

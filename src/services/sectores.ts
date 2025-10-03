@@ -148,7 +148,6 @@ class SectoresService {
       return response.data;
     } catch (error) {
       // Si falla, usar el endpoint regular de municipios como alternativa
-      console.warn('Endpoint /api/catalog/sectores/municipios no disponible, usando endpoint de municipios regular');
       try {
         const client = getApiClient();
         const response = await client.get('/api/catalog/municipios');

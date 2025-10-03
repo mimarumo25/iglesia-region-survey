@@ -190,10 +190,7 @@ export class MunicipiosService {
         id_departamento: Number(municipio.id_departamento)
       };
       
-      console.log('🚀 Creando municipio:', municipioData);
-      
       const response = await apiPost<MunicipioResponse>(MunicipiosService.baseUrl, municipioData);
-      console.log('✅ Municipio creado exitosamente:', response.data);
       return response.data.data;
     } catch (error: any) {
       console.error('❌ Error al crear municipio:', {

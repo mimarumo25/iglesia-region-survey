@@ -407,7 +407,6 @@ export const useConfigurationData = (): ConfigurationData => {
     return municipiosData.map((municipio: Municipio, index) => {
       // Verificar que municipio existe y tiene las propiedades necesarias
       if (!municipio || typeof municipio !== 'object') {
-        console.warn('Municipio inválido encontrado:', municipio);
         return {
           value: '',
           label: 'Municipio inválido',

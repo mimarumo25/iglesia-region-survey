@@ -19,11 +19,8 @@ export const useDisposicionBasura = () => {
     return useQuery<DisposicionBasuraResponse, Error>({
       queryKey: ['disposicionBasura'],
       queryFn: async () => {
-        console.log('🔄 Hook: Ejecutando query para disposición basura...');
-        
         // Obtener todos los datos sin paginación del backend
         const response = await disposicionBasuraService.getDisposicionBasura(1000, 1);
-        console.log('📦 Hook: Respuesta del servicio:', response);
         
         return response;
       },

@@ -12,8 +12,6 @@ export const departamentosFallbackService = {
    * Provides fallback data when the main departamentos API is unavailable
    */
   getActiveDepartamentos: async (): Promise<ServerResponse<Departamento[]>> => {
-    console.warn('Using fallback departamentos data due to API unavailability');
-    
     // Simulate async behavior
     await new Promise(resolve => setTimeout(resolve, 100));
     

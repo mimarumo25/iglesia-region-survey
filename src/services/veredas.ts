@@ -79,11 +79,9 @@ class VeredasService {
       );
       
       // La API devuelve: { success: true, data: { data: [...], total: X } }
-      console.log('📡 API Response para veredas:', response.data);
       
       // Verificar si hay error en el backend
       if (!response.data.success || response.data.data.status === 'error') {
-        console.warn('⚠️ Error en respuesta de API:', response.data);
         return {
           data: [],
           total: 0,
@@ -115,8 +113,6 @@ class VeredasService {
             : vereda.municipio.id_municipio
         } : undefined
       }));
-      
-      console.log('✅ Veredas procesadas:', processedVeredas.length);
       
       return {
         data: processedVeredas,
@@ -208,11 +204,8 @@ class VeredasService {
         }
       );
       
-      console.log('📡 API Search Response para veredas:', response.data);
-      
       // Verificar si hay error en el backend
       if (!response.data.success || response.data.data.status === 'error') {
-        console.warn('⚠️ Error en búsqueda de veredas:', response.data);
         return {
           data: [],
           total: 0,
@@ -276,11 +269,8 @@ class VeredasService {
         }
       );
       
-      console.log('📡 API Response veredas por municipio:', response.data);
-      
       // Verificar si hay error en el backend
       if (!response.data.success || response.data.data.status === 'error') {
-        console.warn('⚠️ Error en veredas por municipio:', response.data);
         return {
           data: [],
           total: 0,

@@ -1058,8 +1058,7 @@ const SurveysWithSafeRenderer = () => (
       
       // Logging específico para errores de DOM
       if (error.message?.includes('removeChild') || error.message?.includes('NotFoundError')) {
-        console.warn('🔧 DOM manipulation error detected. Attempting automatic recovery...');
-        // Auto-recovery después de 2 segundos
+        // DOM manipulation error - auto-recovery in 2 seconds
         setTimeout(() => {
           window.location.reload();
         }, 2000);

@@ -46,7 +46,6 @@ const Families = () => {
    * Navegar a detalles de familia
    */
   const handleFamiliaClick = (familiaId: string) => {
-    console.log('📍 Navegando a familia:', familiaId);
     // TODO: Implementar página de detalles de familia
     // navigate(`/families/${familiaId}`);
   };
@@ -55,7 +54,6 @@ const Families = () => {
    * Exportar datos a Excel/CSV
    */
   const handleExport = () => {
-    console.log('📊 Exportando familias...');
     // TODO: Implementar exportación
   };
 

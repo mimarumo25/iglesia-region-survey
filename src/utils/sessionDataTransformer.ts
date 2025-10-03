@@ -108,7 +108,7 @@ export const saveSurveyToLocalStorage = (surveyData: SurveySessionData, key: str
     
     localStorage.setItem(key, JSON.stringify(dataToSave));
   } catch (error) {
-    console.error('Error al guardar encuesta en localStorage:', error);
+    // Error silenciado
   }
 };
 

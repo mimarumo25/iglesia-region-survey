@@ -48,8 +48,6 @@ export class SurveySubmissionService {
    */
   static async submitSurvey(surveyData: SurveySessionData): Promise<SurveySubmissionResponse> {
     try {
-      console.log('🚀 Iniciando envío de encuesta...');
-      
       // Transformar datos al formato esperado por la API
       const apiData = transformSurveyDataForAPI(surveyData);
       
@@ -68,11 +66,7 @@ export class SurveySubmissionService {
         logDataDifferences(surveyData, apiData);
       }
       
-      console.log('📤 Enviando datos transformados a /api/encuesta:', apiData);
-      
       const response = await apiPost('/api/encuesta', apiData);
-      
-      console.log('✅ Respuesta exitosa del servidor:', response.data);
       
       return {
         success: true,
@@ -148,7 +142,6 @@ export class SurveySubmissionService {
       // Si fue exitoso y autoCleanup está habilitado, limpiar storage
       if (result.success && autoCleanup) {
         this.clearStorageAfterSubmission();
-        console.log('🧹 Storage limpiado automáticamente después del envío exitoso');
       }
       
       return result;
@@ -293,12 +286,9 @@ export class SurveySubmissionService {
       // Limpiar cada clave especificada
       storageKeys.forEach(key => {
         if (localStorage.getItem(key)) {
-          console.log(`🧹 Limpiando localStorage: ${key}`);
           localStorage.removeItem(key);
         }
       });
-
-      console.log('✅ localStorage limpiado exitosamente después del envío');
       
     } catch (error) {
       console.error('❌ Error al limpiar localStorage:', error);
