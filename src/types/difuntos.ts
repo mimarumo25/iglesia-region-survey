@@ -23,7 +23,8 @@ export interface DifuntoAPI {
   nombre_sector: string;
   nombre_vereda: string;
   nombre_parroquia: string | null;
-  parentesco_inferido: string;
+  parentesco_real: string;
+  id_parentesco: string;
 }
 
 export interface DifuntosEstadisticas {

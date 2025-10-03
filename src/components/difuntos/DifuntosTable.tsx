@@ -235,11 +235,11 @@ export const DifuntosTable = ({ data, isLoading, total = 0 }: DifuntosTableProps
                               <span>{formatDate(difunto.fecha_aniversario)}</span>
                             </div>
                             
-                            {difunto.parentesco_inferido && (
+                            {difunto.parentesco_real && (
                               <div className="flex items-center gap-2">
                                 <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 <span className="font-medium">Parentesco:</span>
-                                <span>{difunto.parentesco_inferido}</span>
+                                <span>{difunto.parentesco_real}</span>
                               </div>
                             )}
                             
@@ -364,7 +364,7 @@ export const DifuntosTable = ({ data, isLoading, total = 0 }: DifuntosTableProps
                           {/* Parentesco */}
                           <TableCell>
                             <span className="text-sm">
-                              {difunto.parentesco_inferido || '-'}
+                              {difunto.parentesco_real || '-'}
                             </span>
                           </TableCell>
 
