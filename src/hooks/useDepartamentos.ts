@@ -35,7 +35,7 @@ const filterBySearch = (data: any[], searchTerm: string) => {
 export const useDepartamentos = () => {
   const queryClient = useQueryClient();
 
-  // Query para obtener departamentos con paginación y búsqueda CLIENT-SIDE (temporal)
+  // Query para obtener departamentos (sin parámetros - paginación y filtrado CLIENT-SIDE)
   const useDepartamentosQuery = (
     page: number = 1, 
     limit: number = 10, 
@@ -43,17 +43,17 @@ export const useDepartamentos = () => {
     sortOrder: 'ASC' | 'DESC' = 'ASC',
     searchTerm: string = ''
   ) => {
-    // Primero obtenemos TODOS los datos sin paginación
+    // Obtenemos TODOS los datos sin parámetros (el servicio no acepta filtros)
     const allDataQuery = useQuery({
-      queryKey: ['all-departamentos', sortBy, sortOrder],
-      queryFn: () => departamentosService.getDepartamentos(1, 1000, sortBy, sortOrder), // Obtener todos
+      queryKey: ['all-departamentos'],
+      queryFn: () => departamentosService.getActiveDepartamentos(), // Sin parámetros
       staleTime: 1000 * 60 * 5, // 5 minutos
       refetchOnWindowFocus: false,
     });
 
-    // Aplicamos filtrado por búsqueda y paginación client-side usando useMemo para optimizar
+    // Aplicamos filtrado por búsqueda, ordenamiento y paginación client-side usando useMemo
     const filteredAndPaginatedResult = useMemo(() => {
-      if (!allDataQuery.data?.data?.departamentos) {
+      if (!allDataQuery.data?.data) {
         return {
           departamentos: [],
           pagination: {
@@ -66,9 +66,9 @@ export const useDepartamentos = () => {
         };
       }
 
-      const allDepartamentos = allDataQuery.data.data.departamentos;
+      const allDepartamentos = allDataQuery.data.data;
       
-      // Aplicar ordenamiento si es necesario (por si el backend no lo hace correctamente)
+      // Aplicar ordenamiento client-side
       const sortedData = [...allDepartamentos].sort((a, b) => {
         const aValue = a[sortBy as keyof typeof a];
         const bValue = b[sortBy as keyof typeof b];
@@ -96,7 +96,7 @@ export const useDepartamentos = () => {
           hasPrev: paginatedData.hasPreviousPage,
         },
       };
-    }, [allDataQuery.data?.data?.departamentos, page, limit, sortBy, sortOrder, searchTerm]);
+    }, [allDataQuery.data?.data, page, limit, sortBy, sortOrder, searchTerm]);
 
     return {
       ...allDataQuery,
@@ -107,7 +107,7 @@ export const useDepartamentos = () => {
     };
   };
 
-  // Query para buscar departamentos con BÚSQUEDA CLIENT-SIDE (temporal)
+  // Query para buscar departamentos con BÚSQUEDA CLIENT-SIDE
   const useSearchDepartamentosQuery = (search: string, page: number = 1, limit: number = 10) => {
     // Reutilizamos la lógica de useDepartamentosQuery con el parámetro de búsqueda
     return useDepartamentosQuery(page, limit, 'id_departamento', 'ASC', search);

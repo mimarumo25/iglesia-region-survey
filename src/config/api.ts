@@ -101,6 +101,9 @@ export const API_ENDPOINTS = {
   
   // Difuntos
   DIFUNTOS: '/api/difuntos',
+  
+  // Familias
+  FAMILIAS: '/api/familias',
 } as const;
 
 /**

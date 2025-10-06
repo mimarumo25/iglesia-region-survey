@@ -3,7 +3,7 @@
  * Vista principal con tabs para diferentes tipos de reportes
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -24,11 +24,22 @@ import {
   FileSpreadsheet,
   Activity,
   Filter,
-  RefreshCw
+  RefreshCw,
+  Loader2,
+  Search
 } from "lucide-react";
 import { Autocomplete } from "@/components/ui/autocomplete";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
 import DifuntosReportPage from "@/components/difuntos/DifuntosReportPage";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  getReporteFamilias, 
+  exportReporteFamilias,
+  type FamiliaReporte
+} from "@/services/reportes";
+import { getFamiliasConsolidado, exportFamiliasToExcel } from "@/services/familias";
+import type { FamiliaConsolidada } from "@/types/familias";
+import FamiliasAccordionList from "@/components/familias/FamiliasAccordionList";
 
 /**
  * 📊 Módulo de Reportes y Estadísticas - Sistema MIA
@@ -98,25 +109,21 @@ interface ParroquiasFilters {
 }
 
 /**
- * Interfaz para los filtros de reportes de familias
+ * Interfaz para los filtros de reportes de familias (Consolidado)
  */
 interface FamiliasFilters {
   parroquia: string;
   municipio: string;
   sector: string;
-  sexo: string;
-  parentesco: string;
-  sinPadre: boolean;
-  sinMadre: boolean;
-  edad_min: number | null;
-  edad_max: number | null;
-  incluir_detalles: boolean;
+  vereda: string;
   limite: number;
+  offset: number;
 }
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState("parroquias");
   const configData = useConfigurationData();
+  const { toast } = useToast();
 
   // Estados para filtros de Parroquias
   const [parroquiasFilters, setParroquiasFilters] = useState<ParroquiasFilters>({
@@ -136,15 +143,15 @@ const Reports = () => {
     parroquia: "",
     municipio: "",
     sector: "",
-    sexo: "",
-    parentesco: "",
-    sinPadre: false,
-    sinMadre: false,
-    edad_min: null,
-    edad_max: null,
-    incluir_detalles: true,
-    limite: 100
+    vereda: "",
+    limite: 100,
+    offset: 0
   });
+
+  // Estados para resultados y UI de Familias (Consolidado)
+  const [familiasConsolidado, setFamiliasConsolidado] = useState<FamiliaConsolidada[]>([]);
+  const [familiasLoading, setFamiliasLoading] = useState(false);
+  const [familiasQueried, setFamiliasQueried] = useState(false);
 
   /**
    * Maneja cambios en filtros de Parroquias
@@ -185,17 +192,109 @@ const Reports = () => {
       parroquia: "",
       municipio: "",
       sector: "",
-      sexo: "",
-      parentesco: "",
-      sinPadre: false,
-      sinMadre: false,
-      edad_min: null,
-      edad_max: null,
-      incluir_detalles: true,
-      limite: 100
+      vereda: "",
+      limite: 100,
+      offset: 0
     });
+    setFamiliasConsolidado([]);
+    setFamiliasQueried(false);
   };
 
+  /**
+   * 🔍 Consulta automática al entrar al tab de familias
+   */
+  useEffect(() => {
+    if (activeTab === "familias" && !familiasQueried) {
+      handleQueryFamilias();
+    }
+  }, [activeTab]);
+
+  /**
+   * 🔍 Consulta el consolidado de familias con los filtros actuales
+   */
+  const handleQueryFamilias = async () => {
+    setFamiliasLoading(true);
+    setFamiliasQueried(false);
+    
+    try {
+      // Convertir filtros del componente al formato de la API
+      const filtrosAPI = {
+        id_parroquia: familiasFilters.parroquia ? Number(familiasFilters.parroquia) : undefined,
+        id_municipio: familiasFilters.municipio ? Number(familiasFilters.municipio) : undefined,
+        id_sector: familiasFilters.sector ? Number(familiasFilters.sector) : undefined,
+        id_vereda: familiasFilters.vereda ? Number(familiasFilters.vereda) : undefined,
+        limite: familiasFilters.limite,
+        offset: familiasFilters.offset
+      };
+
+      const response = await getFamiliasConsolidado(filtrosAPI);
+
+      setFamiliasConsolidado(response);
+      setFamiliasQueried(true);
+
+      toast({
+        title: "✅ Consulta exitosa",
+        description: `Se encontraron ${response.length} familias`,
+        variant: "default"
+      });
+
+    } catch (error: any) {
+      console.error('Error consultando familias:', error);
+      toast({
+        title: "❌ Error en la consulta",
+        description: error.message || "No se pudo obtener el consolidado de familias",
+        variant: "destructive"
+      });
+      setFamiliasConsolidado([]);
+    } finally {
+      setFamiliasLoading(false);
+    }
+  };
+
+  /**
+   * 📥 Descarga el reporte de familias en formato Excel
+   */
+  const handleExportFamiliasToExcel = async () => {
+    try {
+      // Convertir filtros del componente al formato de la API
+      const filtrosAPI = {
+        id_parroquia: familiasFilters.parroquia ? Number(familiasFilters.parroquia) : undefined,
+        id_municipio: familiasFilters.municipio ? Number(familiasFilters.municipio) : undefined,
+        id_sector: familiasFilters.sector ? Number(familiasFilters.sector) : undefined,
+        id_vereda: familiasFilters.vereda ? Number(familiasFilters.vereda) : undefined,
+        limite: familiasFilters.limite,
+        offset: familiasFilters.offset
+      };
+
+      toast({
+        title: "📥 Generando reporte...",
+        description: "La descarga comenzará en breve",
+        variant: "default"
+      });
+
+      await exportFamiliasToExcel(filtrosAPI);
+
+      toast({
+        title: "✅ Descarga exitosa",
+        description: "El archivo Excel se ha descargado correctamente",
+        variant: "default"
+      });
+
+    } catch (error: any) {
+      console.error('Error exportando familias:', error);
+      toast({
+        title: "❌ Error en la exportación",
+        description: error.message || "No se pudo descargar el reporte de familias",
+        variant: "destructive"
+      });
+    }
+  };
+
+  /**
+   * 📄 ELIMINADAS: Funciones de exportación PDF/Excel
+   * (Se mantienen solo como placeholder para futura implementación)
+   */
+  
   /**
    * Exporta reporte en formato PDF
    */
@@ -227,13 +326,6 @@ const Reports = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6 space-y-8">
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight parish-text-primary">
-            Reportes y Estadísticas
-          </h1>
-        </div>
-
         {/* Tabs de reportes */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
@@ -443,8 +535,8 @@ const Reports = () => {
                       <Users className="h-5 w-5" />
                       Reportes de Familias
                     </CardTitle>
-                    <CardDescription>
-                      Configura los filtros y genera reportes demográficos familiares
+                    <CardDescription className="flex items-center gap-4 mt-2">
+
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
@@ -452,33 +544,38 @@ const Reports = () => {
                       variant="outline" 
                       size="sm"
                       onClick={clearFamiliasFilters}
+                      disabled={familiasLoading}
                       className="flex items-center gap-2"
                     >
                       <RefreshCw className="h-4 w-4" />
                       Limpiar
                     </Button>
-                    <div className="flex gap-2">
-                      <Button 
-                        onClick={() => console.log('Exportando Familias a PDF:', familiasFilters)}
-                        className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
-                      >
-                        <FileText className="h-4 w-4" />
-                        PDF
-                      </Button>
-                      <Button 
-                        onClick={() => console.log('Exportando Familias a Excel:', familiasFilters)}
-                        className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-                      >
-                        <FileSpreadsheet className="h-4 w-4" />
-                        Excel
-                      </Button>
-                    </div>
+                    <Button 
+                      onClick={handleQueryFamilias}
+                      disabled={familiasLoading}
+                      className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                    >
+                      {familiasLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                      Consultar Familias
+                    </Button>
+                    <Button 
+                      onClick={handleExportFamiliasToExcel}
+                      disabled={familiasLoading}
+                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                    >
+                      <FileSpreadsheet className="h-4 w-4" />
+                      Descargar Excel
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 {/* Campos de filtros - Ubicación geográfica */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {/* Parroquia */}
                   <div className="space-y-2">
                     <Label htmlFor="familia_parroquia">Parroquia</Label>
@@ -507,130 +604,40 @@ const Reports = () => {
 
                   {/* Sector */}
                   <div className="space-y-2">
-                    <Label htmlFor="familia_sector">Sector / Vereda</Label>
+                    <Label htmlFor="familia_sector">Sector</Label>
                     <Autocomplete
                       options={configData.sectorOptions}
                       value={familiasFilters.sector}
                       onValueChange={(value) => handleFamiliasFilterChange('sector', value)}
-                      placeholder="Seleccionar sector o vereda..."
+                      placeholder="Seleccionar sector..."
                       loading={configData.sectoresLoading}
                       emptyText="No se encontraron sectores"
                     />
                   </div>
 
-                  {/* Sexo */}
+                  {/* Vereda */}
                   <div className="space-y-2">
-                    <Label htmlFor="familia_sexo">Sexo</Label>
+                    <Label htmlFor="familia_vereda">Vereda</Label>
                     <Autocomplete
-                      options={configData.sexoOptions}
-                      value={familiasFilters.sexo}
-                      onValueChange={(value) => handleFamiliasFilterChange('sexo', value)}
-                      placeholder="Seleccionar sexo..."
-                      loading={configData.sexosLoading}
-                      emptyText="No se encontraron opciones de sexo"
+                      options={configData.veredaOptions}
+                      value={familiasFilters.vereda}
+                      onValueChange={(value) => handleFamiliasFilterChange('vereda', value)}
+                      placeholder="Seleccionar vereda..."
+                      loading={configData.veredasLoading}
+                      emptyText="No se encontraron veredas"
                     />
-                  </div>
-
-                  {/* Parentesco */}
-                  <div className="space-y-2">
-                    <Label htmlFor="familia_parentesco">Parentesco</Label>
-                    <Autocomplete
-                      options={configData.parentescosOptions}
-                      value={familiasFilters.parentesco}
-                      onValueChange={(value) => handleFamiliasFilterChange('parentesco', value)}
-                      placeholder="Seleccionar parentesco..."
-                      loading={configData.parentescosLoading}
-                      emptyText="No se encontraron parentescos"
-                    />
-                  </div>
-
-                  {/* Edad Mínima */}
-                  <div className="space-y-2">
-                    <Label htmlFor="familia_edad_min">Edad Mínima</Label>
-                    <Input
-                      id="familia_edad_min"
-                      type="number"
-                      min={0}
-                      max={120}
-                      value={familiasFilters.edad_min || ""}
-                      onChange={(e) => handleFamiliasFilterChange('edad_min', e.target.value ? parseInt(e.target.value) : null)}
-                      placeholder="Edad mínima..."
-                      className="w-full"
-                    />
-                  </div>
-
-                  {/* Edad Máxima */}
-                  <div className="space-y-2">
-                    <Label htmlFor="familia_edad_max">Edad Máxima</Label>
-                    <Input
-                      id="familia_edad_max"
-                      type="number"
-                      min={0}
-                      max={120}
-                      value={familiasFilters.edad_max || ""}
-                      onChange={(e) => handleFamiliasFilterChange('edad_max', e.target.value ? parseInt(e.target.value) : null)}
-                      placeholder="Edad máxima..."
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-
-                <Separator className="my-6" />
-
-                {/* Configuraciones adicionales */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {/* Sin Padre */}
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="familia_sin_padre"
-                      checked={familiasFilters.sinPadre}
-                      onCheckedChange={(checked) => handleFamiliasFilterChange('sinPadre', checked)}
-                    />
-                    <Label htmlFor="familia_sin_padre">Familias sin padre</Label>
-                  </div>
-
-                  {/* Sin Madre */}
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="familia_sin_madre"
-                      checked={familiasFilters.sinMadre}
-                      onCheckedChange={(checked) => handleFamiliasFilterChange('sinMadre', checked)}
-                    />
-                    <Label htmlFor="familia_sin_madre">Familias sin madre</Label>
-                  </div>
-
-                  {/* Incluir Detalles */}
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="familia_incluir_detalles"
-                      checked={familiasFilters.incluir_detalles}
-                      onCheckedChange={(checked) => handleFamiliasFilterChange('incluir_detalles', checked)}
-                    />
-                    <Label htmlFor="familia_incluir_detalles">Incluir detalles estadísticos</Label>
-                  </div>
-
-                  {/* Límite */}
-                  <div className="space-y-2">
-                    <Label htmlFor="familia_limite">Límite de resultados</Label>
-                    <Select 
-                      value={familiasFilters.limite.toString()} 
-                      onValueChange={(value) => handleFamiliasFilterChange('limite', parseInt(value))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="50">50 registros</SelectItem>
-                        <SelectItem value="100">100 registros</SelectItem>
-                        <SelectItem value="250">250 registros</SelectItem>
-                        <SelectItem value="500">500 registros</SelectItem>
-                        <SelectItem value="1000">1000 registros</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Card de Resultados */}
+            {familiasQueried && (
+              <FamiliasAccordionList 
+                familias={familiasConsolidado} 
+                isLoading={familiasLoading}
+              />
+            )}
           </TabsContent>
 
           {/* Tab Content: Salud */}

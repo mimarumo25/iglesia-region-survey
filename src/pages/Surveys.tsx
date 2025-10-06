@@ -53,6 +53,7 @@ import { useResponsiveTable } from "@/hooks/useResponsiveTable";
 // Importar modal de detalles y componentes móviles
 import { SurveyDetailModal } from "@/components/modales/SurveyDetailModal";
 import { SurveyMobileCard } from "@/components/ui/SurveyMobileCard";
+import { ConfigPagination } from "@/components/ui/config-pagination";
 
 // Importar estilos para animaciones móviles
 import "@/styles/mobile-animations.css";
@@ -275,6 +276,20 @@ const Surveys = () => {
     setSectorFilter("");
     setSurveyorFilter("");
     setStatusFilter("all");
+  };
+
+  /**
+   * Manejar cambio de página
+   */
+  const handlePageChange = (page: number) => {
+    setQueryParams(prev => ({ ...prev, page }));
+  };
+
+  /**
+   * Manejar cambio de items por página
+   */
+  const handleItemsPerPageChange = (limit: number) => {
+    setQueryParams(prev => ({ ...prev, page: 1, limit }));
   };
 
   // ============================================================================
@@ -936,37 +951,24 @@ const Surveys = () => {
   </Card>
 
       {/* Paginación */}
-      {paginationFromAPI.totalPages > 1 && (
-        <Card className="mt-6">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">
-                Mostrando {filteredEncuestas.length} de {paginationFromAPI.totalItems} encuestas
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setQueryParams(prev => ({ ...prev, page: Math.max(1, (prev.page || 1) - 1) }))}
-                  disabled={paginationFromAPI.currentPage === 1 || encuestasLoading}
-                >
-                  Anterior
-                </Button>
-                <span className="text-sm text-gray-600">
-                  Página {paginationFromAPI.currentPage} de {paginationFromAPI.totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setQueryParams(prev => ({ ...prev, page: (prev.page || 1) + 1 }))}
-                  disabled={paginationFromAPI.currentPage === paginationFromAPI.totalPages || encuestasLoading}
-                >
-                  Siguiente
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {paginationFromAPI.totalItems > 0 && (
+        <ConfigPagination
+          currentPage={paginationFromAPI.currentPage}
+          totalPages={paginationFromAPI.totalPages}
+          totalItems={paginationFromAPI.totalItems}
+          itemsPerPage={paginationFromAPI.itemsPerPage}
+          onPageChange={handlePageChange}
+          onItemsPerPageChange={handleItemsPerPageChange}
+          showItemsPerPageSelector={true}
+          itemsPerPageOptions={[5, 10, 20, 50, 100]}
+          variant={shouldUseMobileView ? "compact" : "complete"}
+          showInfo={true}
+          showFirstLast={!shouldUseMobileView}
+          maxVisiblePages={5}
+          loading={encuestasLoading}
+          infoText="Mostrando {start}-{end} de {total} encuestas"
+          size="md"
+        />
       )}
 
       {/* Diálogo de confirmación para eliminar */}

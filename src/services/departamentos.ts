@@ -53,90 +53,6 @@ export interface DepartamentosStatsResponse {
 
 // Servicios para Departamentos
 export const departamentosService = {
-  // Obtener todos los departamentos con paginación
-  getDepartamentos: async (
-    page: number = 1, 
-    limit: number = 10, 
-    sortBy: string = 'id_departamento', 
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ): Promise<ServerResponse<DepartamentosResponse>> => {
-    try {
-      const response = await axios.get('/api/catalog/departamentos', {
-        params: { page, limit, sortBy, sortOrder }
-      });
-      
-      // Manejar el nuevo formato de respuesta
-      const apiResponse = response.data as ApiResponse<Departamento[]>;
-      
-      if (apiResponse.status === 'success' && Array.isArray(apiResponse.data)) {
-        const departamentos = apiResponse.data;
-        const total = apiResponse.total || departamentos.length;
-        const totalPages = Math.ceil(total / limit);
-        
-        return {
-          success: true,
-          timestamp: new Date().toISOString(),
-          data: {
-            departamentos,
-            pagination: {
-              currentPage: page,
-              totalPages,
-              totalCount: total,
-              hasNext: page < totalPages,
-              hasPrev: page > 1
-            }
-          }
-        };
-      }
-      
-      throw new Error('Formato de respuesta inválido');
-    } catch (error: any) {
-      console.error('Error al obtener departamentos:', error);
-      throw new Error(error.response?.data?.message || 'Error al obtener departamentos');
-    }
-  },
-
-  // Buscar departamentos
-  searchDepartamentos: async (
-    search: string,
-    page: number = 1,
-    limit: number = 10
-  ): Promise<ServerResponse<DepartamentosResponse>> => {
-    try {
-      const response = await axios.get('/api/catalog/departamentos/search', {
-        params: { search, page, limit }
-      });
-      
-      // Manejar el nuevo formato de respuesta
-      const apiResponse = response.data as ApiResponse<Departamento[]>;
-      
-      if (apiResponse.status === 'success' && Array.isArray(apiResponse.data)) {
-        const departamentos = apiResponse.data;
-        const total = apiResponse.total || departamentos.length;
-        const totalPages = Math.ceil(total / limit);
-        
-        return {
-          success: true,
-          timestamp: new Date().toISOString(),
-          data: {
-            departamentos,
-            pagination: {
-              currentPage: page,
-              totalPages,
-              totalCount: total,
-              hasNext: page < totalPages,
-              hasPrev: page > 1
-            }
-          }
-        };
-      }
-      
-      throw new Error('Formato de respuesta inválido');
-    } catch (error: any) {
-      console.error('Error al buscar departamentos:', error);
-      throw new Error(error.response?.data?.message || 'Error al buscar departamentos');
-    }
-  },
 
   // Obtener un departamento por ID
   getDepartamentoById: async (id: string): Promise<ServerResponse<Departamento>> => {
@@ -323,23 +239,6 @@ export const departamentosService = {
   // Alternar estado de departamento
   toggleDepartamentoStatus: async (id: string): Promise<ServerResponse<Departamento>> => {
     const response = await axios.patch(`/api/catalog/departamentos/${id}/toggle-status`);
-    return response.data;
-  },
-
-  // Búsqueda avanzada con filtros
-  searchDepartamentosAdvanced: async (
-    filters: {
-      nombre?: string;
-      activo?: boolean;
-      sortBy?: string;
-      sortOrder?: 'ASC' | 'DESC';
-      page?: number;
-      limit?: number;
-    }
-  ): Promise<ServerResponse<DepartamentosResponse>> => {
-    const response = await axios.get(buildApiUrl('/api/catalog/departamentos/advanced-search'), {
-      params: filters
-    });
     return response.data;
   },
 };

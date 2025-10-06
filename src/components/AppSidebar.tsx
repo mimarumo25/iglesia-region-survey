@@ -67,18 +67,6 @@ const navigationItems = [
     icon: BarChart3,
     description: "Gestión de formularios"
   },
-  {
-    title: "Familias",
-    url: "/families",
-    icon: Users,
-    description: "Registro de familias"
-  },
-  {
-    title: "Reporte Familias",
-    url: "/familias-reporte",
-    icon: Heart,
-    description: "Familias consolidadas"
-  },
 
   {
     title: "Reportes",

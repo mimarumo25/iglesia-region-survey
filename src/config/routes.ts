@@ -4,9 +4,6 @@ export const lazyRoutes = {
   '/dashboard': () => import('@/pages/Dashboard'),
   '/surveys': () => import('@/pages/Surveys'),
   '/surveys/:id': () => import('@/pages/SurveyDetails'),
-  '/families': () => import('@/pages/Families'),
-  '/familias-reporte': () => import('@/pages/FamiliasReporte'),
-
   '/reports': () => import('@/pages/Reports'),
   '/users': () => import('@/pages/Users'),
   '/profile': () => import('@/pages/Profile'),
@@ -56,7 +53,7 @@ export const routeMetadata: Record<string, {
     skeletonType: 'dashboard',
     priority: 'high',
     preloadTrigger: 'idle',
-    dependencies: ['/surveys', '/families']
+    dependencies: ['/surveys']
   },
   '/surveys': {
     skeletonType: 'table',
@@ -69,17 +66,6 @@ export const routeMetadata: Record<string, {
     priority: 'high',
     preloadTrigger: 'hover'
   },
-  '/families': {
-    skeletonType: 'table',
-    priority: 'high',
-    preloadTrigger: 'hover'
-  },
-  '/familias-reporte': {
-    skeletonType: 'dashboard',
-    priority: 'high',
-    preloadTrigger: 'hover'
-  },
-
   '/reports': {
     skeletonType: 'dashboard',
     priority: 'medium',
