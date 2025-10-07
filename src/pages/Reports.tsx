@@ -40,6 +40,9 @@ import {
 import { getFamiliasConsolidado, exportFamiliasToExcel } from "@/services/familias";
 import type { FamiliaConsolidada } from "@/types/familias";
 import FamiliasAccordionList from "@/components/familias/FamiliasAccordionList";
+import { useSaludData } from "@/hooks/useSaludData";
+import type { SaludFiltros } from "@/types/salud";
+import SaludList from "@/components/salud/SaludList";
 
 /**
  * 📊 Módulo de Reportes y Estadísticas - Sistema MIA
@@ -120,10 +123,36 @@ interface FamiliasFilters {
   offset: number;
 }
 
+/**
+ * Interfaz para los filtros de reportes de salud
+ */
+interface SaludFiltersUI {
+  enfermedad: string;
+  edad_min: string;
+  edad_max: string;
+  sexo: string;
+  parroquia: string;
+  municipio: string;
+  sector: string;
+  limite: number;
+  offset: number;
+}
+
 const Reports = () => {
   const [activeTab, setActiveTab] = useState("parroquias");
   const configData = useConfigurationData();
   const { toast } = useToast();
+
+  // Hook para gestión de datos de salud
+  const {
+    personas: personasSalud,
+    total: saludTotal,
+    isLoading: saludLoading,
+    hasQueried: saludQueried,
+    fetchPersonas: fetchSaludPersonas,
+    exportToExcel: exportSaludExcel,
+    resetData: resetSaludData
+  } = useSaludData();
 
   // Estados para filtros de Parroquias
   const [parroquiasFilters, setParroquiasFilters] = useState<ParroquiasFilters>({
@@ -153,6 +182,35 @@ const Reports = () => {
   const [familiasLoading, setFamiliasLoading] = useState(false);
   const [familiasQueried, setFamiliasQueried] = useState(false);
 
+  // Estados para filtros de Salud
+  const [saludFilters, setSaludFilters] = useState<SaludFiltersUI>({
+    enfermedad: "",
+    edad_min: "",
+    edad_max: "",
+    sexo: "",
+    parroquia: "",
+    municipio: "",
+    sector: "",
+    limite: 100,
+    offset: 0
+  });
+
+  // Estado de paginación para Salud
+  const [saludCurrentPage, setSaludCurrentPage] = useState(1);
+  const saludLimite = saludFilters.limite || 10;
+  const saludTotalPages = Math.ceil(saludTotal / saludLimite);
+
+  /**
+   * Maneja el cambio de página en Salud
+   */
+  const handleSaludPageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > saludTotalPages) return;
+    
+    setSaludCurrentPage(newPage);
+    const newOffset = (newPage - 1) * saludLimite;
+    setSaludFilters(prev => ({ ...prev, offset: newOffset }));
+  };
+
   /**
    * Maneja cambios en filtros de Parroquias
    */
@@ -165,6 +223,13 @@ const Reports = () => {
    */
   const handleFamiliasFilterChange = (key: keyof FamiliasFilters, value: any) => {
     setFamiliasFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  /**
+   * Maneja cambios en filtros de Salud
+   */
+  const handleSaludFilterChange = (key: keyof SaludFiltersUI, value: any) => {
+    setSaludFilters(prev => ({ ...prev, [key]: value }));
   };
 
   /**
@@ -201,6 +266,25 @@ const Reports = () => {
   };
 
   /**
+   * Limpia todos los filtros de Salud
+   */
+  const clearSaludFilters = () => {
+    setSaludFilters({
+      enfermedad: "",
+      edad_min: "",
+      edad_max: "",
+      sexo: "",
+      parroquia: "",
+      municipio: "",
+      sector: "",
+      limite: 100,
+      offset: 0
+    });
+    setSaludCurrentPage(1); // Resetear paginación
+    resetSaludData();
+  };
+
+  /**
    * 🔍 Consulta automática al entrar al tab de familias
    */
   useEffect(() => {
@@ -208,6 +292,24 @@ const Reports = () => {
       handleQueryFamilias();
     }
   }, [activeTab]);
+
+  /**
+   * 🔍 Consulta automática al entrar al tab de salud
+   */
+  useEffect(() => {
+    if (activeTab === "salud" && !saludQueried) {
+      handleQuerySalud();
+    }
+  }, [activeTab]);
+
+  /**
+   * 🔍 Re-consulta cuando cambia el offset (cambio de página)
+   */
+  useEffect(() => {
+    if (activeTab === "salud" && saludQueried && saludFilters.offset !== 0) {
+      handleQuerySalud();
+    }
+  }, [saludFilters.offset]);
 
   /**
    * 🔍 Consulta el consolidado de familias con los filtros actuales
@@ -288,6 +390,65 @@ const Reports = () => {
         variant: "destructive"
       });
     }
+  };
+
+  /**
+   * 🔍 Consulta el consolidado de salud con los filtros actuales
+   */
+  const handleQuerySalud = async () => {
+    // Convertir filtros del UI al formato de la API
+    const filtrosAPI: SaludFiltros = {
+      id_enfermedad: saludFilters.enfermedad ? Number(saludFilters.enfermedad) : undefined,
+      edad_min: saludFilters.edad_min ? Number(saludFilters.edad_min) : undefined,
+      edad_max: saludFilters.edad_max ? Number(saludFilters.edad_max) : undefined,
+      id_sexo: saludFilters.sexo ? Number(saludFilters.sexo) : undefined,
+      id_parroquia: saludFilters.parroquia ? Number(saludFilters.parroquia) : undefined,
+      id_municipio: saludFilters.municipio ? Number(saludFilters.municipio) : undefined,
+      id_sector: saludFilters.sector ? Number(saludFilters.sector) : undefined,
+      limite: saludFilters.limite,
+      offset: saludFilters.offset
+    };
+
+    await fetchSaludPersonas(filtrosAPI);
+  };
+
+  /**
+   * 🔍 Consulta con reseteo de paginación (cuando se cambian filtros)
+   */
+  const handleQuerySaludWithReset = async () => {
+    // Resetear a página 1
+    setSaludCurrentPage(1);
+    setSaludFilters(prev => ({ ...prev, offset: 0 }));
+    
+    // Esperar un tick para que se actualice el estado
+    setTimeout(() => {
+      handleQuerySalud();
+    }, 0);
+  };
+
+  /**
+   * 📥 Descarga el reporte de salud en formato Excel
+   */
+  const handleExportSaludToExcel = async () => {
+    // Obtener el nombre de la enfermedad seleccionada
+    const enfermedadNombre = saludFilters.enfermedad 
+      ? configData.enfermedadesOptions.find(opt => opt.value === saludFilters.enfermedad)?.label
+      : undefined;
+
+    // Convertir filtros del UI al formato de la API
+    const filtrosAPI: SaludFiltros = {
+      id_enfermedad: saludFilters.enfermedad ? Number(saludFilters.enfermedad) : undefined,
+      enfermedad: enfermedadNombre, // Nombre de la enfermedad para el reporte
+      edad_min: saludFilters.edad_min ? Number(saludFilters.edad_min) : undefined,
+      edad_max: saludFilters.edad_max ? Number(saludFilters.edad_max) : undefined,
+      id_sexo: saludFilters.sexo ? Number(saludFilters.sexo) : undefined,
+      id_parroquia: saludFilters.parroquia ? Number(saludFilters.parroquia) : undefined,
+      id_municipio: saludFilters.municipio ? Number(saludFilters.municipio) : undefined,
+      id_sector: saludFilters.sector ? Number(saludFilters.sector) : undefined,
+      limite: 5000 // Límite alto para exportación completa
+    };
+
+    await exportSaludExcel(filtrosAPI);
   };
 
   /**
@@ -641,7 +802,8 @@ const Reports = () => {
           </TabsContent>
 
           {/* Tab Content: Salud */}
-          <TabsContent value="salud" className="space-y-4">
+          <TabsContent value="salud" className="space-y-6">
+            {/* Card de filtros y botones de exportación */}
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -651,58 +813,181 @@ const Reports = () => {
                       Reportes de Salud
                     </CardTitle>
                     <CardDescription>
-                      Estadísticas sanitarias, enfermedades y condiciones de salud
+                      Estadísticas de personas con condiciones de salud
                     </CardDescription>
                   </div>
-                  <Badge variant="outline">En desarrollo</Badge>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={clearSaludFilters}
+                      disabled={saludLoading}
+                      className="flex items-center gap-2"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Limpiar
+                    </Button>
+                    <Button 
+                      onClick={handleQuerySaludWithReset}
+                      disabled={saludLoading}
+                      className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                    >
+                      {saludLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                      Consultar
+                    </Button>
+                    <Button 
+                      onClick={handleExportSaludToExcel}
+                      disabled={saludLoading}
+                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                    >
+                      <FileSpreadsheet className="h-4 w-4" />
+                      Descargar Excel
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <Card className="border-dashed hover:border-solid cursor-pointer transition-all">
-                    <CardContent className="flex flex-col items-center justify-center p-6">
-                      <Heart className="h-8 w-8 text-muted-foreground mb-2" />
-                      <h4 className="font-semibold">Prevalencia de Enfermedades</h4>
-                      <p className="text-sm text-muted-foreground text-center">
-                        Condiciones médicas por región
-                      </p>
-                      <Button variant="outline" className="mt-3 w-full">
-                        <Download className="h-4 w-4 mr-2" />
-                        Generar
-                      </Button>
-                    </CardContent>
-                  </Card>
+              <CardContent>
+                {/* Campos de filtros - Datos de salud */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {/* Enfermedad */}
+                  <div className="space-y-2">
+                    <Label htmlFor="salud_enfermedad">Enfermedad</Label>
+                    <Autocomplete
+                      options={configData.enfermedadesOptions}
+                      value={saludFilters.enfermedad}
+                      onValueChange={(value) => handleSaludFilterChange('enfermedad', value)}
+                      placeholder="Seleccionar enfermedad..."
+                      loading={configData.enfermedadesLoading}
+                      emptyText="No se encontraron enfermedades"
+                    />
+                  </div>
 
-                  <Card className="border-dashed hover:border-solid cursor-pointer transition-all">
-                    <CardContent className="flex flex-col items-center justify-center p-6">
-                      <Activity className="h-8 w-8 text-muted-foreground mb-2" />
-                      <h4 className="font-semibold">Perfil Epidemiológico</h4>
-                      <p className="text-sm text-muted-foreground text-center">
-                        Análisis por grupos etarios
-                      </p>
-                      <Button variant="outline" className="mt-3 w-full">
-                        <Download className="h-4 w-4 mr-2" />
-                        Generar
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  {/* Sexo */}
+                  <div className="space-y-2">
+                    <Label htmlFor="salud_sexo">Sexo</Label>
+                    <Autocomplete
+                      options={configData.sexoOptions}
+                      value={saludFilters.sexo}
+                      onValueChange={(value) => handleSaludFilterChange('sexo', value)}
+                      placeholder="Seleccionar sexo..."
+                      loading={configData.sexosLoading}
+                      emptyText="No se encontraron opciones"
+                    />
+                  </div>
 
-                  <Card className="border-dashed hover:border-solid cursor-pointer transition-all">
-                    <CardContent className="flex flex-col items-center justify-center p-6">
-                      <BarChart3 className="h-8 w-8 text-muted-foreground mb-2" />
-                      <h4 className="font-semibold">Indicadores de Salud</h4>
-                      <p className="text-sm text-muted-foreground text-center">
-                        Métricas y tendencias
-                      </p>
-                      <Button variant="outline" className="mt-3 w-full">
-                        <Download className="h-4 w-4 mr-2" />
-                        Generar
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  {/* Edad Mínima */}
+                  <div className="space-y-2">
+                    <Label htmlFor="salud_edad_min">Edad Mínima</Label>
+                    <Input
+                      id="salud_edad_min"
+                      type="number"
+                      min={0}
+                      max={120}
+                      value={saludFilters.edad_min}
+                      onChange={(e) => handleSaludFilterChange('edad_min', e.target.value)}
+                      placeholder="Ej: 18"
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Edad Máxima */}
+                  <div className="space-y-2">
+                    <Label htmlFor="salud_edad_max">Edad Máxima</Label>
+                    <Input
+                      id="salud_edad_max"
+                      type="number"
+                      min={0}
+                      max={120}
+                      value={saludFilters.edad_max}
+                      onChange={(e) => handleSaludFilterChange('edad_max', e.target.value)}
+                      placeholder="Ej: 65"
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+
+                <Separator className="my-6" />
+
+                {/* Filtros de ubicación geográfica */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {/* Parroquia */}
+                  <div className="space-y-2">
+                    <Label htmlFor="salud_parroquia">Parroquia</Label>
+                    <Autocomplete
+                      options={configData.parroquiaOptions}
+                      value={saludFilters.parroquia}
+                      onValueChange={(value) => handleSaludFilterChange('parroquia', value)}
+                      placeholder="Seleccionar parroquia..."
+                      loading={configData.parroquiasLoading}
+                      emptyText="No se encontraron parroquias"
+                    />
+                  </div>
+
+                  {/* Municipio */}
+                  <div className="space-y-2">
+                    <Label htmlFor="salud_municipio">Municipio</Label>
+                    <Autocomplete
+                      options={configData.municipioOptions}
+                      value={saludFilters.municipio}
+                      onValueChange={(value) => handleSaludFilterChange('municipio', value)}
+                      placeholder="Seleccionar municipio..."
+                      loading={configData.municipiosLoading}
+                      emptyText="No se encontraron municipios"
+                    />
+                  </div>
+
+                  {/* Sector */}
+                  <div className="space-y-2">
+                    <Label htmlFor="salud_sector">Sector</Label>
+                    <Autocomplete
+                      options={configData.sectorOptions}
+                      value={saludFilters.sector}
+                      onValueChange={(value) => handleSaludFilterChange('sector', value)}
+                      placeholder="Seleccionar sector..."
+                      loading={configData.sectoresLoading}
+                      emptyText="No se encontraron sectores"
+                    />
+                  </div>
+
+                  {/* Límite de resultados */}
+                  <div className="space-y-2">
+                    <Label htmlFor="salud_limite">Límite de resultados</Label>
+                    <Select 
+                      value={saludFilters.limite.toString()} 
+                      onValueChange={(value) => handleSaludFilterChange('limite', parseInt(value))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="50">50 registros</SelectItem>
+                        <SelectItem value="100">100 registros</SelectItem>
+                        <SelectItem value="250">250 registros</SelectItem>
+                        <SelectItem value="500">500 registros</SelectItem>
+                        <SelectItem value="1000">1000 registros</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Card de Resultados */}
+            {saludQueried && (
+              <SaludList 
+                personas={personasSalud} 
+                isLoading={saludLoading}
+                currentPage={saludCurrentPage}
+                totalPages={saludTotalPages}
+                total={saludTotal}
+                limite={saludLimite}
+                onPageChange={handleSaludPageChange}
+              />
+            )}
           </TabsContent>
 
           {/* Tab Content: Difuntos */}
