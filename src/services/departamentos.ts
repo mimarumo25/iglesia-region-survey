@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { buildApiUrl } from '@/config/api';
+import { getApiClient } from '@/config/api';
 
 // Interfaces para Departamentos
 export interface Departamento {
@@ -57,7 +56,8 @@ export const departamentosService = {
   // Obtener un departamento por ID
   getDepartamentoById: async (id: string): Promise<ServerResponse<Departamento>> => {
     try {
-      const response = await axios.get(`/api/catalog/departamentos/${id}`);
+      const api = getApiClient();
+      const response = await api.get(`/api/catalog/departamentos/${id}`);
       
       // Manejar el nuevo formato de respuesta
       const apiResponse = response.data as ApiResponse<Departamento>;
@@ -80,7 +80,8 @@ export const departamentosService = {
   // Crear nuevo departamento
   createDepartamento: async (data: DepartamentoFormData): Promise<ServerResponse<Departamento>> => {
     try {
-      const response = await axios.post('/api/catalog/departamentos', data);
+      const api = getApiClient();
+      const response = await api.post('/api/catalog/departamentos', data);
       
       // Manejar el nuevo formato de respuesta
       const apiResponse = response.data;
@@ -134,7 +135,8 @@ export const departamentosService = {
   // Actualizar departamento
   updateDepartamento: async (id: string, data: DepartamentoUpdateData): Promise<ServerResponse<Departamento>> => {
     try {
-      const response = await axios.put(`/api/catalog/departamentos/${id}`, data);
+      const api = getApiClient();
+      const response = await api.put(`/api/catalog/departamentos/${id}`, data);
       
       // Manejar el nuevo formato de respuesta
       const apiResponse = response.data;
@@ -188,7 +190,8 @@ export const departamentosService = {
   // Eliminar departamento
   deleteDepartamento: async (id: string): Promise<ServerResponse<void>> => {
     try {
-      const response = await axios.delete(`/api/catalog/departamentos/${id}`);
+      const api = getApiClient();
+      const response = await api.delete(`/api/catalog/departamentos/${id}`);
       
       // Manejar el nuevo formato de respuesta
       const apiResponse = response.data as ApiResponse<any>;
@@ -210,7 +213,8 @@ export const departamentosService = {
   // Obtener departamentos activos
   getActiveDepartamentos: async (): Promise<ServerResponse<Departamento[]>> => {
     try {
-      const response = await axios.get('/api/catalog/departamentos');
+      const api = getApiClient();
+      const response = await api.get('/api/catalog/departamentos');
       
       // Manejar el nuevo formato de respuesta
       const apiResponse = response.data as ApiResponse<Departamento[]>;
@@ -232,13 +236,15 @@ export const departamentosService = {
 
   // Obtener estadísticas de departamentos
   getDepartamentosStats: async (): Promise<ServerResponse<DepartamentosStatsResponse>> => {
-    const response = await axios.get('/api/catalog/departamentos/stats');
+    const api = getApiClient();
+    const response = await api.get('/api/catalog/departamentos/stats');
     return response.data;
   },
 
   // Alternar estado de departamento
   toggleDepartamentoStatus: async (id: string): Promise<ServerResponse<Departamento>> => {
-    const response = await axios.patch(`/api/catalog/departamentos/${id}/toggle-status`);
+    const api = getApiClient();
+    const response = await api.patch(`/api/catalog/departamentos/${id}/toggle-status`);
     return response.data;
   },
 };

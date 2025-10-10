@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -72,7 +72,22 @@ const navigationItems = [
     title: "Reportes",
     url: "/reports",
     icon: BarChart3,
-    description: "Reportes y estadísticas"
+    description: "Reportes y estadísticas",
+    isExpandable: true,
+    subItems: [
+      {
+        title: "Reportes Generales",
+        url: "/reports",
+        icon: BarChart3,
+        description: "Vista general de reportes"
+      },
+      {
+        title: "Personas",
+        url: "/reports/personas",
+        icon: User,
+        description: "Reporte de personas"
+      }
+    ]
   },
   {
     title: "Usuarios",
@@ -216,6 +231,9 @@ const AppSidebar = () => {
   const [activeItem, setActiveItem] = useState(currentPath);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   
+  // Referencia al contenedor del sidebar para detectar clics fuera
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  
   // Hooks para transiciones y preloading
   const { navigateWithTransition, isPending } = useRouteTransition();
   const { preloadRoute } = useRoutePreloader();
@@ -244,19 +262,35 @@ const AppSidebar = () => {
   // Actualizar item activo cuando cambie la ruta
   useEffect(() => {
     setActiveItem(currentPath);
-    // Auto-expandir el menú padre si estamos en una sub-ruta específica (no en /settings)
+    
+    // Verificar si estamos en una ruta de Configuración o Reportes
+    const isInSettings = currentPath.startsWith('/settings');
+    const isInReports = currentPath.startsWith('/reports');
+    
+    // Si NO estamos en ninguna de estas secciones, colapsar todos los menús
+    if (!isInSettings && !isInReports) {
+      setExpandedItems([]);
+      return;
+    }
+    
+    // Si estamos en Configuración o Reportes, auto-expandir el menú correspondiente
     navigationItems.forEach(item => {
       if (item.subItems) {
-        const hasActiveSubItem = item.subItems.some(subItem => {
-          // Expandir solo si estamos en una sub-ruta específica, no en /settings
-          return currentPath === subItem.url && subItem.url !== '/settings';
-        });
-        if (hasActiveSubItem && !expandedItems.includes(item.title)) {
-          setExpandedItems(prev => [...prev, item.title]);
-        }
-        // Contraer si estamos en /settings
-        if (currentPath === '/settings' && expandedItems.includes(item.title)) {
-          setExpandedItems(prev => prev.filter(title => title !== item.title));
+        // Verificar si algún sub-item coincide con la ruta actual
+        const hasActiveSubItem = item.subItems.some(subItem => 
+          currentPath === subItem.url || currentPath.startsWith(subItem.url + '/')
+        );
+        
+        if (hasActiveSubItem) {
+          // Expandir el menú padre si tiene un sub-item activo
+          if (!expandedItems.includes(item.title)) {
+            setExpandedItems(prev => [...prev, item.title]);
+          }
+        } else {
+          // Contraer si no tiene sub-items activos
+          if (expandedItems.includes(item.title)) {
+            setExpandedItems(prev => prev.filter(title => title !== item.title));
+          }
         }
       }
     });
@@ -268,13 +302,40 @@ const AppSidebar = () => {
     setIsInitialMount(false);
   }, []);
 
+  /**
+   * 🔒 Detector de clics fuera del sidebar
+   * Colapsa los menús expandidos cuando se hace clic fuera del sidebar
+   */
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Solo actuar si hay menús expandidos
+      if (expandedItems.length === 0) return;
+      
+      // Verificar si el clic fue fuera del sidebar
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        // Colapsar todos los menús expandidos
+        setExpandedItems([]);
+      }
+    };
+
+    // Agregar listener solo si hay menús expandidos
+    if (expandedItems.length > 0) {
+      // Usar capture phase para detectar antes que otros eventos
+      document.addEventListener('mousedown', handleClickOutside, true);
+      
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside, true);
+      };
+    }
+  }, [expandedItems]);
+
   const isActive = (path: string) => {
-    // Para rutas exactas
-    if (path === '/settings') {
-      return currentPath === '/settings';
+    // Para rutas exactas de las páginas base expandibles
+    if (path === '/settings' || path === '/reports') {
+      return currentPath === path;
     }
     // Para otras rutas, usar coincidencia exacta o que empiece con la ruta
-    return currentPath === path || (currentPath.startsWith(path) && path !== '/settings');
+    return currentPath === path || (currentPath.startsWith(path) && path !== '/settings' && path !== '/reports');
   };
 
   const handleNavClick = (path: string) => {
@@ -405,15 +466,18 @@ const AppSidebar = () => {
     }
   };
 
-  // Verificar si el menú de configuración está expandido
+  // Verificar si algún menú expandible está abierto
   const isConfigExpanded = isExpanded("Configuración");
+  const isReportesExpanded = isExpanded("Reportes");
+  const isAnyMenuExpanded = isConfigExpanded || isReportesExpanded;
   
   return (
     <div
+      ref={sidebarRef}
       style={{
-        // Cambiar el ancho dinámicamente según si configuración está expandida
-        '--sidebar-width': isConfigExpanded ? '22rem' : '16rem',
-        '--sidebar-width-mobile': isConfigExpanded ? '24rem' : '18rem',
+        // Cambiar el ancho dinámicamente según si algún menú está expandido
+        '--sidebar-width': isAnyMenuExpanded ? '22rem' : '16rem',
+        '--sidebar-width-mobile': isAnyMenuExpanded ? '24rem' : '18rem',
       } as React.CSSProperties}
       className="sidebar-dynamic-width h-screen"
     >
@@ -545,8 +609,8 @@ const AppSidebar = () => {
                             <SidebarMenuButton 
                               className={cn(
                                 getNavCls(),
-                                // No marcar como activo si estamos en /settings pero el menú es expandible
-                                currentPath === '/settings' && item.isExpandable ? 
+                                // No marcar como activo si estamos en rutas base expandibles (/settings o /reports)
+                                (currentPath === '/settings' || currentPath === '/reports') && item.isExpandable ? 
                                   'text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/20' : ''
                               )}
                             >

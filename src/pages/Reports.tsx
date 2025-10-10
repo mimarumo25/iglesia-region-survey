@@ -6,24 +6,16 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  BarChart3, 
   Users, 
   Heart, 
   Calendar, 
-  MapPin, 
-  Download,
-  FileText,
   FileSpreadsheet,
-  Activity,
-  Filter,
   RefreshCw,
   Loader2,
   Search
@@ -32,11 +24,6 @@ import { Autocomplete } from "@/components/ui/autocomplete";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
 import DifuntosReportPage from "@/components/difuntos/DifuntosReportPage";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  getReporteFamilias, 
-  exportReporteFamilias,
-  type FamiliaReporte
-} from "@/services/reportes";
 import { getFamiliasConsolidado, exportFamiliasToExcel } from "@/services/familias";
 import type { FamiliaConsolidada } from "@/types/familias";
 import FamiliasAccordionList from "@/components/familias/FamiliasAccordionList";
@@ -99,18 +86,6 @@ import SaludList from "@/components/salud/SaludList";
  * @since Sistema MIA v1.0
  * @author Equipo de desarrollo MIA
  */
-interface ParroquiasFilters {
-  municipio: string;
-  parroquia: string;
-  tipo_vivienda: string;
-  sistema_acueducto: string;
-  tipo_aguas_residuales: string;
-  disposicion_basura: string;
-  incluir_estadisticas: boolean;
-  pagina: number;
-  limitado: number;
-}
-
 /**
  * Interfaz para los filtros de reportes de familias (Consolidado)
  */
@@ -139,7 +114,7 @@ interface SaludFiltersUI {
 }
 
 const Reports = () => {
-  const [activeTab, setActiveTab] = useState("parroquias");
+  const [activeTab, setActiveTab] = useState("familias");
   const configData = useConfigurationData();
   const { toast } = useToast();
 
@@ -153,19 +128,6 @@ const Reports = () => {
     exportToExcel: exportSaludExcel,
     resetData: resetSaludData
   } = useSaludData();
-
-  // Estados para filtros de Parroquias
-  const [parroquiasFilters, setParroquiasFilters] = useState<ParroquiasFilters>({
-    municipio: "",
-    parroquia: "",
-    tipo_vivienda: "",
-    sistema_acueducto: "",
-    tipo_aguas_residuales: "",
-    disposicion_basura: "",
-    incluir_estadisticas: true,
-    pagina: 1,
-    limitado: 100
-  });
 
   // Estados para filtros de Familias
   const [familiasFilters, setFamiliasFilters] = useState<FamiliasFilters>({
@@ -212,13 +174,6 @@ const Reports = () => {
   };
 
   /**
-   * Maneja cambios en filtros de Parroquias
-   */
-  const handleParroquiasFilterChange = (key: keyof ParroquiasFilters, value: any) => {
-    setParroquiasFilters(prev => ({ ...prev, [key]: value }));
-  };
-
-  /**
    * Maneja cambios en filtros de Familias
    */
   const handleFamiliasFilterChange = (key: keyof FamiliasFilters, value: any) => {
@@ -230,23 +185,6 @@ const Reports = () => {
    */
   const handleSaludFilterChange = (key: keyof SaludFiltersUI, value: any) => {
     setSaludFilters(prev => ({ ...prev, [key]: value }));
-  };
-
-  /**
-   * Limpia todos los filtros de Parroquias
-   */
-  const clearParroquiasFilters = () => {
-    setParroquiasFilters({
-      municipio: "",
-      parroquia: "",
-      tipo_vivienda: "",
-      sistema_acueducto: "",
-      tipo_aguas_residuales: "",
-      disposicion_basura: "",
-      incluir_estadisticas: true,
-      pagina: 1,
-      limitado: 100
-    });
   };
 
   /**
@@ -435,6 +373,7 @@ const Reports = () => {
       ? configData.enfermedadesOptions.find(opt => opt.value === saludFilters.enfermedad)?.label
       : undefined;
 
+      
     // Convertir filtros del UI al formato de la API
     const filtrosAPI: SaludFiltros = {
       id_enfermedad: saludFilters.enfermedad ? Number(saludFilters.enfermedad) : undefined,
@@ -451,49 +390,12 @@ const Reports = () => {
     await exportSaludExcel(filtrosAPI);
   };
 
-  /**
-   * 📄 ELIMINADAS: Funciones de exportación PDF/Excel
-   * (Se mantienen solo como placeholder para futura implementación)
-   */
-  
-  /**
-   * Exporta reporte en formato PDF
-   */
-  const exportToPDF = async () => {
-    try {
-      console.log('Exportando a PDF con filtros:', parroquiasFilters);
-      // TODO: Implementar llamada al endpoint PDF
-      // const response = await reportesService.exportParroquiasPDF(parroquiasFilters);
-      // downloadFile(response, 'reporte_parroquias.pdf');
-    } catch (error) {
-      console.error('Error exportando PDF:', error);
-    }
-  };
-
-  /**
-   * Exporta reporte en formato Excel
-   */
-  const exportToExcel = async () => {
-    try {
-      console.log('Exportando a Excel con filtros:', parroquiasFilters);
-      // TODO: Implementar llamada al endpoint Excel
-      // const response = await reportesService.exportParroquiasExcel(parroquiasFilters);
-      // downloadFile(response, 'reporte_parroquias.xlsx');
-    } catch (error) {
-      console.error('Error exportando Excel:', error);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6 space-y-8">
         {/* Tabs de reportes */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
-            <TabsTrigger value="parroquias" className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              <span className="hidden sm:inline">Parroquias</span>
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="familias" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Familias</span>
@@ -507,183 +409,6 @@ const Reports = () => {
               <span className="hidden sm:inline">Difuntos</span>
             </TabsTrigger>
           </TabsList>
-
-          {/* Tab Content: Parroquias */}
-          <TabsContent value="parroquias" className="space-y-6">
-            {/* Card de filtros y botones de exportación */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
-                      Reportes de Parroquias
-                    </CardTitle>
-                    <CardDescription>
-                      Configura los filtros y genera reportes estadísticos
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={clearParroquiasFilters}
-                      className="flex items-center gap-2"
-                    >
-                      <RefreshCw className="h-4 w-4" />
-                      Limpiar
-                    </Button>
-                    <div className="flex gap-2">
-                      <Button 
-                        onClick={exportToPDF}
-                        className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
-                      >
-                        <FileText className="h-4 w-4" />
-                        PDF
-                      </Button>
-                      <Button 
-                        onClick={exportToExcel}
-                        className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-                      >
-                        <FileSpreadsheet className="h-4 w-4" />
-                        Excel
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {/* Campos de filtros */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {/* Municipio */}
-                  <div className="space-y-2">
-                    <Label htmlFor="municipio">Municipio</Label>
-                    <Autocomplete
-                      options={configData.municipioOptions}
-                      value={parroquiasFilters.municipio}
-                      onValueChange={(value) => handleParroquiasFilterChange('municipio', value)}
-                      placeholder="Seleccionar municipio..."
-                      loading={configData.municipiosLoading}
-                      emptyText="No se encontraron municipios"
-                    />
-                  </div>
-
-                  {/* Parroquia */}
-                  <div className="space-y-2">
-                    <Label htmlFor="parroquia">Parroquia</Label>
-                    <Autocomplete
-                      options={configData.parroquiaOptions}
-                      value={parroquiasFilters.parroquia}
-                      onValueChange={(value) => handleParroquiasFilterChange('parroquia', value)}
-                      placeholder="Seleccionar parroquia..."
-                      loading={configData.parroquiasLoading}
-                      emptyText="No se encontraron parroquias"
-                    />
-                  </div>
-
-                  {/* Tipo de Vivienda */}
-                  <div className="space-y-2">
-                    <Label htmlFor="tipo_vivienda">Tipo de Vivienda</Label>
-                    <Autocomplete
-                      options={configData.tipoViviendaOptions}
-                      value={parroquiasFilters.tipo_vivienda}
-                      onValueChange={(value) => handleParroquiasFilterChange('tipo_vivienda', value)}
-                      placeholder="Seleccionar tipo de vivienda..."
-                      loading={configData.tiposViviendaLoading}
-                      emptyText="No se encontraron tipos de vivienda"
-                    />
-                  </div>
-
-                  {/* Sistema Acueducto */}
-                  <div className="space-y-2">
-                    <Label htmlFor="sistema_acueducto">Sistema de Acueducto</Label>
-                    <Autocomplete
-                      options={configData.sistemasAcueductoOptions}
-                      value={parroquiasFilters.sistema_acueducto}
-                      onValueChange={(value) => handleParroquiasFilterChange('sistema_acueducto', value)}
-                      placeholder="Seleccionar sistema de acueducto..."
-                      loading={configData.sistemasAcueductoLoading}
-                      emptyText="No se encontraron sistemas de acueducto"
-                    />
-                  </div>
-
-                  {/* Tipo Aguas Residuales */}
-                  <div className="space-y-2">
-                    <Label htmlFor="tipo_aguas_residuales">Tipo de Aguas Residuales</Label>
-                    <Autocomplete
-                      options={configData.aguasResidualesOptions}
-                      value={parroquiasFilters.tipo_aguas_residuales}
-                      onValueChange={(value) => handleParroquiasFilterChange('tipo_aguas_residuales', value)}
-                      placeholder="Seleccionar tipo de aguas residuales..."
-                      loading={configData.aguasResidualesLoading}
-                      emptyText="No se encontraron tipos de aguas residuales"
-                    />
-                  </div>
-
-                  {/* Disposición de Basura */}
-                  <div className="space-y-2">
-                    <Label htmlFor="disposicion_basura">Disposición de Basura</Label>
-                    <Autocomplete
-                      options={configData.disposicionBasuraOptions}
-                      value={parroquiasFilters.disposicion_basura}
-                      onValueChange={(value) => handleParroquiasFilterChange('disposicion_basura', value)}
-                      placeholder="Seleccionar disposición de basura..."
-                      loading={configData.disposicionBasuraLoading}
-                      emptyText="No se encontraron tipos de disposición"
-                    />
-                  </div>
-                </div>
-
-                <Separator className="my-6" />
-
-                {/* Configuraciones adicionales */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Incluir Estadísticas */}
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="incluir_estadisticas"
-                      checked={parroquiasFilters.incluir_estadisticas}
-                      onCheckedChange={(checked) => handleParroquiasFilterChange('incluir_estadisticas', checked)}
-                    />
-                    <Label htmlFor="incluir_estadisticas">Incluir estadísticas detalladas</Label>
-                  </div>
-
-                  {/* Página */}
-                  <div className="space-y-2">
-                    <Label htmlFor="pagina">Página</Label>
-                    <Input
-                      id="pagina"
-                      type="number"
-                      min={1}
-                      value={parroquiasFilters.pagina}
-                      onChange={(e) => handleParroquiasFilterChange('pagina', parseInt(e.target.value) || 1)}
-                      className="w-full"
-                    />
-                  </div>
-
-                  {/* Limitado */}
-                  <div className="space-y-2">
-                    <Label htmlFor="limitado">Límite de resultados</Label>
-                    <Select 
-                      value={parroquiasFilters.limitado.toString()} 
-                      onValueChange={(value) => handleParroquiasFilterChange('limitado', parseInt(value))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="50">50 registros</SelectItem>
-                        <SelectItem value="100">100 registros</SelectItem>
-                        <SelectItem value="250">250 registros</SelectItem>
-                        <SelectItem value="500">500 registros</SelectItem>
-                        <SelectItem value="1000">1000 registros</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Tab Content: Familias */}
           <TabsContent value="familias" className="space-y-6">

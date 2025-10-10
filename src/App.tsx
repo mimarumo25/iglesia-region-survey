@@ -24,6 +24,7 @@ const NotFound = React.lazy(() => import("./pages/NotFound"));
 const Surveys = React.lazy(() => import("./pages/Surveys"));
 const SurveyDetails = React.lazy(() => import("./pages/SurveyDetails"));
 const Reports = React.lazy(() => import("./pages/Reports"));
+const PersonasReport = React.lazy(() => import("./pages/PersonasReport"));
 const Users = React.lazy(() => import("./pages/Users"));
 const SettingsWrapper = React.lazy(() => import("./pages/SettingsWrapper"));
 const Parroquias = React.lazy(() => import("./pages/Parroquias"));
@@ -178,6 +179,17 @@ const App = () => (
                     <PrivateRoute>
                       <Layout>
                         <Reports />
+                      </Layout>
+                    </PrivateRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/reports/personas" 
+                  element={
+                    <PrivateRoute>
+                      <Layout>
+                        <PersonasReport />
                       </Layout>
                     </PrivateRoute>
                   } 
