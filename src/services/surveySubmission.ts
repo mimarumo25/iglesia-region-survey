@@ -25,7 +25,7 @@
  * @since Sistema MIA v1.0
  */
 
-import { apiPost } from '@/interceptors/axios';
+import { apiPost, apiPatch } from '@/interceptors/axios';
 import { SurveySessionData } from '@/types/survey';
 import { transformSurveyDataForAPI, validateAPIFormat, logDataDifferences } from '@/utils/surveyAPITransformer';
 
@@ -82,6 +82,74 @@ export class SurveySubmissionService {
       // Extraer información detallada del error
       const errorResponse = error.response?.data;
       let errorMessage = 'Error desconocido al enviar la encuesta';
+      
+      if (errorResponse) {
+        if (errorResponse.message) {
+          errorMessage = errorResponse.message;
+        } else if (errorResponse.errors && Array.isArray(errorResponse.errors)) {
+          errorMessage = errorResponse.errors.join(', ');
+        } else if (errorResponse.error) {
+          errorMessage = errorResponse.error;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      const statusCode = error.response?.status || 500;
+      
+      return {
+        success: false,
+        message: `Error ${statusCode}: ${errorMessage}`,
+        data: errorResponse
+      };
+    }
+  }
+
+  /**
+   * Actualiza una encuesta existente en el servidor
+   * Usa PATCH para actualizar solo los campos específicos modificados
+   * @param surveyId - ID de la encuesta a actualizar
+   * @param surveyData - Datos de la encuesta en formato SurveySessionData
+   * @returns Respuesta del servidor
+   */
+  static async updateSurvey(surveyId: string, surveyData: SurveySessionData): Promise<SurveySubmissionResponse> {
+    try {
+      // Transformar datos al formato esperado por la API
+      const apiData = transformSurveyDataForAPI(surveyData);
+      
+      // Validar formato antes del envío
+      const validation = validateAPIFormat(apiData);
+      if (!validation.isValid) {
+        console.error('❌ Errores de validación:', validation.errors);
+        return {
+          success: false,
+          message: `Errores de validación: ${validation.errors.join(', ')}`
+        };
+      }
+      
+      // Log diferencias para debugging (solo en desarrollo)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📤 Actualizando encuesta con PATCH:', surveyId);
+        logDataDifferences(surveyData, apiData);
+      }
+      
+      // Usar PATCH para actualizar solo campos específicos
+      const response = await apiPatch(`/api/encuesta/${surveyId}`, apiData);
+      
+      return {
+        success: true,
+        message: 'Encuesta actualizada correctamente',
+        data: response.data,
+        surveyId: surveyId
+      };
+      
+    } catch (error: any) {
+      console.error('❌ Error al actualizar encuesta:', error);
+      console.error('📋 Datos que causaron el error:', surveyData);
+      
+      // Extraer información detallada del error
+      const errorResponse = error.response?.data;
+      let errorMessage = 'Error desconocido al actualizar la encuesta';
       
       if (errorResponse) {
         if (errorResponse.message) {

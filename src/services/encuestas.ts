@@ -332,11 +332,12 @@ class EncuestasService {
   }
 
   /**
-   * Actualizar encuesta existente
+   * Actualizar campos específicos de una encuesta existente
+   * Usa PATCH para actualización parcial de campos
    */
   async updateEncuesta(id: string, encuestaData: Partial<EncuestaCompleta>): Promise<EncuestaResponse> {
     try {
-      const response = await apiClient.put(`/api/encuesta/${id}`, encuestaData);
+      const response = await apiClient.patch(`/api/encuesta/${id}`, encuestaData);
       
       return response.data;
       

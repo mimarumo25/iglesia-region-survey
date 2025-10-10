@@ -1,10 +1,21 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingSkeleton, SurveyFormSkeleton } from "@/components/ui/loading-skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2, X, ArrowLeft } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import SurveyHeader from "./survey/SurveyHeader";
 import StandardFormField from "./survey/StandardFormField";
 import FamilyGrid from "./survey/FamilyGrid";
@@ -16,6 +27,7 @@ import { useConfigurationData } from "@/hooks/useConfigurationData";
 import { getAutocompleteOptions, getLoadingState, getErrorState } from "@/utils/formFieldHelpers";
 import { transformFormDataToSurveySession, saveSurveyToLocalStorage } from "@/utils/sessionDataTransformer";
 import { SurveySubmissionService } from "@/services/surveySubmission";
+import { encuestasService } from "@/services/encuestas";
 // Removed storage debugger import - component was cleaned up
 
 // Definición de las etapas del formulario basado en la encuesta parroquial
@@ -80,11 +92,18 @@ const formStages: FormStage[] = [
 
 const SurveyForm = () => {
   const navigate = useNavigate();
+  const { id: surveyId } = useParams<{ id: string }>(); // Detectar ID de la URL para modo edición
+  
+  // DEBUG: Verificar que el componente se está renderizando
+  console.log('🔍 SurveyForm montado - ID de URL:', surveyId);
+  
   const [currentStage, setCurrentStage] = useState(1);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [deceasedMembers, setDeceasedMembers] = useState<DeceasedFamilyMember[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false); // Indica si estamos editando
+  const [isLoadingEncuesta, setIsLoadingEncuesta] = useState(false); // Loading de carga de encuesta
   const { toast } = useToast();
 
   // Hook para cargar datos de configuración
@@ -181,6 +200,60 @@ const SurveyForm = () => {
     }
   }, []);
 
+  // Cargar encuesta existente si estamos en modo edición
+  useEffect(() => {
+    const loadEncuestaForEdit = async () => {
+      if (!surveyId) {
+        setIsEditMode(false);
+        return;
+      }
+
+      setIsEditMode(true);
+      setIsLoadingEncuesta(true);
+
+      try {
+        console.log(`📝 Cargando encuesta ${surveyId} para editar...`);
+        const response = await encuestasService.getEncuestaById(surveyId);
+        
+        if (!response.data) {
+          throw new Error('No se encontraron datos de la encuesta');
+        }
+
+        const encuesta = response.data;
+        console.log('✅ Encuesta cargada:', encuesta);
+
+        // TODO: Transformar los datos de la API al formato del formulario
+        // Por ahora, mostrar un toast indicando que la funcionalidad está en desarrollo
+        toast({
+          title: "⚠️ Funcionalidad en desarrollo",
+          description: `Encuesta ${surveyId} cargada. La edición completa se implementará próximamente.`,
+          variant: "default"
+        });
+
+        // Mapear datos de la API al formData local
+        // Esta transformación dependerá del formato exacto de la API
+        // setFormData({ ... })
+        // setFamilyMembers(encuesta.miembros_familia || [])
+        // setDeceasedMembers(encuesta.deceasedMembers || [])
+
+      } catch (error: any) {
+        console.error('❌ Error al cargar encuesta para editar:', error);
+        toast({
+          title: "Error al cargar encuesta",
+          description: error.message || "No se pudo cargar la encuesta para editar",
+          variant: "destructive"
+        });
+        
+        // Redirigir al listado si no se puede cargar
+        setTimeout(() => navigate('/surveys'), 2000);
+      } finally {
+        setIsLoadingEncuesta(false);
+      }
+    };
+
+    loadEncuestaForEdit();
+  }, [surveyId]); // Solo ejecutar cuando cambia surveyId
+
   // Asegurar que el campo 'fecha' siempre tenga la fecha actual
   useEffect(() => {
     setFormData(prev => ({
@@ -194,6 +267,56 @@ const SurveyForm = () => {
       ...prev,
       [fieldId]: value
     }));
+  };
+
+  // Función para limpiar borrador del localStorage
+  const handleClearDraft = () => {
+    try {
+      // Limpiar borrador del localStorage
+      localStorage.removeItem('parish-survey-draft');
+      
+      // Resetear estado del formulario
+      setFormData({});
+      setFamilyMembers([]);
+      setDeceasedMembers([]);
+      setCurrentStage(1);
+      
+      // Establecer fecha actual nuevamente
+      setTimeout(() => {
+        setFormData(prev => ({
+          ...prev,
+          fecha: new Date()
+        }));
+      }, 0);
+
+      toast({
+        title: "✅ Borrador eliminado",
+        description: "El borrador ha sido eliminado completamente del almacenamiento local.",
+        variant: "default"
+      });
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (error) {
+      console.error('Error al limpiar borrador:', error);
+      toast({
+        title: "❌ Error",
+        description: "No se pudo eliminar el borrador del almacenamiento local.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Función para cancelar la edición y regresar al listado
+  const handleCancelEdit = () => {
+    toast({
+      title: "Edición cancelada",
+      description: "Los cambios no guardados se han descartado.",
+      variant: "default"
+    });
+    
+    // Redirigir al listado de encuestas
+    navigate('/surveys');
   };
 
   const handleNext = () => {
@@ -261,8 +384,17 @@ const SurveyForm = () => {
       // Guardar con nueva estructura en localStorage antes del envío
       saveSurveyToLocalStorage(structuredSurveyData, 'parish-survey-completed');
       
-      // **ENVÍO AL SERVIDOR USANDO LA NUEVA ESTRUCTURA**
-      const response = await SurveySubmissionService.submitSurvey(structuredSurveyData);
+      // **DECIDIR SI CREAR O ACTUALIZAR SEGÚN EL MODO**
+      let response;
+      if (isEditMode && surveyId) {
+        // Modo edición - actualizar encuesta existente
+        console.log('📝 Actualizando encuesta existente:', surveyId);
+        response = await SurveySubmissionService.updateSurvey(surveyId, structuredSurveyData);
+      } else {
+        // Modo creación - crear nueva encuesta
+        console.log('📝 Creando nueva encuesta');
+        response = await SurveySubmissionService.submitSurvey(structuredSurveyData);
+      }
       
       if (response.success) {
         
@@ -270,7 +402,7 @@ const SurveyForm = () => {
         SurveySubmissionService.clearStorageAfterSubmission();
         
         toast({
-          title: "✅ Encuesta enviada al servidor",
+          title: isEditMode ? "✅ Encuesta actualizada" : "✅ Encuesta enviada al servidor",
           description: `${response.message} ${response.surveyId ? `(ID: ${response.surveyId})` : ''}`,
           variant: "default"
         });
@@ -304,8 +436,8 @@ const SurveyForm = () => {
 
   if (!currentStageData) return null;
 
-  // Mostrar skeleton completo mientras cargan los datos de configuración
-  if (configurationData.isAnyLoading) {
+  // Mostrar skeleton completo mientras cargan los datos de configuración o la encuesta para editar
+  if (configurationData.isAnyLoading || isLoadingEncuesta) {
     return <SurveyFormSkeleton />;
   }
 
@@ -334,12 +466,109 @@ const SurveyForm = () => {
     <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 lg:py-8 bg-background dark:bg-background min-h-screen">
       {/* Header con progreso usando componente refactorizado */}
       <SurveyHeader 
-        title="Caracterización Poblacional"
+        title={isEditMode ? `Editar Encuesta #${surveyId}` : "Caracterización Poblacional"}
         description={`Etapa ${currentStage} de ${formStages.length}: ${currentStageData.title}`}
         progress={progress}
         currentStage={currentStage}
         formStages={formStages}
       />
+
+      {/* Botón para limpiar borrador - Solo visible en modo creación */}
+      {!isEditMode && (
+        <div className="mb-6 flex justify-end">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="gap-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all duration-200"
+              >
+                <Trash2 className="h-4 w-4" />
+                Limpiar Borrador
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2">
+                  <Trash2 className="h-5 w-5 text-destructive" />
+                  ¿Eliminar borrador?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="space-y-2">
+                  <p className="font-semibold">Esta acción eliminará permanentemente:</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>Todos los datos ingresados en el formulario</li>
+                    <li>Información de familia agregada</li>
+                    <li>Información de difuntos agregada</li>
+                    <li>El progreso actual de la encuesta</li>
+                  </ul>
+                  <p className="font-bold text-destructive mt-3">
+                    ⚠️ Esta acción no se puede deshacer. El borrador no podrá ser recuperado.
+                  </p>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleClearDraft}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Sí, eliminar borrador
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )}
+
+      {/* Botón para cancelar edición - Solo visible en modo edición */}
+      {isEditMode && (
+        <div className="mb-6 flex justify-between items-center">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="gap-2 border-muted-foreground text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200"
+              >
+                <X className="h-4 w-4" />
+                Cancelar Edición
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2">
+                  <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+                  ¿Cancelar edición?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="space-y-2">
+                  <p className="font-semibold">Si cancelas la edición:</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>Los cambios realizados se perderán</li>
+                    <li>La encuesta mantendrá sus datos originales</li>
+                    <li>Serás redirigido al listado de encuestas</li>
+                  </ul>
+                  <p className="font-bold text-amber-600 dark:text-amber-500 mt-3">
+                    ⚠️ Los cambios no guardados se descartarán.
+                  </p>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Continuar editando</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleCancelEdit}
+                  className="bg-muted text-muted-foreground hover:bg-muted/90"
+                >
+                  Sí, cancelar edición
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="font-medium">Editando encuesta #{surveyId}</span>
+          </div>
+        </div>
+      )}
 
       {/* Mostrar advertencias para errores no críticos */}
       {configurationData.hasAnyError && (

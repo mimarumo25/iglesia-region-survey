@@ -174,6 +174,16 @@ export const apiPut = <T = any>(url: string, data?: any, config?: any): Promise<
 };
 
 /**
+ * Wrapper para peticiones PATCH autenticadas
+ * @param url - URL del endpoint
+ * @param data - Datos a enviar (campos específicos a actualizar)
+ * @param config - Configuración adicional de axios
+ */
+export const apiPatch = <T = any>(url: string, data?: any, config?: any): Promise<AxiosResponse<T>> => {
+  return apiClient.patch<T>(url, data, config);
+};
+
+/**
  * Wrapper para peticiones DELETE autenticadas
  * @param url - URL del endpoint
  * @param config - Configuración adicional de axios
