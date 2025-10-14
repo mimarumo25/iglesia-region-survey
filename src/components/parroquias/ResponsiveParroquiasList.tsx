@@ -17,7 +17,6 @@ import {
   Phone,
   Mail,
   MapPin,
-  Calendar,
   Building2,
 } from 'lucide-react';
 import { formatTelefono } from '@/schemas/parroquias';
@@ -39,11 +38,6 @@ export const ResponsiveParroquiasList: React.FC<ResponsiveParroquiasListProps> =
   onDelete,
   loading = false,
 }) => {
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('es-ES');
-  };
-
   // Vista de tabla para desktop
   const TableView = () => (
     <div className="hidden lg:block">
@@ -56,7 +50,6 @@ export const ResponsiveParroquiasList: React.FC<ResponsiveParroquiasListProps> =
             <TableHead className="font-semibold text-foreground">Teléfono</TableHead>
             <TableHead className="font-semibold text-foreground">Email</TableHead>
             <TableHead className="font-semibold text-foreground">Municipio</TableHead>
-            <TableHead className="font-semibold text-foreground">Fecha Creación</TableHead>
             <TableHead className="text-right font-semibold text-primary">Acciones</TableHead>
           </TableRow>
         </TableHeader>
@@ -87,9 +80,6 @@ export const ResponsiveParroquiasList: React.FC<ResponsiveParroquiasListProps> =
               </TableCell>
               <TableCell>
                {parroquia.municipio?.nombre_municipio || 'N/A'}
-              </TableCell>
-              <TableCell>
-               {formatDate(parroquia.created_at)}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex gap-2 justify-end">
@@ -205,16 +195,6 @@ export const ResponsiveParroquiasList: React.FC<ResponsiveParroquiasListProps> =
                       {parroquia.email || 'N/A'}
                     </p>
                   </div>
-                </div>
-              </div>
-
-              {/* Fecha de creación */}
-              <div className="flex items-center gap-2 pt-2 border-t border-border">
-                <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">
-                    Creado: {formatDate(parroquia.created_at)}
-                  </p>
                 </div>
               </div>
             </div>
