@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { LoadingSkeleton, SurveyFormSkeleton } from "@/components/ui/loading-skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Trash2, X, ArrowLeft } from "lucide-react";
@@ -28,6 +29,7 @@ import { getAutocompleteOptions, getLoadingState, getErrorState } from "@/utils/
 import { transformFormDataToSurveySession, saveSurveyToLocalStorage } from "@/utils/sessionDataTransformer";
 import { SurveySubmissionService } from "@/services/surveySubmission";
 import { encuestasService } from "@/services/encuestas";
+import { transformEncuestaToFormData, validateTransformedData } from "@/utils/encuestaToFormTransformer";
 // Removed storage debugger import - component was cleaned up
 
 // Definición de las etapas del formulario basado en la encuesta parroquial
@@ -94,14 +96,12 @@ const SurveyForm = () => {
   const navigate = useNavigate();
   const { id: surveyId } = useParams<{ id: string }>(); // Detectar ID de la URL para modo edición
   
-  // DEBUG: Verificar que el componente se está renderizando
-  console.log('🔍 SurveyForm montado - ID de URL:', surveyId);
-  
   const [currentStage, setCurrentStage] = useState(1);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [deceasedMembers, setDeceasedMembers] = useState<DeceasedFamilyMember[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittedSuccessfully, setIsSubmittedSuccessfully] = useState(false); // Indica si la encuesta fue enviada exitosamente
   const [isEditMode, setIsEditMode] = useState(false); // Indica si estamos editando
   const [isLoadingEncuesta, setIsLoadingEncuesta] = useState(false); // Loading de carga de encuesta
   const { toast } = useToast();
@@ -114,6 +114,11 @@ const SurveyForm = () => {
 
   // Auto-guardado cuando cambia la etapa (solo nueva estructura)
   useEffect(() => {
+    // ✅ No guardar borrador si la encuesta ya fue enviada exitosamente
+    if (isSubmittedSuccessfully) {
+      return;
+    }
+    
     if (Object.keys(formData).length > 0 || familyMembers.length > 0 || deceasedMembers.length > 0) {
       // Crear estructura de borrador con datos organizados
       const draftStructuredData = transformFormDataToSurveySession(
@@ -130,7 +135,7 @@ const SurveyForm = () => {
       // Guardar borrador solo con nueva estructura
       saveSurveyToLocalStorage(draftStructuredData, 'parish-survey-draft');
     }
-  }, [currentStage, formData, familyMembers, deceasedMembers, configurationData]);
+  }, [currentStage, formData, familyMembers, deceasedMembers, configurationData, isSubmittedSuccessfully]);
 
   // Cargar borrador al iniciar (nueva estructura)
   useEffect(() => {
@@ -212,7 +217,6 @@ const SurveyForm = () => {
       setIsLoadingEncuesta(true);
 
       try {
-        console.log(`📝 Cargando encuesta ${surveyId} para editar...`);
         const response = await encuestasService.getEncuestaById(surveyId);
         
         if (!response.data) {
@@ -220,21 +224,25 @@ const SurveyForm = () => {
         }
 
         const encuesta = response.data;
-        console.log('✅ Encuesta cargada:', encuesta);
 
-        // TODO: Transformar los datos de la API al formato del formulario
-        // Por ahora, mostrar un toast indicando que la funcionalidad está en desarrollo
+        // 🔄 Transformar datos de la API al formato del formulario
+        const transformedData = transformEncuestaToFormData(encuesta);
+        
+        // Validar que los datos transformados sean válidos
+        if (!validateTransformedData(transformedData)) {
+          throw new Error('Los datos de la encuesta están incompletos o son inválidos');
+        }
+
+        // ✅ Cargar datos transformados al estado del formulario
+        setFormData(transformedData.formData);
+        setFamilyMembers(transformedData.familyMembers);
+        setDeceasedMembers(transformedData.deceasedMembers);
+
         toast({
-          title: "⚠️ Funcionalidad en desarrollo",
-          description: `Encuesta ${surveyId} cargada. La edición completa se implementará próximamente.`,
+          title: "✅ Encuesta cargada",
+          description: `Encuesta "${encuesta.apellido_familiar}" lista para editar. ${transformedData.familyMembers.length} miembros de familia, ${transformedData.deceasedMembers.length} difuntos.`,
           variant: "default"
         });
-
-        // Mapear datos de la API al formData local
-        // Esta transformación dependerá del formato exacto de la API
-        // setFormData({ ... })
-        // setFamilyMembers(encuesta.miembros_familia || [])
-        // setDeceasedMembers(encuesta.deceasedMembers || [])
 
       } catch (error: any) {
         console.error('❌ Error al cargar encuesta para editar:', error);
@@ -272,6 +280,9 @@ const SurveyForm = () => {
   // Función para limpiar borrador del localStorage
   const handleClearDraft = () => {
     try {
+      // ✅ Marcar como enviado exitosamente para evitar guardado automático
+      setIsSubmittedSuccessfully(true);
+      
       // Limpiar borrador del localStorage
       localStorage.removeItem('parish-survey-draft');
       
@@ -398,19 +409,27 @@ const SurveyForm = () => {
       
       if (response.success) {
         
-        // Limpiar todos los borradores tras envío exitoso
+        // ✅ Marcar como enviado exitosamente para evitar guardado automático
+        setIsSubmittedSuccessfully(true);
+        
+        // 🧹 Limpiar TODOS los borradores del localStorage tras envío exitoso
         SurveySubmissionService.clearStorageAfterSubmission();
         
+        // 🧹 Limpiar también el estado del formulario para evitar re-guardado
+        setFormData({});
+        setFamilyMembers([]);
+        setDeceasedMembers([]);
+        
         toast({
-          title: isEditMode ? "✅ Encuesta actualizada" : "✅ Encuesta enviada al servidor",
-          description: `${response.message} ${response.surveyId ? `(ID: ${response.surveyId})` : ''}`,
+          title: isEditMode ? "✅ Encuesta actualizada" : "✅ Encuesta creada exitosamente",
+          description: `${response.message} ${response.surveyId ? `(ID: ${response.surveyId})` : ''}. Redirigiendo a la lista de encuestas...`,
           variant: "default"
         });
 
-        // Redirigir al dashboard después de un momento
+        // ✅ Redirigir a la vista de encuestas después de un breve momento
         setTimeout(() => {
-          navigate('/dashboard');
-        }, 3000);
+          navigate('/surveys');
+        }, 2000);
         
       } else {
         console.error('❌ Error en el envío:', response);
@@ -451,7 +470,7 @@ const SurveyForm = () => {
 
     if (hasCriticalErrors) {
       return (
-        <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 lg:py-8 bg-background min-h-screen">
+        <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-3 lg:px-6 py-6 lg:py-8 bg-background min-h-screen">
           <FormDataLoadingError 
             configurationData={configurationData}
             onRetryAll={() => window.location.reload()}
@@ -463,7 +482,7 @@ const SurveyForm = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 lg:py-8 bg-background dark:bg-background min-h-screen">
+    <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-3 lg:px-6 py-6 lg:py-8 bg-background dark:bg-background min-h-screen">
       {/* Header con progreso usando componente refactorizado */}
       <SurveyHeader 
         title={isEditMode ? `Editar Encuesta #${surveyId}` : "Caracterización Poblacional"}
@@ -493,17 +512,19 @@ const SurveyForm = () => {
                   <Trash2 className="h-5 w-5 text-destructive" />
                   ¿Eliminar borrador?
                 </AlertDialogTitle>
-                <AlertDialogDescription className="space-y-2">
-                  <p className="font-semibold">Esta acción eliminará permanentemente:</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>Todos los datos ingresados en el formulario</li>
-                    <li>Información de familia agregada</li>
-                    <li>Información de difuntos agregada</li>
-                    <li>El progreso actual de la encuesta</li>
-                  </ul>
-                  <p className="font-bold text-destructive mt-3">
-                    ⚠️ Esta acción no se puede deshacer. El borrador no podrá ser recuperado.
-                  </p>
+                <AlertDialogDescription asChild>
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    <p className="font-semibold">Esta acción eliminará permanentemente:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Todos los datos ingresados en el formulario</li>
+                      <li>Información de familia agregada</li>
+                      <li>Información de difuntos agregada</li>
+                      <li>El progreso actual de la encuesta</li>
+                    </ul>
+                    <p className="font-bold text-destructive mt-3">
+                      ⚠️ Esta acción no se puede deshacer. El borrador no podrá ser recuperado.
+                    </p>
+                  </div>
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -540,16 +561,18 @@ const SurveyForm = () => {
                   <ArrowLeft className="h-5 w-5 text-muted-foreground" />
                   ¿Cancelar edición?
                 </AlertDialogTitle>
-                <AlertDialogDescription className="space-y-2">
-                  <p className="font-semibold">Si cancelas la edición:</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>Los cambios realizados se perderán</li>
-                    <li>La encuesta mantendrá sus datos originales</li>
-                    <li>Serás redirigido al listado de encuestas</li>
-                  </ul>
-                  <p className="font-bold text-amber-600 dark:text-amber-500 mt-3">
-                    ⚠️ Los cambios no guardados se descartarán.
-                  </p>
+                <AlertDialogDescription asChild>
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    <p className="font-semibold">Si cancelas la edición:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Los cambios realizados se perderán</li>
+                      <li>La encuesta mantendrá sus datos originales</li>
+                      <li>Serás redirigido al listado de encuestas</li>
+                    </ul>
+                    <p className="font-bold text-amber-600 dark:text-amber-500 mt-3">
+                      ⚠️ Los cambios no guardados se descartarán.
+                    </p>
+                  </div>
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -564,8 +587,13 @@ const SurveyForm = () => {
             </AlertDialogContent>
           </AlertDialog>
 
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="font-medium">Editando encuesta #{surveyId}</span>
+          <div className="flex items-center gap-3">
+            <Badge variant="secondary" className="px-3 py-1.5 text-sm font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+              📝 Modo Edición
+            </Badge>
+            <span className="text-sm text-muted-foreground font-medium">
+              ID: <span className="font-mono">{surveyId}</span>
+            </span>
           </div>
         </div>
       )}
@@ -626,6 +654,7 @@ const SurveyForm = () => {
         currentStage={currentStage}
         totalStages={formStages.length}
         isSubmitting={isSubmitting}
+        isEditMode={isEditMode}
         onPrevious={handlePrevious}
         onNext={handleNext}
         onSubmit={handleSubmit}

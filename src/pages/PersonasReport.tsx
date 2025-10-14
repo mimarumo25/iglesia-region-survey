@@ -108,7 +108,106 @@ const PersonasReport = () => {
   }, [activeTab]);
 
   /**
-   * 🔍 Función principal de consulta según el tab activo
+   * � Maneja el cambio de página
+   */
+  const handlePageChange = async (newPage: number) => {
+    setIsLoading(true);
+    
+    try {
+      let endpoint = '';
+      let params: any = {};
+
+      // Determinar endpoint y parámetros según el tab activo (con nueva página)
+      switch (activeTab) {
+        case 'geografico':
+          endpoint = '/api/personas/consolidado/geografico';
+          params = { ...filtrosGeograficos, page: newPage };
+          setFiltrosGeograficos(prev => ({ ...prev, page: newPage }));
+          break;
+        
+        case 'familia':
+          endpoint = '/api/personas/consolidado/familia';
+          params = { ...filtrosFamilia, page: newPage };
+          setFiltrosFamilia(prev => ({ ...prev, page: newPage }));
+          break;
+        
+        case 'personal':
+          endpoint = '/api/personas/consolidado/personal';
+          params = {
+            ...filtrosPersonales,
+            page: newPage,
+            liderazgo: typeof filtrosPersonales.liderazgo === 'string'
+                     ? (filtrosPersonales.liderazgo === 'true' ? true 
+                       : filtrosPersonales.liderazgo === 'false' ? false 
+                       : undefined)
+                     : filtrosPersonales.liderazgo
+          };
+          setFiltrosPersonales(prev => ({ ...prev, page: newPage }));
+          break;
+        
+        case 'tallas':
+          endpoint = '/api/personas/consolidado/tallas';
+          params = { ...filtrosTallas, page: newPage };
+          setFiltrosTallas(prev => ({ ...prev, page: newPage }));
+          break;
+        
+        case 'edad':
+          endpoint = '/api/personas/consolidado/edad';
+          params = { ...filtrosEdad, page: newPage };
+          setFiltrosEdad(prev => ({ ...prev, page: newPage }));
+          break;
+        
+        case 'reporte':
+          endpoint = '/api/personas/consolidado/reporte';
+          params = {
+            ...filtrosReporte,
+            page: newPage,
+            liderazgo: typeof filtrosReporte.liderazgo === 'string'
+                     ? (filtrosReporte.liderazgo === 'true' ? true 
+                       : filtrosReporte.liderazgo === 'false' ? false 
+                       : undefined)
+                     : filtrosReporte.liderazgo
+          };
+          setFiltrosReporte(prev => ({ ...prev, page: newPage }));
+          break;
+        
+        default:
+          throw new Error('Tab inválido');
+      }
+
+      // Limpiar parámetros undefined
+      const cleanParams = Object.fromEntries(
+        Object.entries(params).filter(([_, value]) => value !== undefined && value !== '' && value !== 'all')
+      );
+
+      const response = await apiClient.get<PersonasResponse>(endpoint, { params: cleanParams });
+
+      setPersonas(response.data.data);
+      setTotal(response.data.total);
+
+      // Debug: Log para cambio de página
+      console.log('📄 Cambio de Página:', {
+        newPage,
+        endpoint,
+        params: cleanParams,
+        total: response.data.total,
+        dataLength: response.data.data.length
+      });
+
+    } catch (error: any) {
+      console.error('Error consultando personas:', error);
+      toast({
+        title: "❌ Error en la consulta",
+        description: error.response?.data?.message || "No se pudo obtener el consolidado",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * �🔍 Función principal de consulta según el tab activo
    */
   const handleQuery = async () => {
     setIsLoading(true);
@@ -178,6 +277,17 @@ const PersonasReport = () => {
       setPersonas(response.data.data);
       setTotal(response.data.total);
       setHasQueried(true);
+
+      // Debug: Log para verificar respuesta de la API
+      console.log('🔍 PersonasReport - Respuesta API:', {
+        endpoint,
+        params: cleanParams,
+        total: response.data.total,
+        page: response.data.page,
+        limit: response.data.limit,
+        dataLength: response.data.data.length,
+        calculatedPages: Math.ceil(response.data.total / (response.data.limit || 100))
+      });
 
       toast({
         title: "✅ Consulta exitosa",
@@ -328,7 +438,7 @@ const PersonasReport = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6 space-y-8">
+      <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-3 lg:px-6 py-6 lg:py-8 space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -488,6 +598,9 @@ const PersonasReport = () => {
                 personas={personas} 
                 isLoading={isLoading}
                 total={total}
+                currentPage={filtrosGeograficos.page || 1}
+                pageSize={filtrosGeograficos.limit || 100}
+                onPageChange={handlePageChange}
               />
             )}
           </TabsContent>
@@ -590,6 +703,9 @@ const PersonasReport = () => {
                 personas={personas} 
                 isLoading={isLoading}
                 total={total}
+                currentPage={filtrosFamilia.page || 1}
+                pageSize={filtrosFamilia.limit || 100}
+                onPageChange={handlePageChange}
               />
             )}
           </TabsContent>
@@ -746,6 +862,9 @@ const PersonasReport = () => {
                 personas={personas} 
                 isLoading={isLoading}
                 total={total}
+                currentPage={filtrosPersonales.page || 1}
+                pageSize={filtrosPersonales.limit || 100}
+                onPageChange={handlePageChange}
               />
             )}
           </TabsContent>
@@ -842,6 +961,9 @@ const PersonasReport = () => {
                 personas={personas} 
                 isLoading={isLoading}
                 total={total}
+                currentPage={filtrosTallas.page || 1}
+                pageSize={filtrosTallas.limit || 100}
+                onPageChange={handlePageChange}
               />
             )}
           </TabsContent>
@@ -931,6 +1053,9 @@ const PersonasReport = () => {
                 personas={personas} 
                 isLoading={isLoading}
                 total={total}
+                currentPage={filtrosEdad.page || 1}
+                pageSize={filtrosEdad.limit || 100}
+                onPageChange={handlePageChange}
               />
             )}
           </TabsContent>
@@ -1089,6 +1214,9 @@ const PersonasReport = () => {
                 personas={personas} 
                 isLoading={isLoading}
                 total={total}
+                currentPage={filtrosReporte.page || 1}
+                pageSize={filtrosReporte.limit || 100}
+                onPageChange={handlePageChange}
               />
             )}
           </TabsContent>

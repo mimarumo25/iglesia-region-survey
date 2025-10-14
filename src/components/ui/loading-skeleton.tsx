@@ -169,10 +169,9 @@ export const TableSkeleton = ({
  */
 export const SurveyFormSkeleton = ({ className }: { className?: string }) => {
   return (
-    <div className={cn("max-w-4xl mx-auto px-4 lg:px-8 py-6 lg:py-8 bg-background dark:bg-background min-h-screen", className)}>
+    <div className={cn("w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-3 lg:px-6 py-6 lg:py-8 bg-background dark:bg-background min-h-screen", className)}>
       {/* Header Skeleton */}
-      <div className="space-y-4 mb-6">
-        {/* Title and description */}
+      <div className="space-y-4 mb-6">{/* Title and description */}
         <div className="space-y-3">
           <Skeleton className="h-8 w-72" />
           <Skeleton className="h-4 w-96" />

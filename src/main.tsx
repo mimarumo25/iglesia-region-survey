@@ -12,15 +12,27 @@ import '@/interceptors/axios'
 import './index.css'
 import '@/config/dateFormat' // Configurar date-fns en español
 
-// Suprimir advertencias de React DevTools en desarrollo
+// Suprimir advertencias no deseadas en desarrollo
 if (import.meta.env.DEV) {
   const originalWarn = console.warn;
   console.warn = (...args) => {
     const message = args[0];
-    // Suprimir advertencia de React DevTools
-    if (typeof message === 'string' && message.includes('Download the React DevTools')) {
+    
+    // Lista de advertencias a suprimir
+    const suppressWarnings = [
+      'Download the React DevTools',
+      'React Router Future Flag Warning',
+      'v7_startTransition',
+      'v7_relativeSplatPath',
+      'React Router will begin wrapping state updates',
+      'Relative route resolution within Splat routes'
+    ];
+    
+    // Verificar si el mensaje contiene alguna advertencia a suprimir
+    if (typeof message === 'string' && suppressWarnings.some(warning => message.includes(warning))) {
       return;
     }
+    
     originalWarn.apply(console, args);
   };
 }

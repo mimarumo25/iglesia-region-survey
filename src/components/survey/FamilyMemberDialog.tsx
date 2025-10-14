@@ -9,7 +9,7 @@ import EnhancedBirthDatePicker from "@/components/ui/enhanced-birth-date-picker"
 import AutocompleteWithLoading from "@/components/ui/autocomplete-with-loading";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { EmailInput } from "@/components/ui/email-input";
-import { Plus, AlertCircle, Shirt } from "lucide-react";
+import { Plus, AlertCircle, Shirt, Lightbulb, Wrench } from "lucide-react";
 import { FamilyMemberFormData } from "@/hooks/useFamilyGrid";
 import { FamilyMember } from "@/types/survey";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
@@ -23,6 +23,11 @@ import {
 import { useEffect, useRef } from "react";
 // Importar componentes de tallas
 import { TallaSelect } from "@/components/tallas";
+// Importar hooks simplificados de habilidades y destrezas
+import { useHabilidadesFormulario } from "@/hooks/useHabilidadesFormulario";
+import { useDestrezasFormulario } from "@/hooks/useDestrezasFormulario";
+// Importar componente de selección múltiple
+import { MultiSelectWithChips } from "@/components/ui/multi-select-chips";
 
 interface FamilyMemberDialogProps {
   form: UseFormReturn<FamilyMemberFormData>;
@@ -48,6 +53,10 @@ const FamilyMemberDialog = ({
 }: FamilyMemberDialogProps) => {
   const configurationData = useConfigurationData();
   const isMountedRef = useRef(true);
+  
+  // Cargar habilidades y destrezas activas desde la API usando hooks simplificados
+  const { habilidades, isLoading: habilidadesLoading, error: habilidadesError } = useHabilidadesFormulario();
+  const { destrezas, isLoading: destrezasLoading, error: destrezasError } = useDestrezasFormulario();
   
   // Cleanup al desmontar
   useEffect(() => {
@@ -708,9 +717,9 @@ const FamilyMemberDialog = ({
                 Información de Servicios y Liderazgo
               </h4>
               <p className="text-sm text-muted-foreground mb-4">
-                Liderazgo, habilidades especiales y servicios religiosos
+                Liderazgo y servicios religiosos
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 {/* En qué eres líder */}
                 <FormField
                   control={form.control}
@@ -730,20 +739,72 @@ const FamilyMemberDialog = ({
                     </FormItem>
                   )}
                 />
+              </div>
+            </div>
 
-                {/* Habilidad o Destreza */}
+            {/* SECCIÓN 9: HABILIDADES Y DESTREZAS (NUEVA) */}
+            <div className="p-6 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800">
+              <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-4 flex items-center gap-2">
+                <Lightbulb className="w-5 h-5 text-amber-600" />
+                Habilidades y Destrezas
+              </h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Selecciona las habilidades profesionales y destrezas técnicas del miembro familiar
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Habilidades */}
                 <FormField
                   control={form.control}
-                  name="habilidadDestreza"
+                  name="habilidades"
                   render={({ field }) => (
                     <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
-                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Habilidad o Destreza</FormLabel>
+                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-2">
+                        <Lightbulb className="w-4 h-4 text-amber-500" />
+                        Habilidades Profesionales
+                      </FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
-                          type="text"
-                          className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
-                          placeholder="Describe tus habilidades"
+                        <MultiSelectWithChips
+                          options={habilidades}
+                          value={(field.value || []) as Array<{ id: number; nombre: string; nivel?: string }>}
+                          onChange={(selected) => {
+                            console.log('🔄 Habilidades onChange:', selected);
+                            field.onChange(selected);
+                          }}
+                          placeholder="Seleccionar habilidades..."
+                          searchPlaceholder="Buscar habilidad..."
+                          emptyText="No se encontraron habilidades"
+                          isLoading={habilidadesLoading}
+                          error={habilidadesError}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Destrezas */}
+                <FormField
+                  control={form.control}
+                  name="destrezas"
+                  render={({ field, fieldState }) => (
+                    <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-2">
+                        <Wrench className="w-4 h-4 text-teal-500" />
+                        Destrezas Técnicas
+                      </FormLabel>
+                      <FormControl>
+                        <MultiSelectWithChips
+                          options={destrezas}
+                          value={(field.value || []) as Array<{ id: number; nombre: string }>}
+                          onChange={(selected) => {
+                            console.log('🔄 Destrezas onChange:', selected);
+                            field.onChange(selected);
+                          }}
+                          placeholder="Seleccionar destrezas..."
+                          searchPlaceholder="Buscar destreza..."
+                          emptyText="No se encontraron destrezas"
+                          isLoading={destrezasLoading}
+                          error={destrezasError}
                         />
                       </FormControl>
                       <FormMessage />

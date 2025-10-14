@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, Save } from "lucide-react";
 
 interface SurveyControlsProps {
   currentStage: number;
   totalStages: number;
   isSubmitting: boolean;
+  isEditMode?: boolean;
   onPrevious: () => void;
   onNext: () => void;
   onSubmit: () => void;
@@ -14,6 +15,7 @@ const SurveyControls = ({
   currentStage,
   totalStages,
   isSubmitting,
+  isEditMode = false,
   onPrevious,
   onNext,
   onSubmit,
@@ -48,12 +50,21 @@ const SurveyControls = ({
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Enviando al servidor...
+                {isEditMode ? 'Actualizando...' : 'Enviando al servidor...'}
               </>
             ) : (
               <>
-                <Send className="w-4 h-4" />
-                Enviar al Servidor
+                {isEditMode ? (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Guardar Cambios
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    Enviar al Servidor
+                  </>
+                )}
               </>
             )}
           </Button>

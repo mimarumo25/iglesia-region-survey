@@ -11,16 +11,79 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis
+} from "@/components/ui/pagination";
 import { Loader2, Users, CheckCircle2, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { PersonaConsolidada } from "@/types/personas";
 
 interface PersonasTableProps {
   personas: PersonaConsolidada[];
   isLoading: boolean;
   total: number;
+  currentPage?: number;
+  pageSize?: number;
+  onPageChange?: (page: number) => void;
 }
 
-const PersonasTable = ({ personas, isLoading, total }: PersonasTableProps) => {
+const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize = 100, onPageChange }: PersonasTableProps) => {
+  // Calcular total de páginas
+  const totalPages = Math.ceil(total / pageSize);
+
+  // Debug: Log para verificar valores
+  console.log('📊 PersonasTable - Debug Paginación:', {
+    total,
+    pageSize,
+    totalPages,
+    currentPage,
+    hasOnPageChange: !!onPageChange,
+    personasLength: personas.length
+  });
+
+  /**
+   * Genera array de números de página a mostrar
+   */
+  const getPageNumbers = (): (number | 'ellipsis')[] => {
+    const pages: (number | 'ellipsis')[] = [];
+    const maxVisiblePages = 7;
+
+    if (totalPages <= maxVisiblePages) {
+      // Mostrar todas las páginas si son pocas
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Lógica para mostrar páginas con elipsis
+      if (currentPage <= 4) {
+        // Cerca del inicio
+        for (let i = 1; i <= 5; i++) pages.push(i);
+        pages.push('ellipsis');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        // Cerca del final
+        pages.push(1);
+        pages.push('ellipsis');
+        for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+      } else {
+        // En el medio
+        pages.push(1);
+        pages.push('ellipsis');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+        pages.push('ellipsis');
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
   /**
    * Formatea valores booleanos con badges visuales
    */
@@ -124,10 +187,10 @@ const PersonasTable = ({ personas, isLoading, total }: PersonasTableProps) => {
           Resultados de Consulta
         </CardTitle>
         <CardDescription>
-          Se encontraron <strong>{total}</strong> registros - Mostrando <strong>{personas.length}</strong> en esta página
+          Se encontraron <strong>{total}</strong> registros - Mostrando página <strong>{currentPage}</strong> de <strong>{totalPages}</strong>
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
         <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
@@ -273,8 +336,72 @@ const PersonasTable = ({ personas, isLoading, total }: PersonasTableProps) => {
           </Table>
         </div>
         
+        {/* Componente de Paginación */}
+        {onPageChange && (
+          <div className="flex items-center justify-between pt-4 border-t">
+            <div className="text-sm text-muted-foreground">
+              Mostrando {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, total)} de {total} registros
+              {totalPages > 1 && (
+                <span className="ml-2 text-xs">
+                  (Página {currentPage} de {totalPages})
+                </span>
+              )}
+            </div>
+            
+            {totalPages > 1 && (
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onPageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="gap-1"
+                    >
+                      <PaginationPrevious className="p-0 h-auto border-0 bg-transparent hover:bg-transparent" />
+                    </Button>
+                  </PaginationItem>
+
+                  {getPageNumbers().map((pageNum, index) => (
+                    <PaginationItem key={index}>
+                      {pageNum === 'ellipsis' ? (
+                        <PaginationEllipsis />
+                      ) : (
+                        <Button
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => onPageChange(pageNum)}
+                          className={cn(
+                            "min-w-[40px]",
+                            currentPage === pageNum && "bg-primary text-white hover:bg-primary/90"
+                          )}
+                        >
+                          {pageNum}
+                        </Button>
+                      )}
+                    </PaginationItem>
+                  ))}
+
+                  <PaginationItem>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onPageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="gap-1"
+                    >
+                      <PaginationNext className="p-0 h-auto border-0 bg-transparent hover:bg-transparent" />
+                    </Button>
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
+          </div>
+        )}
+        
         {/* Información de paginación */}
-        <div className="mt-4 text-sm text-muted-foreground text-center">
+        <div className="text-sm text-muted-foreground text-center pt-2">
           💡 <strong>Tip:</strong> Desplázate horizontalmente para ver todos los campos de cada persona
         </div>
       </CardContent>

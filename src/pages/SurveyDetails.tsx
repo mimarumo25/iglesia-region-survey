@@ -130,7 +130,7 @@ const SurveyDetails = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-3 lg:px-6 py-6 lg:py-8">
         <div className="flex items-center gap-4 mb-6">
           <Skeleton className="h-10 w-10" />
           <div className="space-y-2">
@@ -158,7 +158,7 @@ const SurveyDetails = () => {
   // Error state
   if (error || !encuesta) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-3 lg:px-6 py-6 lg:py-8">
         <Card className="max-w-md mx-auto">
           <CardContent className="p-6 text-center">
             <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />

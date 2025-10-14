@@ -24,12 +24,14 @@ export interface FamilyMember {
   comunidadCultural: ConfigurationItem | null;
   telefono: string;
   enQueEresLider: string;
-  habilidadDestreza: string;
   correoElectronico: string;
   enfermedad: ConfigurationItem | null;
   necesidadesEnfermo: string;
   solicitudComunionCasa: boolean;
   profesionMotivoFechaCelebrar: { profesion: ConfigurationItem | null; motivo: string; dia: string; mes: string };
+  // Nuevos campos: Habilidades y Destrezas como arrays de objetos
+  habilidades: Array<{ id: number; nombre: string; nivel?: string }>;
+  destrezas: Array<{ id: number; nombre: string }>;
 }
 
 export interface FormField {

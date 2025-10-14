@@ -192,7 +192,7 @@ const UsersPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl bg-gradient-subtle min-h-screen">
+    <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-3 lg:px-6 py-6 lg:py-8 bg-gradient-subtle min-h-screen">
       {/* Header con diseño mejorado */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div className="">

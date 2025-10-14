@@ -355,8 +355,11 @@ export class SurveySubmissionService {
       storageKeys.forEach(key => {
         if (localStorage.getItem(key)) {
           localStorage.removeItem(key);
+          console.log(`🧹 localStorage limpiado: ${key}`);
         }
       });
+      
+      console.log('✅ LocalStorage completamente limpio después del envío exitoso');
       
     } catch (error) {
       console.error('❌ Error al limpiar localStorage:', error);

@@ -90,7 +90,7 @@ const VerifyEmail = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="relative w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
+      <div className="relative w-full max-w-[98%] 2xl:max-w-[96%] grid lg:grid-cols-2 gap-8 items-center">
         {/* Columna de imagen */}
         <div className="hidden lg:flex flex-col items-center justify-center space-y-6">
           <div className="relative group">

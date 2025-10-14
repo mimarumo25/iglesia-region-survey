@@ -37,6 +37,12 @@ const DebugUserMenu = React.lazy(() => import("./pages/DebugUserMenu"));
 const TallasDemoPage = React.lazy(() => import("@/components/tallas/TallasDemoPage"));
 // const NoPermissions = React.lazy(() => import("@/components/ui/no-permissions"));
 
+// Catálogos: Habilidades y Destrezas
+const Habilidades = React.lazy(() => import("./pages/Habilidades"));
+const Destrezas = React.lazy(() => import("./pages/Destrezas"));
+const DestrezasTest = React.lazy(() => import("./pages/DestrezasTest"));
+const FamilyMemberDialogTest = React.lazy(() => import("./pages/FamilyMemberDialogTest"));
+
 const queryClient = new QueryClient();
 
 /**
@@ -61,7 +67,12 @@ const App = () => (
           <AuthProvider>
             <Toaster />
             <Sonner />
-            <BrowserRouter>
+            <BrowserRouter
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
+            >
             <Suspense fallback={
               <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-green-100">
                 <div className="mb-6">
@@ -416,6 +427,50 @@ const App = () => (
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
+                      </Layout>
+                    </PrivateRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/settings/habilidades" 
+                  element={
+                    <PrivateRoute requiredRole={["admin"]}>
+                      <Layout>
+                        <Habilidades />
+                      </Layout>
+                    </PrivateRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/settings/destrezas" 
+                  element={
+                    <PrivateRoute requiredRole={["admin"]}>
+                      <Layout>
+                        <Destrezas />
+                      </Layout>
+                    </PrivateRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/settings/destrezas-test" 
+                  element={
+                    <PrivateRoute requiredRole={["admin"]}>
+                      <Layout>
+                        <DestrezasTest />
+                      </Layout>
+                    </PrivateRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/test/family-dialog" 
+                  element={
+                    <PrivateRoute requiredRole={["admin"]}>
+                      <Layout>
+                        <FamilyMemberDialogTest />
                       </Layout>
                     </PrivateRoute>
                   } 

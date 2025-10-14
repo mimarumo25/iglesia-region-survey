@@ -208,6 +208,20 @@ const navigationItems = [
         requiredRoles: ["admin"]
       },
       {
+        title: "Habilidades",
+        url: "/settings/habilidades",
+        icon: Users,
+        description: "Catálogo de habilidades profesionales",
+        requiredRoles: ["admin"]
+      },
+      {
+        title: "Destrezas",
+        url: "/settings/destrezas",
+        icon: Users,
+        description: "Catálogo de destrezas técnicas",
+        requiredRoles: ["admin"]
+      },
+      {
         title: "Catálogo Sectores",
         url: "/settings/sectores-config",
         icon: MapPin,

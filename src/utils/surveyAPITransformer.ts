@@ -55,7 +55,6 @@ interface APIFamilyMember {
   };
   // Campos adicionales que pueden estar presentes
   enQueEresLider?: string;
-  habilidadDestreza?: string;
   correoElectronico?: string;
   necesidadesEnfermo?: string;
   solicitudComunionCasa?: boolean;
@@ -215,7 +214,6 @@ function transformFamilyMember(member: FamilyMember): APIFamilyMember {
     motivoFechaCelebrar: motivoFechaCelebrar,
     // Campos opcionales
     enQueEresLider: member.enQueEresLider,
-    habilidadDestreza: member.habilidadDestreza,
     correoElectronico: member.correoElectronico,
     necesidadesEnfermo: member.necesidadesEnfermo,
     solicitudComunionCasa: member.solicitudComunionCasa

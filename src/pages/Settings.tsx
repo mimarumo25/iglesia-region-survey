@@ -265,7 +265,7 @@ const SettingsPage = ({ initialTab }: SettingsPageProps) => {
   ];
 
   return (
-    <div className="container mx-auto p-3 sm:p-6 max-w-7xl">
+    <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-3 lg:px-6 py-6 lg:py-8">
       {/* Header optimizado para móvil */}
       <div className="flex flex-col gap-4 mb-4 sm:mb-6">
         <div className="text-center sm:text-left">

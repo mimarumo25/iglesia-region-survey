@@ -300,7 +300,7 @@ const ProfilePage = () => {
   // Si no hay usuario disponible, mostrar mensaje de error
   if (!profile && !user) {
     return (
-      <div className="container mx-auto p-6 max-w-7xl bg-gradient-subtle min-h-screen">
+      <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-3 lg:px-6 py-6 lg:py-8 bg-gradient-subtle min-h-screen">
         <h1 className="text-3xl font-bold mb-6 text-primary flex items-center gap-3">
           <UserIcon className="w-8 h-8" /> Mi Perfil
         </h1>
@@ -350,7 +350,7 @@ const ProfilePage = () => {
         </div>
         
         <div className={cn(
-          "relative container mx-auto max-w-7xl",
+          "relative w-full max-w-[98%] 2xl:max-w-[96%] mx-auto",
           isMobile ? "px-4 py-8" : "px-6 py-12"
         )}>
           <div className="flex flex-col items-center text-center">
@@ -492,8 +492,8 @@ const ProfilePage = () => {
 
       {/* Contenido Principal - Layout responsive */}
       <div className={cn(
-        "container mx-auto relative z-10 -mt-8",
-        isMobile ? "px-4" : "px-6 max-w-7xl"
+        "w-full max-w-[98%] 2xl:max-w-[96%] mx-auto relative z-10 -mt-8",
+        isMobile ? "px-4" : "px-6"
       )}>
         <div className={cn(
           isMobile ? "space-y-4" : "grid gap-8 lg:grid-cols-3"

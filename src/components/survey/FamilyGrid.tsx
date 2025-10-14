@@ -69,9 +69,7 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
           onOpenChange={(open) => {
             if (!open) {
               // Llamar closeDialog cuando se cierre el diálogo
-              setTimeout(() => {
-                closeDialog();
-              }, 100);
+              closeDialog();
             } else {
               // Abrir el diálogo
               setShowFamilyDialog(open);
@@ -80,9 +78,6 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
         >
           <DialogTrigger asChild>
             <Button 
-              onClick={() => {
-                openDialogForNew();
-              }}
               className={DIALOG_BUTTONS.trigger.className}
             >
               <Plus className="w-4 h-4" />

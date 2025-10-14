@@ -12,35 +12,65 @@ import { phoneValidationSchema, emailValidationSchema } from "@/utils/validation
 import { extractConfigurationItemId, createConfigurationItemHandler } from "@/utils/autocomplete-utils";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
 
-// Esquema de validación con Zod - Usando validación de tallas mejorada y validaciones de contacto
+// Esquema de validación con Zod - Organizado según secciones del formulario
 const familyMemberSchema = z.object({
+  // SECCIÓN 1: INFORMACIÓN BÁSICA PERSONAL
   nombres: z.string().min(1, "El nombre es obligatorio").min(2, "El nombre debe tener al menos 2 caracteres"),
   fechaNacimiento: z.date().optional().nullable(),
-  tipoIdentificacion: z.string().min(1, "El tipo de identificación es obligatorio"),
   numeroIdentificacion: z.string().min(1, "El número de identificación es obligatorio").min(5, "El número de identificación debe tener al menos 5 caracteres"),
-  sexo: z.string().optional(),
-  situacionCivil: z.string().optional(),
-  parentesco: z.string().optional(),
-  talla: z.object({
-    camisa: tallasValidationSchemas.strict.talla_camisa,
-    pantalon: tallasValidationSchemas.strict.talla_pantalon,
-    calzado: tallasValidationSchemas.strict.talla_zapato,
-  }),
-  estudio: z.string().optional(),
-  comunidadCultural: z.string().optional(),
+  tipoIdentificacion: z.string().min(1, "El tipo de identificación es obligatorio"),
+  
+  // SECCIÓN 2: INFORMACIÓN DE CONTACTO
   telefono: phoneValidationSchema,
-  enQueEresLider: z.string().optional(),
-  habilidadDestreza: z.string().optional(),
   correoElectronico: emailValidationSchema,
-  enfermedad: z.string().optional(),
-  necesidadesEnfermo: z.string().optional(),
-  solicitudComunionCasa: z.boolean().optional(),
+  
+  // SECCIÓN 3: INFORMACIÓN DEMOGRÁFICA
+  sexo: z.string().optional(),
+  parentesco: z.string().optional(),
+  situacionCivil: z.string().optional(),
+  
+  // SECCIÓN 4: INFORMACIÓN EDUCATIVA Y PROFESIONAL
+  estudio: z.string().optional(),
   profesionMotivoFechaCelebrar: z.object({
     profesion: z.string().optional(),
     motivo: z.string().optional(),
     dia: z.string().optional(),
     mes: z.string().optional(),
   }).optional(),
+  
+  // SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD
+  comunidadCultural: z.string().optional(),
+  enfermedad: z.string().optional(),
+  necesidadesEnfermo: z.string().optional(),
+  solicitudComunionCasa: z.boolean().optional(),
+  
+  // SECCIÓN 6: INFORMACIÓN DE TALLAS
+  talla: z.object({
+    camisa: tallasValidationSchemas.strict.talla_camisa,
+    pantalon: tallasValidationSchemas.strict.talla_pantalon,
+    calzado: tallasValidationSchemas.strict.talla_zapato,
+  }),
+
+  enQueEresLider: z.string().optional(),
+  
+  // SECCIÓN 9: HABILIDADES Y DESTREZAS
+  // Hacer el schema más permisivo para evitar errores de validación silenciosos
+  habilidades: z.array(z.object({
+    id: z.union([z.number(), z.string()]).transform(val => {
+      const num = typeof val === 'string' ? parseInt(val) : val;
+      return isNaN(num) ? 0 : num;
+    }),
+    nombre: z.string().min(1, "El nombre de la habilidad es requerido"),
+    nivel: z.string().optional(),
+  })).optional().default([]),
+  
+  destrezas: z.array(z.object({
+    id: z.union([z.number(), z.string()]).transform(val => {
+      const num = typeof val === 'string' ? parseInt(val) : val;
+      return isNaN(num) ? 0 : num;
+    }),
+    nombre: z.string().min(1, "El nombre de la destreza es requerido"),
+  })).optional().default([]),
 });
 
 export type FamilyMemberFormData = z.infer<typeof familyMemberSchema>;
@@ -52,84 +82,116 @@ interface UseFamilyGridProps {
 
 /**
  * Transforma un FamilyMember a FamilyMemberFormData para edición
+ * Organizado según las secciones del formulario para mejor legibilidad
  */
 const familyMemberToFormData = (member: FamilyMember): Partial<FamilyMemberFormData> => {
   try {
     const formData = {
+      // SECCIÓN 1: INFORMACIÓN BÁSICA PERSONAL
       nombres: member?.nombres || '',
       fechaNacimiento: member?.fechaNacimiento && member.fechaNacimiento instanceof Date && !isNaN(member.fechaNacimiento.getTime()) 
         ? member.fechaNacimiento 
         : null,
-      tipoIdentificacion: extractConfigurationItemId(member?.tipoIdentificacion),
       numeroIdentificacion: member?.numeroIdentificacion || '',
-      sexo: extractConfigurationItemId(member?.sexo),
-      situacionCivil: extractConfigurationItemId(member?.situacionCivil),
-      parentesco: extractConfigurationItemId(member?.parentesco),
-      talla: {
-        // Las tallas ya son strings, se pasan directamente con fallbacks seguros
-        camisa: member?.talla_camisa || '',
-        pantalon: member?.talla_pantalon || '',
-        calzado: member?.talla_zapato || '',
-      },
-      estudio: extractConfigurationItemId(member?.estudio),
-      comunidadCultural: extractConfigurationItemId(member?.comunidadCultural),
+      tipoIdentificacion: extractConfigurationItemId(member?.tipoIdentificacion),
+      
+      // SECCIÓN 2: INFORMACIÓN DE CONTACTO
       telefono: member?.telefono || '',
-      enQueEresLider: member?.enQueEresLider || '',
-      habilidadDestreza: member?.habilidadDestreza || '',
       correoElectronico: member?.correoElectronico || '',
-      enfermedad: extractConfigurationItemId(member?.enfermedad),
-      necesidadesEnfermo: member?.necesidadesEnfermo || '',
-      solicitudComunionCasa: member?.solicitudComunionCasa || false,
+      
+      // SECCIÓN 3: INFORMACIÓN DEMOGRÁFICA
+      sexo: extractConfigurationItemId(member?.sexo),
+      parentesco: extractConfigurationItemId(member?.parentesco),
+      situacionCivil: extractConfigurationItemId(member?.situacionCivil),
+      
+      // SECCIÓN 4: INFORMACIÓN EDUCATIVA Y PROFESIONAL
+      estudio: extractConfigurationItemId(member?.estudio),
       profesionMotivoFechaCelebrar: {
         profesion: extractConfigurationItemId(member?.profesionMotivoFechaCelebrar?.profesion),
         motivo: member?.profesionMotivoFechaCelebrar?.motivo || '',
         dia: member?.profesionMotivoFechaCelebrar?.dia || '',
         mes: member?.profesionMotivoFechaCelebrar?.mes || '',
-      }
+      },
+      
+      // SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD
+      comunidadCultural: extractConfigurationItemId(member?.comunidadCultural),
+      enfermedad: extractConfigurationItemId(member?.enfermedad),
+      necesidadesEnfermo: member?.necesidadesEnfermo || '',
+      solicitudComunionCasa: member?.solicitudComunionCasa || false,
+      
+      // SECCIÓN 6: INFORMACIÓN DE TALLAS
+      talla: {
+        camisa: member?.talla_camisa || '',
+        pantalon: member?.talla_pantalon || '',
+        calzado: member?.talla_zapato || '',
+      },
+      
+      // SECCIÓN 7: FECHAS A CELEBRAR (incluido en profesionMotivoFechaCelebrar)
+      
+      // SECCIÓN 8: INFORMACIÓN DE SERVICIOS Y LIDERAZGO
+      enQueEresLider: member?.enQueEresLider || '',
+      
+      // SECCIÓN 9: HABILIDADES Y DESTREZAS
+      habilidades: member?.habilidades || [],
+      destrezas: member?.destrezas || [],
     };
-
-    // FormData transformado exitosamente
 
     return formData;
   } catch (error) {
-    console.error('💥 Error en familyMemberToFormData:', error);
-    console.error('Member que causó el error:', member);
+    console.error('Error en familyMemberToFormData:', error);
     
     // Retornar datos mínimos para evitar crash
     return {
+      // SECCIÓN 1: INFORMACIÓN BÁSICA PERSONAL
       nombres: member?.nombres || '',
       fechaNacimiento: null,
-      tipoIdentificacion: extractConfigurationItemId(member?.tipoIdentificacion),
       numeroIdentificacion: member?.numeroIdentificacion || '',
-      sexo: extractConfigurationItemId(member?.sexo),
-      situacionCivil: extractConfigurationItemId(member?.situacionCivil),
-      parentesco: extractConfigurationItemId(member?.parentesco),
-      talla: {
-        camisa: member?.talla_camisa || '',
-        pantalon: member?.talla_pantalon || '',
-        calzado: member?.talla_zapato || '',
-      },
-      estudio: extractConfigurationItemId(member?.estudio),
-      comunidadCultural: extractConfigurationItemId(member?.comunidadCultural),
+      tipoIdentificacion: extractConfigurationItemId(member?.tipoIdentificacion),
+      
+      // SECCIÓN 2: INFORMACIÓN DE CONTACTO
       telefono: member?.telefono || '',
-      enQueEresLider: member?.enQueEresLider || '',
-      habilidadDestreza: member?.habilidadDestreza || '',
       correoElectronico: member?.correoElectronico || '',
-      enfermedad: extractConfigurationItemId(member?.enfermedad),
-      necesidadesEnfermo: member?.necesidadesEnfermo || '',
-      solicitudComunionCasa: member?.solicitudComunionCasa || false,
+      
+      // SECCIÓN 3: INFORMACIÓN DEMOGRÁFICA
+      sexo: extractConfigurationItemId(member?.sexo),
+      parentesco: extractConfigurationItemId(member?.parentesco),
+      situacionCivil: extractConfigurationItemId(member?.situacionCivil),
+      
+      // SECCIÓN 4: INFORMACIÓN EDUCATIVA Y PROFESIONAL
+      estudio: extractConfigurationItemId(member?.estudio),
       profesionMotivoFechaCelebrar: {
         profesion: extractConfigurationItemId(member?.profesionMotivoFechaCelebrar?.profesion),
         motivo: member?.profesionMotivoFechaCelebrar?.motivo || '',
         dia: member?.profesionMotivoFechaCelebrar?.dia || '',
         mes: member?.profesionMotivoFechaCelebrar?.mes || '',
-      }
+      },
+      
+      // SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD
+      comunidadCultural: extractConfigurationItemId(member?.comunidadCultural),
+      enfermedad: extractConfigurationItemId(member?.enfermedad),
+      necesidadesEnfermo: member?.necesidadesEnfermo || '',
+      solicitudComunionCasa: member?.solicitudComunionCasa || false,
+      
+      // SECCIÓN 6: INFORMACIÓN DE TALLAS
+      talla: {
+        camisa: member?.talla_camisa || '',
+        pantalon: member?.talla_pantalon || '',
+        calzado: member?.talla_zapato || '',
+      },
+      
+      // SECCIÓN 8: INFORMACIÓN DE SERVICIOS Y LIDERAZGO
+      enQueEresLider: member?.enQueEresLider || '',
+      
+      // SECCIÓN 9: HABILIDADES Y DESTREZAS
+      habilidades: member?.habilidades || [],
+      destrezas: member?.destrezas || [],
     } as Partial<FamilyMemberFormData>;
   }
 };
 
 /**
  * Transforma FamilyMemberFormData a FamilyMember para guardar
+ * Organizado según las secciones del formulario
  */
 const formDataToFamilyMember = (data: FamilyMemberFormData, id: string, configurationData: any): Partial<FamilyMember> => {
   // Función helper para convertir valor de autocomplete a ConfigurationItem
@@ -146,7 +208,6 @@ const formDataToFamilyMember = (data: FamilyMemberFormData, id: string, configur
       };
     }
     
-    // Fallback: si no se encuentra la opción, crear con el valor como ID y nombre
     return {
       id: value,
       nombre: value
@@ -155,32 +216,47 @@ const formDataToFamilyMember = (data: FamilyMemberFormData, id: string, configur
 
   return {
     id,
+    // SECCIÓN 1: INFORMACIÓN BÁSICA PERSONAL
     nombres: data.nombres || '',
     fechaNacimiento: data.fechaNacimiento || null,
-    tipoIdentificacion: createConfigItemFromValue(data.tipoIdentificacion, 'tiposIdentificacionOptions'),
     numeroIdentificacion: data.numeroIdentificacion || '',
-    sexo: createConfigItemFromValue(data.sexo, 'sexoOptions'),
-    situacionCivil: createConfigItemFromValue(data.situacionCivil, 'estadoCivilOptions'),
-    parentesco: createConfigItemFromValue(data.parentesco, 'parentescosOptions'),
-    // Las tallas se almacenan como strings directamente
-    talla_camisa: data.talla?.camisa || '',
-    talla_pantalon: data.talla?.pantalon || '',
-    talla_zapato: data.talla?.calzado || '',
-    estudio: createConfigItemFromValue(data.estudio, 'estudiosOptions'),
-    comunidadCultural: createConfigItemFromValue(data.comunidadCultural, 'comunidadesCulturalesOptions'),
+    tipoIdentificacion: createConfigItemFromValue(data.tipoIdentificacion, 'tiposIdentificacionOptions'),
+    
+    // SECCIÓN 2: INFORMACIÓN DE CONTACTO
     telefono: data.telefono || '',
-    enQueEresLider: data.enQueEresLider || '',
-    habilidadDestreza: data.habilidadDestreza || '',
     correoElectronico: data.correoElectronico || '',
-    enfermedad: createConfigItemFromValue(data.enfermedad, 'enfermedadesOptions'),
-    necesidadesEnfermo: data.necesidadesEnfermo || '',
-    solicitudComunionCasa: data.solicitudComunionCasa || false,
+    
+    // SECCIÓN 3: INFORMACIÓN DEMOGRÁFICA
+    sexo: createConfigItemFromValue(data.sexo, 'sexoOptions'),
+    parentesco: createConfigItemFromValue(data.parentesco, 'parentescosOptions'),
+    situacionCivil: createConfigItemFromValue(data.situacionCivil, 'estadoCivilOptions'),
+    
+    // SECCIÓN 4: INFORMACIÓN EDUCATIVA Y PROFESIONAL
+    estudio: createConfigItemFromValue(data.estudio, 'estudiosOptions'),
     profesionMotivoFechaCelebrar: {
       profesion: createConfigItemFromValue(data.profesionMotivoFechaCelebrar?.profesion, 'profesionesOptions'),
       motivo: data.profesionMotivoFechaCelebrar?.motivo || '',
       dia: data.profesionMotivoFechaCelebrar?.dia || '',
       mes: data.profesionMotivoFechaCelebrar?.mes || '',
-    }
+    },
+    
+    // SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD
+    comunidadCultural: createConfigItemFromValue(data.comunidadCultural, 'comunidadesCulturalesOptions'),
+    enfermedad: createConfigItemFromValue(data.enfermedad, 'enfermedadesOptions'),
+    necesidadesEnfermo: data.necesidadesEnfermo || '',
+    solicitudComunionCasa: data.solicitudComunionCasa || false,
+    
+    // SECCIÓN 6: INFORMACIÓN DE TALLAS
+    talla_camisa: data.talla?.camisa || '',
+    talla_pantalon: data.talla?.pantalon || '',
+    talla_zapato: data.talla?.calzado || '',
+    
+    // SECCIÓN 8: INFORMACIÓN DE SERVICIOS Y LIDERAZGO
+    enQueEresLider: data.enQueEresLider || '',
+    
+    // SECCIÓN 9: HABILIDADES Y DESTREZAS
+    habilidades: (data.habilidades || []).filter(h => h.id && h.nombre) as Array<{ id: number; nombre: string; nivel?: string }>,
+    destrezas: (data.destrezas || []).filter(d => d.id && d.nombre) as Array<{ id: number; nombre: string }>,
   };
 };
 
@@ -211,30 +287,46 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
     return member;
   };
 
-  // Configuración de React Hook Form
+  // Configuración de React Hook Form con valores por defecto organizados por sección
   const form = useForm<FamilyMemberFormData>({
     resolver: zodResolver(familyMemberSchema),
     defaultValues: {
+      // SECCIÓN 1: INFORMACIÓN BÁSICA PERSONAL
       nombres: '',
-      fechaNacimiento: null, // Sin fecha por defecto
-      tipoIdentificacion: '',
+      fechaNacimiento: null,
       numeroIdentificacion: '',
-      sexo: '',
-      situacionCivil: '',
-      parentesco: '',
-      talla: { camisa: '', pantalon: '', calzado: '' },
-      estudio: '',
-      comunidadCultural: '',
+      tipoIdentificacion: '',
+      
+      // SECCIÓN 2: INFORMACIÓN DE CONTACTO
       telefono: '',
-      enQueEresLider: '',
-      habilidadDestreza: '',
       correoElectronico: '',
+      
+      // SECCIÓN 3: INFORMACIÓN DEMOGRÁFICA
+      sexo: '',
+      parentesco: '',
+      situacionCivil: '',
+      
+      // SECCIÓN 4: INFORMACIÓN EDUCATIVA Y PROFESIONAL
+      estudio: '',
+      profesionMotivoFechaCelebrar: { profesion: '', motivo: '', dia: '', mes: '' },
+      
+      // SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD
+      comunidadCultural: '',
       enfermedad: '',
       necesidadesEnfermo: '',
       solicitudComunionCasa: false,
-      profesionMotivoFechaCelebrar: { profesion: '', motivo: '', dia: '', mes: '' }
+      
+      // SECCIÓN 6: INFORMACIÓN DE TALLAS
+      talla: { camisa: '', pantalon: '', calzado: '' },
+      
+      // SECCIÓN 8: INFORMACIÓN DE SERVICIOS Y LIDERAZGO
+      enQueEresLider: '',
+      
+      // SECCIÓN 9: HABILIDADES Y DESTREZAS
+      habilidades: [],
+      destrezas: [],
     },
-    mode: 'onChange' // Validar en tiempo real para mejor UX
+    mode: 'onChange'
   });
 
   const openDialogForNew = () => {
@@ -259,11 +351,7 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
   const closeDialog = () => {
     try {
       resetForm();
-      
-      // Usar setTimeout para evitar problemas de timing con el Portal
-      setTimeout(() => {
-        setShowFamilyDialog(false);
-      }, 50);
+      setShowFamilyDialog(false);
     } catch (error) {
       console.error('Error al cerrar diálogo:', error);
       // Forzar cierre del diálogo
@@ -273,19 +361,59 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
 
   const onSubmit = (data: FamilyMemberFormData) => {
     try {
+      // Log detallado de los datos recibidos para debugging
+      console.log('📋 onSubmit - Datos recibidos:', {
+        habilidades: data.habilidades,
+        destrezas: data.destrezas,
+        fullData: data
+      });
+
+      // Validar que los arrays de habilidades y destrezas estén bien formados
+      const habilidadesValidas = (data.habilidades || []).filter(h => {
+        const isValid = h && h.id && h.nombre && h.nombre.trim() !== '';
+        if (!isValid) {
+          console.warn('⚠️ Habilidad inválida detectada y filtrada:', h);
+        }
+        return isValid;
+      });
+
+      const destrezasValidas = (data.destrezas || []).filter(d => {
+        const isValid = d && d.id && d.nombre && d.nombre.trim() !== '';
+        if (!isValid) {
+          console.warn('⚠️ Destreza inválida detectada y filtrada:', d);
+        }
+        return isValid;
+      });
+
+      // Crear objeto con datos validados
+      const dataValidada = {
+        ...data,
+        habilidades: habilidadesValidas,
+        destrezas: destrezasValidas
+      };
+
+      console.log('✅ Datos validados para guardar:', {
+        habilidades: dataValidada.habilidades.length,
+        destrezas: dataValidada.destrezas.length
+      });
+
       if (editingFamilyMember) {
-        const updatedMember = formDataToFamilyMember(data, editingFamilyMember.id, configurationData);
-        setFamilyMembers(prev => prev.map(m => 
-          m.id === editingFamilyMember.id ? { ...m, ...updatedMember } : m
-        ));
+        const updatedMember = formDataToFamilyMember(dataValidada, editingFamilyMember.id, configurationData);
+        
+        setFamilyMembers(prev => 
+          prev.map(m => m.id === editingFamilyMember.id ? { ...m, ...updatedMember } : m)
+        );
+        
         toast({ 
           title: "Miembro actualizado", 
           description: "Datos actualizados correctamente.",
           duration: 3000
         });
       } else {
-        const newMember = formDataToFamilyMember(data, Date.now().toString(), configurationData);
+        const newMember = formDataToFamilyMember(dataValidada, Date.now().toString(), configurationData);
+        
         setFamilyMembers(prev => [...prev, newMember as FamilyMember]);
+        
         toast({ 
           title: "Miembro agregado", 
           description: "Nuevo miembro agregado a la familia.",
@@ -293,16 +421,16 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
         });
       }
       
-      // Usar setTimeout para evitar problemas con el Portal
-      setTimeout(() => {
-        closeDialog();
-      }, 100);
+      // Cerrar el diálogo inmediatamente después de guardar
+      closeDialog();
       
     } catch (error) {
-      console.error('Error al procesar miembro familiar:', error);
+      console.error('❌ Error en onSubmit:', error);
+      console.error('Stack trace:', (error as Error).stack);
+      
       toast({ 
-        title: "Error", 
-        description: "Hubo un problema al procesar la información del miembro. Por favor, inténtalo de nuevo.",
+        title: "Error al guardar", 
+        description: error instanceof Error ? error.message : "Hubo un problema al procesar la información del miembro. Por favor, inténtalo de nuevo.",
         variant: "destructive",
         duration: 5000
       });
@@ -311,9 +439,7 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
 
   const handleEdit = (member: FamilyMember) => {
     try {
-      // Validar que el miembro existe
       if (!member) {
-        console.error('❌ Member es null o undefined:', member);
         toast({ 
           title: "Error", 
           description: "No se puede editar este miembro. Datos no válidos.",
@@ -323,7 +449,7 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
         return;
       }
 
-      // Si no tiene ID, vamos a generar uno temporal
+      // Si no tiene ID, generar uno temporal
       let memberWithId = member;
       if (!member.id) {
         memberWithId = { 
@@ -331,7 +457,6 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
           id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` 
         };
         
-        // Actualizar el array de familyMembers con el nuevo ID
         setFamilyMembers(prev => {
           const memberIndex = prev.findIndex(m => 
             m.nombres === member.nombres && 
@@ -353,15 +478,10 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
       
       setEditingFamilyMember(migratedMember);
       form.reset(formData);
-      
-      // Pequeño delay para asegurar que el estado se actualice correctamente
-      setTimeout(() => {
-        setShowFamilyDialog(true);
-      }, 50);
+      setShowFamilyDialog(true);
       
     } catch (error) {
-      console.error('💥 Error al preparar edición de miembro:', error);
-      console.error('Stack trace:', error.stack);
+      console.error('Error al preparar edición de miembro:', error);
       toast({ 
         title: "Error al editar", 
         description: "Hubo un problema al cargar los datos para edición. Por favor, inténtalo de nuevo.",
