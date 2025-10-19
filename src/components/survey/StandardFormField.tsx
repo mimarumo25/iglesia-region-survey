@@ -43,7 +43,11 @@ const StandardFormField = ({
 }: StandardFormFieldProps) => {
   
   const renderLabel = () => (
-    <Label htmlFor={field.id} className={STANDARD_STYLES.label}>
+    <Label 
+      htmlFor={field.id} 
+      className={STANDARD_STYLES.label}
+      data-testid={`label-${field.id}`}
+    >
       {field.label} {field.required && <span className="text-destructive">*</span>}
     </Label>
   );
@@ -52,7 +56,7 @@ const StandardFormField = ({
     case 'text':
     case 'number':
       return (
-        <div className={STANDARD_STYLES.fieldContainer}>
+        <div className={STANDARD_STYLES.fieldContainer} data-testid={`field-group-${field.id}`}>
           {renderLabel()}
           <Input
             id={field.id}
@@ -62,6 +66,8 @@ const StandardFormField = ({
             className={STANDARD_STYLES.input}
             required={field.required}
             placeholder={field.placeholder || `Ingrese ${field.label.toLowerCase()}`}
+            data-testid={`input-${field.id}`}
+            name={field.id}
           />
         </div>
       );
@@ -74,12 +80,13 @@ const StandardFormField = ({
       // Si es el campo 'fecha' principal, mostrar fecha actual deshabilitada
       if (field.id === 'fecha') {
         return (
-          <div className={STANDARD_STYLES.fieldContainer}>
+          <div className={STANDARD_STYLES.fieldContainer} data-testid="field-group-fecha">
             {renderLabel()}
             <CurrentDateDisplay
               value={dateValue}
               placeholder="Fecha de registro de la encuesta"
               className="w-full"
+              data-testid="date-display-fecha"
             />
           </div>
         );
@@ -87,20 +94,21 @@ const StandardFormField = ({
       
       // Para otros campos de fecha, usar el picker normal
       return (
-        <div className={STANDARD_STYLES.fieldContainer}>
+        <div className={STANDARD_STYLES.fieldContainer} data-testid={`field-group-${field.id}`}>
           {renderLabel()}
           <ModernDatePicker
             value={dateValue}
             onChange={(date) => onChange(field.id, date)}
             placeholder={field.placeholder || `Seleccionar ${field.label.toLowerCase()}`}
             className="w-full"
+            data-testid={`date-picker-${field.id}`}
           />
         </div>
       );
 
     case 'autocomplete':
       return (
-        <div className={STANDARD_STYLES.fieldContainer}>
+        <div className={STANDARD_STYLES.fieldContainer} data-testid={`field-group-${field.id}`}>
           {renderLabel()}
           <AutocompleteWithLoading
             options={autocompleteOptions}
@@ -116,20 +124,26 @@ const StandardFormField = ({
             showDescriptions={true}
             showCategories={false}
             allowClear={true}
+            data-testid={`autocomplete-${field.id}`}
           />
         </div>
       );
 
     case 'boolean':
       return (
-        <div className={STANDARD_STYLES.checkboxContainer}>
+        <div className={STANDARD_STYLES.checkboxContainer} data-testid={`field-group-${field.id}`}>
           <Checkbox
             id={field.id}
             checked={value === true}
             onCheckedChange={(checked) => onChange(field.id, checked)}
             className={STANDARD_STYLES.checkbox}
+            data-testid={`checkbox-${field.id}`}
           />
-          <Label htmlFor={field.id} className={STANDARD_STYLES.checkboxLabel}>
+          <Label 
+            htmlFor={field.id} 
+            className={STANDARD_STYLES.checkboxLabel}
+            data-testid={`label-${field.id}`}
+          >
             {field.label} {field.required && <span className="text-destructive">*</span>}
           </Label>
         </div>
@@ -138,13 +152,13 @@ const StandardFormField = ({
     case 'checkbox':
       const selectedValues = Array.isArray(value) ? value : [];
       return (
-        <div className={STANDARD_STYLES.fieldContainer}>
-          <Label className={STANDARD_STYLES.label}>
+        <div className={STANDARD_STYLES.fieldContainer} data-testid={`field-group-${field.id}`}>
+          <Label className={STANDARD_STYLES.label} data-testid={`label-${field.id}`}>
             {field.label} {field.required && <span className="text-destructive">*</span>}
           </Label>
           <div className={STANDARD_STYLES.multipleCheckboxGrid}>
             {field.options?.map((option: string) => (
-              <div key={option} className={STANDARD_STYLES.checkboxContainer}>
+              <div key={option} className={STANDARD_STYLES.checkboxContainer} data-testid={`checkbox-option-${field.id}-${option.toLowerCase().replace(/\s+/g, '-')}`}>
                 <Checkbox
                   id={`${field.id}-${option}`}
                   checked={selectedValues.includes(option)}
@@ -156,8 +170,13 @@ const StandardFormField = ({
                     }
                   }}
                   className={STANDARD_STYLES.checkbox}
+                  data-testid={`checkbox-${field.id}-${option.toLowerCase().replace(/\s+/g, '-')}`}
                 />
-                <Label htmlFor={`${field.id}-${option}`} className={STANDARD_STYLES.checkboxLabel}>
+                <Label 
+                  htmlFor={`${field.id}-${option}`} 
+                  className={STANDARD_STYLES.checkboxLabel}
+                  data-testid={`label-${field.id}-${option.toLowerCase().replace(/\s+/g, '-')}`}
+                >
                   {option}
                 </Label>
               </div>
@@ -171,9 +190,9 @@ const StandardFormField = ({
       
       if (isLoading) {
         return (
-          <div className={STANDARD_STYLES.fieldContainer}>
+          <div className={STANDARD_STYLES.fieldContainer} data-testid={`field-group-${field.id}`}>
             {renderLabel()}
-            <div className={STANDARD_STYLES.loadingContainer}>
+            <div className={STANDARD_STYLES.loadingContainer} data-testid={`loading-${field.id}`}>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
               <span className="text-muted-foreground font-medium">Cargando opciones de {field.label.toLowerCase()}...</span>
             </div>
@@ -183,7 +202,7 @@ const StandardFormField = ({
 
       if (error) {
         return (
-          <div className={STANDARD_STYLES.fieldContainer}>
+          <div className={STANDARD_STYLES.fieldContainer} data-testid={`field-group-${field.id}`}>
             {renderLabel()}
             <ServiceErrorDisplay
               error={error}
@@ -191,17 +210,22 @@ const StandardFormField = ({
               inline={true}
               size="sm"
               className="p-3 bg-destructive/5 rounded-lg border border-destructive/20"
+              data-testid={`error-${field.id}`}
             />
           </div>
         );
       }
 
       return (
-        <div className={STANDARD_STYLES.fieldContainer}>
+        <div className={STANDARD_STYLES.fieldContainer} data-testid={`field-group-${field.id}`}>
           {renderLabel()}
           <div className={STANDARD_STYLES.multipleCheckboxGrid}>
             {autocompleteOptions?.map((option: AutocompleteOption) => (
-              <div key={option.value} className={STANDARD_STYLES.checkboxContainer}>
+              <div 
+                key={option.value} 
+                className={STANDARD_STYLES.checkboxContainer}
+                data-testid={`checkbox-option-${field.id}-${option.value}`}
+              >
                 <Checkbox
                   id={`${field.id}-${option.value}`}
                   checked={selectedAutoValues.includes(option.value)}
@@ -213,8 +237,13 @@ const StandardFormField = ({
                     }
                   }}
                   className={STANDARD_STYLES.checkbox}
+                  data-testid={`checkbox-${field.id}-${option.value}`}
                 />
-                <Label htmlFor={`${field.id}-${option.value}`} className={STANDARD_STYLES.checkboxLabel}>
+                <Label 
+                  htmlFor={`${field.id}-${option.value}`} 
+                  className={STANDARD_STYLES.checkboxLabel}
+                  data-testid={`label-${field.id}-${option.value}`}
+                >
                   {option.label}
                 </Label>
               </div>
@@ -225,7 +254,7 @@ const StandardFormField = ({
 
     case 'textarea':
       return (
-        <div className={STANDARD_STYLES.fieldContainer}>
+        <div className={STANDARD_STYLES.fieldContainer} data-testid={`field-group-${field.id}`}>
           {renderLabel()}
           <Textarea
             id={field.id}
@@ -234,6 +263,8 @@ const StandardFormField = ({
             className={STANDARD_STYLES.textarea}
             rows={4}
             placeholder={field.placeholder || `Escriba ${field.label.toLowerCase()}`}
+            data-testid={`textarea-${field.id}`}
+            name={field.id}
           />
         </div>
       );

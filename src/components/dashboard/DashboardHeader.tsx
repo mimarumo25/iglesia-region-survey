@@ -21,7 +21,7 @@ const DashboardHeader = () => {
       </div>
       <div className="relative max-w-7xl mx-auto text-center">
         <h1 className="text-3xl lg:text-5xl font-bold mb-0.5 text-white drop-shadow-lg">
-          Panel de Control MIA
+          Dashboard MIA
         </h1>
         <p className="text-white/95 text-lg lg:text-xl drop-shadow-md">
           Sistema de Caracterización Poblacional - MIA

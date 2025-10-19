@@ -482,7 +482,10 @@ const SurveyForm = () => {
   }
 
   return (
-    <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-3 lg:px-6 py-6 lg:py-8 bg-background dark:bg-background min-h-screen">
+    <div 
+      className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-3 lg:px-6 py-6 lg:py-8 bg-background dark:bg-background min-h-screen"
+      data-testid="survey-form-container"
+    >
       {/* Header con progreso usando componente refactorizado */}
       <SurveyHeader 
         title={isEditMode ? `Editar Encuesta #${surveyId}` : "Caracterización Poblacional"}
@@ -494,13 +497,15 @@ const SurveyForm = () => {
 
       {/* Botón para limpiar borrador - Solo visible en modo creación */}
       {!isEditMode && (
-        <div className="mb-6 flex justify-end">
+        <div className="mb-6 flex justify-end" data-testid="draft-actions-container">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button 
                 variant="outline" 
                 size="sm"
                 className="gap-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all duration-200"
+                data-testid="clear-draft-button"
+                id="clear-draft-button"
               >
                 <Trash2 className="h-4 w-4" />
                 Limpiar Borrador
@@ -528,10 +533,11 @@ const SurveyForm = () => {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogCancel data-testid="cancel-clear-draft-button">Cancelar</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleClearDraft}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  data-testid="confirm-clear-draft-button"
                 >
                   Sí, eliminar borrador
                 </AlertDialogAction>
@@ -543,13 +549,15 @@ const SurveyForm = () => {
 
       {/* Botón para cancelar edición - Solo visible en modo edición */}
       {isEditMode && (
-        <div className="mb-6 flex justify-between items-center">
+        <div className="mb-6 flex justify-between items-center" data-testid="edit-mode-actions-container">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button 
                 variant="outline" 
                 size="sm"
                 className="gap-2 border-muted-foreground text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200"
+                data-testid="cancel-edit-button"
+                id="cancel-edit-button"
               >
                 <X className="h-4 w-4" />
                 Cancelar Edición
@@ -576,10 +584,11 @@ const SurveyForm = () => {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Continuar editando</AlertDialogCancel>
+                <AlertDialogCancel data-testid="cancel-edit-cancel-button">Continuar editando</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleCancelEdit}
                   className="bg-muted text-muted-foreground hover:bg-muted/90"
+                  data-testid="confirm-cancel-edit-button"
                 >
                   Sí, cancelar edición
                 </AlertDialogAction>
@@ -588,10 +597,14 @@ const SurveyForm = () => {
           </AlertDialog>
 
           <div className="flex items-center gap-3">
-            <Badge variant="secondary" className="px-3 py-1.5 text-sm font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+            <Badge 
+              variant="secondary" 
+              className="px-3 py-1.5 text-sm font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
+              data-testid="edit-mode-badge"
+            >
               📝 Modo Edición
             </Badge>
-            <span className="text-sm text-muted-foreground font-medium">
+            <span className="text-sm text-muted-foreground font-medium" data-testid="edit-survey-id">
               ID: <span className="font-mono">{surveyId}</span>
             </span>
           </div>
@@ -609,15 +622,30 @@ const SurveyForm = () => {
       )}
 
       {/* Formulario actual con Tailwind CSS compatible con tema oscuro */}
-      <Card className="shadow-lg border-border rounded-xl bg-card dark:bg-card dark:border-border">
+      <Card 
+        className="shadow-lg border-border rounded-xl bg-card dark:bg-card dark:border-border"
+        data-testid={`survey-stage-${currentStage}-card`}
+        id={`survey-stage-${currentStage}`}
+      >
         <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-xl border-b border-border dark:border-border">
           <CardTitle className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold text-lg shadow-lg">
+            <div 
+              className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold text-lg shadow-lg"
+              data-testid={`stage-indicator-${currentStage}`}
+            >
               {currentStage}
             </div>
-            <span className="text-2xl font-bold text-foreground dark:text-foreground">{currentStageData.title}</span>
+            <span 
+              className="text-2xl font-bold text-foreground dark:text-foreground"
+              data-testid="stage-title"
+            >
+              {currentStageData.title}
+            </span>
           </CardTitle>
-          <CardDescription className="text-base text-muted-foreground pl-14 font-medium dark:text-muted-foreground">
+          <CardDescription 
+            className="text-base text-muted-foreground pl-14 font-medium dark:text-muted-foreground"
+            data-testid="stage-description"
+          >
             {currentStageData.description}
           </CardDescription>
         </CardHeader>
@@ -634,7 +662,11 @@ const SurveyForm = () => {
             />
           ) : (
             currentStageData.fields?.map((field) => (
-              <div key={field.id} className="p-4 bg-muted/50 rounded-xl border border-border hover:border-ring hover:shadow-sm transition-all duration-200 dark:bg-muted/50 dark:border-border dark:hover:border-ring">
+              <div 
+                key={field.id} 
+                className="p-4 bg-muted/50 rounded-xl border border-border hover:border-ring hover:shadow-sm transition-all duration-200 dark:bg-muted/50 dark:border-border dark:hover:border-ring"
+                data-testid={`field-container-${field.id}`}
+              >
                 <StandardFormField
                   field={field}
                   value={formData[field.id]}

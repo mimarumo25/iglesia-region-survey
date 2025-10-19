@@ -47,12 +47,12 @@ const DeceasedGrid = ({ deceasedMembers, setDeceasedMembers }: DeceasedGridProps
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="deceased-grid-container">
       {/* Indicadores de carga reutilizables */}
       <LoadingIndicators configurationData={configurationData} />
 
       {/* Encabezado con título y botón de agregar */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center" data-testid="deceased-grid-header">
         <div>
           <h3 className="text-lg font-semibold text-foreground dark:text-foreground">
             Difuntos de la Familia
@@ -67,6 +67,8 @@ const DeceasedGrid = ({ deceasedMembers, setDeceasedMembers }: DeceasedGridProps
             <Button 
               onClick={resetForm} 
               className={DIALOG_BUTTONS.trigger.className}
+              data-testid="add-deceased-member-button"
+              id="add-deceased-member-button"
             >
               <Plus className="w-4 h-4" />
               Agregar Difunto

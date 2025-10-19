@@ -172,6 +172,8 @@ const FamilyMemberDialog = ({
                           {...field} 
                           className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
                           placeholder="Ingrese nombres y apellidos completos"
+                          data-testid="family-member-nombres-input"
+                          id="family-member-nombres"
                         />
                       </FormControl>
                       <FormMessage className="text-destructive text-xs font-medium" />
@@ -213,6 +215,8 @@ const FamilyMemberDialog = ({
                           {...field} 
                           className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
                           placeholder="Ingrese número de identificación"
+                          data-testid="family-member-numero-identificacion-input"
+                          id="family-member-numero-identificacion"
                         />
                       </FormControl>
                       <FormMessage className="text-destructive text-xs font-medium" />
@@ -820,6 +824,7 @@ const FamilyMemberDialog = ({
                 variant="outline" 
                 onClick={safeOnCancel} 
                 className={DIALOG_BUTTONS.secondary.className}
+                data-testid="family-member-cancel-button"
               >
                 Cancelar
               </Button>
@@ -827,6 +832,8 @@ const FamilyMemberDialog = ({
                 type="submit" 
                 className={DIALOG_BUTTONS.primary.className}
                 disabled={form.formState.isSubmitting}
+                data-testid="family-member-submit-button"
+                id="family-member-submit-button"
               >
                 {buttonText}
               </Button>

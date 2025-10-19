@@ -49,12 +49,12 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="family-grid-container">
       {/* Indicadores de carga reutilizables */}
       <LoadingIndicators configurationData={configurationData} />
 
       {/* Encabezado con título y botón de agregar */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center" data-testid="family-grid-header">
         <div>
           <h3 className="text-lg font-semibold text-foreground dark:text-foreground">
             Integrantes de la Familia
@@ -79,6 +79,8 @@ const FamilyGrid = ({ familyMembers, setFamilyMembers }: FamilyGridProps) => {
           <DialogTrigger asChild>
             <Button 
               className={DIALOG_BUTTONS.trigger.className}
+              data-testid="add-family-member-button"
+              id="add-family-member-button"
             >
               <Plus className="w-4 h-4" />
               Agregar Miembro
