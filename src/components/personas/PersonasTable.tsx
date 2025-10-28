@@ -182,21 +182,23 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
           <Users className="h-5 w-5" />
           Resultados de Consulta
         </CardTitle>
-        <CardDescription>
-          Se encontraron <strong>{total}</strong> registros - Mostrando página <strong>{currentPage}</strong> de <strong>{totalPages}</strong>
+        <CardDescription className="text-sm">
+          Se encontraron <strong>{total}</strong> registros - Página <strong>{currentPage}</strong> de <strong>{totalPages}</strong>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Scroll horizontal en móvil */}
         <div className="rounded-md border overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                {/* Información Personal */}
-                <TableHead className="font-semibold min-w-[200px] sticky left-0 bg-muted/50 z-10">Nombre Completo</TableHead>
+          <div className="min-w-[800px]">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  {/* Información Personal */}
+                  <TableHead className="font-semibold min-w-[200px] sticky left-0 bg-muted/50 z-10">Nombre Completo</TableHead>
                 <TableHead className="font-semibold min-w-[120px]">Documento</TableHead>
                 <TableHead className="font-semibold min-w-[150px]">Tipo Identificación</TableHead>
                 <TableHead className="font-semibold min-w-[80px]">Edad</TableHead>
@@ -334,75 +336,85 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
               ))}
             </TableBody>
           </Table>
+          </div>
         </div>
         
         {/* Componente de Paginación */}
         {onPageChange && (
-          <div className="flex items-center justify-between pt-4 border-t">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t">
+            <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
               Mostrando {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, total)} de {total} registros
               {totalPages > 1 && (
                 <span className="ml-2 text-xs">
-                  (Página {currentPage} de {totalPages})
+                  (Pág. {currentPage}/{totalPages})
                 </span>
               )}
             </div>
             
             {totalPages > 1 && (
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onPageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className="gap-1"
-                    >
-                      <PaginationPrevious className="p-0 h-auto border-0 bg-transparent hover:bg-transparent" />
-                    </Button>
-                  </PaginationItem>
-
-                  {getPageNumbers().map((pageNum, index) => (
-                    <PaginationItem key={index}>
-                      {pageNum === 'ellipsis' ? (
-                        <PaginationEllipsis />
-                      ) : (
-                        <Button
-                          variant={currentPage === pageNum ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => onPageChange(pageNum)}
-                          className={cn(
-                            "min-w-[40px]",
-                            currentPage === pageNum && "bg-primary text-white hover:bg-primary/90"
-                          )}
-                        >
-                          {pageNum}
-                        </Button>
-                      )}
+              <div className="flex justify-center sm:justify-end">
+                <Pagination>
+                  <PaginationContent className="gap-1">
+                    <PaginationItem>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onPageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="gap-1 h-8 sm:h-9"
+                      >
+                        <PaginationPrevious className="p-0 h-auto border-0 bg-transparent hover:bg-transparent" />
+                      </Button>
                     </PaginationItem>
-                  ))}
 
-                  <PaginationItem>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onPageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      className="gap-1"
-                    >
-                      <PaginationNext className="p-0 h-auto border-0 bg-transparent hover:bg-transparent" />
-                    </Button>
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+                    {getPageNumbers().map((pageNum, index) => (
+                      <PaginationItem key={index} className="hidden sm:inline-flex">
+                        {pageNum === 'ellipsis' ? (
+                          <PaginationEllipsis />
+                        ) : (
+                          <Button
+                            variant={currentPage === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => onPageChange(pageNum)}
+                            className={cn(
+                              "min-w-[36px] h-8 sm:h-9 sm:min-w-[40px]",
+                              currentPage === pageNum && "bg-primary text-white hover:bg-primary/90"
+                            )}
+                          >
+                            {pageNum}
+                          </Button>
+                        )}
+                      </PaginationItem>
+                    ))}
+                    
+                    {/* Solo mostrar página actual en móvil */}
+                    <PaginationItem className="sm:hidden">
+                      <div className="px-3 py-1.5 text-sm font-medium">
+                        {currentPage} / {totalPages}
+                      </div>
+                    </PaginationItem>
+
+                    <PaginationItem>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onPageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="gap-1 h-8 sm:h-9"
+                      >
+                        <PaginationNext className="p-0 h-auto border-0 bg-transparent hover:bg-transparent" />
+                      </Button>
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
             )}
           </div>
         )}
         
         {/* Información de paginación */}
-        <div className="text-sm text-muted-foreground text-center pt-2">
-          💡 <strong>Tip:</strong> Desplázate horizontalmente para ver todos los campos de cada persona
+        <div className="text-xs sm:text-sm text-muted-foreground text-center pt-2">
+          💡 <strong>Tip:</strong> Desplázate horizontalmente para ver todos los campos
         </div>
       </CardContent>
     </Card>

@@ -3,6 +3,8 @@ import SettingsPage from './Settings';
 import Parroquias from './Parroquias';
 import VeredasPage from './Veredas';
 import Municipios from './Municipios';
+import Corregimientos from './Corregimientos';
+import CentrosPobladosPage from './CentrosPoblados';
 import AguasResidualesPage from './AguasResiduales';
 import TiposViviendaPage from './TiposVivienda';
 import ParentescosPage from './Parentescos';
@@ -24,6 +26,10 @@ const SettingsWrapper = () => {
     switch (location.pathname) {
       case '/settings/parroquias':
         return <Parroquias />;
+      case '/settings/corregimientos':
+        return <Corregimientos />;
+      case '/settings/centros-poblados':
+        return <CentrosPobladosPage />;
       case '/settings/veredas':
         return <VeredasPage />;
       case '/settings/municipios':

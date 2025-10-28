@@ -195,6 +195,7 @@ export class GlobalSearchService {
       { name: 'Municipios', path: '/settings/municipios', description: 'Gestión de municipios' },
       { name: 'Departamentos', path: '/settings/departamentos', description: 'Gestión de departamentos' },
       { name: 'Veredas', path: '/settings/veredas', description: 'Gestión de veredas' },
+      { name: 'Centros Poblados', path: '/settings/centros-poblados', description: 'Gestión de centros poblados' },
       { name: 'Tipos de Vivienda', path: '/settings/tipos-vivienda', description: 'Configuración de tipos de vivienda' },
       { name: 'Enfermedades', path: '/settings/enfermedades', description: 'Gestión de enfermedades' },
       { name: 'Estados Civiles', path: '/settings/estados-civiles', description: 'Gestión de estados civiles' },

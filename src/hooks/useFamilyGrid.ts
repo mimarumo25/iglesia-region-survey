@@ -32,16 +32,22 @@ const familyMemberSchema = z.object({
   // SECCIÓN 4: INFORMACIÓN EDUCATIVA Y PROFESIONAL
   estudio: z.string().optional(),
   profesionMotivoFechaCelebrar: z.object({
-    profesion: z.string().optional(),
-    motivo: z.string().optional(),
-    dia: z.string().optional(),
-    mes: z.string().optional(),
-  }).optional(),
+    profesion: z.string().optional().or(z.literal('')),
+    celebraciones: z.array(z.object({
+      id: z.string().optional(),
+      motivo: z.string().optional().or(z.literal('')),
+      dia: z.string().optional().or(z.literal('')),
+      mes: z.string().optional().or(z.literal('')),
+    })).default([]),
+  }).default({ profesion: '', celebraciones: [] }),
   
   // SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD
   comunidadCultural: z.string().optional(),
-  enfermedad: z.string().optional(),
-  necesidadesEnfermo: z.string().optional(),
+  enfermedades: z.array(z.object({
+    id: z.string().min(1, "El ID de la enfermedad es requerido"),
+    nombre: z.string().min(1, "El nombre de la enfermedad es requerido"),
+  })).optional().default([]),
+  necesidadesEnfermo: z.array(z.string().min(1, "La necesidad no puede estar vacía")).optional().default([]),
   solicitudComunionCasa: z.boolean().optional(),
   
   // SECCIÓN 6: INFORMACIÓN DE TALLAS
@@ -51,7 +57,7 @@ const familyMemberSchema = z.object({
     calzado: tallasValidationSchemas.strict.talla_zapato,
   }),
 
-  enQueEresLider: z.string().optional(),
+  enQueEresLider: z.array(z.string().min(1, "El liderazgo no puede estar vacío")).optional().default([]),
   
   // SECCIÓN 9: HABILIDADES Y DESTREZAS
   // Hacer el schema más permisivo para evitar errores de validación silenciosos
@@ -74,6 +80,48 @@ const familyMemberSchema = z.object({
 });
 
 export type FamilyMemberFormData = z.infer<typeof familyMemberSchema>;
+
+const createCelebracionId = (): string => {
+  const uuid = globalThis.crypto?.randomUUID?.();
+  if (uuid) {
+    return uuid;
+  }
+
+  return `celebracion-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+};
+
+const normalizeCelebraciones = (member: FamilyMember | null | undefined) => {
+  const celebracionesArray = Array.isArray(member?.profesionMotivoFechaCelebrar?.celebraciones)
+    ? member?.profesionMotivoFechaCelebrar?.celebraciones ?? []
+    : [];
+
+  const normalized = celebracionesArray
+    .filter((item) => item && (item.motivo?.trim() || item.dia?.trim() || item.mes?.trim()))
+    .map((item) => ({
+      id: item.id || createCelebracionId(),
+      motivo: item.motivo?.trim() || '',
+      dia: item.dia?.trim() || '',
+      mes: item.mes?.trim() || '',
+    }));
+
+  const legacySource: any = member?.profesionMotivoFechaCelebrar;
+  if (legacySource && !Array.isArray(legacySource?.celebraciones)) {
+    const motivo = legacySource?.motivo?.trim?.() || '';
+    const dia = legacySource?.dia?.trim?.() || '';
+    const mes = legacySource?.mes?.trim?.() || '';
+
+    if (motivo || dia || mes) {
+      normalized.push({
+        id: createCelebracionId(),
+        motivo,
+        dia,
+        mes,
+      });
+    }
+  }
+
+  return normalized;
+};
 
 interface UseFamilyGridProps {
   familyMembers: FamilyMember[];
@@ -108,15 +156,13 @@ const familyMemberToFormData = (member: FamilyMember): Partial<FamilyMemberFormD
       estudio: extractConfigurationItemId(member?.estudio),
       profesionMotivoFechaCelebrar: {
         profesion: extractConfigurationItemId(member?.profesionMotivoFechaCelebrar?.profesion),
-        motivo: member?.profesionMotivoFechaCelebrar?.motivo || '',
-        dia: member?.profesionMotivoFechaCelebrar?.dia || '',
-        mes: member?.profesionMotivoFechaCelebrar?.mes || '',
+        celebraciones: normalizeCelebraciones(member),
       },
       
       // SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD
       comunidadCultural: extractConfigurationItemId(member?.comunidadCultural),
-      enfermedad: extractConfigurationItemId(member?.enfermedad),
-      necesidadesEnfermo: member?.necesidadesEnfermo || '',
+      enfermedades: member?.enfermedades || [],
+      necesidadesEnfermo: member?.necesidadesEnfermo || [],
       solicitudComunionCasa: member?.solicitudComunionCasa || false,
       
       // SECCIÓN 6: INFORMACIÓN DE TALLAS
@@ -129,7 +175,7 @@ const familyMemberToFormData = (member: FamilyMember): Partial<FamilyMemberFormD
       // SECCIÓN 7: FECHAS A CELEBRAR (incluido en profesionMotivoFechaCelebrar)
       
       // SECCIÓN 8: INFORMACIÓN DE SERVICIOS Y LIDERAZGO
-      enQueEresLider: member?.enQueEresLider || '',
+      enQueEresLider: member?.enQueEresLider || [],
       
       // SECCIÓN 9: HABILIDADES Y DESTREZAS
       habilidades: member?.habilidades || [],
@@ -161,15 +207,13 @@ const familyMemberToFormData = (member: FamilyMember): Partial<FamilyMemberFormD
       estudio: extractConfigurationItemId(member?.estudio),
       profesionMotivoFechaCelebrar: {
         profesion: extractConfigurationItemId(member?.profesionMotivoFechaCelebrar?.profesion),
-        motivo: member?.profesionMotivoFechaCelebrar?.motivo || '',
-        dia: member?.profesionMotivoFechaCelebrar?.dia || '',
-        mes: member?.profesionMotivoFechaCelebrar?.mes || '',
+        celebraciones: normalizeCelebraciones(member),
       },
       
       // SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD
       comunidadCultural: extractConfigurationItemId(member?.comunidadCultural),
-      enfermedad: extractConfigurationItemId(member?.enfermedad),
-      necesidadesEnfermo: member?.necesidadesEnfermo || '',
+      enfermedades: member?.enfermedades || [],
+      necesidadesEnfermo: Array.isArray(member?.necesidadesEnfermo) ? member?.necesidadesEnfermo : [],
       solicitudComunionCasa: member?.solicitudComunionCasa || false,
       
       // SECCIÓN 6: INFORMACIÓN DE TALLAS
@@ -180,7 +224,7 @@ const familyMemberToFormData = (member: FamilyMember): Partial<FamilyMemberFormD
       },
       
       // SECCIÓN 8: INFORMACIÓN DE SERVICIOS Y LIDERAZGO
-      enQueEresLider: member?.enQueEresLider || '',
+      enQueEresLider: Array.isArray(member?.enQueEresLider) ? member?.enQueEresLider : [],
       
       // SECCIÓN 9: HABILIDADES Y DESTREZAS
       habilidades: member?.habilidades || [],
@@ -235,15 +279,20 @@ const formDataToFamilyMember = (data: FamilyMemberFormData, id: string, configur
     estudio: createConfigItemFromValue(data.estudio, 'estudiosOptions'),
     profesionMotivoFechaCelebrar: {
       profesion: createConfigItemFromValue(data.profesionMotivoFechaCelebrar?.profesion, 'profesionesOptions'),
-      motivo: data.profesionMotivoFechaCelebrar?.motivo || '',
-      dia: data.profesionMotivoFechaCelebrar?.dia || '',
-      mes: data.profesionMotivoFechaCelebrar?.mes || '',
+      celebraciones: (data.profesionMotivoFechaCelebrar?.celebraciones || [])
+        .map((item) => ({
+          id: item.id || createCelebracionId(),
+          motivo: item.motivo?.trim() || '',
+          dia: item.dia?.trim() || '',
+          mes: item.mes?.trim() || '',
+        }))
+        .filter((item) => item.motivo || item.dia || item.mes),
     },
     
     // SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD
     comunidadCultural: createConfigItemFromValue(data.comunidadCultural, 'comunidadesCulturalesOptions'),
-    enfermedad: createConfigItemFromValue(data.enfermedad, 'enfermedadesOptions'),
-    necesidadesEnfermo: data.necesidadesEnfermo || '',
+    enfermedades: (data.enfermedades || []).filter(e => e.id && e.nombre) as Array<{ id: string; nombre: string }>,
+    necesidadesEnfermo: Array.isArray(data.necesidadesEnfermo) ? data.necesidadesEnfermo : [],
     solicitudComunionCasa: data.solicitudComunionCasa || false,
     
     // SECCIÓN 6: INFORMACIÓN DE TALLAS
@@ -252,7 +301,7 @@ const formDataToFamilyMember = (data: FamilyMemberFormData, id: string, configur
     talla_zapato: data.talla?.calzado || '',
     
     // SECCIÓN 8: INFORMACIÓN DE SERVICIOS Y LIDERAZGO
-    enQueEresLider: data.enQueEresLider || '',
+    enQueEresLider: Array.isArray(data.enQueEresLider) ? data.enQueEresLider : [],
     
     // SECCIÓN 9: HABILIDADES Y DESTREZAS
     habilidades: (data.habilidades || []).filter(h => h.id && h.nombre) as Array<{ id: number; nombre: string; nivel?: string }>,
@@ -308,19 +357,19 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
       
       // SECCIÓN 4: INFORMACIÓN EDUCATIVA Y PROFESIONAL
       estudio: '',
-      profesionMotivoFechaCelebrar: { profesion: '', motivo: '', dia: '', mes: '' },
+  profesionMotivoFechaCelebrar: { profesion: '', celebraciones: [] },
       
       // SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD
       comunidadCultural: '',
-      enfermedad: '',
-      necesidadesEnfermo: '',
+      enfermedades: [],
+      necesidadesEnfermo: [],
       solicitudComunionCasa: false,
       
       // SECCIÓN 6: INFORMACIÓN DE TALLAS
       talla: { camisa: '', pantalon: '', calzado: '' },
       
       // SECCIÓN 8: INFORMACIÓN DE SERVICIOS Y LIDERAZGO
-      enQueEresLider: '',
+      enQueEresLider: [],
       
       // SECCIÓN 9: HABILIDADES Y DESTREZAS
       habilidades: [],
@@ -385,11 +434,24 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
         return isValid;
       });
 
+      const celebracionesValidas = (data.profesionMotivoFechaCelebrar?.celebraciones || [])
+        .map((item) => ({
+          id: item.id || createCelebracionId(),
+          motivo: item.motivo?.trim() || '',
+          dia: item.dia?.trim() || '',
+          mes: item.mes?.trim() || '',
+        }))
+        .filter((item) => item.motivo || item.dia || item.mes);
+
       // Crear objeto con datos validados
       const dataValidada = {
         ...data,
         habilidades: habilidadesValidas,
-        destrezas: destrezasValidas
+        destrezas: destrezasValidas,
+        profesionMotivoFechaCelebrar: {
+          profesion: data.profesionMotivoFechaCelebrar?.profesion ?? '',
+          celebraciones: celebracionesValidas,
+        },
       };
 
       console.log('✅ Datos validados para guardar:', {

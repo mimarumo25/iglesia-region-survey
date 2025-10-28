@@ -56,7 +56,7 @@ const SurveyControls = ({
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isEditMode ? 'Actualizando...' : 'Enviando al servidor...'}
+                {isEditMode ? 'Actualizando...' : 'Guardando...'}
               </>
             ) : (
               <>
@@ -68,7 +68,7 @@ const SurveyControls = ({
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    Enviar al Servidor
+                    Guardar Encuesta
                   </>
                 )}
               </>

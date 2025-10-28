@@ -3,9 +3,10 @@
  * Para convertir formData actual a estructura organizada por sesiones
  */
 
-import { ConfigurationItem, SurveySessionData, FamilyMember, DeceasedFamilyMember } from "@/types/survey";
+import { ConfigurationItem, SurveySessionData, FamilyMember, DeceasedFamilyMember, DynamicSelectionMap } from "@/types/survey";
 import { ConfigurationData } from "@/hooks/useConfigurationData";
 import { prepareFamilyMembersForSubmission } from "./formDataTransformer";
+import { convertIdsToSelectionMap, createEmptySelectionMap } from "./dynamicSelectionHelpers";
 
 /**
  * Encuentra un ConfigurationItem por su ID en una lista
@@ -32,6 +33,7 @@ const stringToBoolean = (value: any): boolean => {
 
 /**
  * Transforma los datos del formulario actual a la nueva estructura SurveySessionData
+ * Nota: corregimiento y centro_poblado se pasan como datos dinámicos desde formData
  */
 export const transformFormDataToSurveySession = (
   formData: Record<string, any>,
@@ -45,35 +47,40 @@ export const transformFormDataToSurveySession = (
     informacionGeneral: {
       municipio: findConfigurationItem(formData.municipio || '', configurationData.municipioItems),
       parroquia: findConfigurationItem(formData.parroquia || '', configurationData.parroquiaItems),
-      sector: findConfigurationItem(formData.sector || '', configurationData.sectorItems),
-      vereda: findConfigurationItem(formData.vereda || '', configurationData.veredaItems),
+      // sector, vereda, corregimiento y centro_poblado son dinámicos basados en municipio
+      // se guardan como objetos completos {id, nombre} desde el FormData
+      sector: formData.sector_data || null,
+      vereda: formData.vereda_data || null,
+      corregimiento: formData.corregimiento_data || null,
+      centro_poblado: formData.centro_poblado_data || null,
       fecha: formData.fecha || new Date().toISOString().split('T')[0],
       apellido_familiar: formData.apellido_familiar || '',
       direccion: formData.direccion || '',
       telefono: formData.telefono || '',
       numero_contrato_epm: formData.numero_contrato_epm || '',
+      comunionEnCasa: stringToBoolean(formData.comunionEnCasa),
     },
     
     // Información de Vivienda
     vivienda: {
       tipo_vivienda: findConfigurationItem(formData.tipo_vivienda || '', configurationData.tipoViviendaItems),
-      disposicion_basuras: {
-        recolector: stringToBoolean(formData.basuras_recolector),
-        quemada: stringToBoolean(formData.basuras_quemada),
-        enterrada: stringToBoolean(formData.basuras_enterrada),
-        recicla: stringToBoolean(formData.basuras_recicla),
-        aire_libre: stringToBoolean(formData.basuras_aire_libre),
-        no_aplica: stringToBoolean(formData.basuras_no_aplica),
-      },
+      // Convertir array de IDs seleccionados a DynamicSelectionMap (array de objetos)
+      // formData.disposicion_basura viene como array: ['1', '3', '5']
+      disposicion_basuras: convertIdsToSelectionMap(
+        Array.isArray(formData.disposicion_basura) ? formData.disposicion_basura : [],
+        configurationData.disposicionBasuraOptions || []
+      ),
     },
     
     // Servicios de Agua y Saneamiento  
     servicios_agua: {
       sistema_acueducto: findConfigurationItem(formData.sistema_acueducto || '', configurationData.sistemasAcueductoItems),
-      aguas_residuales: findConfigurationItem(formData.aguas_residuales || '', configurationData.aguasResidualesItems),
-      pozo_septico: stringToBoolean(formData.pozo_septico),
-      letrina: stringToBoolean(formData.letrina),
-      campo_abierto: stringToBoolean(formData.campo_abierto),
+      // Convertir array de IDs seleccionados a DynamicSelectionMap (array de objetos)
+      // formData.aguas_residuales viene como array: ['1', '3']
+      aguas_residuales: convertIdsToSelectionMap(
+        Array.isArray(formData.aguas_residuales) ? formData.aguas_residuales : [],
+        configurationData.aguasResidualesOptions || []
+      ),
     },
     
     // Observaciones y consentimiento
@@ -107,6 +114,11 @@ export const saveSurveyToLocalStorage = (surveyData: SurveySessionData, key: str
     };
     
     localStorage.setItem(key, JSON.stringify(dataToSave));
+    
+    // Log limpio del JSON que se guardó
+    console.clear();
+    console.log('💾 GUARDADO EN LOCALSTORAGE:');
+    console.log(JSON.stringify(dataToSave, null, 2));
   } catch (error) {
     // Error silenciado
   }

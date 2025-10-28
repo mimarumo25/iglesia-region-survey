@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { AutocompleteWithLoading } from "@/components/ui/autocomplete-with-loading";
 import ModernDatePicker from "@/components/ui/modern-date-picker";
 import { AutocompleteOption } from "@/components/ui/autocomplete";
+import { trimString, trimValue } from "@/utils/stringTrimHelpers";
 
 interface FormFieldProps {
   field: any;
@@ -40,7 +41,8 @@ const EnhancedFormField = ({ field, value, onChange, autocompleteOptions = [], i
             id={field.id}
             type={field.type}
             value={value || ''}
-            onChange={(e) => onChange(field.id, e.target.value)}
+            onChange={(e) => onChange(field.id, trimString(e.target.value))}
+            onBlur={(e) => onChange(field.id, trimString(e.target.value))}
             className={highContrastClasses.input}
             required={field.required}
             placeholder={`Ingrese ${field.label.toLowerCase()}`}
@@ -122,7 +124,7 @@ const EnhancedFormField = ({ field, value, onChange, autocompleteOptions = [], i
           <AutocompleteWithLoading
             options={autocompleteOptions}
             value={value || ''}
-            onValueChange={(val) => onChange(field.id, val)}
+            onValueChange={(val) => onChange(field.id, trimString(val))}
             placeholder={field.placeholder || `Seleccionar ${field.label.toLowerCase()}...`}
             emptyText={field.emptyText || `No hay ${field.label.toLowerCase()} disponibles`}
             searchPlaceholder={field.searchPlaceholder || `Buscar ${field.label.toLowerCase()}...`}
@@ -229,7 +231,8 @@ const EnhancedFormField = ({ field, value, onChange, autocompleteOptions = [], i
           <Textarea
             id={field.id}
             value={value || ''}
-            onChange={(e) => onChange(field.id, e.target.value)}
+            onChange={(e) => onChange(field.id, trimString(e.target.value))}
+            onBlur={(e) => onChange(field.id, trimString(e.target.value))}
             className={highContrastClasses.textarea}
             rows={4}
             placeholder={`Escriba ${field.label.toLowerCase()}`}

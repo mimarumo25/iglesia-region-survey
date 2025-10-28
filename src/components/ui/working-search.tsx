@@ -29,6 +29,7 @@ const siteFunctionalities = [
   { id: 'parroquias', title: 'Parroquias', subtitle: 'Gestión de parroquias', route: '/settings/parroquias', category: 'Geografía', icon: Building, keywords: ['parroquias', 'iglesias', 'territorial'] },
   { id: 'sectores', title: 'Sectores', subtitle: 'Gestión de sectores', route: '/settings/sectores-config', category: 'Geografía', icon: MapPin, keywords: ['sectores', 'zonas', 'areas', 'territorial'] },
   { id: 'veredas', title: 'Veredas', subtitle: 'Gestión de veredas', route: '/settings/veredas', category: 'Geografía', icon: MapPin, keywords: ['veredas', 'rural', 'territorial'] },
+  { id: 'centros-poblados', title: 'Centros Poblados', subtitle: 'Gestión de centros poblados', route: '/settings/centros-poblados', category: 'Geografía', icon: MapPin, keywords: ['centros poblados', 'asentamientos', 'poblaciones', 'territorial'] },
   { id: 'municipios', title: 'Municipios', subtitle: 'Gestión de municipios', route: '/settings/municipios', category: 'Geografía', icon: Building, keywords: ['municipios', 'ciudades', 'territorial'] },
   { id: 'departamentos', title: 'Departamentos', subtitle: 'Gestión de departamentos', route: '/settings/departamentos', category: 'Geografía', icon: Building, keywords: ['departamentos', 'estados', 'territorial'] },
   

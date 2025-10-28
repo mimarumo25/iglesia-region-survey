@@ -57,53 +57,53 @@ const FamiliasAccordionList: React.FC<FamiliasAccordionListProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Estadísticas generales */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
         <Card className="border-primary/20">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Familias</p>
-                <p className="text-2xl font-bold">{estadisticas.totalFamilias}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Total Familias</p>
+                <p className="text-xl sm:text-2xl font-bold">{estadisticas.totalFamilias}</p>
               </div>
-              <Home className="h-8 w-8 text-primary/60" />
+              <Home className="h-6 w-6 sm:h-8 sm:w-8 text-primary/60 flex-shrink-0 ml-2" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-blue-500/20">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Miembros</p>
-                <p className="text-2xl font-bold">{estadisticas.totalMiembros}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Total Miembros</p>
+                <p className="text-xl sm:text-2xl font-bold">{estadisticas.totalMiembros}</p>
               </div>
-              <Users className="h-8 w-8 text-blue-500/60" />
+              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500/60 flex-shrink-0 ml-2" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-secondary/20">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Promedio por Familia</p>
-                <p className="text-2xl font-bold">{estadisticas.promedioMiembrosPorFamilia}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Promedio/Familia</p>
+                <p className="text-xl sm:text-2xl font-bold">{estadisticas.promedioMiembrosPorFamilia}</p>
               </div>
-              <BarChart3 className="h-8 w-8 text-secondary/60" />
+              <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-secondary/60 flex-shrink-0 ml-2" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-red-500/20">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Difuntos</p>
-                <p className="text-2xl font-bold">{estadisticas.totalDifuntos}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Total Difuntos</p>
+                <p className="text-xl sm:text-2xl font-bold">{estadisticas.totalDifuntos}</p>
               </div>
-              <Heart className="h-8 w-8 text-red-500/60" />
+              <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-red-500/60 flex-shrink-0 ml-2" />
             </div>
           </CardContent>
         </Card>
@@ -112,16 +112,16 @@ const FamiliasAccordionList: React.FC<FamiliasAccordionListProps> = ({
       
       {/* Lista de familias en acordeón */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Listado de Familias
+        <CardHeader className="pb-3 sm:pb-6">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Users className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+            <span>Listado de Familias</span>
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-xs sm:text-sm">
             Haz clic en cada familia para ver los detalles completos
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-2 sm:px-6">
           <Accordion type="single" collapsible className="w-full">
             {familias.map((familia, index) => (
               <FamiliaAccordionItem

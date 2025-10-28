@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Scroll en Autocomplete</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #1f2937;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .autocomplete-wrapper {
+            position: relative;
+        }
+
+        .autocomplete-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            background: #f9fafb;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 48px;
+        }
+
+        .autocomplete-input:hover {
+            border-color: #9ca3af;
+            background: #f3f4f6;
+        }
+
+        .autocomplete-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: white;
+        }
+
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            margin-top: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .dropdown.open {
+            display: flex;
+        }
+
+        .dropdown-input-container {
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .dropdown-search {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .dropdown-list {
+            max-height: 300px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            /* CSS importante para prevenir scroll bubbling */
+        }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f9fafb;
+            transition: background-color 0.15s ease;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .dropdown-item:hover {
+            background-color: #eff6ff;
+        }
+
+        .dropdown-item.selected {
+            background-color: #dbeafe;
+            color: #1e40af;
+            font-weight: 600;
+        }
+
+        .info-box {
+            background: #f0fdf4;
+            border: 2px solid #86efac;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            color: #166534;
+            font-size: 13px;
+        }
+
+        .info-box strong {
+            color: #15803d;
+        }
+
+        .test-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            min-width: 250px;
+            font-size: 13px;
+        }
+
+        .test-indicator h3 {
+            margin-bottom: 8px;
+            color: #1f2937;
+            font-size: 14px;
+        }
+
+        .test-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            padding: 4px 0;
+        }
+
+        .test-status {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-ok {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-testing {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-fail {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .instructions {
+            background: #e0f2fe;
+            border-left: 4px solid #0ea5e9;
+            padding: 16px;
+            margin-bottom: 24px;
+            border-radius: 4px;
+            color: #0c4a6e;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .page-scroll-indicator {
+            position: absolute;
+            top: -20px;
+            right: 0;
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .page-scroll-indicator.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Prueba de Scroll en Autocomplete</h1>
+        <p class="subtitle">Prueba la rueda del mouse en los campos autocomplete</p>
+
+        <div class="instructions">
+            <strong>📋 Instrucciones:</strong><br>
+            1. Haz clic en cualquiera de los campos autocomplete abajo<br>
+            2. Se abrirá una lista con muchas opciones<br>
+            3. <strong>Importante:</strong> Intenta hacer scroll con la rueda del mouse en la lista<br>
+            4. ✅ Si funciona correctamente: la lista se desplaza pero la página NO<br>
+            5. ❌ Si hay bug: cuando scrolleas, la página completa se desplaza también
+        </div>
+
+        <div class="form-group">
+            <label for="municipio">Municipio (con overscrollBehavior: contain)</label>
+            <div class="autocomplete-wrapper">
+                <div class="page-scroll-indicator" id="pageScroll">⚠️ ¡PÁGINA SCROLLEANDO!</div>
+                <button class="autocomplete-input" id="municipioBtn" onclick="toggleDropdown('municipio')">
+                    📍 Selecciona un municipio...
+                </button>
+                <div class="dropdown" id="municipio">
+                    <div class="dropdown-input-container">
+                        <input type="text" class="dropdown-search" placeholder="Buscar municipio..." id="municipioSearch" onkeyup="filterOptions('municipio')">
+                    </div>
+                    <div class="dropdown-list" id="municipioList">
+                        <!-- Las opciones se cargarán con JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="sector">Sector (con overscrollBehavior: contain)</label>
+            <div class="autocomplete-wrapper">
+                <button class="autocomplete-input" id="sectorBtn" onclick="toggleDropdown('sector')">
+                    🏘️ Selecciona un sector...
+                </button>
+                <div class="dropdown" id="sector">
+                    <div class="dropdown-input-container">
+                        <input type="text" class="dropdown-search" placeholder="Buscar sector..." id="sectorSearch" onkeyup="filterOptions('sector')">
+                    </div>
+                    <div class="dropdown-list" id="sectorList">
+                        <!-- Las opciones se cargarán con JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-indicator">
+        <h3>📊 Estado de Prueba</h3>
+        <div class="test-item">
+            <span class="test-status status-ok">✓</span>
+            <span><strong>CSS aplicado:</strong> overscrollBehavior: contain</span>
+        </div>
+        <div class="test-item">
+            <span class="test-status status-testing">⏳</span>
+            <span><strong>Scroll esperado:</strong> Solo en la lista</span>
+        </div>
+        <div class="test-item">
+            <span class="test-status status-testing" id="pageScrollStatus">⏳</span>
+            <span id="pageScrollText"><strong>Página scrolleando:</strong> Esperando...</span>
+        </div>
+        <hr style="margin: 10px 0; border: none; border-top: 1px solid #e5e7eb;">
+        <div style="font-size: 12px; color: #6b7280; margin-top: 10px;">
+            <strong>Scroll actual:</strong> <span id="scrollValue">0px</span><br>
+            <strong>En dropdown:</strong> <span id="dropdownScroll">0px</span>
+        </div>
+    </div>
+
+    <script>
+        const municipios = [
+            'Abejorral', 'Aberrío', 'Abriaquí', 'Acacías', 'Acandí', 'Acevedo', 'Achí',
+            'Agrado', 'Agua de Dios', 'Aguachica', 'Aguada', 'Aguadas', 'Aguazul',
+            'Agustín Codazzi', 'Aipe', 'Albán', 'Albaida', 'Albania', 'Alcalá',
+            'Aldana', 'Alejandría', 'Algarrobo', 'Algeciras', 'Almaguer', 'Almeida',
+            'Alpujarra', 'Altamira', 'Alto Baudo', 'Altos del Rosario', 'Alvarado',
+            'Amagá', 'Amalfi', 'Ambalema', 'Anapoima', 'Ancuyá', 'Andalucía', 'Andes',
+            'Angelópolis', 'Angostura', 'Anolaima', 'Anorí', 'Anserma', 'Ansermanuevo',
+            'Anza', 'Anzoátegui', 'Apartadó', 'Apía', 'Apulo', 'Aquitania', 'Aracataca',
+            'Aranzazu', 'Aratoca', 'Arauca', 'Arauquita', 'Arbeláez', 'Arboleda',
+            'Arboledas', 'Arboletes', 'Arcabuco', 'Arenal', 'Argelia', 'Ariguaní',
+            'Arjona', 'Armenia', 'Armero', 'Arroyohondo', 'Astrea', 'Ataco', 'Atrato',
+            'Ayapel', 'Bagadó', 'Bahía Solano', 'Bajo Baudó', 'Balboa', 'Baranoa',
+            'Baraya', 'Barbacoas', 'Barbosa', 'Barichara', 'Barranca de Upía'
+        ];
+
+        const sectores = [
+            'Sector Central', 'Sector Norte', 'Sector Sur', 'Sector Este', 'Sector Oeste',
+            'Sector Noreste', 'Sector Noroeste', 'Sector Sureste', 'Sector Suroeste',
+            'Sector Centro-Norte', 'Sector Centro-Sur', 'Sector Industrial', 
+            'Sector Comercial', 'Sector Residencial', 'Sector Judicial',
+            'Sector Administrativo', 'Sector Educativo', 'Sector Sanitario',
+            'Sector Deportivo', 'Sector Cultural', 'Sector Recreacional',
+            'Sector Histórico', 'Sector Turístico', 'Sector Ambiental',
+            'Sector Rural', 'Sector Urbano', 'Sector Periférico',
+            'Sector Metropolitano', 'Sector Fronterizo', 'Sector Montañoso'
+        ];
+
+        let currentOpenDropdown = null;
+        let lastScrollValue = 0;
+        let pageHasScrolled = false;
+
+        // Generar más opciones para simular una lista muy larga
+        function generateExtendedList(baseList) {
+            let extended = [];
+            for (let i = 0; i < 5; i++) {
+                extended = extended.concat(baseList.map(item => `${item} ${i > 0 ? `(${i})` : ''}`));
+            }
+            return extended;
+        }
+
+        // Inicializar las listas
+        function initializeLists() {
+            const municipioList = document.getElementById('municipioList');
+            const sectorList = document.getElementById('sectorList');
+
+            const extendedMunicipios = generateExtendedList(municipios);
+            const extendedSectores = generateExtendedList(sectores);
+
+            extendedMunicipios.forEach(municipio => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item';
+                item.textContent = municipio;
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    selectOption('municipio', municipio);
+                };
+                municipioList.appendChild(item);
+            });
+
+            extendedSectores.forEach(sector => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item';
+                item.textContent = sector;
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    selectOption('sector', sector);
+                };
+                sectorList.appendChild(item);
+            });
+        }
+
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById(id);
+            
+            if (currentOpenDropdown && currentOpenDropdown !== id) {
+                document.getElementById(currentOpenDropdown).classList.remove('open');
+            }
+
+            dropdown.classList.toggle('open');
+            currentOpenDropdown = dropdown.classList.contains('open') ? id : null;
+
+            if (currentOpenDropdown) {
+                document.getElementById(id + 'Search').focus();
+            }
+        }
+
+        function selectOption(dropdownId, value) {
+            const btn = document.getElementById(dropdownId + 'Btn');
+            btn.textContent = value;
+            document.getElementById(dropdownId).classList.remove('open');
+            currentOpenDropdown = null;
+        }
+
+        function filterOptions(dropdownId) {
+            const search = document.getElementById(dropdownId + 'Search').value.toLowerCase();
+            const items = document.getElementById(dropdownId + 'List').children;
+
+            Array.from(items).forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(search) ? 'block' : 'none';
+            });
+        }
+
+        // Monitor de scroll
+        window.addEventListener('scroll', () => {
+            lastScrollValue = window.scrollY;
+            pageHasScrolled = true;
+            
+            const indicator = document.getElementById('pageScrollStatus');
+            const text = document.getElementById('pageScrollText');
+            const scrollIndicator = document.getElementById('pageScroll');
+
+            if (currentOpenDropdown) {
+                indicator.className = 'test-status status-fail';
+                indicator.textContent = '✗';
+                text.innerHTML = '<strong style="color: #991b1b;">❌ PÁGINA SCROLLEANDO:</strong> ¡BUG DETECTADO!';
+                scrollIndicator.classList.add('active');
+            }
+
+            document.getElementById('scrollValue').textContent = lastScrollValue + 'px';
+        });
+
+        // Monitorear scroll dentro del dropdown
+        document.addEventListener('scroll', (e) => {
+            const municipioList = document.getElementById('municipioList');
+            const sectorList = document.getElementById('sectorList');
+
+            if (municipioList) {
+                document.getElementById('dropdownScroll').textContent = municipioList.scrollTop + 'px';
+            }
+        }, true);
+
+        // Cerrar dropdown al hacer click fuera
+        document.addEventListener('click', (e) => {
+            if (currentOpenDropdown && !e.target.closest('.autocomplete-wrapper')) {
+                document.getElementById(currentOpenDropdown).classList.remove('open');
+                currentOpenDropdown = null;
+                document.getElementById('pageScroll').classList.remove('active');
+            }
+        });
+
+        // Inicializar cuando cargue la página
+        window.addEventListener('load', initializeLists);
+    </script>
+</body>
+</html>

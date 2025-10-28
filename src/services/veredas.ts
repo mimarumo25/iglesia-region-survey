@@ -251,38 +251,22 @@ class VeredasService {
     }
   }
 
-  // Obtener veredas por municipio
+  // Obtener veredas por municipio (sin paginación)
   async getVeredasByMunicipio(
-    municipioId: number,
-    page: number = 1,
-    limit: number = 10
-  ): Promise<VeredasResponse> {
+    municipioId: number
+  ): Promise<Vereda[]> {
     try {
       const client = getApiClient();
       const response = await client.get(
-        `/api/catalog/veredas/municipio/${municipioId}`,
-        {
-          params: {
-            page,
-            limit,
-          },
-        }
+        `/api/catalog/veredas/municipio/${municipioId}`
       );
       
       // Verificar si hay error en el backend
-      if (!response.data.success || response.data.data.status === 'error') {
-        return {
-          data: [],
-          total: 0,
-          page: page,
-          limit: limit,
-          totalPages: 0,
-        };
+      if (!response.data.success) {
+        return [];
       }
       
-      const veredas = response.data.data.data || [];
-      const totalCount = response.data.data.total || 0;
-      const totalPages = Math.ceil(totalCount / limit);
+      const veredas = response.data.data || [];
       
       // Procesar los datos para asegurar compatibilidad
       const processedVeredas = veredas.map((vereda: any) => ({
@@ -302,14 +286,7 @@ class VeredasService {
         } : undefined
       }));
       
-      return {
-        data: processedVeredas,
-        total: totalCount,
-        page: page,
-        limit: limit,
-        totalPages: totalPages,
-        message: response.data.data.message,
-      };
+      return processedVeredas;
     } catch (error) {
       console.error('❌ Error al obtener veredas por municipio:', error);
       throw error;

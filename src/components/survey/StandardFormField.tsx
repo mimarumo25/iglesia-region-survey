@@ -9,6 +9,7 @@ import CurrentDateDisplay from "@/components/ui/current-date-display";
 import ServiceErrorDisplay from "@/components/ui/service-error-display";
 import { FormField as FormFieldType } from "@/types/survey";
 import { Loader2 } from "lucide-react";
+import { trimString, trimValue } from "@/utils/stringTrimHelpers";
 
 interface StandardFormFieldProps {
   field: FormFieldType;
@@ -62,7 +63,8 @@ const StandardFormField = ({
             id={field.id}
             type={field.type}
             value={value || ''}
-            onChange={(e) => onChange(field.id, e.target.value)}
+            onChange={(e) => onChange(field.id, trimString(e.target.value))}
+            onBlur={(e) => onChange(field.id, trimString(e.target.value))}
             className={STANDARD_STYLES.input}
             required={field.required}
             placeholder={field.placeholder || `Ingrese ${field.label.toLowerCase()}`}
@@ -113,7 +115,7 @@ const StandardFormField = ({
           <AutocompleteWithLoading
             options={autocompleteOptions}
             value={value || ''}
-            onValueChange={(val) => onChange(field.id, val)}
+            onValueChange={(val) => onChange(field.id, trimString(val))}
             placeholder={field.placeholder || `Seleccionar ${field.label.toLowerCase()}...`}
             emptyText={field.emptyText || `No hay ${field.label.toLowerCase()} disponibles`}
             searchPlaceholder={field.searchPlaceholder || `Buscar ${field.label.toLowerCase()}...`}
@@ -186,6 +188,12 @@ const StandardFormField = ({
       );
 
     case 'multiple-checkbox':
+      /**
+       * NUEVA ESTRUCTURA DINÁMICA:
+       * - El value es un array de IDs seleccionados (ej: ['1', '3', '5'])
+       * - Al cambiar, pasamos el nuevo array de IDs seleccionados
+       * - El componente padre (SurveyForm) se encarga de convertir a DynamicSelectionMap
+       */
       const selectedAutoValues = Array.isArray(value) ? value : [];
       
       if (isLoading) {
@@ -230,9 +238,12 @@ const StandardFormField = ({
                   id={`${field.id}-${option.value}`}
                   checked={selectedAutoValues.includes(option.value)}
                   onCheckedChange={(checked) => {
+                    // Trabajar con array de IDs seleccionados
                     if (checked) {
+                      // Agregar ID seleccionado
                       onChange(field.id, [...selectedAutoValues, option.value]);
                     } else {
+                      // Remover ID deseleccionado
                       onChange(field.id, selectedAutoValues.filter((v: string) => v !== option.value));
                     }
                   }}
@@ -259,7 +270,8 @@ const StandardFormField = ({
           <Textarea
             id={field.id}
             value={value || ''}
-            onChange={(e) => onChange(field.id, e.target.value)}
+            onChange={(e) => onChange(field.id, trimString(e.target.value))}
+            onBlur={(e) => onChange(field.id, trimString(e.target.value))}
             className={STANDARD_STYLES.textarea}
             rows={4}
             placeholder={field.placeholder || `Escriba ${field.label.toLowerCase()}`}

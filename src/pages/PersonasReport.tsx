@@ -84,7 +84,11 @@ const PersonasReport = () => {
 
   const [filtrosTallas, setFiltrosTallas] = useState<FiltrosTallas>({
     page: 1,
-    limit: 100
+    limit: 100,
+    id_sexo: undefined,
+    sexo: undefined,
+    edad_min: undefined,
+    edad_max: undefined
   });
 
   const [filtrosEdad, setFiltrosEdad] = useState<FiltrosEdad>({
@@ -421,7 +425,14 @@ const PersonasReport = () => {
         setFiltrosPersonales({ liderazgo: 'all' as any, page: 1, limit: 100 });
         break;
       case 'tallas':
-        setFiltrosTallas({ page: 1, limit: 100 });
+        setFiltrosTallas({ 
+          page: 1, 
+          limit: 100,
+          id_sexo: undefined,
+          sexo: undefined,
+          edad_min: undefined,
+          edad_max: undefined
+        });
         break;
       case 'edad':
         setFiltrosEdad({ page: 1, limit: 100 });
@@ -438,87 +449,91 @@ const PersonasReport = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-3 lg:px-6 py-6 lg:py-8 space-y-8">
+      <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3">
-              <Users className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               Reportes de Personas
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
               Consulta y exporta información consolidada de personas según diferentes criterios
             </p>
           </div>
         </div>
 
         {/* Tabs de reportes */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 gap-2">
-            <TabsTrigger value="geografico" className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              <span className="hidden md:inline">Geográfico</span>
-            </TabsTrigger>
-            <TabsTrigger value="familia" className="flex items-center gap-2">
-              <Home className="h-4 w-4" />
-              <span className="hidden md:inline">Familia</span>
-            </TabsTrigger>
-            <TabsTrigger value="personal" className="flex items-center gap-2">
-              <UserCircle className="h-4 w-4" />
-              <span className="hidden md:inline">Personal</span>
-            </TabsTrigger>
-            <TabsTrigger value="tallas" className="flex items-center gap-2">
-              <Shirt className="h-4 w-4" />
-              <span className="hidden md:inline">Tallas</span>
-            </TabsTrigger>
-            <TabsTrigger value="edad" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span className="hidden md:inline">Edad</span>
-            </TabsTrigger>
-            <TabsTrigger value="reporte" className="flex items-center gap-2">
-              <FileSpreadsheet className="h-4 w-4" />
-              <span className="hidden md:inline">Reporte</span>
-            </TabsTrigger>
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+          {/* TabsList con scroll horizontal en móvil */}
+          <div className="w-full overflow-x-auto pb-2">
+            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-3 lg:grid-cols-6 gap-1 sm:gap-2">
+              <TabsTrigger value="geografico" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+                <MapPin className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm">Geográfico</span>
+              </TabsTrigger>
+              <TabsTrigger value="familia" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+                <Home className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm">Familia</span>
+              </TabsTrigger>
+              <TabsTrigger value="personal" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+                <UserCircle className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm">Personal</span>
+              </TabsTrigger>
+              <TabsTrigger value="tallas" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+                <Shirt className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm">Tallas</span>
+              </TabsTrigger>
+              <TabsTrigger value="edad" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+                <Calendar className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm">Edad</span>
+              </TabsTrigger>
+              <TabsTrigger value="reporte" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+                <FileSpreadsheet className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm">Reporte</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Tab Content: Geográfico */}
-          <TabsContent value="geografico" className="space-y-6">
+          <TabsContent value="geografico" className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <CardTitle className="flex items-center gap-2">
                     <MapPin className="h-5 w-5" />
                     Filtros Geográficos
                   </CardTitle>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={clearFilters}
                       disabled={isLoading}
+                      className="flex-1 sm:flex-none"
                     >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Limpiar
+                      <RefreshCw className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Limpiar</span>
                     </Button>
                     <Button 
                       onClick={handleQuery}
                       disabled={isLoading}
-                      className="bg-primary hover:bg-primary/90"
+                      className="bg-primary hover:bg-primary/90 flex-1 sm:flex-none"
                     >
                       {isLoading ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
                       ) : (
-                        <Search className="h-4 w-4 mr-2" />
+                        <Search className="h-4 w-4 sm:mr-2" />
                       )}
-                      Consultar
+                      <span className="hidden sm:inline">Consultar</span>
                     </Button>
                     <Button 
                       onClick={handleExportToExcel}
                       disabled={isLoading || personas.length === 0}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none"
                     >
-                      <FileSpreadsheet className="h-4 w-4 mr-2" />
-                      Excel
+                      <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Excel</span>
                     </Button>
                   </div>
                 </div>
@@ -606,43 +621,44 @@ const PersonasReport = () => {
           </TabsContent>
 
           {/* Tab Content: Familia */}
-          <TabsContent value="familia" className="space-y-6">
+          <TabsContent value="familia" className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <CardTitle className="flex items-center gap-2">
                     <Home className="h-5 w-5" />
                     Filtros de Familia
                   </CardTitle>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={clearFilters}
                       disabled={isLoading}
+                      className="flex-1 sm:flex-none"
                     >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Limpiar
+                      <RefreshCw className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Limpiar</span>
                     </Button>
                     <Button 
                       onClick={handleQuery}
                       disabled={isLoading}
-                      className="bg-primary hover:bg-primary/90"
+                      className="bg-primary hover:bg-primary/90 flex-1 sm:flex-none"
                     >
                       {isLoading ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
                       ) : (
-                        <Search className="h-4 w-4 mr-2" />
+                        <Search className="h-4 w-4 sm:mr-2" />
                       )}
-                      Consultar
+                      <span className="hidden sm:inline">Consultar</span>
                     </Button>
                     <Button 
                       onClick={handleExportToExcel}
                       disabled={isLoading || personas.length === 0}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none"
                     >
-                      <FileSpreadsheet className="h-4 w-4 mr-2" />
-                      Excel
+                      <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Excel</span>
                     </Button>
                   </div>
                 </div>
@@ -711,43 +727,44 @@ const PersonasReport = () => {
           </TabsContent>
 
           {/* Tab Content: Personal */}
-          <TabsContent value="personal" className="space-y-6">
+          <TabsContent value="personal" className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <CardTitle className="flex items-center gap-2">
                     <UserCircle className="h-5 w-5" />
                     Filtros Personales
                   </CardTitle>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={clearFilters}
                       disabled={isLoading}
+                      className="flex-1 sm:flex-none"
                     >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Limpiar
+                      <RefreshCw className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Limpiar</span>
                     </Button>
                     <Button 
                       onClick={handleQuery}
                       disabled={isLoading}
-                      className="bg-primary hover:bg-primary/90"
+                      className="bg-primary hover:bg-primary/90 flex-1 sm:flex-none"
                     >
                       {isLoading ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
                       ) : (
-                        <Search className="h-4 w-4 mr-2" />
+                        <Search className="h-4 w-4 sm:mr-2" />
                       )}
-                      Consultar
+                      <span className="hidden sm:inline">Consultar</span>
                     </Button>
                     <Button 
                       onClick={handleExportToExcel}
                       disabled={isLoading || personas.length === 0}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none"
                     >
-                      <FileSpreadsheet className="h-4 w-4 mr-2" />
-                      Excel
+                      <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Excel</span>
                     </Button>
                   </div>
                 </div>
@@ -870,43 +887,44 @@ const PersonasReport = () => {
           </TabsContent>
 
           {/* Tab Content: Tallas */}
-          <TabsContent value="tallas" className="space-y-6">
+          <TabsContent value="tallas" className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <CardTitle className="flex items-center gap-2">
                     <Shirt className="h-5 w-5" />
                     Filtros de Tallas
                   </CardTitle>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={clearFilters}
                       disabled={isLoading}
+                      className="flex-1 sm:flex-none"
                     >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Limpiar
+                      <RefreshCw className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Limpiar</span>
                     </Button>
                     <Button 
                       onClick={handleQuery}
                       disabled={isLoading}
-                      className="bg-primary hover:bg-primary/90"
+                      className="bg-primary hover:bg-primary/90 flex-1 sm:flex-none"
                     >
                       {isLoading ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
                       ) : (
-                        <Search className="h-4 w-4 mr-2" />
+                        <Search className="h-4 w-4 sm:mr-2" />
                       )}
-                      Consultar
+                      <span className="hidden sm:inline">Consultar</span>
                     </Button>
                     <Button 
                       onClick={handleExportToExcel}
                       disabled={isLoading || personas.length === 0}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none"
                     >
-                      <FileSpreadsheet className="h-4 w-4 mr-2" />
-                      Excel
+                      <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Excel</span>
                     </Button>
                   </div>
                 </div>
@@ -951,6 +969,57 @@ const PersonasReport = () => {
                       placeholder="Ej: 38, 40, 42"
                     />
                   </div>
+
+                  {/* Sexo */}
+                  <div className="space-y-2">
+                    <Label>Sexo</Label>
+                    <Autocomplete
+                      options={configData.sexoOptions}
+                      value={filtrosTallas.id_sexo?.toString() || ""}
+                      onValueChange={(value) => {
+                        const selectedSexo = configData.sexoItems.find(s => s.id === value);
+                        setFiltrosTallas(prev => ({ 
+                          ...prev, 
+                          id_sexo: value ? Number(value) : undefined,
+                          sexo: selectedSexo?.nombre
+                        }));
+                      }}
+                      placeholder="Seleccionar sexo..."
+                      loading={configData.sexosLoading}
+                    />
+                  </div>
+
+                  {/* Edad Mínima */}
+                  <div className="space-y-2">
+                    <Label>Edad Mínima</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="120"
+                      value={filtrosTallas.edad_min || ""}
+                      onChange={(e) => setFiltrosTallas(prev => ({ 
+                        ...prev, 
+                        edad_min: e.target.value ? Number(e.target.value) : undefined 
+                      }))}
+                      placeholder="Ej: 18"
+                    />
+                  </div>
+
+                  {/* Edad Máxima */}
+                  <div className="space-y-2">
+                    <Label>Edad Máxima</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="120"
+                      value={filtrosTallas.edad_max || ""}
+                      onChange={(e) => setFiltrosTallas(prev => ({ 
+                        ...prev, 
+                        edad_max: e.target.value ? Number(e.target.value) : undefined 
+                      }))}
+                      placeholder="Ej: 65"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -969,43 +1038,44 @@ const PersonasReport = () => {
           </TabsContent>
 
           {/* Tab Content: Edad */}
-          <TabsContent value="edad" className="space-y-6">
+          <TabsContent value="edad" className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
                     Filtros de Edad
                   </CardTitle>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={clearFilters}
                       disabled={isLoading}
+                      className="flex-1 sm:flex-none"
                     >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Limpiar
+                      <RefreshCw className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Limpiar</span>
                     </Button>
                     <Button 
                       onClick={handleQuery}
                       disabled={isLoading}
-                      className="bg-primary hover:bg-primary/90"
+                      className="bg-primary hover:bg-primary/90 flex-1 sm:flex-none"
                     >
                       {isLoading ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
                       ) : (
-                        <Search className="h-4 w-4 mr-2" />
+                        <Search className="h-4 w-4 sm:mr-2" />
                       )}
-                      Consultar
+                      <span className="hidden sm:inline">Consultar</span>
                     </Button>
                     <Button 
                       onClick={handleExportToExcel}
                       disabled={isLoading || personas.length === 0}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none"
                     >
-                      <FileSpreadsheet className="h-4 w-4 mr-2" />
-                      Excel
+                      <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Excel</span>
                     </Button>
                   </div>
                 </div>
@@ -1061,43 +1131,44 @@ const PersonasReport = () => {
           </TabsContent>
 
           {/* Tab Content: Reporte General */}
-          <TabsContent value="reporte" className="space-y-6">
+          <TabsContent value="reporte" className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <CardTitle className="flex items-center gap-2">
                     <FileSpreadsheet className="h-5 w-5" />
                     Reporte General Consolidado
                   </CardTitle>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={clearFilters}
                       disabled={isLoading}
+                      className="flex-1 sm:flex-none"
                     >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Limpiar
+                      <RefreshCw className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Limpiar</span>
                     </Button>
                     <Button 
                       onClick={handleQuery}
                       disabled={isLoading}
-                      className="bg-primary hover:bg-primary/90"
+                      className="bg-primary hover:bg-primary/90 flex-1 sm:flex-none"
                     >
                       {isLoading ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
                       ) : (
-                        <Search className="h-4 w-4 mr-2" />
+                        <Search className="h-4 w-4 sm:mr-2" />
                       )}
-                      Consultar
+                      <span className="hidden sm:inline">Consultar</span>
                     </Button>
                     <Button 
                       onClick={handleExportToExcel}
                       disabled={isLoading || personas.length === 0}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none"
                     >
-                      <FileSpreadsheet className="h-4 w-4 mr-2" />
-                      Excel
+                      <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Excel</span>
                     </Button>
                   </div>
                 </div>

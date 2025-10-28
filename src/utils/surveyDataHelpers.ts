@@ -42,21 +42,11 @@ export const initializeSurveySessionData = (initialData?: any): SurveySessionDat
     },
     vivienda: {
       tipo_vivienda: null,
-      disposicion_basuras: {
-        recolector: false,
-        quemada: false,
-        enterrada: false,
-        recicla: false,
-        aire_libre: false,
-        no_aplica: false,
-      },
+      disposicion_basuras: null,
     },
     servicios_agua: {
       sistema_acueducto: null,
       aguas_residuales: null,
-      pozo_septico: false,
-      letrina: false,
-      campo_abierto: false,
     },
     observaciones: {
       sustento_familia: '',
@@ -235,19 +225,9 @@ export const convertToLegacyFormat = (surveyData: SurveySessionData): any => {
     
     // Vivienda
     tipo_vivienda: surveyData.vivienda.tipo_vivienda?.id || '',
-    basuras_recolector: surveyData.vivienda.disposicion_basuras.recolector,
-    basuras_quemada: surveyData.vivienda.disposicion_basuras.quemada,
-    basuras_enterrada: surveyData.vivienda.disposicion_basuras.enterrada,
-    basuras_recicla: surveyData.vivienda.disposicion_basuras.recicla,
-    basuras_aire_libre: surveyData.vivienda.disposicion_basuras.aire_libre,
-    basuras_no_aplica: surveyData.vivienda.disposicion_basuras.no_aplica,
     
     // Servicios de agua
     sistema_acueducto: surveyData.servicios_agua.sistema_acueducto?.id || '',
-    aguas_residuales: surveyData.servicios_agua.aguas_residuales?.id || '',
-    pozo_septico: surveyData.servicios_agua.pozo_septico,
-    letrina: surveyData.servicios_agua.letrina,
-    campo_abierto: surveyData.servicios_agua.campo_abierto,
     
     // Observaciones
     sustento_familia: surveyData.observaciones.sustento_familia,

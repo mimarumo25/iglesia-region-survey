@@ -323,6 +323,28 @@ const App = () => (
                 />
 
                 <Route 
+                  path="/settings/corregimientos" 
+                  element={
+                    <PrivateRoute requiredRole={["admin"]}>
+                      <Layout>
+                        <SettingsWrapper />
+                      </Layout>
+                    </PrivateRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/settings/centros-poblados" 
+                  element={
+                    <PrivateRoute requiredRole={["admin"]}>
+                      <Layout>
+                        <SettingsWrapper />
+                      </Layout>
+                    </PrivateRoute>
+                  } 
+                />
+
+                <Route 
                   path="/settings/aguas-residuales" 
                   element={
                     <PrivateRoute requiredRole={["admin"]}>

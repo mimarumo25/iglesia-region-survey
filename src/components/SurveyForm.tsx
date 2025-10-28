@@ -23,13 +23,25 @@ import FamilyGrid from "./survey/FamilyGrid";
 import DeceasedGrid from "./survey/DeceasedGrid";
 import SurveyControls from "./survey/SurveyControls";
 import FormDataLoadingError from "./survey/FormDataLoadingError";
+import DataProtectionModal from "./survey/DataProtectionModal";
+import DataProtectionCheckbox from "./survey/DataProtectionCheckbox";
 import { FamilyMember, DeceasedFamilyMember, FormStage } from "@/types/survey";
-import { useConfigurationData } from "@/hooks/useConfigurationData";
+import { generateId } from '@/utils/helpers';
+import { useSurveyFormSetup } from '@/hooks/useSurveyFormSetup';
+import { useFamilyData } from '@/hooks/useFamilyData';
+import { useConfigurationData } from '@/hooks/useConfigurationData';
+import { procesarDisposicionBasura, reporteMapeoDisposicionBasura, validarMapeoCompleto } from '@/utils/disposicionBasuraMapping';
+import { useMunicipioDependentParroquias } from "@/hooks/useMunicipioDependentParroquias";
+import { useMunicipioDependentVeredas } from "@/hooks/useMunicipioDependentVeredas";
+import { useMunicipioDependentCorregimientos } from "@/hooks/useMunicipioDependentCorregimientos";
+import { useMunicipioDependentCentrosPoblados } from "@/hooks/useMunicipioDependentCentrosPoblados";
 import { getAutocompleteOptions, getLoadingState, getErrorState } from "@/utils/formFieldHelpers";
 import { transformFormDataToSurveySession, saveSurveyToLocalStorage } from "@/utils/sessionDataTransformer";
+import { convertSelectionMapToIds, convertIdsToSelectionMap } from "@/utils/dynamicSelectionHelpers";
 import { SurveySubmissionService } from "@/services/surveySubmission";
 import { encuestasService } from "@/services/encuestas";
 import { transformEncuestaToFormData, validateTransformedData } from "@/utils/encuestaToFormTransformer";
+import { hasLeadershipFamilyMember, getLeadershipMessage } from "@/utils/familyValidationHelpers";
 // Removed storage debugger import - component was cleaned up
 
 // Definición de las etapas del formulario basado en la encuesta parroquial
@@ -43,9 +55,11 @@ const formStages: FormStage[] = [
       { id: "parroquia", label: "Parroquia", type: "autocomplete", required: true, configKey: "parroquiaOptions" },
       { id: "fecha", label: "Fecha", type: "date", required: true },
       { id: "apellido_familiar", label: "Apellido Familiar", type: "text", required: true },
+      { id: "corregimiento", label: "Corregimiento", type: "autocomplete", required: false, configKey: "corregimientoOptions" },
+      { id: "centro_poblado", label: "Centro Poblado", type: "autocomplete", required: false, configKey: "centroPobladoOptions" },
       { id: "vereda", label: "Vereda", type: "autocomplete", required: false, configKey: "veredaOptions" },
-      { id: "sector", label: "Sector", type: "autocomplete", required: true, configKey: "sectorOptions" },
-      { id: "direccion", label: "Dirección", type: "text", required: true },
+      { id: "sector", label: "Sector", type: "autocomplete", required: false, configKey: "sectorOptions" },
+      { id: "direccion", label: "Dirección", type: "text", required: false },
       { id: "telefono", label: "Teléfono", type: "text", required: false },
       { id: "numero_contrato_epm", label: "Número Contrato EPM", type: "text", required: false }
     ]
@@ -104,10 +118,42 @@ const SurveyForm = () => {
   const [isSubmittedSuccessfully, setIsSubmittedSuccessfully] = useState(false); // Indica si la encuesta fue enviada exitosamente
   const [isEditMode, setIsEditMode] = useState(false); // Indica si estamos editando
   const [isLoadingEncuesta, setIsLoadingEncuesta] = useState(false); // Loading de carga de encuesta
+  const [showDataProtectionModal, setShowDataProtectionModal] = useState(false); // NO mostrar automáticamente
+  const [hasAcceptedDataProtection, setHasAcceptedDataProtection] = useState(false); // Inicia sin aceptar
   const { toast } = useToast();
 
   // Hook para cargar datos de configuración
   const configurationData = useConfigurationData();
+
+  // Hook para manejar parroquias dependientes del municipio
+  const {
+    parroquiaOptions: dinamicParroquiaOptions,
+    isLoading: parroquiasLoading,
+    error: parroquiasError,
+    hasSelectedMunicipio
+  } = useMunicipioDependentParroquias(formData?.municipio);
+
+  // Hook para manejar veredas dependientes del municipio
+  const {
+    veredaOptions: dinamicVeredaOptions,
+    isLoading: veredasLoading,
+    error: veredasError,
+    hasSelectedMunicipio: hasSelectedMunicipioForVeredas
+  } = useMunicipioDependentVeredas(formData?.municipio);
+
+  // Hook para manejar corregimientos dependientes del municipio
+  const {
+    corregimientoOptions: dinamicCorregimientoOptions,
+    isLoading: corregimientosLoading,
+    error: corregimientosError
+  } = useMunicipioDependentCorregimientos(formData?.municipio);
+
+  // Hook para manejar centros poblados dependientes del municipio
+  const {
+    centroPobladoOptions: dinamicCentroPobladoOptions,
+    isLoading: centrosPobladosLoading,
+    error: centrosPobladosError
+  } = useMunicipioDependentCentrosPoblados(formData?.municipio);
 
   const currentStageData = formStages.find(stage => stage.id === currentStage);
   const progress = (currentStage / formStages.length) * 100;
@@ -149,29 +195,30 @@ const SurveyForm = () => {
           // Nueva estructura SurveySessionData
           setCurrentStage(draftData.metadata.currentStage || 1);
           
-          // Convertir la estructura nueva de vuelta al formato del formulario actual
+          // Convertir estructura nueva a formato del formulario actual
           const legacyFormData: Record<string, any> = {
             municipio: draftData.informacionGeneral.municipio?.id || '',
             parroquia: draftData.informacionGeneral.parroquia?.id || '',
             sector: draftData.informacionGeneral.sector?.id || '',
             vereda: draftData.informacionGeneral.vereda?.id || '',
+            corregimiento: draftData.informacionGeneral.corregimiento?.id || '',
+            centro_poblado: draftData.informacionGeneral.centro_poblado?.id || '',
+            // Guardar también los datos completos para usarlos en el transformador
+            sector_data: draftData.informacionGeneral.sector || null,
+            vereda_data: draftData.informacionGeneral.vereda || null,
+            corregimiento_data: draftData.informacionGeneral.corregimiento || null,
+            centro_poblado_data: draftData.informacionGeneral.centro_poblado || null,
             fecha: draftData.informacionGeneral.fecha,
             apellido_familiar: draftData.informacionGeneral.apellido_familiar,
             direccion: draftData.informacionGeneral.direccion,
             telefono: draftData.informacionGeneral.telefono,
             numero_contrato_epm: draftData.informacionGeneral.numero_contrato_epm,
             tipo_vivienda: draftData.vivienda.tipo_vivienda?.id || '',
-            basuras_recolector: draftData.vivienda.disposicion_basuras.recolector,
-            basuras_quemada: draftData.vivienda.disposicion_basuras.quemada,
-            basuras_enterrada: draftData.vivienda.disposicion_basuras.enterrada,
-            basuras_recicla: draftData.vivienda.disposicion_basuras.recicla,
-            basuras_aire_libre: draftData.vivienda.disposicion_basuras.aire_libre,
-            basuras_no_aplica: draftData.vivienda.disposicion_basuras.no_aplica,
+            // 🔄 NUEVO: Convertir DynamicSelectionMap de vuelta a array de IDs
+            disposicion_basura: convertSelectionMapToIds(draftData.vivienda.disposicion_basuras || {}),
             sistema_acueducto: draftData.servicios_agua.sistema_acueducto?.id || '',
-            aguas_residuales: draftData.servicios_agua.aguas_residuales?.id || '',
-            pozo_septico: draftData.servicios_agua.pozo_septico,
-            letrina: draftData.servicios_agua.letrina,
-            campo_abierto: draftData.servicios_agua.campo_abierto,
+            // 🔄 NUEVO: Convertir DynamicSelectionMap de vuelta a array de IDs
+            aguas_residuales: convertSelectionMapToIds(draftData.servicios_agua.aguas_residuales || {}),
             sustento_familia: draftData.observaciones.sustento_familia,
             observaciones_encuestador: draftData.observaciones.observaciones_encuestador,
             autorizacion_datos: draftData.observaciones.autorizacion_datos,
@@ -271,10 +318,43 @@ const SurveyForm = () => {
   }, []);
 
   const handleFieldChange = (fieldId: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [fieldId]: value
-    }));
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [fieldId]: value
+      };
+
+      // Para campos dinámicos, guardar también el objeto completo {id, nombre}
+      if (fieldId === 'sector') {
+        // Sector viene de configurationData
+        const sectorObj = configurationData.sectorOptions.find(opt => opt.value === value);
+        if (sectorObj) {
+          updated.sector_data = { id: sectorObj.value, nombre: sectorObj.label };
+        }
+      } else if (fieldId === 'vereda') {
+        // Vereda es dinámico basado en municipio
+        const veredaObj = dinamicVeredaOptions.find(opt => opt.value === value);
+        if (veredaObj) {
+          updated.vereda_data = { id: veredaObj.value, nombre: veredaObj.label };
+        }
+      } else if (fieldId === 'corregimiento') {
+        // Corregimiento es dinámico basado en municipio
+        const corregimientoObj = dinamicCorregimientoOptions.find(opt => opt.value === value);
+        if (corregimientoObj) {
+          updated.corregimiento_data = { id: corregimientoObj.value, nombre: corregimientoObj.label };
+        }
+      } else if (fieldId === 'centro_poblado') {
+        // Centro poblado es dinámico basado en municipio
+        const centroPobladoObj = dinamicCentroPobladoOptions.find(opt => opt.value === value);
+        if (centroPobladoObj) {
+          updated.centro_poblado_data = { id: centroPobladoObj.value, nombre: centroPobladoObj.label };
+        }
+      }
+      // 🔄 NUEVO: disposicion_basura y aguas_residuales ahora son arrays de IDs directos
+      // No necesitan conversión adicional, los valores ya vienen como array de IDs
+
+      return updated;
+    });
   };
 
   // Función para limpiar borrador del localStorage
@@ -363,6 +443,18 @@ const SurveyForm = () => {
       return;
     }
 
+    // Validar que al menos un familiar tenga un rol de liderazgo/responsabilidad (Cabeza de Hogar, Jefe, Líder, etc.)
+    if (currentStage === 4 && familyMembers.length > 0) {
+      if (!hasLeadershipFamilyMember(familyMembers)) {
+        toast({
+          title: "Rol de liderazgo requerido",
+          description: getLeadershipMessage(),
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     if (currentStage < formStages.length) {
       setCurrentStage(currentStage + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -377,6 +469,16 @@ const SurveyForm = () => {
   };
 
   const handleSubmit = async () => {
+    // Verificar que el usuario haya marcado la autorización de datos
+    if (formData.autorizacion_datos !== true) {
+      toast({
+        title: "Autorización Requerida",
+        description: "Debes aceptar la autorización de tratamiento de datos personales antes de enviar la encuesta.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -454,6 +556,82 @@ const SurveyForm = () => {
   };
 
   if (!currentStageData) return null;
+
+  // ============================================================
+  // FUNCIÓN HELPER: Obtener opciones de autocomplete con lógica especial para Parroquia y Vereda
+  // ============================================================
+  const getFieldAutocompleteOptions = (field: any) => {
+    // Si es el campo de parroquia y hay un municipio seleccionado, usar opciones dinámicas
+    if (field.id === 'parroquia' && hasSelectedMunicipio) {
+      return dinamicParroquiaOptions;
+    }
+    // Si es el campo de parroquia pero NO hay municipio seleccionado, retornar vacío
+    if (field.id === 'parroquia' && !hasSelectedMunicipio) {
+      return [];
+    }
+    // Si es el campo de vereda y hay un municipio seleccionado, usar opciones dinámicas
+    if (field.id === 'vereda' && hasSelectedMunicipioForVeredas) {
+      return dinamicVeredaOptions;
+    }
+    // Si es el campo de vereda pero NO hay municipio seleccionado, retornar vacío
+    if (field.id === 'vereda' && !hasSelectedMunicipioForVeredas) {
+      return [];
+    }
+    // Si es el campo de corregimiento y hay un municipio seleccionado, retornar opciones dinámicas
+    if (field.id === 'corregimiento' && formData?.municipio) {
+      return dinamicCorregimientoOptions;
+    }
+    // Si es el campo de centro poblado y hay un municipio seleccionado, retornar opciones dinámicas
+    if (field.id === 'centro_poblado' && formData?.municipio) {
+      return dinamicCentroPobladoOptions;
+    }
+    // Para otros campos, usar la configuración normal
+    return getAutocompleteOptions(field, configurationData);
+  };
+
+  // FUNCIÓN HELPER: Obtener estado de loading con lógica especial para Parroquia, Vereda, Corregimiento y Centro Poblado
+  const getFieldLoadingState = (field: any) => {
+    // Si es el campo de parroquia y hay un municipio seleccionado, mostrar loading dinámico
+    if (field.id === 'parroquia' && hasSelectedMunicipio) {
+      return parroquiasLoading;
+    }
+    // Si es el campo de vereda y hay un municipio seleccionado, mostrar loading dinámico
+    if (field.id === 'vereda' && hasSelectedMunicipioForVeredas) {
+      return veredasLoading;
+    }
+    // Si es el campo de corregimiento y hay un municipio seleccionado, mostrar loading dinámico
+    if (field.id === 'corregimiento' && formData?.municipio) {
+      return corregimientosLoading;
+    }
+    // Si es el campo de centro poblado y hay un municipio seleccionado, mostrar loading dinámico
+    if (field.id === 'centro_poblado' && formData?.municipio) {
+      return centrosPobladosLoading;
+    }
+    // Para otros campos, usar la configuración normal
+    return getLoadingState(field, configurationData);
+  };
+
+  // FUNCIÓN HELPER: Obtener estado de error con lógica especial para Parroquia, Vereda, Corregimiento y Centro Poblado
+  const getFieldErrorState = (field: any) => {
+    // Si es el campo de parroquia y hay un municipio seleccionado, mostrar error dinámico
+    if (field.id === 'parroquia' && hasSelectedMunicipio) {
+      return parroquiasError;
+    }
+    // Si es el campo de vereda y hay un municipio seleccionado, mostrar error dinámico
+    if (field.id === 'vereda' && hasSelectedMunicipioForVeredas) {
+      return veredasError;
+    }
+    // Si es el campo de corregimiento y hay un municipio seleccionado, mostrar error dinámico
+    if (field.id === 'corregimiento' && formData?.municipio) {
+      return corregimientosError;
+    }
+    // Si es el campo de centro poblado y hay un municipio seleccionado, mostrar error dinámico
+    if (field.id === 'centro_poblado' && formData?.municipio) {
+      return centrosPobladosError;
+    }
+    // Para otros campos, usar la configuración normal
+    return getErrorState(field, configurationData);
+  };
 
   // Mostrar skeleton completo mientras cargan los datos de configuración o la encuesta para editar
   if (configurationData.isAnyLoading || isLoadingEncuesta) {
@@ -667,14 +845,23 @@ const SurveyForm = () => {
                 className="p-4 bg-muted/50 rounded-xl border border-border hover:border-ring hover:shadow-sm transition-all duration-200 dark:bg-muted/50 dark:border-border dark:hover:border-ring"
                 data-testid={`field-container-${field.id}`}
               >
-                <StandardFormField
-                  field={field}
-                  value={formData[field.id]}
-                  onChange={handleFieldChange}
-                  autocompleteOptions={getAutocompleteOptions(field, configurationData)}
-                  isLoading={getLoadingState(field, configurationData)}
-                  error={getErrorState(field, configurationData)}
-                />
+                {field.id === "autorizacion_datos" ? (
+                  <DataProtectionCheckbox
+                    checked={formData[field.id] === true}
+                    onCheckedChange={(value) => handleFieldChange(field.id, value)}
+                    onOpenModal={() => setShowDataProtectionModal(true)}
+                    hasAcceptedTerms={hasAcceptedDataProtection}
+                  />
+                ) : (
+                  <StandardFormField
+                    field={field}
+                    value={formData[field.id]}
+                    onChange={handleFieldChange}
+                    autocompleteOptions={getFieldAutocompleteOptions(field)}
+                    isLoading={getFieldLoadingState(field)}
+                    error={getFieldErrorState(field)}
+                  />
+                )}
               </div>
             ))
           )}
@@ -690,6 +877,17 @@ const SurveyForm = () => {
         onPrevious={handlePrevious}
         onNext={handleNext}
         onSubmit={handleSubmit}
+      />
+
+      {/* Modal de Protección de Datos */}
+      <DataProtectionModal
+        open={showDataProtectionModal}
+        onOpenChange={setShowDataProtectionModal}
+        onAccept={() => {
+          setHasAcceptedDataProtection(true);
+          setShowDataProtectionModal(false);
+        }}
+        isRequired={true}
       />
 
       {/* Storage debugger component was removed during cleanup */}

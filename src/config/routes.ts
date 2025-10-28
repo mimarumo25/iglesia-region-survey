@@ -11,6 +11,8 @@ export const lazyRoutes = {
   // Rutas de configuración
   '/settings': () => import('@/pages/SettingsWrapper'),
   '/settings/parroquias': () => import('@/pages/SettingsWrapper'),
+  '/settings/corregimientos': () => import('@/pages/SettingsWrapper'),
+  '/settings/centros-poblados': () => import('@/pages/SettingsWrapper'),
   '/settings/veredas': () => import('@/pages/SettingsWrapper'),
   '/settings/municipios': () => import('@/pages/SettingsWrapper'),
   '/settings/aguas-residuales': () => import('@/pages/SettingsWrapper'),

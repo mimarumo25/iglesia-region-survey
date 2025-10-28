@@ -57,13 +57,72 @@ CommandInput.displayName = CommandPrimitive.Input.displayName
 const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
->(({ className, ...props }, ref) => (
-  <CommandPrimitive.List
-    ref={ref}
-    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
-    {...props}
-  />
-))
+>(({ className, style, ...props }, ref) => {
+  const internalRef = React.useRef<React.ElementRef<typeof CommandPrimitive.List>>(null)
+
+  React.useEffect(() => {
+    const element = internalRef.current
+
+    if (!element) {
+      return
+    }
+
+    const handleWheel = (event: WheelEvent) => {
+      const { scrollHeight, clientHeight } = element
+      const scrollTop = element.scrollTop
+      const canScroll = scrollHeight > clientHeight
+
+      if (!canScroll) {
+        return
+      }
+
+      const isScrollingDown = event.deltaY > 0
+      const isScrollingUp = event.deltaY < 0
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1
+      const isAtTop = scrollTop <= 0
+
+      if ((isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop)) {
+        return
+      }
+
+      event.preventDefault()
+      event.stopPropagation()
+      element.scrollTop += event.deltaY
+    }
+
+    element.addEventListener("wheel", handleWheel, { passive: false })
+
+    return () => {
+      element.removeEventListener("wheel", handleWheel)
+    }
+  }, [])
+
+  const setRefs = React.useCallback(
+    (node: React.ElementRef<typeof CommandPrimitive.List> | null) => {
+      internalRef.current = node
+
+      if (!ref) {
+        return
+      }
+
+      if (typeof ref === "function") {
+        ref(node)
+      } else {
+        ;(ref as React.MutableRefObject<React.ElementRef<typeof CommandPrimitive.List> | null>).current = node
+      }
+    },
+    [ref]
+  )
+
+  return (
+    <CommandPrimitive.List
+      ref={setRefs}
+      className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+      style={style}
+      {...props}
+    />
+  )
+})
 
 CommandList.displayName = CommandPrimitive.List.displayName
 

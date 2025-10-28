@@ -6,6 +6,41 @@
 import { ConfigurationItem } from '@/types/survey';
 import { ConfigurationData } from '@/hooks/useConfigurationData';
 
+const createCelebracionId = (): string => {
+  const uuid = globalThis.crypto?.randomUUID?.();
+  return uuid ?? `celebracion-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+};
+
+const normalizeCelebracionesStructure = (raw: any) => {
+  const celebracionesArray = Array.isArray(raw?.celebraciones) ? raw.celebraciones : [];
+
+  const normalized = celebracionesArray
+    .map((item) => ({
+      id: item?.id || createCelebracionId(),
+      motivo: item?.motivo?.trim?.() || '',
+      dia: item?.dia?.trim?.() || '',
+      mes: item?.mes?.trim?.() || '',
+    }))
+    .filter((item) => item.motivo || item.dia || item.mes);
+
+  if (normalized.length === 0 && raw) {
+    const motivo = raw?.motivo?.trim?.() || '';
+    const dia = raw?.dia?.trim?.() || '';
+    const mes = raw?.mes?.trim?.() || '';
+
+    if (motivo || dia || mes) {
+      normalized.push({
+        id: createCelebracionId(),
+        motivo,
+        dia,
+        mes,
+      });
+    }
+  }
+
+  return normalized;
+};
+
 /**
  * Encuentra un ConfigurationItem por su ID en una lista
  */
@@ -94,11 +129,6 @@ export const transformFamilyMemberFormData = (
       'comunidadesCulturalesOptions', 
       configurationData
     ),
-    enfermedad: transformStringToConfigurationItem(
-      formData.enfermedad, 
-      'enfermedadesOptions', 
-      configurationData
-    ),
     
     // Para las tallas, las manejamos como strings simples por ahora
     // ya que no parecen estar en ConfigurationData
@@ -106,21 +136,14 @@ export const transformFamilyMemberFormData = (
     talla_pantalon: formData.talla_pantalon || null,
     talla_zapato: formData.talla_zapato || null,
     
-    // Transformar la profesión en el objeto profesionMotivoFechaCelebrar
-    profesionMotivoFechaCelebrar: formData.profesionMotivoFechaCelebrar ? {
+    // Transformar la profesión y celebraciones en el objeto profesionMotivoFechaCelebrar
+    profesionMotivoFechaCelebrar: {
       profesion: transformStringToConfigurationItem(
-        formData.profesionMotivoFechaCelebrar.profesion || '',
+        formData.profesionMotivoFechaCelebrar?.profesion || '',
         'profesionesOptions',
         configurationData
       ),
-      motivo: formData.profesionMotivoFechaCelebrar.motivo || '',
-      dia: formData.profesionMotivoFechaCelebrar.dia || '',
-      mes: formData.profesionMotivoFechaCelebrar.mes || ''
-    } : {
-      profesion: null,
-      motivo: '',
-      dia: '',
-      mes: ''
+      celebraciones: normalizeCelebracionesStructure(formData.profesionMotivoFechaCelebrar),
     }
   };
 
@@ -173,19 +196,16 @@ export const transformFamilyMemberForEdit = (member: any): any => {
     estudio: transformConfigurationItemToString(member.estudio),
     parentesco: transformConfigurationItemToString(member.parentesco),
     comunidadCultural: transformConfigurationItemToString(member.comunidadCultural),
-    enfermedad: transformConfigurationItemToString(member.enfermedad),
     
     // Las tallas ya son strings simples, se pasan directamente
     talla_camisa: member.talla_camisa || '',
     talla_pantalon: member.talla_pantalon || '',
     talla_zapato: member.talla_zapato || '',
     
-    // Transformar la profesión en el objeto profesionMotivoFechaCelebrar
+    // Transformar la profesión y celebraciones en el objeto profesionMotivoFechaCelebrar
     profesionMotivoFechaCelebrar: {
       profesion: transformConfigurationItemToString(member.profesionMotivoFechaCelebrar?.profesion),
-      motivo: member.profesionMotivoFechaCelebrar?.motivo || '',
-      dia: member.profesionMotivoFechaCelebrar?.dia || '',
-      mes: member.profesionMotivoFechaCelebrar?.mes || ''
+      celebraciones: normalizeCelebracionesStructure(member.profesionMotivoFechaCelebrar),
     }
   };
 };

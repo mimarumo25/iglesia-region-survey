@@ -130,11 +130,16 @@ export interface FiltrosPersonales {
 /**
  * Filtros para consulta por tallas
  * ⚠️ CORREGIDO según Swagger API - Usa valores STRING directos, NO IDs
+ * ⚠️ ACTUALIZADO - Agregados filtros de sexo y rango de edad
  */
 export interface FiltrosTallas {
   talla_camisa?: string; // ⚠️ CORREGIDO: era "id_talla_camisa" (number), ahora es string ("M", "L", etc.)
   talla_pantalon?: string; // ⚠️ CORREGIDO: era "id_talla_pantalon" (number), ahora es string ("32", "34", etc.)
   talla_zapato?: string; // ⚠️ CORREGIDO: era "id_talla_zapato" (number), ahora es string ("42", "43", etc.)
+  id_sexo?: number; // ⚠️ NUEVO: ID del sexo (para filtrar por género)
+  sexo?: string; // ⚠️ NUEVO: Nombre del sexo (ej: "Masculino", "Femenino")
+  edad_min?: number; // ⚠️ NUEVO: Edad mínima para filtrar
+  edad_max?: number; // ⚠️ NUEVO: Edad máxima para filtrar
   page?: number;
   limit?: number;
   format?: 'json' | 'excel';

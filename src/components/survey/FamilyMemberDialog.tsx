@@ -1,4 +1,4 @@
-import { UseFormReturn } from "react-hook-form";
+import { UseFormReturn, useFieldArray } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import EnhancedBirthDatePicker from "@/components/ui/enhanced-birth-date-picker"
 import AutocompleteWithLoading from "@/components/ui/autocomplete-with-loading";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { EmailInput } from "@/components/ui/email-input";
-import { Plus, AlertCircle, Shirt, Lightbulb, Wrench } from "lucide-react";
+import { Plus, AlertCircle, Shirt, Lightbulb, Wrench, Trash2 } from "lucide-react";
 import { FamilyMemberFormData } from "@/hooks/useFamilyGrid";
 import { FamilyMember } from "@/types/survey";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
@@ -21,6 +21,7 @@ import {
   DialogFormMode 
 } from "@/utils/dialog-helpers";
 import { useEffect, useRef } from "react";
+import { trimString } from "@/utils/stringTrimHelpers";
 // Importar componentes de tallas
 import { TallaSelect } from "@/components/tallas";
 // Importar hooks simplificados de habilidades y destrezas
@@ -28,6 +29,28 @@ import { useHabilidadesFormulario } from "@/hooks/useHabilidadesFormulario";
 import { useDestrezasFormulario } from "@/hooks/useDestrezasFormulario";
 // Importar componente de selección múltiple
 import { MultiSelectWithChips } from "@/components/ui/multi-select-chips";
+// Importar componente de chip input
+import { ChipInput } from "@/components/ui/chip-input";
+
+const MONTH_OPTIONS = [
+  { value: "1", label: "Enero" },
+  { value: "2", label: "Febrero" },
+  { value: "3", label: "Marzo" },
+  { value: "4", label: "Abril" },
+  { value: "5", label: "Mayo" },
+  { value: "6", label: "Junio" },
+  { value: "7", label: "Julio" },
+  { value: "8", label: "Agosto" },
+  { value: "9", label: "Septiembre" },
+  { value: "10", label: "Octubre" },
+  { value: "11", label: "Noviembre" },
+  { value: "12", label: "Diciembre" },
+];
+
+const createCelebracionId = (): string => {
+  const uuid = globalThis.crypto?.randomUUID?.();
+  return uuid ?? `celebracion-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+};
 
 interface FamilyMemberDialogProps {
   form: UseFormReturn<FamilyMemberFormData>;
@@ -57,6 +80,36 @@ const FamilyMemberDialog = ({
   // Cargar habilidades y destrezas activas desde la API usando hooks simplificados
   const { habilidades, isLoading: habilidadesLoading, error: habilidadesError } = useHabilidadesFormulario();
   const { destrezas, isLoading: destrezasLoading, error: destrezasError } = useDestrezasFormulario();
+  const {
+    fields: celebracionFields,
+    append: appendCelebracion,
+    remove: removeCelebracion,
+  } = useFieldArray({
+    control: form.control,
+    name: "profesionMotivoFechaCelebrar.celebraciones",
+  });
+
+  const handleAddCelebracion = () => {
+    appendCelebracion({
+      id: createCelebracionId(),
+      motivo: "",
+      dia: "",
+      mes: "",
+    });
+  };
+
+  useEffect(() => {
+    celebracionFields.forEach((celebracion, index) => {
+      const currentId = form.getValues(`profesionMotivoFechaCelebrar.celebraciones.${index}.id`);
+      if (!currentId) {
+        form.setValue(
+          `profesionMotivoFechaCelebrar.celebraciones.${index}.id`,
+          celebracion.id ?? createCelebracionId(),
+          { shouldDirty: false, shouldTouch: false }
+        );
+      }
+    });
+  }, [celebracionFields, form]);
   
   // Cleanup al desmontar
   useEffect(() => {
@@ -169,7 +222,10 @@ const FamilyMemberDialog = ({
                       </FormLabel>
                       <FormControl>
                         <Input 
-                          {...field} 
+                          {...field}
+                          value={field.value || ''}
+                          onChange={(e) => field.onChange(trimString(e.target.value))}
+                          onBlur={(e) => field.onChange(trimString(e.target.value))}
                           className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
                           placeholder="Ingrese nombres y apellidos completos"
                           data-testid="family-member-nombres-input"
@@ -212,7 +268,10 @@ const FamilyMemberDialog = ({
                       </FormLabel>
                       <FormControl>
                         <Input 
-                          {...field} 
+                          {...field}
+                          value={field.value || ''}
+                          onChange={(e) => field.onChange(trimString(e.target.value))}
+                          onBlur={(e) => field.onChange(trimString(e.target.value))}
                           className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
                           placeholder="Ingrese número de identificación"
                           data-testid="family-member-numero-identificacion-input"
@@ -479,21 +538,34 @@ const FamilyMemberDialog = ({
                   )}
                 />
 
-                {/* Enfermedad */}
+                {/* Enfermedades */}
                 <FormField
                   control={form.control}
-                  name="enfermedad"
+                  name="enfermedades"
                   render={({ field }) => (
                     <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
-                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Enfermedad</FormLabel>
+                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Enfermedades</FormLabel>
                       <FormControl>
-                        <AutocompleteWithLoading
-                          options={configurationData.enfermedadesOptions}
-                          value={field.value || ''}
-                          onValueChange={field.onChange}
-                          placeholder="Seleccionar enfermedad..."
-                          isLoading={configurationData.enfermedadesLoading}
-                          error={configurationData.enfermedadesError}
+                        <MultiSelectWithChips
+                          options={configurationData.enfermedadesOptions.map(opt => ({
+                            id: opt.value,
+                            nombre: opt.label,
+                          }))}
+                          value={
+                            (field.value || []).map(e => ({
+                              id: e.id || '',
+                              nombre: e.nombre || '',
+                            })) as Array<{ id: string; nombre: string }>
+                          }
+                          onChange={(selectedEnfermedades) => {
+                            field.onChange(
+                              selectedEnfermedades.map(e => ({
+                                id: e.id,
+                                nombre: e.nombre,
+                              }))
+                            );
+                          }}
+                          placeholder="Seleccionar enfermedades..."
                           emptyText="No hay opciones de enfermedades disponibles"
                         />
                       </FormControl>
@@ -510,11 +582,11 @@ const FamilyMemberDialog = ({
                     <FormItem className="md:col-span-2 space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
                       <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Necesidades del Enfermo</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
-                          type="text"
-                          className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
-                          placeholder="Describe necesidades especiales"
+                        <ChipInput
+                          value={Array.isArray(field.value) ? field.value : []}
+                          onChange={field.onChange}
+                          placeholder="Escribe una necesidad y presiona Enter..."
+                          className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus-within:bg-accent focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
                         />
                       </FormControl>
                       <FormMessage />
@@ -632,86 +704,141 @@ const FamilyMemberDialog = ({
 
             {/* SECCIÓN 7: INFORMACIÓN DE CELEBRACIONES */}
             <div className="p-6 bg-pink-50 dark:bg-pink-900/10 rounded-xl border border-pink-200 dark:border-pink-800">
-              <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-pink-600 text-white text-xs flex items-center justify-center">7</span>
-                Fechas a Celebrar
-              </h4>
-              <p className="text-sm text-muted-foreground mb-4">
-                Información sobre celebraciones especiales (cumpleaños, aniversarios, etc.)
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Motivo */}
-                <FormField
-                  control={form.control}
-                  name="profesionMotivoFechaCelebrar.motivo"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
-                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Motivo de Celebración</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          type="text"
-                          className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
-                          placeholder="Cumpleaños, aniversario, etc."
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Día */}
-                <FormField
-                  control={form.control}
-                  name="profesionMotivoFechaCelebrar.dia"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
-                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Día</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          type="text"
-                          className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
-                          placeholder="1-31"
-                          maxLength={2}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Mes */}
-                <FormField
-                  control={form.control}
-                  name="profesionMotivoFechaCelebrar.mes"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
-                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Mes</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="bg-input border-2 border-input-border text-foreground rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground">
-                            <SelectValue placeholder="Seleccionar mes..." />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="rounded-xl border-2 border-border dark:border-border">
-                          {[
-                            { value: "1", label: "Enero" }, { value: "2", label: "Febrero" }, { value: "3", label: "Marzo" },
-                            { value: "4", label: "Abril" }, { value: "5", label: "Mayo" }, { value: "6", label: "Junio" },
-                            { value: "7", label: "Julio" }, { value: "8", label: "Agosto" }, { value: "9", label: "Septiembre" },
-                            { value: "10", label: "Octubre" }, { value: "11", label: "Noviembre" }, { value: "12", label: "Diciembre" }
-                          ].map(({ value, label }) => (
-                            <SelectItem key={value} value={value} className="rounded-lg">
-                              {label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-2 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-pink-600 text-white text-xs flex items-center justify-center">7</span>
+                    Fechas a Celebrar
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Información sobre celebraciones especiales (cumpleaños, aniversarios, etc.)
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="default"
+                  size="lg"
+                  onClick={handleAddCelebracion}
+                  className="flex items-center gap-2 bg-gradient-to-r from-primary to-blue-600 text-white shadow-lg hover:from-primary/90 hover:to-blue-600/90"
+                >
+                  <Plus className="h-4 w-4" />
+                  Agregar fecha
+                </Button>
               </div>
+
+              {celebracionFields.length === 0 ? (
+                <div className="mt-4 rounded-xl border border-border bg-card/50 px-4 py-6 text-sm text-muted-foreground shadow-sm">
+                  No hay celebraciones registradas. Usa “Agregar fecha” para añadir la primera.
+                </div>
+              ) : (
+                <div className="mt-4 space-y-4">
+                  {celebracionFields.map((celebracion, index) => (
+                    <div
+                      key={celebracion.id ?? `celebracion-${index}`}
+                      className="space-y-4 rounded-xl border border-border bg-card/50 p-4 shadow-sm dark:bg-card/50"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-foreground">
+                          Celebración {index + 1}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeCelebracion(index)}
+                          aria-label={`Eliminar celebración ${index + 1}`}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name={`profesionMotivoFechaCelebrar.celebraciones.${index}.id` as const}
+                        render={({ field }) => (
+                          <input
+                            type="hidden"
+                            {...field}
+                            value={field.value ?? celebracion.id ?? ""}
+                          />
+                        )}
+                      />
+
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <FormField
+                          control={form.control}
+                          name={`profesionMotivoFechaCelebrar.celebraciones.${index}.motivo` as const}
+                          render={({ field }) => (
+                            <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                              <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">
+                                Motivo de Celebración
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  value={field.value ?? ""}
+                                  onChange={field.onChange}
+                                  placeholder="Cumpleaños, aniversario, etc."
+                                  className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`profesionMotivoFechaCelebrar.celebraciones.${index}.dia` as const}
+                          render={({ field }) => (
+                            <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                              <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Día</FormLabel>
+                              <FormControl>
+                                <Input
+                                  value={field.value ?? ""}
+                                  onChange={field.onChange}
+                                  placeholder="1-31"
+                                  maxLength={2}
+                                  inputMode="numeric"
+                                  className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`profesionMotivoFechaCelebrar.celebraciones.${index}.mes` as const}
+                          render={({ field }) => {
+                            const selectedValue = field.value && field.value !== "" ? field.value : undefined;
+                            return (
+                              <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
+                                <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Mes</FormLabel>
+                                <Select onValueChange={field.onChange} value={selectedValue}>
+                                  <FormControl>
+                                    <SelectTrigger className="bg-input border-2 border-input-border text-foreground rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground">
+                                      <SelectValue placeholder="Seleccionar mes..." />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent className="rounded-xl border-2 border-border dark:border-border">
+                                    {MONTH_OPTIONS.map(({ value, label }) => (
+                                      <SelectItem key={value} value={value} className="rounded-lg">
+                                        {label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* SECCIÓN 8: INFORMACIÓN DE SERVICIOS Y LIDERAZGO */}
@@ -732,11 +859,11 @@ const FamilyMemberDialog = ({
                     <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
                       <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">¿En qué eres líder?</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
-                          type="text"
-                          className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
-                          placeholder="Describe tu liderazgo"
+                        <ChipInput
+                          value={Array.isArray(field.value) ? field.value : []}
+                          onChange={field.onChange}
+                          placeholder="Escribe un área de liderazgo y presiona Enter..."
+                          className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus-within:bg-accent focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
                         />
                       </FormControl>
                       <FormMessage />

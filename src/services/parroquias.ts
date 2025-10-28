@@ -200,50 +200,23 @@ class ParroquiasService {
 
   // Obtener parroquias por municipio
   async getParroquiasByMunicipio(
-    municipioId: string,
-    page: number = 1,
-    limit: number = 10,
-    sortBy: string = 'nombre',
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
-  ): Promise<ServerResponse<ParroquiasResponse>> {
+    municipioId: string
+  ): Promise<ServerResponse<Parroquia[]>> {
     try {
       const client = getApiClient();
       const response = await client.get(
-        `/api/catalog/parroquias/municipio/${municipioId}`,
-        {
-          params: {
-            page,
-            limit,
-            sortBy,
-            sortOrder,
-          },
-        }
+        `/api/catalog/parroquias/municipio/${municipioId}`
       );
 
       // La API devuelve: { status: "success", data: [...], total: 48, message: "..." }
       const apiResponse = response.data;
       
-      // Calcular paginación basándose en el total y la página actual
-      const totalCount = apiResponse.total || 0;
-      const totalPages = Math.ceil(totalCount / limit);
-      const hasNext = page < totalPages;
-      const hasPrev = page > 1;
-
       // Transformar al formato esperado por el frontend
-      const transformedResponse: ServerResponse<ParroquiasResponse> = {
+      const transformedResponse: ServerResponse<Parroquia[]> = {
         status: apiResponse.status,
         message: apiResponse.message,
-        total: totalCount,
-        data: {
-          parroquias: apiResponse.data || [],
-          pagination: {
-            currentPage: page,
-            totalPages: totalPages,
-            totalCount: totalCount,
-            hasNext: hasNext,
-            hasPrev: hasPrev,
-          }
-        }
+        total: apiResponse.total || 0,
+        data: apiResponse.data || []
       };
 
       return transformedResponse;

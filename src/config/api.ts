@@ -88,6 +88,8 @@ export const API_ENDPOINTS = {
     TIPOS_VIVIENDA: '/api/catalog/tipos-vivienda',
     COMUNIDADES_CULTURALES: '/api/catalog/comunidades-culturales',
     VEREDAS: '/api/catalog/veredas',
+    CORREGIMIENTOS: '/api/catalog/corregimientos',
+    CENTROS_POBLADOS: '/api/catalog/centros-poblados',
   },
   
   // Gestión de usuarios

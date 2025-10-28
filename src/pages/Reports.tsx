@@ -392,79 +392,83 @@ const Reports = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-3 lg:px-6 py-6 lg:py-8 space-y-8">
+      <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-2 sm:px-3 lg:px-6 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Tabs de reportes */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="familias" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Familias</span>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-3 h-auto gap-1 p-1">
+            <TabsTrigger value="familias" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+              <span className="truncate">Familias</span>
             </TabsTrigger>
-            <TabsTrigger value="salud" className="flex items-center gap-2">
-              <Heart className="h-4 w-4" />
-              <span className="hidden sm:inline">Salud</span>
+            <TabsTrigger value="salud" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
+              <Heart className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+              <span className="truncate">Salud</span>
             </TabsTrigger>
-            <TabsTrigger value="difuntos" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Difuntos</span>
+            <TabsTrigger value="difuntos" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
+              <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+              <span className="truncate">Difuntos</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Tab Content: Familias */}
-          <TabsContent value="familias" className="space-y-6">
+          <TabsContent value="familias" className="space-y-4 sm:space-y-6">
             {/* Card de filtros y botones de exportación */}
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5" />
-                      Reportes de Familias
+              <CardHeader className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="space-y-1">
+                    <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                      <Users className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                      <span>Reportes de Familias</span>
                     </CardTitle>
-                    <CardDescription className="flex items-center gap-4 mt-2">
-
+                    <CardDescription className="text-xs sm:text-sm">
+                      Filtra y consulta información de familias registradas
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-2">
+                  
+                  {/* Botones de acción - Stack en móvil, inline en desktop */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={clearFamiliasFilters}
                       disabled={familiasLoading}
-                      className="flex items-center gap-2"
+                      className="flex items-center justify-center gap-2 text-xs sm:text-sm h-9"
                     >
-                      <RefreshCw className="h-4 w-4" />
-                      Limpiar
+                      <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span>Limpiar</span>
                     </Button>
                     <Button 
                       onClick={handleQueryFamilias}
                       disabled={familiasLoading}
-                      className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                      className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-xs sm:text-sm h-9"
                     >
                       {familiasLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                       ) : (
-                        <Search className="h-4 w-4" />
+                        <Search className="h-3 w-3 sm:h-4 sm:w-4" />
                       )}
-                      Consultar Familias
+                      <span className="hidden xs:inline">Consultar Familias</span>
+                      <span className="xs:hidden">Consultar</span>
                     </Button>
                     <Button 
                       onClick={handleExportFamiliasToExcel}
                       disabled={familiasLoading}
-                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                      className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-xs sm:text-sm h-9"
                     >
-                      <FileSpreadsheet className="h-4 w-4" />
-                      Descargar Excel
+                      <FileSpreadsheet className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden xs:inline">Descargar Excel</span>
+                      <span className="xs:hidden">Excel</span>
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 {/* Campos de filtros - Ubicación geográfica */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
                   {/* Parroquia */}
                   <div className="space-y-2">
-                    <Label htmlFor="familia_parroquia">Parroquia</Label>
+                    <Label htmlFor="familia_parroquia" className="text-sm font-medium">Parroquia</Label>
                     <Autocomplete
                       options={configData.parroquiaOptions}
                       value={familiasFilters.parroquia}
@@ -477,7 +481,7 @@ const Reports = () => {
 
                   {/* Municipio */}
                   <div className="space-y-2">
-                    <Label htmlFor="familia_municipio">Municipio</Label>
+                    <Label htmlFor="familia_municipio" className="text-sm font-medium">Municipio</Label>
                     <Autocomplete
                       options={configData.municipioOptions}
                       value={familiasFilters.municipio}
@@ -490,7 +494,7 @@ const Reports = () => {
 
                   {/* Sector */}
                   <div className="space-y-2">
-                    <Label htmlFor="familia_sector">Sector</Label>
+                    <Label htmlFor="familia_sector" className="text-sm font-medium">Sector</Label>
                     <Autocomplete
                       options={configData.sectorOptions}
                       value={familiasFilters.sector}
@@ -503,7 +507,7 @@ const Reports = () => {
 
                   {/* Vereda */}
                   <div className="space-y-2">
-                    <Label htmlFor="familia_vereda">Vereda</Label>
+                    <Label htmlFor="familia_vereda" className="text-sm font-medium">Vereda</Label>
                     <Autocomplete
                       options={configData.veredaOptions}
                       value={familiasFilters.vereda}
@@ -527,60 +531,63 @@ const Reports = () => {
           </TabsContent>
 
           {/* Tab Content: Salud */}
-          <TabsContent value="salud" className="space-y-6">
+          <TabsContent value="salud" className="space-y-4 sm:space-y-6">
             {/* Card de filtros y botones de exportación */}
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Heart className="h-5 w-5" />
-                      Reportes de Salud
+              <CardHeader className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="space-y-1">
+                    <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                      <Heart className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                      <span>Reportes de Salud</span>
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-xs sm:text-sm">
                       Estadísticas de personas con condiciones de salud
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-2">
+                  
+                  {/* Botones de acción - Stack en móvil, inline en desktop */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={clearSaludFilters}
                       disabled={saludLoading}
-                      className="flex items-center gap-2"
+                      className="flex items-center justify-center gap-2 text-xs sm:text-sm h-9"
                     >
-                      <RefreshCw className="h-4 w-4" />
-                      Limpiar
+                      <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span>Limpiar</span>
                     </Button>
                     <Button 
                       onClick={handleQuerySaludWithReset}
                       disabled={saludLoading}
-                      className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                      className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-xs sm:text-sm h-9"
                     >
                       {saludLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                       ) : (
-                        <Search className="h-4 w-4" />
+                        <Search className="h-3 w-3 sm:h-4 sm:w-4" />
                       )}
-                      Consultar
+                      <span>Consultar</span>
                     </Button>
                     <Button 
                       onClick={handleExportSaludToExcel}
                       disabled={saludLoading}
-                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                      className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-xs sm:text-sm h-9"
                     >
-                      <FileSpreadsheet className="h-4 w-4" />
-                      Descargar Excel
+                      <FileSpreadsheet className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden xs:inline">Descargar Excel</span>
+                      <span className="xs:hidden">Excel</span>
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 {/* Campos de filtros - Datos de salud */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
                   {/* Enfermedad */}
                   <div className="space-y-2">
-                    <Label htmlFor="salud_enfermedad">Enfermedad</Label>
+                    <Label htmlFor="salud_enfermedad" className="text-sm font-medium">Enfermedad</Label>
                     <Autocomplete
                       options={configData.enfermedadesOptions}
                       value={saludFilters.enfermedad}
@@ -593,7 +600,7 @@ const Reports = () => {
 
                   {/* Sexo */}
                   <div className="space-y-2">
-                    <Label htmlFor="salud_sexo">Sexo</Label>
+                    <Label htmlFor="salud_sexo" className="text-sm font-medium">Sexo</Label>
                     <Autocomplete
                       options={configData.sexoOptions}
                       value={saludFilters.sexo}
@@ -606,7 +613,7 @@ const Reports = () => {
 
                   {/* Edad Mínima */}
                   <div className="space-y-2">
-                    <Label htmlFor="salud_edad_min">Edad Mínima</Label>
+                    <Label htmlFor="salud_edad_min" className="text-sm font-medium">Edad Mínima</Label>
                     <Input
                       id="salud_edad_min"
                       type="number"
@@ -615,13 +622,13 @@ const Reports = () => {
                       value={saludFilters.edad_min}
                       onChange={(e) => handleSaludFilterChange('edad_min', e.target.value)}
                       placeholder="Ej: 18"
-                      className="w-full"
+                      className="w-full h-9 text-sm"
                     />
                   </div>
 
                   {/* Edad Máxima */}
                   <div className="space-y-2">
-                    <Label htmlFor="salud_edad_max">Edad Máxima</Label>
+                    <Label htmlFor="salud_edad_max" className="text-sm font-medium">Edad Máxima</Label>
                     <Input
                       id="salud_edad_max"
                       type="number"
@@ -630,18 +637,18 @@ const Reports = () => {
                       value={saludFilters.edad_max}
                       onChange={(e) => handleSaludFilterChange('edad_max', e.target.value)}
                       placeholder="Ej: 65"
-                      className="w-full"
+                      className="w-full h-9 text-sm"
                     />
                   </div>
                 </div>
 
-                <Separator className="my-6" />
+                <Separator className="my-4 sm:my-6" />
 
                 {/* Filtros de ubicación geográfica */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
                   {/* Parroquia */}
                   <div className="space-y-2">
-                    <Label htmlFor="salud_parroquia">Parroquia</Label>
+                    <Label htmlFor="salud_parroquia" className="text-sm font-medium">Parroquia</Label>
                     <Autocomplete
                       options={configData.parroquiaOptions}
                       value={saludFilters.parroquia}
@@ -654,7 +661,7 @@ const Reports = () => {
 
                   {/* Municipio */}
                   <div className="space-y-2">
-                    <Label htmlFor="salud_municipio">Municipio</Label>
+                    <Label htmlFor="salud_municipio" className="text-sm font-medium">Municipio</Label>
                     <Autocomplete
                       options={configData.municipioOptions}
                       value={saludFilters.municipio}
@@ -667,7 +674,7 @@ const Reports = () => {
 
                   {/* Sector */}
                   <div className="space-y-2">
-                    <Label htmlFor="salud_sector">Sector</Label>
+                    <Label htmlFor="salud_sector" className="text-sm font-medium">Sector</Label>
                     <Autocomplete
                       options={configData.sectorOptions}
                       value={saludFilters.sector}
@@ -680,12 +687,12 @@ const Reports = () => {
 
                   {/* Límite de resultados */}
                   <div className="space-y-2">
-                    <Label htmlFor="salud_limite">Límite de resultados</Label>
+                    <Label htmlFor="salud_limite" className="text-sm font-medium">Límite de resultados</Label>
                     <Select 
                       value={saludFilters.limite.toString()} 
                       onValueChange={(value) => handleSaludFilterChange('limite', parseInt(value))}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>

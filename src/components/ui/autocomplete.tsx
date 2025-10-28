@@ -16,6 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import ErrorBoundary from "@/components/ui/error-boundary"
+import { trimString, trimSearchValue } from "@/utils/stringTrimHelpers"
 
 export interface AutocompleteOption {
   value: string
@@ -60,6 +61,8 @@ export function Autocomplete({
     }
   }, [open])
 
+  // Manejar el scroll de la rueda del mouse
+
   // Defensive programming: ensure options is always an array
   const safeOptions = React.useMemo(() => {
     if (!options || !Array.isArray(options)) {
@@ -82,10 +85,36 @@ export function Autocomplete({
   // Filtrar opciones basado en la búsqueda
   const filteredOptions = React.useMemo(() => {
     if (!searchValue) return safeOptions
+    const trimmedSearch = trimSearchValue(searchValue).toLowerCase()
     return safeOptions.filter(option => 
-      option.label && option.label.toLowerCase().includes(searchValue.toLowerCase())
+      option.label && option.label.toLowerCase().includes(trimmedSearch)
     )
   }, [safeOptions, searchValue])
+
+  const orderedOptions = React.useMemo(() => {
+    if (!filteredOptions.length) {
+      return filteredOptions
+    }
+
+    const [emptyOptions, regularOptions] = filteredOptions.reduce<[AutocompleteOption[], AutocompleteOption[]]>(
+      (acc, option) => {
+        const isEmptyValue =
+          option.value === undefined ||
+          option.value === null ||
+          (typeof option.value === "string" && option.value.trim() === "")
+        const normalizedOption = option
+        if (isEmptyValue) {
+          acc[0].push(normalizedOption)
+        } else {
+          acc[1].push(normalizedOption)
+        }
+        return acc
+      },
+      [[], []]
+    )
+
+    return [...emptyOptions, ...regularOptions]
+  }, [filteredOptions])
 
   return (
     <ErrorBoundary>
@@ -146,7 +175,9 @@ export function Autocomplete({
               value={searchValue}
               onValueChange={setSearchValue}
             />
-            <CommandList className="max-h-60 overflow-auto">
+            <CommandList 
+              className="max-h-60 overflow-auto"
+            >
               <CommandEmpty className="py-6 text-center text-sm text-gray-500">
                 <div className="flex flex-col items-center gap-2">
                   <Search className="w-8 h-8 text-gray-300" />
@@ -154,12 +185,13 @@ export function Autocomplete({
                 </div>
               </CommandEmpty>
               <CommandGroup>
-                {filteredOptions.map((option) => (
+                {orderedOptions.map((option) => (
                   <CommandItem
                     key={option.value}
                     value={option.label}
                     onSelect={() => {
-                      const newValue = value === option.value ? "" : option.value
+                      const trimmedValue = trimString(option.value)
+                      const newValue = value === trimmedValue ? "" : trimmedValue
                       onValueChange(newValue)
                       setOpen(false)
                       setSearchValue("")

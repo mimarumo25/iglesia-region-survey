@@ -8,6 +8,11 @@
 import { EncuestaListItem, EncuestaCompleta } from '@/services/encuestas';
 import { FamilyMember, DeceasedFamilyMember, ConfigurationItem } from '@/types/survey';
 
+const createCelebracionId = (): string => {
+  const uuid = globalThis.crypto?.randomUUID?.();
+  return uuid ?? `celebracion-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+};
+
 /**
  * Resultado de la transformación de encuesta a formulario
  */
@@ -45,6 +50,13 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
     parroquia: encuesta.parroquia?.id || '',
     sector: encuesta.sector?.id || '',
     vereda: encuesta.vereda?.id || '',
+    corregimiento: (encuesta as any)?.corregimiento?.id || '',
+    centro_poblado: (encuesta as any)?.centro_poblado?.id || '',
+    // Guardar datos completos para transformador
+    sector_data: encuesta.sector || null,
+    vereda_data: encuesta.vereda || null,
+    corregimiento_data: (encuesta as any)?.corregimiento || null,
+    centro_poblado_data: (encuesta as any)?.centro_poblado || null,
     fecha: encuesta.fecha_ultima_encuesta ? new Date(encuesta.fecha_ultima_encuesta) : new Date(),
     apellido_familiar: encuesta.apellido_familiar || '',
     direccion: encuesta.direccion_familia || '',
@@ -62,12 +74,32 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
     basuras_aire_libre: encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('aire libre')) || false,
     basuras_no_aplica: encuesta.basuras?.length === 0 || false,
     
+    // Reconstruir el array disposicion_basura a partir de los booleanos
+    disposicion_basura: (() => {
+      const basuraArray: string[] = [];
+      if (encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('recolector'))) {
+        basuraArray.push('1'); // Recolección municipal
+      }
+      if (encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('quemada'))) {
+        basuraArray.push('3'); // Incineración
+      }
+      if (encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('enterrada'))) {
+        basuraArray.push('4'); // Enterrado
+      }
+      if (encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('recicla'))) {
+        basuraArray.push('6'); // Reciclaje
+      }
+      if (encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('aire libre'))) {
+        basuraArray.push('5'); // Botadero
+      }
+      return basuraArray;
+    })(),
+    
     // Servicios de agua
     sistema_acueducto: encuesta.acueducto?.id || '',
-    aguas_residuales: encuesta.aguas_residuales?.id || '',
-    pozo_septico: false, // TODO: Obtener de campo específico si está disponible
-    letrina: false,
-    campo_abierto: false,
+    // 🔄 NUEVO: aguas_residuales ahora es un array de IDs (estructura dinámica)
+    // Actualmente la API devuelve un objeto único, lo convertimos a array
+    aguas_residuales: encuesta.aguas_residuales?.id ? [encuesta.aguas_residuales.id] : [],
     
     // Observaciones y consentimiento
     sustento_familia: '', // No disponible en respuesta actual
@@ -113,16 +145,14 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
       estudio,
       comunidadCultural: null, // TODO: Mapear si está disponible
       telefono: persona.telefono || '',
-      enQueEresLider: '', // No disponible en respuesta actual
+      enQueEresLider: [], // No disponible en respuesta actual
       correoElectronico: persona.email || '',
-      enfermedad: null, // TODO: Mapear enfermedades
-      necesidadesEnfermo: '', // No disponible
+      enfermedades: [], // No disponible en respuesta actual
+      necesidadesEnfermo: [], // No disponible
       solicitudComunionCasa: false, // No disponible
       profesionMotivoFechaCelebrar: {
         profesion: null,
-        motivo: '',
-        dia: '',
-        mes: ''
+        celebraciones: [],
       },
       // Campos de habilidades y destrezas (arrays vacíos por defecto)
       habilidades: [],
@@ -173,6 +203,13 @@ const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDa
     parroquia: '', // No disponible directamente en EncuestaCompleta
     sector: encuesta.id_sector || '',
     vereda: encuesta.id_vereda || '',
+    corregimiento: (encuesta as any)?.id_corregimiento || '',
+    centro_poblado: (encuesta as any)?.id_centro_poblado || '',
+    // Guardar datos completos para transformador
+    sector_data: (encuesta as any)?.sector || null,
+    vereda_data: (encuesta as any)?.vereda || null,
+    corregimiento_data: (encuesta as any)?.corregimiento || null,
+    centro_poblado_data: (encuesta as any)?.centro_poblado || null,
     fecha: encuesta.fecha_creacion ? new Date(encuesta.fecha_creacion) : new Date(),
     apellido_familiar: encuesta.apellido_familiar || '',
     direccion: encuesta.direccion || '',
@@ -190,12 +227,32 @@ const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDa
     basuras_aire_libre: encuesta.vivienda?.manejo_residuos?.toLowerCase().includes('aire libre') || false,
     basuras_no_aplica: !encuesta.vivienda?.manejo_residuos,
     
+    // Reconstruir el array disposicion_basura a partir del campo manejo_residuos
+    disposicion_basura: (() => {
+      const basuraArray: string[] = [];
+      const residuos = encuesta.vivienda?.manejo_residuos?.toLowerCase() || '';
+      if (residuos.includes('recolector')) {
+        basuraArray.push('1'); // Recolección municipal
+      }
+      if (residuos.includes('quemada')) {
+        basuraArray.push('3'); // Incineración
+      }
+      if (residuos.includes('enterrada')) {
+        basuraArray.push('4'); // Enterrado
+      }
+      if (residuos.includes('recicla')) {
+        basuraArray.push('6'); // Reciclaje
+      }
+      if (residuos.includes('aire libre')) {
+        basuraArray.push('5'); // Botadero
+      }
+      return basuraArray;
+    })(),
+    
     // Servicios de agua
     sistema_acueducto: '', // No directamente disponible
-    aguas_residuales: '', // No directamente disponible
-    pozo_septico: encuesta.vivienda?.fuente_agua?.toLowerCase().includes('pozo') || false,
-    letrina: false, // No disponible
-    campo_abierto: false, // No disponible
+    // 🔄 NUEVO: aguas_residuales ahora es un array de IDs (estructura dinámica)
+    aguas_residuales: [],
     
     // Observaciones y consentimiento
     sustento_familia: encuesta.socioeconomica?.fuente_ingresos || '',
@@ -238,19 +295,33 @@ const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDa
         nombre: miembro.comunidad_cultural
       } : null,
       telefono: '',
-      enQueEresLider: '',
+      enQueEresLider: [],
       correoElectronico: '',
-      enfermedad: null,
-      necesidadesEnfermo: '',
+      enfermedades: [],
+      necesidadesEnfermo: [],
       solicitudComunionCasa: false,
       profesionMotivoFechaCelebrar: {
         profesion: miembro.profesion_oficio ? {
           id: miembro.profesion_oficio,
           nombre: miembro.profesion_oficio
         } : null,
-        motivo: '',
-        dia: '',
-        mes: ''
+        celebraciones: (() => {
+          const legacyMember = miembro as any;
+          const motivo = legacyMember?.motivo_fecha_celebrar?.trim?.() || '';
+          const dia = legacyMember?.dia_fecha_celebrar?.trim?.() || '';
+          const mes = legacyMember?.mes_fecha_celebrar?.trim?.() || '';
+
+          if (motivo || dia || mes) {
+            return [{
+              id: createCelebracionId(),
+              motivo,
+              dia,
+              mes,
+            }];
+          }
+
+          return [];
+        })(),
       },
       // Campos de habilidades y destrezas (arrays vacíos por defecto)
       habilidades: [],

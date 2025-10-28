@@ -23,12 +23,15 @@ export interface FamilyMember {
   estudio: ConfigurationItem | null;
   comunidadCultural: ConfigurationItem | null;
   telefono: string;
-  enQueEresLider: string;
+  enQueEresLider: string[];
   correoElectronico: string;
-  enfermedad: ConfigurationItem | null;
-  necesidadesEnfermo: string;
+  enfermedades: Array<{ id: string; nombre: string }>;
+  necesidadesEnfermo: string[];
   solicitudComunionCasa: boolean;
-  profesionMotivoFechaCelebrar: { profesion: ConfigurationItem | null; motivo: string; dia: string; mes: string };
+  profesionMotivoFechaCelebrar: {
+    profesion: ConfigurationItem | null;
+    celebraciones: Array<{ id: string; motivo: string; dia: string; mes: string }>;
+  };
   // Nuevos campos: Habilidades y Destrezas como arrays de objetos
   habilidades: Array<{ id: number; nombre: string; nivel?: string }>;
   destrezas: Array<{ id: number; nombre: string }>;
@@ -64,6 +67,28 @@ export interface DeceasedFamilyMember {
   causaFallecimiento: string;
 }
 
+/**
+ * Tipo para almacenar selecciones dinámicas basadas en IDs
+ * Estructura: Array de objetos con id, nombre y estado de selección
+ * 
+ * Esta estructura permite que el frontend se adapte automáticamente
+ * cuando las opciones cambian en el backend sin necesidad de modificar código.
+ * 
+ * @example
+ * [
+ *   { id: "1", nombre: "Recolección municipal", seleccionado: true },
+ *   { id: "2", nombre: "Incineración", seleccionado: false },
+ *   { id: "3", nombre: "Reciclaje", seleccionado: true }
+ * ]
+ */
+export interface DynamicSelectionItem {
+  id: string;
+  nombre: string;
+  seleccionado: boolean;
+}
+
+export type DynamicSelectionMap = DynamicSelectionItem[];
+
 // Nueva estructura de datos organizada por sesiones
 export interface SurveySessionData {
   // Información General con estructura id + nombre
@@ -72,6 +97,8 @@ export interface SurveySessionData {
     parroquia: ConfigurationItem | null;
     sector: ConfigurationItem | null;
     vereda: ConfigurationItem | null;
+    corregimiento: ConfigurationItem | null;
+    centro_poblado: ConfigurationItem | null;
     fecha: string;
     apellido_familiar: string;
     direccion: string;
@@ -83,23 +110,37 @@ export interface SurveySessionData {
   // Información de Vivienda
   vivienda: {
     tipo_vivienda: ConfigurationItem | null;
-    disposicion_basuras: {
-      recolector: boolean;
-      quemada: boolean;
-      enterrada: boolean;
-      recicla: boolean;
-      aire_libre: boolean;
-      no_aplica: boolean;
-    };
+    /**
+     * Disposición de basuras con estructura dinámica basada en IDs
+     * Array de objetos con id, nombre y estado de selección
+     * Se adapta automáticamente a cambios en el backend
+     * 
+     * @example
+     * [
+     *   { id: "1", nombre: "Recolección municipal", seleccionado: true },
+     *   { id: "2", nombre: "Botadero", seleccionado: false },
+     *   { id: "3", nombre: "Reciclaje", seleccionado: true }
+     * ]
+     */
+    disposicion_basuras: DynamicSelectionMap;
   };
   
   // Servicios de Agua y Saneamiento
   servicios_agua: {
     sistema_acueducto: ConfigurationItem | null;
-    aguas_residuales: ConfigurationItem | null;
-    pozo_septico: boolean;
-    letrina: boolean;
-    campo_abierto: boolean;
+    /**
+     * Aguas residuales con estructura dinámica basada en IDs
+     * Array de objetos con id, nombre y estado de selección
+     * Se adapta automáticamente a cambios en el backend
+     * 
+     * @example
+     * [
+     *   { id: "1", nombre: "Pozo séptico", seleccionado: true },
+     *   { id: "2", nombre: "Letrina", seleccionado: false },
+     *   { id: "3", nombre: "Campo abierto", seleccionado: true }
+     * ]
+     */
+    aguas_residuales: DynamicSelectionMap;
   };
   
   // Observaciones y consentimiento

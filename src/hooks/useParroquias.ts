@@ -98,15 +98,11 @@ export const useParroquias = () => {
 
   // Query para obtener parroquias por municipio
   const useParroquiasByMunicipioQuery = (
-    municipioId: string,
-    page: number = 1,
-    limit: number = 10,
-    sortBy: string = 'nombre',
-    sortOrder: 'ASC' | 'DESC' = 'ASC'
+    municipioId: string
   ) => {
     return useQuery({
-      queryKey: ['parroquias', { municipio: municipioId, page, limit, sortBy, sortOrder }],
-      queryFn: () => parroquiasService.getParroquiasByMunicipio(municipioId, page, limit, sortBy, sortOrder),
+      queryKey: ['parroquias', { municipio: municipioId }],
+      queryFn: () => parroquiasService.getParroquiasByMunicipio(municipioId),
       enabled: !!municipioId,
       placeholderData: (previousData) => previousData,
     });

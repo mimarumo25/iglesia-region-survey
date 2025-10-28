@@ -234,14 +234,15 @@ const navigationItems = [
 ];
 
 const AppSidebar = () => {
-  const { state, setOpenMobile, isMobile, toggleHidden, isHidden } = useSidebar();
+  const { state, setOpenMobile, openMobile, isMobile, toggleHidden, isHidden } = useSidebar();
   const { user, logout } = useAuthContext(); // Agregar logout del contexto
   const { canManageUsers } = usePermissions(); // Usar el hook de permisos
   const location = useLocation();
   const navigate = useNavigate();
   const isMobileDevice = useIsMobile(); // Agregar detección específica de móvil
   const currentPath = location.pathname;
-  const isCollapsed = state === "collapsed";
+  // En móvil Sheet, forzar expanded para mostrar sub-items
+  const isCollapsed = openMobile ? false : (isMobile ? false : state === "collapsed");
   const [activeItem, setActiveItem] = useState(currentPath);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   
@@ -616,8 +617,12 @@ const AppSidebar = () => {
                       {item.isExpandable && item.subItems ? (
                         // Menú expandible con sub-items
                         <Collapsible
-                          open={isExpanded(item.title)}
-                          onOpenChange={() => toggleExpanded(item.title)}
+                          open={openMobile ? true : isExpanded(item.title)}
+                          onOpenChange={() => {
+                            if (!openMobile) {
+                              toggleExpanded(item.title)
+                            }
+                          }}
                         >
                           <CollapsibleTrigger asChild>
                             <SidebarMenuButton 
@@ -672,12 +677,28 @@ const AppSidebar = () => {
                               <SidebarMenuSub className="ml-3 mt-2 space-y-1 pl-2">
                                 {filterSubItems(item.subItems).map((subItem) => (
                                   <SidebarMenuSubItem key={subItem.title}>
-                                    <SidebarMenuSubButton asChild>
-                                      <NavLink 
-                                        to={subItem.url} 
-                                        className={getNavCls(subItem.url, true)}
-                                        title={isCollapsed ? subItem.title : undefined}
-                                        onClick={() => handleNavClick(subItem.url)}
+                                    {openMobile ? (
+                                      // Sheet mobile: SidebarMenuSubButton con button
+                                      <SidebarMenuSubButton
+                                        onClick={(e) => {
+                                          console.log('[SUBMENU BUTTON] Clicked!', { url: subItem.url, openMobile });
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          setOpenMobile(false);
+                                          setTimeout(() => navigate(subItem.url), 350);
+                                        }}
+                                      >
+                                        <subItem.icon className="w-4 h-4" />
+                                        <span>{subItem.title}</span>
+                                      </SidebarMenuSubButton>
+                                    ) : (
+                                      // En desktop: usar NavLink normal
+                                      <SidebarMenuSubButton asChild>
+                                        <NavLink 
+                                          to={subItem.url} 
+                                          className={getNavCls(subItem.url, true)}
+                                          title={isCollapsed ? subItem.title : undefined}
+                                          onClick={() => handleNavClick(subItem.url)}
                                         onMouseEnter={() => handleLinkHover(subItem.url)}
                                       >
                                         <subItem.icon className={`
@@ -709,6 +730,7 @@ const AppSidebar = () => {
                                         )}
                                       </NavLink>
                                     </SidebarMenuSubButton>
+                                    )}
                                   </SidebarMenuSubItem>
                                 ))}
                               </SidebarMenuSub>

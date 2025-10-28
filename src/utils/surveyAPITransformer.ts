@@ -3,7 +3,7 @@
  * al formato requerido por la API según documentación Swagger
  */
 
-import { SurveySessionData, FamilyMember, DeceasedFamilyMember, ConfigurationItem } from '@/types/survey';
+import { SurveySessionData, FamilyMember, DeceasedFamilyMember, ConfigurationItem, DynamicSelectionMap } from '@/types/survey';
 
 /**
  * Tipo para el formato API de FamilyMember según documentación Swagger
@@ -37,10 +37,6 @@ interface APIFamilyMember {
     id: number | string;
     nombre: string;
   };
-  enfermedad: {
-    id: number | string;
-    nombre: string;
-  };
   "talla_camisa/blusa": string; // Nota: la API espera este formato específico
   talla_pantalon: string;
   talla_zapato: string;
@@ -54,9 +50,9 @@ interface APIFamilyMember {
     mes: string;
   };
   // Campos adicionales que pueden estar presentes
-  enQueEresLider?: string;
+  enQueEresLider?: string | string[];
   correoElectronico?: string;
-  necesidadesEnfermo?: string;
+  necesidadesEnfermo?: string | string[];
   solicitudComunionCasa?: boolean;
 }
 
@@ -110,14 +106,7 @@ export interface APIEncuestaFormat {
       id: number;
       nombre: string;
     };
-    disposicion_basuras: {
-      recolector: boolean;
-      quemada: boolean;
-      enterrada: boolean;
-      recicla: boolean;
-      aire_libre: boolean;
-      no_aplica: boolean;
-    };
+    disposicion_basuras: DynamicSelectionMap;
   };
   servicios_agua: {
     sistema_acueducto: {
@@ -128,9 +117,6 @@ export interface APIEncuestaFormat {
       id: number;
       nombre: string;
     } | null;
-    pozo_septico: boolean;
-    letrina: boolean;
-    campo_abierto: boolean;
   };
   observaciones: {
     sustento_familia: string;
@@ -188,11 +174,17 @@ function transformFamilyMember(member: FamilyMember): APIFamilyMember {
   const profesion = member.profesionMotivoFechaCelebrar?.profesion ? 
     transformConfigurationItem(member.profesionMotivoFechaCelebrar.profesion) : null;
   
-  // Extraer motivo y fecha de celebración
+  const celebraciones = Array.isArray(member.profesionMotivoFechaCelebrar?.celebraciones)
+    ? member.profesionMotivoFechaCelebrar?.celebraciones ?? []
+    : [];
+
+  const [primaryCelebracion] = celebraciones;
+
+  // Extraer motivo y fecha de celebración (se envía el primer registro para compatibilidad con la API actual)
   const motivoFechaCelebrar = {
-    motivo: member.profesionMotivoFechaCelebrar?.motivo || '',
-    dia: member.profesionMotivoFechaCelebrar?.dia || '',
-    mes: member.profesionMotivoFechaCelebrar?.mes || ''
+    motivo: primaryCelebracion?.motivo || '',
+    dia: primaryCelebracion?.dia || '',
+    mes: primaryCelebracion?.mes || ''
   };
 
   return {
@@ -206,16 +198,15 @@ function transformFamilyMember(member: FamilyMember): APIFamilyMember {
     estudio: transformConfigurationItem(member.estudio) || { id: 1, nombre: 'Primaria' },
     parentesco: transformConfigurationItem(member.parentesco) || { id: 1, nombre: 'Jefe de Hogar' },
     comunidadCultural: transformConfigurationItem(member.comunidadCultural) || { id: 1, nombre: 'Ninguna' },
-    enfermedad: transformConfigurationItem(member.enfermedad) || { id: 1, nombre: 'Ninguna' },
     "talla_camisa/blusa": member.talla_camisa || 'M', // Transformar nombre de campo
     talla_pantalon: member.talla_pantalon || '32',
     talla_zapato: member.talla_zapato || '38',
     profesion: profesion,
     motivoFechaCelebrar: motivoFechaCelebrar,
     // Campos opcionales
-    enQueEresLider: member.enQueEresLider,
+    enQueEresLider: Array.isArray(member.enQueEresLider) ? member.enQueEresLider.join(', ') : (member.enQueEresLider as any),
     correoElectronico: member.correoElectronico,
-    necesidadesEnfermo: member.necesidadesEnfermo,
+    necesidadesEnfermo: Array.isArray(member.necesidadesEnfermo) ? member.necesidadesEnfermo.join(', ') : (member.necesidadesEnfermo as any),
     solicitudComunionCasa: member.solicitudComunionCasa
   };
 }
@@ -260,10 +251,7 @@ export function transformSurveyDataForAPI(data: SurveySessionData): APIEncuestaF
   // Transformar servicios de agua
   const servicios_agua = {
     sistema_acueducto: transformConfigurationItem(data.servicios_agua.sistema_acueducto) || { id: 1, nombre: 'Acueducto Público' },
-    aguas_residuales: transformConfigurationItem(data.servicios_agua.aguas_residuales),
-    pozo_septico: data.servicios_agua.pozo_septico,
-    letrina: data.servicios_agua.letrina,
-    campo_abierto: data.servicios_agua.campo_abierto
+    aguas_residuales: null,
   };
 
   // Transformar miembros de familia

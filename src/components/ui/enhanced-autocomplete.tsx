@@ -16,6 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
+import { trimString, trimSearchValue } from "@/utils/stringTrimHelpers"
 
 export interface AutocompleteOption {
   value: string
@@ -70,6 +71,8 @@ export function EnhancedAutocomplete({
     }
   }, [open])
 
+  // Manejar el scroll de la rueda del mouse
+
   // Defensive programming: ensure options is always an array
   const safeOptions = React.useMemo(() => {
     if (!options || !Array.isArray(options)) {
@@ -91,9 +94,10 @@ export function EnhancedAutocomplete({
 
   // Filtrar y agrupar opciones basado en la búsqueda
   const filteredAndGroupedOptions = React.useMemo(() => {
+    const trimmedSearch = trimSearchValue(searchValue).toLowerCase()
     let filtered = safeOptions.filter(option => 
-      option.label && option.label.toLowerCase().includes(searchValue.toLowerCase()) ||
-      (option.description && option.description.toLowerCase().includes(searchValue.toLowerCase()))
+      option.label && option.label.toLowerCase().includes(trimmedSearch) ||
+      (option.description && option.description.toLowerCase().includes(trimmedSearch))
     )
 
     if (showCategories) {
@@ -134,7 +138,8 @@ export function EnhancedAutocomplete({
       disabled={option.disabled}
       onSelect={() => {
         if (option.disabled) return
-        const newValue = value === option.value ? "" : option.value
+        const trimmedValue = trimString(option.value)
+        const newValue = value === trimmedValue ? "" : trimmedValue
         onValueChange(newValue)
         setOpen(false)
         setSearchValue("")
@@ -255,7 +260,10 @@ export function EnhancedAutocomplete({
             onValueChange={setSearchValue}
           />
           
-          <CommandList className="overflow-auto" style={{ maxHeight }}>
+          <CommandList 
+            className="overflow-auto" 
+            style={{ maxHeight }}
+          >
             <CommandEmpty className="py-8 text-center text-sm text-gray-500">
               <div className="flex flex-col items-center gap-3">
                 <Search className="w-12 h-12 text-gray-300" />

@@ -106,12 +106,12 @@ const SaludList = ({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Activity className="h-5 w-5" />
-          Personas con Condiciones de Salud
+      <CardHeader className="pb-3 sm:pb-6">
+        <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+          <Activity className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+          <span>Personas con Condiciones de Salud</span>
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs sm:text-sm">
           {total > 0 ? (
             <>
               Mostrando <strong>{((currentPage - 1) * limite) + 1}</strong> - <strong>{Math.min(currentPage * limite, total)}</strong> de <strong>{total}</strong> persona(s) en total
@@ -121,8 +121,9 @@ const SaludList = ({
           )}
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="rounded-md border overflow-x-auto">
+      <CardContent className="px-2 sm:px-6">
+        {/* Vista de Tabla para Desktop */}
+        <div className="hidden lg:block rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -292,22 +293,135 @@ const SaludList = ({
           </Table>
         </div>
 
+        {/* Vista de Tarjetas para Móvil/Tablet */}
+        <div className="lg:hidden space-y-3">
+          {personas.map((persona) => (
+            <Card key={persona.id} className="border-2">
+              <CardContent className="p-3 sm:p-4 space-y-3">
+                {/* Cabecera: ID, Nombre, Edad */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2 flex-1 min-w-0">
+                    <User className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-sm sm:text-base truncate">
+                        {persona.nombre}
+                      </p>
+                      {persona.documento && (
+                        <p className="text-xs text-muted-foreground">
+                          Doc: {persona.documento}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        ID: #{persona.id}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    <Badge variant={getEdadVariant(persona.edad)} className="whitespace-nowrap">
+                      {persona.edad} años
+                    </Badge>
+                    <Badge variant="outline" className="whitespace-nowrap text-xs">
+                      {persona.sexo}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Condiciones de Salud */}
+                {persona.salud.tiene_enfermedades && (
+                  <div className="flex items-start gap-2 p-2 bg-red-50 rounded-lg border border-red-200">
+                    <Activity className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-red-900 mb-1">Condiciones de Salud:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {persona.salud.enfermedades.map((enfermedad, idx) => (
+                          <Badge key={idx} variant="destructive" className="text-xs">
+                            {enfermedad}
+                          </Badge>
+                        ))}
+                      </div>
+                      {persona.salud.necesidades_medicas && (
+                        <p className="text-xs text-red-700 mt-1">
+                          {persona.salud.necesidades_medicas}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Ubicación */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-3 w-3 text-primary flex-shrink-0" />
+                    <p className="text-xs sm:text-sm">
+                      <span className="font-medium">{persona.parroquia}</span>
+                      <span className="text-muted-foreground"> • {persona.municipio}</span>
+                    </p>
+                  </div>
+                  {(persona.sector || persona.vereda) && (
+                    <p className="text-xs text-muted-foreground ml-5">
+                      {persona.sector && `Sector: ${persona.sector}`}
+                      {persona.sector && persona.vereda && ' • '}
+                      {persona.vereda && `Vereda: ${persona.vereda}`}
+                    </p>
+                  )}
+                  {persona.direccion && (
+                    <p className="text-xs text-muted-foreground ml-5">
+                      📍 {persona.direccion}
+                    </p>
+                  )}
+                </div>
+
+                {/* Contacto */}
+                <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
+                  {persona.telefono ? (
+                    <a 
+                      href={`tel:${persona.telefono}`}
+                      className="flex items-center gap-1.5 text-primary hover:underline text-xs sm:text-sm font-medium"
+                    >
+                      <span>📱</span>
+                      <span>{persona.telefono}</span>
+                    </a>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">
+                      Sin teléfono
+                    </span>
+                  )}
+                  {persona.telefono_familia && persona.telefono !== persona.telefono_familia && (
+                    <>
+                      <span className="text-muted-foreground">•</span>
+                      <a 
+                        href={`tel:${persona.telefono_familia}`}
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:underline"
+                        title="Teléfono familiar"
+                      >
+                        <span>🏠</span>
+                        <span>{persona.telefono_familia}</span>
+                      </a>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
         {/* Controles de Paginación */}
         {totalPages > 1 && onPageChange && (
-          <div className="flex items-center justify-between mt-4 px-2">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 px-2">
+            <div className="text-xs sm:text-sm text-muted-foreground order-2 sm:order-1">
               Página <strong>{currentPage}</strong> de <strong>{totalPages}</strong>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 order-1 sm:order-2 w-full sm:w-auto justify-center">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
+                className="h-8 px-2 sm:px-3"
               >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Anterior
+                <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+                <span className="hidden sm:inline">Anterior</span>
               </Button>
               
               <div className="flex items-center gap-1">
@@ -318,11 +432,11 @@ const SaludList = ({
                       variant={currentPage === 1 ? "default" : "outline"}
                       size="sm"
                       onClick={() => onPageChange(1)}
-                      className="w-8 h-8 p-0"
+                      className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                     >
                       1
                     </Button>
-                    {currentPage > 3 && <span className="text-muted-foreground">...</span>}
+                    {currentPage > 3 && <span className="text-muted-foreground text-xs">...</span>}
                   </>
                 )}
                 
@@ -332,7 +446,7 @@ const SaludList = ({
                     variant="outline"
                     size="sm"
                     onClick={() => onPageChange(currentPage - 1)}
-                    className="w-8 h-8 p-0"
+                    className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                   >
                     {currentPage - 1}
                   </Button>
@@ -342,7 +456,7 @@ const SaludList = ({
                 <Button
                   variant="default"
                   size="sm"
-                  className="w-8 h-8 p-0"
+                  className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                   disabled
                 >
                   {currentPage}
@@ -354,7 +468,7 @@ const SaludList = ({
                     variant="outline"
                     size="sm"
                     onClick={() => onPageChange(currentPage + 1)}
-                    className="w-8 h-8 p-0"
+                    className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                   >
                     {currentPage + 1}
                   </Button>
@@ -363,12 +477,12 @@ const SaludList = ({
                 {/* Última página */}
                 {currentPage < totalPages - 1 && (
                   <>
-                    {currentPage < totalPages - 2 && <span className="text-muted-foreground">...</span>}
+                    {currentPage < totalPages - 2 && <span className="text-muted-foreground text-xs">...</span>}
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => onPageChange(totalPages)}
-                      className="w-8 h-8 p-0"
+                      className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                     >
                       {totalPages}
                     </Button>
@@ -381,9 +495,10 @@ const SaludList = ({
                 size="sm"
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
+                className="h-8 px-2 sm:px-3"
               >
-                Siguiente
-                <ChevronRight className="h-4 w-4 ml-1" />
+                <span className="hidden sm:inline">Siguiente</span>
+                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 sm:ml-1" />
               </Button>
             </div>
           </div>

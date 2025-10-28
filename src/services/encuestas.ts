@@ -148,6 +148,9 @@ export interface MiembroFamilia {
   comunidad_cultural?: string;
   enfermedades_cronicas?: string[];
   discapacidades?: string[];
+  motivo_fecha_celebrar?: string;
+  dia_fecha_celebrar?: string;
+  mes_fecha_celebrar?: string;
   es_jefe_familia: boolean;
   es_beneficiario_programa?: boolean;
   programa_social?: string;
