@@ -239,7 +239,8 @@ export function transformSurveyDataForAPI(data: SurveySessionData): APIEncuestaF
     direccion: data.informacionGeneral.direccion || '',
     telefono: data.informacionGeneral.telefono || '',
     numero_contrato_epm: data.informacionGeneral.numero_contrato_epm || '',
-    comunionEnCasa: data.informacionGeneral.comunionEnCasa || false // Usar valor del formulario
+    // comunionEnCasa se calcula como true si algún miembro solicita comunión en casa
+    comunionEnCasa: data.familyMembers.some(member => member.solicitudComunionCasa === true)
   };
 
   // Transformar vivienda

@@ -104,7 +104,6 @@ export interface SurveySessionData {
     direccion: string;
     telefono: string;
     numero_contrato_epm: string;
-    comunionEnCasa: boolean; // Campo requerido por API
   };
   
   // Información de Vivienda

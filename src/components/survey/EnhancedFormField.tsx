@@ -231,8 +231,11 @@ const EnhancedFormField = ({ field, value, onChange, autocompleteOptions = [], i
           <Textarea
             id={field.id}
             value={value || ''}
-            onChange={(e) => onChange(field.id, trimString(e.target.value))}
-            onBlur={(e) => onChange(field.id, trimString(e.target.value))}
+            onChange={(e) => {
+              // Para textarea: NO aplicar trim, preservar espacios y saltos de línea
+              // Solo pasar el valor tal como está
+              onChange(field.id, e.target.value);
+            }}
             className={highContrastClasses.textarea}
             rows={4}
             placeholder={`Escriba ${field.label.toLowerCase()}`}

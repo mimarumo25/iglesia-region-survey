@@ -270,8 +270,11 @@ const StandardFormField = ({
           <Textarea
             id={field.id}
             value={value || ''}
-            onChange={(e) => onChange(field.id, trimString(e.target.value))}
-            onBlur={(e) => onChange(field.id, trimString(e.target.value))}
+            onChange={(e) => {
+              // Para textarea: NO aplicar trim, preservar espacios y saltos de línea
+              // Solo pasar el valor tal como está
+              onChange(field.id, e.target.value);
+            }}
             className={STANDARD_STYLES.textarea}
             rows={4}
             placeholder={field.placeholder || `Escriba ${field.label.toLowerCase()}`}

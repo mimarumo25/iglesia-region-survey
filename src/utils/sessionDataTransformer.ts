@@ -58,7 +58,6 @@ export const transformFormDataToSurveySession = (
       direccion: formData.direccion || '',
       telefono: formData.telefono || '',
       numero_contrato_epm: formData.numero_contrato_epm || '',
-      comunionEnCasa: stringToBoolean(formData.comunionEnCasa),
     },
     
     // Información de Vivienda

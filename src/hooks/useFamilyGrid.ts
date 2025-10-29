@@ -134,12 +134,30 @@ interface UseFamilyGridProps {
  */
 const familyMemberToFormData = (member: FamilyMember): Partial<FamilyMemberFormData> => {
   try {
+    // Helper para convertir fechaNacimiento a Date válida
+    const parseFecha = (fecha: any): Date | null => {
+      if (!fecha) return null;
+      
+      // Si ya es una Date válida
+      if (fecha instanceof Date && !isNaN(fecha.getTime())) {
+        return fecha;
+      }
+      
+      // Si es un string, intentar convertirlo a Date
+      if (typeof fecha === 'string' && fecha.trim()) {
+        const parsedDate = new Date(fecha);
+        if (!isNaN(parsedDate.getTime())) {
+          return parsedDate;
+        }
+      }
+      
+      return null;
+    };
+
     const formData = {
       // SECCIÓN 1: INFORMACIÓN BÁSICA PERSONAL
       nombres: member?.nombres || '',
-      fechaNacimiento: member?.fechaNacimiento && member.fechaNacimiento instanceof Date && !isNaN(member.fechaNacimiento.getTime()) 
-        ? member.fechaNacimiento 
-        : null,
+      fechaNacimiento: parseFecha(member?.fechaNacimiento),
       numeroIdentificacion: member?.numeroIdentificacion || '',
       tipoIdentificacion: extractConfigurationItemId(member?.tipoIdentificacion),
       
@@ -381,7 +399,43 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
   const openDialogForNew = () => {
     try {
       setEditingFamilyMember(null);
-      form.reset();
+      // Resetear el formulario con los valores por defecto explícitamente
+      form.reset({
+        // SECCIÓN 1: INFORMACIÓN BÁSICA PERSONAL
+        nombres: '',
+        fechaNacimiento: null,
+        numeroIdentificacion: '',
+        tipoIdentificacion: '',
+        
+        // SECCIÓN 2: INFORMACIÓN DE CONTACTO
+        telefono: '',
+        correoElectronico: '',
+        
+        // SECCIÓN 3: INFORMACIÓN DEMOGRÁFICA
+        sexo: '',
+        parentesco: '',
+        situacionCivil: '',
+        
+        // SECCIÓN 4: INFORMACIÓN EDUCATIVA Y PROFESIONAL
+        estudio: '',
+        profesionMotivoFechaCelebrar: { profesion: '', celebraciones: [] },
+        
+        // SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD
+        comunidadCultural: '',
+        enfermedades: [],
+        necesidadesEnfermo: [],
+        solicitudComunionCasa: false,
+        
+        // SECCIÓN 6: INFORMACIÓN DE TALLAS
+        talla: { camisa: '', pantalon: '', calzado: '' },
+        
+        // SECCIÓN 8: INFORMACIÓN DE SERVICIOS Y LIDERAZGO
+        enQueEresLider: [],
+        
+        // SECCIÓN 9: HABILIDADES Y DESTREZAS
+        habilidades: [],
+        destrezas: [],
+      });
       setShowFamilyDialog(true);
     } catch (error) {
       console.error('Error al abrir diálogo para nuevo miembro:', error);
@@ -391,7 +445,43 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
   const resetForm = () => {
     try {
       setEditingFamilyMember(null);
-      form.reset();
+      // Resetear el formulario con los valores por defecto explícitamente
+      form.reset({
+        // SECCIÓN 1: INFORMACIÓN BÁSICA PERSONAL
+        nombres: '',
+        fechaNacimiento: null,
+        numeroIdentificacion: '',
+        tipoIdentificacion: '',
+        
+        // SECCIÓN 2: INFORMACIÓN DE CONTACTO
+        telefono: '',
+        correoElectronico: '',
+        
+        // SECCIÓN 3: INFORMACIÓN DEMOGRÁFICA
+        sexo: '',
+        parentesco: '',
+        situacionCivil: '',
+        
+        // SECCIÓN 4: INFORMACIÓN EDUCATIVA Y PROFESIONAL
+        estudio: '',
+        profesionMotivoFechaCelebrar: { profesion: '', celebraciones: [] },
+        
+        // SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD
+        comunidadCultural: '',
+        enfermedades: [],
+        necesidadesEnfermo: [],
+        solicitudComunionCasa: false,
+        
+        // SECCIÓN 6: INFORMACIÓN DE TALLAS
+        talla: { camisa: '', pantalon: '', calzado: '' },
+        
+        // SECCIÓN 8: INFORMACIÓN DE SERVICIOS Y LIDERAZGO
+        enQueEresLider: [],
+        
+        // SECCIÓN 9: HABILIDADES Y DESTREZAS
+        habilidades: [],
+        destrezas: [],
+      });
     } catch (error) {
       console.error('Error al resetear formulario:', error);
     }
