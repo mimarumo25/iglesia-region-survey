@@ -44,7 +44,10 @@ const familyMemberSchema = z.object({
   // SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD
   comunidadCultural: z.string().optional(),
   enfermedades: z.array(z.object({
-    id: z.string().min(1, "El ID de la enfermedad es requerido"),
+    id: z.union([z.number(), z.string()]).transform(val => {
+      const num = typeof val === 'string' ? parseInt(val) : val;
+      return isNaN(num) ? 0 : num;
+    }),
     nombre: z.string().min(1, "El nombre de la enfermedad es requerido"),
   })).optional().default([]),
   necesidadesEnfermo: z.array(z.string().min(1, "La necesidad no puede estar vacía")).optional().default([]),
@@ -325,7 +328,7 @@ const formDataToFamilyMember = (data: FamilyMemberFormData, id: string, configur
     
     // SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD
     comunidadCultural: createConfigItemFromValue(data.comunidadCultural, 'comunidadesCulturalesOptions'),
-    enfermedades: (data.enfermedades || []).filter(e => e.id && e.nombre) as Array<{ id: string; nombre: string }>,
+    enfermedades: (data.enfermedades || []).filter(e => e.id && e.nombre) as Array<{ id: number; nombre: string }>,
     necesidadesEnfermo: Array.isArray(data.necesidadesEnfermo) ? data.necesidadesEnfermo : [],
     solicitudComunionCasa: data.solicitudComunionCasa || false,
     

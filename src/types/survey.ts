@@ -25,7 +25,7 @@ export interface FamilyMember {
   telefono: string;
   enQueEresLider: string[];
   correoElectronico: string;
-  enfermedades: Array<{ id: string; nombre: string }>;
+  enfermedades: Array<{ id: number; nombre: string }>;
   necesidadesEnfermo: string[];
   solicitudComunionCasa: boolean;
   profesionMotivoFechaCelebrar: {
@@ -76,13 +76,13 @@ export interface DeceasedFamilyMember {
  * 
  * @example
  * [
- *   { id: "1", nombre: "Recolección municipal", seleccionado: true },
- *   { id: "2", nombre: "Incineración", seleccionado: false },
- *   { id: "3", nombre: "Reciclaje", seleccionado: true }
+ *   { id: 1, nombre: "Recolección municipal", seleccionado: true },
+ *   { id: 2, nombre: "Incineración", seleccionado: false },
+ *   { id: 3, nombre: "Reciclaje", seleccionado: true }
  * ]
  */
 export interface DynamicSelectionItem {
-  id: string;
+  id: number;
   nombre: string;
   seleccionado: boolean;
 }

@@ -19,9 +19,9 @@ import { DynamicSelectionMap, DynamicSelectionItem } from '@/types/survey';
  * @example
  * convertIdsToSelectionMap(['1', '3', '5'], options)
  * // Retorna: [
- * //   { id: "1", nombre: "Recolección municipal", seleccionado: true },
- * //   { id: "2", nombre: "Incineración", seleccionado: false },
- * //   { id: "3", nombre: "Reciclaje", seleccionado: true },
+ * //   { id: 1, nombre: "Recolección municipal", seleccionado: true },
+ * //   { id: 2, nombre: "Incineración", seleccionado: false },
+ * //   { id: 3, nombre: "Reciclaje", seleccionado: true },
  * //   ...
  * // ]
  */
@@ -29,18 +29,24 @@ export const convertIdsToSelectionMap = (
   selectedIds: string[],
   availableOptions: AutocompleteOption[]
 ): DynamicSelectionMap => {
-  return availableOptions.map(option => ({
-    id: option.value,
-    nombre: option.label,
-    seleccionado: selectedIds.includes(option.value)
-  }));
+  return availableOptions.map(option => {
+    // Convertir el ID a número para cumplir con el contrato de API
+    const numericId = parseInt(option.value, 10);
+    const finalId = isNaN(numericId) ? 0 : numericId;
+    
+    return {
+      id: finalId,
+      nombre: option.label,
+      seleccionado: selectedIds.includes(option.value)
+    };
+  });
 };
 
 /**
  * Convierte DynamicSelectionMap (array de objetos) a un array de IDs seleccionados
  * 
  * @param selectionMap - Array de objetos {id, nombre, seleccionado}
- * @returns Array de IDs donde seleccionado es true
+ * @returns Array de IDs donde seleccionado es true (como strings para compatibilidad con formulario)
  * 
  * @example
  * convertSelectionMapToIds(selectionMap)
@@ -51,7 +57,7 @@ export const convertSelectionMapToIds = (
 ): string[] => {
   return selectionMap
     .filter(item => item.seleccionado === true)
-    .map(item => item.id);
+    .map(item => item.id.toString());
 };
 
 /**
@@ -76,21 +82,22 @@ export const getSelectedLabels = (
  * Actualiza el estado de selección de un item específico
  * 
  * @param selectionMap - Array de objetos actual
- * @param itemId - ID del item a actualizar
+ * @param itemId - ID del item a actualizar (como string desde el formulario)
  * @param newState - Nuevo estado (true/false)
  * @returns Nuevo array con el item actualizado
  * 
  * @example
  * updateSelectionItem(selectionMap, "3", true)
- * // Retorna un nuevo array con el item id="3" actualizado
+ * // Retorna un nuevo array con el item id=3 actualizado
  */
 export const updateSelectionItem = (
   selectionMap: DynamicSelectionMap,
   itemId: string,
   newState: boolean
 ): DynamicSelectionMap => {
+  const numericItemId = parseInt(itemId, 10);
   return selectionMap.map(item =>
-    item.id === itemId ? { ...item, seleccionado: newState } : item
+    item.id === numericItemId ? { ...item, seleccionado: newState } : item
   );
 };
 
@@ -106,7 +113,7 @@ export const isCompleteSelectionMap = (
   availableOptions: AutocompleteOption[]
 ): boolean => {
   return availableOptions.every(
-    option => selectionMap.some(item => item.id === option.value)
+    option => selectionMap.some(item => item.id === parseInt(option.value, 10))
   );
 };
 
@@ -135,11 +142,14 @@ export const migrateOldToNewFormat = (
 export const createEmptySelectionMap = (
   availableOptions: AutocompleteOption[]
 ): DynamicSelectionMap => {
-  return availableOptions.map(option => ({
-    id: option.value,
-    nombre: option.label,
-    seleccionado: false
-  }));
+  return availableOptions.map(option => {
+    const numericId = parseInt(option.value, 10);
+    return {
+      id: isNaN(numericId) ? 0 : numericId,
+      nombre: option.label,
+      seleccionado: false
+    };
+  });
 };
 
 /**
