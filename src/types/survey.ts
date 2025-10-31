@@ -2,7 +2,7 @@
 
 // Nueva interfaz para datos con ID y nombre
 export interface ConfigurationItem {
-  id: string;
+  id: string | number; // ID puede ser string o número dependiendo de la fuente
   nombre: string;
 }
 

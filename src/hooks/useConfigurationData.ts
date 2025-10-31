@@ -562,7 +562,12 @@ export const useConfigurationData = (): ConfigurationData => {
         label: tipo.codigo ? `${tipo.codigo} - ${tipo.nombre}` : tipo.nombre || 'Sin nombre',
         description: tipo.descripcion || `Tipo de documento: ${tipo.nombre}`,
         category: 'Identificación',
-        popular: false
+        popular: false,
+        // Agregar metadata con el ID numérico real para uso en transformaciones
+        metadata: {
+          id: tipo.id_tipo_identificacion,
+          codigo: tipo.codigo
+        }
       }));
     }
     

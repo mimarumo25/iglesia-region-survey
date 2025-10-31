@@ -256,7 +256,7 @@ const familyMemberToFormData = (member: FamilyMember): Partial<FamilyMemberFormD
  * Organizado según las secciones del formulario
  */
 const formDataToFamilyMember = (data: FamilyMemberFormData, id: string, configurationData: any): Partial<FamilyMember> => {
-  // Función helper para convertir valor de autocomplete a ConfigurationItem
+  // Función helper para convertir valor de autocomplete a ConfigurationItem con ID numérico
   const createConfigItemFromValue = (value: string | undefined, optionsKey: string): ConfigurationItem | null => {
     if (!value || !value.trim()) return null;
     
@@ -264,14 +264,30 @@ const formDataToFamilyMember = (data: FamilyMemberFormData, id: string, configur
     const selectedOption = options.find((option: any) => option.value === value);
     
     if (selectedOption) {
+      // Extraer el ID numérico desde la metadata de la opción si existe
+      let numericId: number | string = selectedOption.value;
+      
+      // Para tiposIdentificacionOptions, el value puede ser el código (ej: "CC")
+      // pero necesitamos el ID numérico. Buscar en la metadata
+      if (selectedOption.metadata?.id) {
+        numericId = selectedOption.metadata.id;
+      } else if (selectedOption.id) {
+        numericId = selectedOption.id;
+      }
+      
+      // Asegurar que el ID sea numérico
+      const finalId = typeof numericId === 'string' ? parseInt(numericId, 10) : numericId;
+      
       return {
-        id: selectedOption.value,
+        id: isNaN(finalId) ? numericId : finalId, // Usar número si es válido, sino string original
         nombre: selectedOption.label
       };
     }
     
+    // Si no se encuentra en opciones, intentar convertir a número
+    const parsedId = parseInt(value, 10);
     return {
-      id: value,
+      id: isNaN(parsedId) ? value : parsedId,
       nombre: value
     };
   };

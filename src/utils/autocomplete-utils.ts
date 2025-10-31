@@ -13,7 +13,7 @@ import { AutocompleteOption } from '@/components/ui/autocomplete';
  * Configuration item interface for structured data
  */
 export interface ConfigurationItem {
-  id: string;
+  id: string | number; // ID puede ser string o número dependiendo de la fuente
   nombre: string;
 }
 
@@ -74,7 +74,9 @@ export const createConfigurationItemHandler = (
  * @returns The ID string or empty string
  */
 export const extractConfigurationItemId = (value: ConfigurationItem | null | undefined): string => {
-  return value?.id || '';
+  if (!value?.id) return '';
+  // Convertir a string si es número
+  return typeof value.id === 'number' ? value.id.toString() : value.id;
 };
 
 /**
