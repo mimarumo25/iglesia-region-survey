@@ -44,6 +44,28 @@ import { transformEncuestaToFormData, validateTransformedData } from "@/utils/en
 import { hasLeadershipFamilyMember, getLeadershipMessage } from "@/utils/familyValidationHelpers";
 // Removed storage debugger import - component was cleaned up
 
+/**
+ * Normaliza un ConfigurationItem para asegurar que el ID sea numérico
+ * Útil para datos que vienen de localStorage con IDs como strings
+ */
+const normalizeConfigurationItem = (item: any): any => {
+  if (!item) return null;
+  
+  // Si no tiene estructura de ConfigurationItem, retornar tal cual
+  if (typeof item !== 'object' || !item.id) return item;
+  
+  // Convertir el ID a número
+  const numericId = typeof item.id === 'string' ? parseInt(item.id, 10) : item.id;
+  
+  // Si la conversión falla, devolver el item original
+  if (isNaN(numericId)) return item;
+  
+  return {
+    ...item,
+    id: numericId
+  };
+};
+
 // Definición de las etapas del formulario basado en la encuesta parroquial
 const formStages: FormStage[] = [
   {
@@ -204,10 +226,11 @@ const SurveyForm = () => {
             corregimiento: draftData.informacionGeneral.corregimiento?.id || '',
             centro_poblado: draftData.informacionGeneral.centro_poblado?.id || '',
             // Guardar también los datos completos para usarlos en el transformador
-            sector_data: draftData.informacionGeneral.sector || null,
-            vereda_data: draftData.informacionGeneral.vereda || null,
-            corregimiento_data: draftData.informacionGeneral.corregimiento || null,
-            centro_poblado_data: draftData.informacionGeneral.centro_poblado || null,
+            // ⭐ IMPORTANTE: Normalizar para asegurar IDs numéricos (migración de datos antiguos)
+            sector_data: normalizeConfigurationItem(draftData.informacionGeneral.sector),
+            vereda_data: normalizeConfigurationItem(draftData.informacionGeneral.vereda),
+            corregimiento_data: normalizeConfigurationItem(draftData.informacionGeneral.corregimiento),
+            centro_poblado_data: normalizeConfigurationItem(draftData.informacionGeneral.centro_poblado),
             fecha: draftData.informacionGeneral.fecha,
             apellido_familiar: draftData.informacionGeneral.apellido_familiar,
             direccion: draftData.informacionGeneral.direccion,

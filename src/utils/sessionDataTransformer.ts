@@ -37,6 +37,25 @@ const findConfigurationItem = (id: string | number, items: ConfigurationItem[]):
 };
 
 /**
+ * Normaliza un ConfigurationItem para asegurar que el ID sea numérico
+ * Útil para datos que vienen de localStorage o del formulario
+ */
+const normalizeConfigurationItem = (item: ConfigurationItem | null): ConfigurationItem | null => {
+  if (!item) return null;
+  
+  // Convertir el ID a número
+  const numericId = typeof item.id === 'string' ? parseInt(item.id, 10) : item.id;
+  
+  // Si la conversión falla, devolver null
+  if (isNaN(numericId)) return null;
+  
+  return {
+    id: numericId,
+    nombre: item.nombre
+  };
+};
+
+/**
  * Convierte un valor string del formulario a boolean
  * Maneja casos como: "true", "false", true, false, 1, 0, "1", "0"
  */
@@ -69,10 +88,11 @@ export const transformFormDataToSurveySession = (
       parroquia: findConfigurationItem(formData.parroquia || '', configurationData.parroquiaItems),
       // sector, vereda, corregimiento y centro_poblado son dinámicos basados en municipio
       // se guardan como objetos completos {id, nombre} desde el FormData
-      sector: formData.sector_data || null,
-      vereda: formData.vereda_data || null,
-      corregimiento: formData.corregimiento_data || null,
-      centro_poblado: formData.centro_poblado_data || null,
+      // ⭐ IMPORTANTE: Normalizar para asegurar IDs numéricos (pueden venir de localStorage con IDs string)
+      sector: normalizeConfigurationItem(formData.sector_data || null),
+      vereda: normalizeConfigurationItem(formData.vereda_data || null),
+      corregimiento: normalizeConfigurationItem(formData.corregimiento_data || null),
+      centro_poblado: normalizeConfigurationItem(formData.centro_poblado_data || null),
       fecha: formData.fecha || new Date().toISOString().split('T')[0],
       apellido_familiar: formData.apellido_familiar || '',
       direccion: formData.direccion || '',
