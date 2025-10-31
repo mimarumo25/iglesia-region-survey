@@ -10,10 +10,30 @@ import { convertIdsToSelectionMap, createEmptySelectionMap } from "./dynamicSele
 
 /**
  * Encuentra un ConfigurationItem por su ID en una lista
+ * Convierte el ID a número para asegurar comparación correcta
  */
-const findConfigurationItem = (id: string, items: ConfigurationItem[]): ConfigurationItem | null => {
+const findConfigurationItem = (id: string | number, items: ConfigurationItem[]): ConfigurationItem | null => {
   if (!id || !items.length) return null;
-  return items.find(item => item.id === id) || null;
+  
+  // Convertir el ID a número para comparación consistente
+  const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+  if (isNaN(numericId)) return null;
+  
+  // Buscar comparando IDs numéricos
+  const found = items.find(item => {
+    const itemNumericId = typeof item.id === 'string' ? parseInt(item.id, 10) : item.id;
+    return itemNumericId === numericId;
+  });
+  
+  // Si se encuentra, asegurar que el ID sea numérico
+  if (found) {
+    return {
+      id: numericId,
+      nombre: found.nombre
+    };
+  }
+  
+  return null;
 };
 
 /**

@@ -325,29 +325,46 @@ const SurveyForm = () => {
       };
 
       // Para campos dinámicos, guardar también el objeto completo {id, nombre}
+      // ⭐ IMPORTANTE: Convertir IDs a número para cumplir con contrato de API
       if (fieldId === 'sector') {
         // Sector viene de configurationData
         const sectorObj = configurationData.sectorOptions.find(opt => opt.value === value);
         if (sectorObj) {
-          updated.sector_data = { id: sectorObj.value, nombre: sectorObj.label };
+          const numericId = parseInt(sectorObj.value, 10);
+          updated.sector_data = { 
+            id: isNaN(numericId) ? 0 : numericId, 
+            nombre: sectorObj.label 
+          };
         }
       } else if (fieldId === 'vereda') {
         // Vereda es dinámico basado en municipio
         const veredaObj = dinamicVeredaOptions.find(opt => opt.value === value);
         if (veredaObj) {
-          updated.vereda_data = { id: veredaObj.value, nombre: veredaObj.label };
+          const numericId = parseInt(veredaObj.value, 10);
+          updated.vereda_data = { 
+            id: isNaN(numericId) ? 0 : numericId, 
+            nombre: veredaObj.label 
+          };
         }
       } else if (fieldId === 'corregimiento') {
         // Corregimiento es dinámico basado en municipio
         const corregimientoObj = dinamicCorregimientoOptions.find(opt => opt.value === value);
         if (corregimientoObj) {
-          updated.corregimiento_data = { id: corregimientoObj.value, nombre: corregimientoObj.label };
+          const numericId = parseInt(corregimientoObj.value, 10);
+          updated.corregimiento_data = { 
+            id: isNaN(numericId) ? 0 : numericId, 
+            nombre: corregimientoObj.label 
+          };
         }
       } else if (fieldId === 'centro_poblado') {
         // Centro poblado es dinámico basado en municipio
         const centroPobladoObj = dinamicCentroPobladoOptions.find(opt => opt.value === value);
         if (centroPobladoObj) {
-          updated.centro_poblado_data = { id: centroPobladoObj.value, nombre: centroPobladoObj.label };
+          const numericId = parseInt(centroPobladoObj.value, 10);
+          updated.centro_poblado_data = { 
+            id: isNaN(numericId) ? 0 : numericId, 
+            nombre: centroPobladoObj.label 
+          };
         }
       }
       // 🔄 NUEVO: disposicion_basura y aguas_residuales ahora son arrays de IDs directos
