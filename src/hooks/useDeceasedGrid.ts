@@ -27,16 +27,22 @@ import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { DeceasedFamilyMember, ConfigurationItem } from "@/types/survey";
 
-// Esquema de validación con Zod - Compatible con ConfigurationItem
+// Esquema de validación con Zod - Compatible con ConfigurationItem con IDs numéricos
 const deceasedMemberSchema = z.object({
   nombres: z.string().min(1, "El nombre es obligatorio").min(2, "El nombre debe tener al menos 2 caracteres"),
   fechaFallecimiento: z.date().nullable().optional(),
   sexo: z.object({
-    id: z.string(),
+    id: z.union([z.string(), z.number()]).transform(val => {
+      const num = typeof val === 'string' ? parseInt(val, 10) : val;
+      return isNaN(num) ? val : num;
+    }),
     nombre: z.string()
   }).nullable().optional(),
   parentesco: z.object({
-    id: z.string(),
+    id: z.union([z.string(), z.number()]).transform(val => {
+      const num = typeof val === 'string' ? parseInt(val, 10) : val;
+      return isNaN(num) ? val : num;
+    }),
     nombre: z.string()
   }).nullable().optional(),
   causaFallecimiento: z.string().min(1, "La causa de fallecimiento es obligatoria"),
@@ -180,7 +186,18 @@ export const useDeceasedGrid = ({
   const handleEdit = (member: DeceasedFamilyMember) => {
     try {
       setEditingDeceasedMember(member);
-      form.reset(member);
+      
+      // Convertir fechas de string a Date si es necesario
+      const formData: DeceasedMemberFormData = {
+        ...member,
+        fechaFallecimiento: member.fechaFallecimiento 
+          ? (member.fechaFallecimiento instanceof Date 
+              ? member.fechaFallecimiento 
+              : new Date(member.fechaFallecimiento as string))
+          : null,
+      };
+      
+      form.reset(formData);
       setShowDeceasedDialog(true);
       
       toast({

@@ -41,7 +41,8 @@ import {
   Shirt,
   ChevronLeft,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -170,6 +171,13 @@ const navigationItems = [
         url: "/settings/disposicion-basura",
         icon: Trash2,
         description: "Tipos de disposición de basura",
+        requiredRoles: ["admin"]
+      },
+      {
+        title: "Tipos de Identificación",
+        url: "/settings/tipos-identificacion",
+        icon: CreditCard,
+        description: "Tipos de documentos de identificación",
         requiredRoles: ["admin"]
       },
       {

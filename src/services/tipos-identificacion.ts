@@ -87,19 +87,21 @@ class TiposIdentificacionService {
         }
       );
 
-      // La API devuelve directamente un array en la propiedad data
-      const apiResponse: { status: string; data: TipoIdentificacion[] } = response.data;
+      // La API devuelve: { success, message, data: { status, data: [...], total, message } }
+      const apiData = response.data?.data || response.data;
+      const tiposArray = apiData?.data || apiData || [];
+      const total = apiData?.total || tiposArray.length;
       
       const transformedResponse: ServerResponse<TiposIdentificacionResponse> = {
-        status: apiResponse.status,
+        status: apiData?.status || 'success',
         data: {
-          tiposIdentificacion: apiResponse.data || [],
+          tiposIdentificacion: tiposArray,
           pagination: {
             currentPage: page,
-            totalPages: Math.ceil((apiResponse.data?.length || 0) / limit),
-            totalCount: apiResponse.data?.length || 0,
-            hasNext: false,
-            hasPrev: false,
+            totalPages: Math.ceil(total / limit),
+            totalCount: total,
+            hasNext: (page * limit) < total,
+            hasPrev: page > 1
           }
         }
       };
@@ -191,19 +193,21 @@ class TiposIdentificacionService {
         }
       );
       
-      // La API devuelve directamente un array en la propiedad data
-      const apiResponse: { status: string; data: TipoIdentificacion[] } = response.data;
+      // La API devuelve: { success, message, data: { status, data: [...], total, message } }
+      const apiData = response.data?.data || response.data;
+      const tiposArray = apiData?.data || apiData || [];
+      const total = apiData?.total || tiposArray.length;
       
       const transformedResponse: ServerResponse<TiposIdentificacionResponse> = {
-        status: apiResponse.status,
+        status: apiData?.status || 'success',
         data: {
-          tiposIdentificacion: apiResponse.data || [],
+          tiposIdentificacion: tiposArray,
           pagination: {
             currentPage: page,
-            totalPages: Math.ceil((apiResponse.data?.length || 0) / limit),
-            totalCount: apiResponse.data?.length || 0,
-            hasNext: false,
-            hasPrev: false,
+            totalPages: Math.ceil(total / limit),
+            totalCount: total,
+            hasNext: (page * limit) < total,
+            hasPrev: page > 1
           }
         }
       };
@@ -237,19 +241,21 @@ class TiposIdentificacionService {
         }
       );
 
-      // La API devuelve directamente un array en la propiedad data
-      const apiResponse: { status: string; data: TipoIdentificacion[] } = response.data;
+      // La API devuelve: { success, message, data: { status, data: [...], total, message } }
+      const apiData = response.data?.data || response.data;
+      const tiposArray = apiData?.data || apiData || [];
+      const total = apiData?.total || tiposArray.length;
       
       const transformedResponse: ServerResponse<TiposIdentificacionResponse> = {
-        status: apiResponse.status,
+        status: apiData?.status || 'success',
         data: {
-          tiposIdentificacion: apiResponse.data || [],
+          tiposIdentificacion: tiposArray,
           pagination: {
             currentPage: page,
-            totalPages: Math.ceil((apiResponse.data?.length || 0) / limit),
-            totalCount: apiResponse.data?.length || 0,
-            hasNext: false,
-            hasPrev: false,
+            totalPages: Math.ceil(total / limit),
+            totalCount: total,
+            hasNext: (page * limit) < total,
+            hasPrev: page > 1
           }
         }
       };

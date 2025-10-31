@@ -17,6 +17,7 @@ import ProfesionesPage from './Profesiones';
 import SectoresConfigPage from './SectoresConfig';
 import EnfermedadesPage from './Enfermedades';
 import DisposicionBasuraPage from './DisposicionBasura';
+import TiposIdentificacionPage from './TiposIdentificacion';
 
 const SettingsWrapper = () => {
   const location = useLocation();
@@ -58,6 +59,8 @@ const SettingsWrapper = () => {
         return <EnfermedadesPage />;
       case '/settings/disposicion-basura':
         return <DisposicionBasuraPage />;
+      case '/settings/tipos-identificacion':
+        return <TiposIdentificacionPage />;
       case '/settings':
       default:
         return <SettingsPage initialTab="system" />;

@@ -26,12 +26,24 @@ const EnhancedBirthDatePicker = ({
   title = "Fecha de Nacimiento",
   description = "Selecciona día, mes y año"
 }: EnhancedBirthDatePickerProps) => {
+  // Normalizar el valor a Date | null
+  const normalizedValue = React.useMemo(() => {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    // Si es string, intentar convertir a Date
+    if (typeof value === 'string') {
+      const date = new Date(value);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }, [value]);
+
   const [isOpen, setIsOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState(
-    value ? value.getFullYear() : new Date().getFullYear()
+    normalizedValue ? normalizedValue.getFullYear() : new Date().getFullYear()
   );
   const [selectedMonth, setSelectedMonth] = useState(
-    value ? value.getMonth() : new Date().getMonth()
+    normalizedValue ? normalizedValue.getMonth() : new Date().getMonth()
   );
 
   // Generar años (desde 1900 hasta año actual)
@@ -86,7 +98,7 @@ const EnhancedBirthDatePicker = ({
               "bg-white hover:bg-gray-50 border-gray-300 hover:border-blue-400",
               "focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
               "transition-all duration-200 ease-in-out",
-              !value && "text-muted-foreground",
+              !normalizedValue && "text-muted-foreground",
               disabled && "opacity-50 cursor-not-allowed"
             )}
             disabled={disabled}
@@ -94,7 +106,7 @@ const EnhancedBirthDatePicker = ({
             <div className="flex items-center space-x-3 w-full">
               <Calendar className="h-5 w-5 text-blue-500" />
               <span className="flex-1 text-sm">
-                {value ? format(value, "dd 'de' MMMM 'de' yyyy", { locale: es }) : placeholder}
+                {normalizedValue ? format(normalizedValue, "dd 'de' MMMM 'de' yyyy", { locale: es }) : placeholder}
               </span>
             </div>
           </Button>
@@ -149,7 +161,7 @@ const EnhancedBirthDatePicker = ({
           <div className="p-4">
             <DayPicker
                 mode="single"
-                selected={value || undefined}
+                selected={normalizedValue || undefined}
                 onSelect={handleDateSelect}
                 month={displayMonth}
                 onMonthChange={(month) => {
@@ -214,7 +226,7 @@ const EnhancedBirthDatePicker = ({
                 <Calendar className="h-3 w-3 mr-1" />
                 Hoy
               </Button>
-              {value && (
+              {normalizedValue && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -227,9 +239,9 @@ const EnhancedBirthDatePicker = ({
               )}
             </div>
             
-            {value && (
+            {normalizedValue && (
               <div className="text-xs text-gray-600 bg-white px-2 py-1 rounded border">
-                {format(value, "dd/MM/yyyy")}
+                {format(normalizedValue, "dd/MM/yyyy")}
               </div>
             )}
           </div>

@@ -558,12 +558,12 @@ export const useConfigurationData = (): ConfigurationData => {
     
     if (data?.data?.tiposIdentificacion?.data && Array.isArray(data.data.tiposIdentificacion.data)) {
       return data.data.tiposIdentificacion.data.map((tipo: any) => ({
-        value: tipo.codigo || tipo.id_tipo_identificacion?.toString() || '',
+        value: tipo.id_tipo_identificacion?.toString() || '',
         label: tipo.codigo ? `${tipo.codigo} - ${tipo.nombre}` : tipo.nombre || 'Sin nombre',
         description: tipo.descripcion || `Tipo de documento: ${tipo.nombre}`,
         category: 'Identificación',
         popular: false,
-        // Agregar metadata con el ID numérico real para uso en transformaciones
+        // Agregar metadata con el código para referencia
         metadata: {
           id: tipo.id_tipo_identificacion,
           codigo: tipo.codigo

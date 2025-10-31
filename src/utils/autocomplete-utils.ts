@@ -58,8 +58,13 @@ export const createConfigurationItemHandler = (
 
     const selectedOption = options.find(option => option.value === value);
     if (selectedOption) {
+      // Convertir el value (string) a número si es posible
+      const numericId = typeof selectedOption.value === 'string' 
+        ? parseInt(selectedOption.value, 10) 
+        : selectedOption.value;
+      
       onChange({
-        id: selectedOption.value,
+        id: isNaN(numericId) ? selectedOption.value : numericId,
         nombre: selectedOption.label
       });
     } else {

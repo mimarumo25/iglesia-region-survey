@@ -400,6 +400,17 @@ const App = () => (
                 />
 
                 <Route 
+                  path="/settings/tipos-identificacion" 
+                  element={
+                    <PrivateRoute requiredRole={["admin"]}>
+                      <Layout>
+                        <SettingsWrapper />
+                      </Layout>
+                    </PrivateRoute>
+                  } 
+                />
+
+                <Route 
                   path="/settings/sexos" 
                   element={
                     <PrivateRoute requiredRole={["admin"]}>

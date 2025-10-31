@@ -267,22 +267,14 @@ const formDataToFamilyMember = (data: FamilyMemberFormData, id: string, configur
     const selectedOption = options.find((option: any) => option.value === value);
     
     if (selectedOption) {
-      // Extraer el ID numérico desde la metadata de la opción si existe
-      let numericId: number | string = selectedOption.value;
-      
-      // Para tiposIdentificacionOptions, el value puede ser el código (ej: "CC")
-      // pero necesitamos el ID numérico. Buscar en la metadata
-      if (selectedOption.metadata?.id) {
-        numericId = selectedOption.metadata.id;
-      } else if (selectedOption.id) {
-        numericId = selectedOption.id;
-      }
-      
-      // Asegurar que el ID sea numérico
-      const finalId = typeof numericId === 'string' ? parseInt(numericId, 10) : numericId;
+      // El value ya es el ID numérico en formato string
+      // Convertirlo a número para almacenamiento
+      const numericId = typeof selectedOption.value === 'string' 
+        ? parseInt(selectedOption.value, 10) 
+        : selectedOption.value;
       
       return {
-        id: isNaN(finalId) ? numericId : finalId, // Usar número si es válido, sino string original
+        id: isNaN(numericId) ? selectedOption.value : numericId, // Usar número si es válido
         nombre: selectedOption.label
       };
     }
