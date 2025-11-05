@@ -10,7 +10,6 @@ import ServiceErrorDisplay from "@/components/ui/service-error-display";
 import { FormField as FormFieldType } from "@/types/survey";
 import { Loader2 } from "lucide-react";
 import { trimString, trimValue } from "@/utils/stringTrimHelpers";
-import { useCatalogRoute } from "@/hooks/useCatalogRoute";
 
 interface StandardFormFieldProps {
   field: FormFieldType;
@@ -44,8 +43,6 @@ const StandardFormField = ({
   error = null 
 }: StandardFormFieldProps) => {
   
-  const { navigateToCatalog, hasCatalog } = useCatalogRoute();
-
   const renderLabel = () => (
     <Label 
       htmlFor={field.id} 
