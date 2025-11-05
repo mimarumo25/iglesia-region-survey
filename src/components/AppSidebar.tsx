@@ -116,7 +116,20 @@ const navigationItems = [
         description: "Gestión de parroquias",
         requiredRoles: ["admin"]
       },
-
+      {
+        title: "Corregimientos",
+        url: "/settings/corregimientos",
+        icon: MapPin,
+        description: "Gestión de corregimientos",
+        requiredRoles: ["admin"]
+      },
+      {
+        title: "Centros Poblados",
+        url: "/settings/centros-poblados",
+        icon: MapPin,
+        description: "Gestión de centros poblados",
+        requiredRoles: ["admin"]
+      },
       {
         title: "Enfermedades",
         url: "/settings/enfermedades",
@@ -230,7 +243,7 @@ const navigationItems = [
         requiredRoles: ["admin"]
       },
       {
-        title: "Catálogo Sectores",
+        title: "Sectores",
         url: "/settings/sectores-config",
         icon: MapPin,
         description: "Catálogo de sectores del sistema",

@@ -553,11 +553,13 @@ export const useConfigurationData = (): ConfigurationData => {
   }, [aguasResidualesData]);
 
   const tiposIdentificacionOptions = useMemo((): AutocompleteOption[] => {
-    // Estructura real: data.data.tiposIdentificacion.data (array)
+    // Estructura de ServerResponse<TiposIdentificacionResponse>
+    // {status: 'success', data: {tiposIdentificacion: Array}}
     const data = tiposIdentificacionData as any;
     
-    if (data?.data?.tiposIdentificacion?.data && Array.isArray(data.data.tiposIdentificacion.data)) {
-      return data.data.tiposIdentificacion.data.map((tipo: any) => ({
+    // Caso 1: Estructura correcta con tiposIdentificacion array
+    if (data?.data?.tiposIdentificacion && Array.isArray(data.data.tiposIdentificacion)) {
+      return data.data.tiposIdentificacion.map((tipo: any) => ({
         value: tipo.id_tipo_identificacion?.toString() || '',
         label: tipo.codigo ? `${tipo.codigo} - ${tipo.nombre}` : tipo.nombre || 'Sin nombre',
         description: tipo.descripcion || `Tipo de documento: ${tipo.nombre}`,

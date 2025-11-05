@@ -224,7 +224,7 @@ const FamilyMemberDialog = ({
                         <Input 
                           {...field}
                           value={field.value || ''}
-                          onChange={(e) => field.onChange(trimString(e.target.value))}
+                          onChange={(e) => field.onChange(e.target.value)}
                           onBlur={(e) => field.onChange(trimString(e.target.value))}
                           className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
                           placeholder="Ingrese nombres y apellidos completos"
@@ -270,7 +270,7 @@ const FamilyMemberDialog = ({
                         <Input 
                           {...field}
                           value={field.value || ''}
-                          onChange={(e) => field.onChange(trimString(e.target.value))}
+                          onChange={(e) => field.onChange(e.target.value)}
                           onBlur={(e) => field.onChange(trimString(e.target.value))}
                           className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
                           placeholder="Ingrese número de identificación"
