@@ -94,6 +94,14 @@ export interface APIEncuestaFormat {
       id: number;
       nombre: string;
     };
+    corregimiento: {
+      id: number;
+      nombre: string;
+    } | null;
+    centro_poblado: {
+      id: number;
+      nombre: string;
+    } | null;
     fecha: string; // Formato ISO date string (sin tiempo)
     apellido_familiar: string;
     direccion: string;
@@ -113,10 +121,7 @@ export interface APIEncuestaFormat {
       id: number;
       nombre: string;
     };
-    aguas_residuales: {
-      id: number;
-      nombre: string;
-    } | null;
+    aguas_residuales: DynamicSelectionMap;
   };
   observaciones: {
     sustento_familia: string;
@@ -234,6 +239,8 @@ export function transformSurveyDataForAPI(data: SurveySessionData): APIEncuestaF
     parroquia: transformConfigurationItem(data.informacionGeneral.parroquia) || { id: 1, nombre: 'San José' },
     sector: transformConfigurationItem(data.informacionGeneral.sector) || { id: 1, nombre: 'Centro' },
     vereda: transformConfigurationItem(data.informacionGeneral.vereda) || { id: 1, nombre: 'Centro' },
+    corregimiento: transformConfigurationItem(data.informacionGeneral.corregimiento),
+    centro_poblado: transformConfigurationItem(data.informacionGeneral.centro_poblado),
     fecha: transformDate(data.informacionGeneral.fecha),
     apellido_familiar: data.informacionGeneral.apellido_familiar || '',
     direccion: data.informacionGeneral.direccion || '',
@@ -252,7 +259,7 @@ export function transformSurveyDataForAPI(data: SurveySessionData): APIEncuestaF
   // Transformar servicios de agua
   const servicios_agua = {
     sistema_acueducto: transformConfigurationItem(data.servicios_agua.sistema_acueducto) || { id: 1, nombre: 'Acueducto Público' },
-    aguas_residuales: null,
+    aguas_residuales: data.servicios_agua.aguas_residuales,
   };
 
   // Transformar miembros de familia

@@ -5,7 +5,7 @@
 
 import { ConfigurationItem, SurveySessionData, FamilyMember, DeceasedFamilyMember, DynamicSelectionMap } from "@/types/survey";
 import { ConfigurationData } from "@/hooks/useConfigurationData";
-import { prepareFamilyMembersForSubmission } from "./formDataTransformer";
+import { prepareFamilyMembersForSubmission, prepareDeceasedMembersForSubmission } from "./formDataTransformer";
 import { convertIdsToSelectionMap, createEmptySelectionMap } from "./dynamicSelectionHelpers";
 
 /**
@@ -131,7 +131,7 @@ export const transformFormDataToSurveySession = (
     
     // Miembros de familia sin IDs temporales para el backend
     familyMembers: prepareFamilyMembersForSubmission(familyMembers),
-    deceasedMembers: deceasedMembers,
+    deceasedMembers: prepareDeceasedMembersForSubmission(deceasedMembers),
     
     // Metadata
     metadata: {

@@ -56,6 +56,14 @@ export interface EncuestaListItem {
     id: string;
     nombre: string;
   } | null;
+  corregimiento: {
+    id: string;
+    nombre: string;
+  } | null;
+  centro_poblado: {
+    id: string;
+    nombre: string;
+  } | null;
   parroquia: {
     id: string;
     nombre: string;

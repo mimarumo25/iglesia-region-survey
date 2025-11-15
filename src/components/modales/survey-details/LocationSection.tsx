@@ -36,12 +36,9 @@ export const LocationSection = ({ data }: LocationSectionProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <p className="text-sm font-medium text-gray-500 mb-2">Municipio</p>
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-gray-400" />
-                <p className="text-lg font-medium text-gray-900">
-                  {data.municipio?.nombre || "No especificado"}
-                </p>
-              </div>
+              <p className="text-lg font-medium text-gray-900">
+                {data.municipio?.nombre || "No especificado"}
+              </p>
               {data.municipio?.id && (
                 <p className="text-xs text-gray-500 mt-1">ID: {data.municipio.id}</p>
               )}
@@ -49,8 +46,7 @@ export const LocationSection = ({ data }: LocationSectionProps) => {
 
             <div>
               <p className="text-sm font-medium text-gray-500 mb-2">Sector</p>
-              <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                <Map className="w-3 h-3" />
+              <Badge variant="outline" className="w-fit">
                 {data.sector?.nombre || "General"}
               </Badge>
               {data.sector?.id && (
@@ -61,12 +57,12 @@ export const LocationSection = ({ data }: LocationSectionProps) => {
         </CardContent>
       </Card>
 
-      {/* Ubicación Eclesiástica */}
+      {/* Ubicación Eclesiástica y Territorial */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Church className="w-5 h-5 text-purple-600" />
-            Ubicación Eclesiástica
+            Ubicación Eclesiástica y Territorial
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -75,21 +71,15 @@ export const LocationSection = ({ data }: LocationSectionProps) => {
               <p className="text-sm font-medium text-gray-500 mb-2">Parroquia</p>
               {data.parroquia ? (
                 <div>
-                  <div className="flex items-center gap-2">
-                    <Church className="w-4 h-4 text-purple-500" />
-                    <p className="text-lg font-medium text-gray-900">
-                      {data.parroquia.nombre}
-                    </p>
-                  </div>
+                  <p className="text-lg font-medium text-gray-900">
+                    {data.parroquia.nombre}
+                  </p>
                   {data.parroquia.id && (
                     <p className="text-xs text-gray-500 mt-1">ID: {data.parroquia.id}</p>
                   )}
                 </div>
               ) : (
-                <div className="flex items-center gap-2 text-gray-500">
-                  <Church className="w-4 h-4" />
-                  <p>No asignada</p>
-                </div>
+                <p className="text-gray-500">No asignada</p>
               )}
             </div>
 
@@ -97,21 +87,47 @@ export const LocationSection = ({ data }: LocationSectionProps) => {
               <p className="text-sm font-medium text-gray-500 mb-2">Vereda</p>
               {data.vereda ? (
                 <div>
-                  <div className="flex items-center gap-2">
-                    <Trees className="w-4 h-4 text-green-500" />
-                    <p className="text-lg font-medium text-gray-900">
-                      {data.vereda.nombre}
-                    </p>
-                  </div>
+                  <p className="text-lg font-medium text-gray-900">
+                    {data.vereda.nombre}
+                  </p>
                   {data.vereda.id && (
                     <p className="text-xs text-gray-500 mt-1">ID: {data.vereda.id}</p>
                   )}
                 </div>
               ) : (
-                <div className="flex items-center gap-2 text-gray-500">
-                  <Trees className="w-4 h-4" />
-                  <p>No especificada</p>
+                <p className="text-gray-500">No especificada</p>
+              )}
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-gray-500 mb-2">Corregimiento</p>
+              {data.corregimiento ? (
+                <div>
+                  <p className="text-lg font-medium text-gray-900">
+                    {data.corregimiento.nombre}
+                  </p>
+                  {data.corregimiento.id && (
+                    <p className="text-xs text-gray-500 mt-1">ID: {data.corregimiento.id}</p>
+                  )}
                 </div>
+              ) : (
+                <p className="text-gray-500">No especificado</p>
+              )}
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-gray-500 mb-2">Centro Poblado</p>
+              {data.centro_poblado ? (
+                <div>
+                  <p className="text-lg font-medium text-gray-900">
+                    {data.centro_poblado.nombre}
+                  </p>
+                  {data.centro_poblado.id && (
+                    <p className="text-xs text-gray-500 mt-1">ID: {data.centro_poblado.id}</p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-500">No especificado</p>
               )}
             </div>
           </div>
@@ -137,7 +153,9 @@ export const LocationSection = ({ data }: LocationSectionProps) => {
                 <div className="text-sm text-gray-600 space-y-1">
                   <p>📍 {data.municipio?.nombre || "Municipio no especificado"}</p>
                   {data.vereda && <p>🌿 {data.vereda.nombre}</p>}
-                  {data.sector && <p>🗺️ Sector: {data.sector.nombre}</p>}
+                  {data.corregimiento && <p>🗺️ Corregimiento: {data.corregimiento.nombre}</p>}
+                  {data.centro_poblado && <p>🏘️ Centro Poblado: {data.centro_poblado.nombre}</p>}
+                  {data.sector && <p>� Sector: {data.sector.nombre}</p>}
                   {data.parroquia && <p>⛪ Parroquia: {data.parroquia.nombre}</p>}
                 </div>
               </div>
@@ -187,6 +205,22 @@ export const LocationSection = ({ data }: LocationSectionProps) => {
               <Badge variant="outline" className="bg-green-50 text-green-700">
                 {data.vereda?.nombre || "Sin Vereda"}
               </Badge>
+              {data.corregimiento && (
+                <>
+                  <span className="text-gray-400">→</span>
+                  <Badge variant="outline" className="bg-orange-50 text-orange-700">
+                    {data.corregimiento.nombre}
+                  </Badge>
+                </>
+              )}
+              {data.centro_poblado && (
+                <>
+                  <span className="text-gray-400">→</span>
+                  <Badge variant="outline" className="bg-pink-50 text-pink-700">
+                    {data.centro_poblado.nombre}
+                  </Badge>
+                </>
+              )}
               <span className="text-gray-400">→</span>
               <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
                 {data.sector?.nombre || "Sector General"}
@@ -208,6 +242,14 @@ export const LocationSection = ({ data }: LocationSectionProps) => {
                 <div className={`flex items-center gap-1 ${data.vereda ? 'text-green-600' : 'text-yellow-600'}`}>
                   <span>{data.vereda ? '✅' : '⚠️'}</span>
                   Vereda
+                </div>
+                <div className={`flex items-center gap-1 ${data.corregimiento ? 'text-green-600' : 'text-yellow-600'}`}>
+                  <span>{data.corregimiento ? '✅' : '⚠️'}</span>
+                  Corregimiento
+                </div>
+                <div className={`flex items-center gap-1 ${data.centro_poblado ? 'text-green-600' : 'text-yellow-600'}`}>
+                  <span>{data.centro_poblado ? '✅' : '⚠️'}</span>
+                  Centro Poblado
                 </div>
                 <div className={`flex items-center gap-1 ${data.sector ? 'text-green-600' : 'text-yellow-600'}`}>
                   <span>{data.sector ? '✅' : '⚠️'}</span>

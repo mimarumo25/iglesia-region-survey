@@ -179,8 +179,69 @@ export const getDisplayName = (item: ConfigurationItem | null | string): string 
 export const prepareFamilyMembersForSubmission = (familyMembers: any[]): any[] => {
   return familyMembers.map(member => {
     const { id, ...memberWithoutId } = member;
+    // También eliminar los IDs temporales de las celebraciones
+    return removeCelebracionIds(memberWithoutId);
+  });
+};
+
+/**
+ * Prepara los difuntos para la presentación eliminando el ID temporal del frontend
+ * El ID se usa solo en el frontend para edición/eliminación, pero no debe guardarse en API/localStorage
+ * 
+ * @param deceasedMembers - Array de miembros difuntos con IDs temporales
+ * @returns Array de miembros difuntos sin el campo id
+ * 
+ * @example
+ * Input: [{ id: '1702657452927', nombres: 'Juan', sexo: { id: 1, nombre: 'Masculino' } }]
+ * Output: [{ nombres: 'Juan', sexo: { id: 1, nombre: 'Masculino' } }]
+ */
+export const prepareDeceasedMembersForSubmission = (deceasedMembers: any[]): any[] => {
+  return deceasedMembers.map(member => {
+    const { id, ...memberWithoutId } = member;
     return memberWithoutId;
   });
+};
+
+/**
+ * Elimina los IDs temporales de las celebraciones de un miembro de familia
+ * Los IDs se usan solo en el frontend para edición/eliminación, pero no deben guardarse en API/localStorage
+ * 
+ * @param member - Miembro de familia con celebraciones que tienen IDs temporales
+ * @returns Miembro de familia sin los IDs temporales en las celebraciones
+ * 
+ * @example
+ * Input: {
+ *   nombres: 'Juan',
+ *   profesionMotivoFechaCelebrar: {
+ *     celebraciones: [
+ *       { id: 'celebracion-1702657452927-abc123', motivo: 'Cumpleaños', dia: '25', mes: '12' }
+ *     ]
+ *   }
+ * }
+ * Output: {
+ *   nombres: 'Juan',
+ *   profesionMotivoFechaCelebrar: {
+ *     celebraciones: [
+ *       { motivo: 'Cumpleaños', dia: '25', mes: '12' }
+ *     ]
+ *   }
+ * }
+ */
+export const removeCelebracionIds = (member: any): any => {
+  if (!member?.profesionMotivoFechaCelebrar?.celebraciones) {
+    return member;
+  }
+
+  return {
+    ...member,
+    profesionMotivoFechaCelebrar: {
+      ...member.profesionMotivoFechaCelebrar,
+      celebraciones: member.profesionMotivoFechaCelebrar.celebraciones.map((celebracion: any) => {
+        const { id, ...celebracionWithoutId } = celebracion;
+        return celebracionWithoutId;
+      })
+    }
+  };
 };
 
 /**

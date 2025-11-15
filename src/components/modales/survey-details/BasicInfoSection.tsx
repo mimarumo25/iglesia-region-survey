@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  Home,
   Phone,
   MapPin,
   Calendar,
@@ -62,8 +61,7 @@ export const BasicInfoSection = ({ data }: BasicInfoSectionProps) => {
       {/* Información Principal de la Familia */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Home className="w-5 h-5 text-blue-600" />
+          <CardTitle>
             Información Principal
           </CardTitle>
         </CardHeader>
@@ -122,8 +120,7 @@ export const BasicInfoSection = ({ data }: BasicInfoSectionProps) => {
       {/* Información de la Vivienda */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Home className="w-5 h-5 text-green-600" />
+          <CardTitle>
             Datos de la Vivienda
           </CardTitle>
         </CardHeader>
@@ -147,8 +144,7 @@ export const BasicInfoSection = ({ data }: BasicInfoSectionProps) => {
       {/* Estadísticas Rápidas */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-purple-600" />
+          <CardTitle>
             Resumen de Integrantes
           </CardTitle>
         </CardHeader>
@@ -188,8 +184,7 @@ export const BasicInfoSection = ({ data }: BasicInfoSectionProps) => {
       {/* Fechas Importantes */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-indigo-600" />
+          <CardTitle>
             Fechas Importantes
           </CardTitle>
         </CardHeader>
