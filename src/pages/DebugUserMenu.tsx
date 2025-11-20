@@ -9,7 +9,6 @@ const DebugUserMenu = () => {
   const navigate = useNavigate();
 
   const handleGoToProfile = () => {
-    console.log('🔍 Debug: Navegando al perfil directamente');
     navigate('/profile');
   };
 

@@ -95,11 +95,15 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
       return basuraArray;
     })(),
     
-    // Servicios de agua
-    sistema_acueducto: encuesta.acueducto?.id || '',
-    // 🔄 NUEVO: aguas_residuales ahora es un array de IDs (estructura dinámica)
-    // Actualmente la API devuelve un objeto único, lo convertimos a array
-    aguas_residuales: encuesta.aguas_residuales?.id ? [encuesta.aguas_residuales.id] : [],
+    // Servicios de agua - ⚠️ Backend devuelve ARRAYS, tomamos primer elemento
+    sistema_acueducto: Array.isArray(encuesta.acueducto) && encuesta.acueducto.length > 0 
+      ? encuesta.acueducto[0].id 
+      : (encuesta.acueducto as any)?.id || '',
+    
+    // 🔄 aguas_residuales: Backend devuelve array, extraemos IDs
+    aguas_residuales: Array.isArray(encuesta.aguas_residuales) 
+      ? encuesta.aguas_residuales.map(ar => ar.id)
+      : (encuesta.aguas_residuales as any)?.id ? [(encuesta.aguas_residuales as any).id] : [],
     
     // Observaciones y consentimiento
     sustento_familia: '', // No disponible en respuesta actual
@@ -138,25 +142,59 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
       numeroIdentificacion: persona.identificacion?.numero || '',
       sexo,
       situacionCivil,
-      parentesco: null, // TODO: No disponible en respuesta actual
+      // 🔄 parentesco: Mapear desde la respuesta del backend
+      parentesco: (persona as any).parentesco ? {
+        id: String((persona as any).parentesco.id),
+        nombre: (persona as any).parentesco.nombre
+      } : null,
       talla_camisa: persona.tallas?.camisa || '',
       talla_pantalon: persona.tallas?.pantalon || '',
       talla_zapato: persona.tallas?.zapato || '',
       estudio,
-      comunidadCultural: null, // TODO: Mapear si está disponible
+      // 🔄 comunidadCultural: Mapear desde la respuesta del backend
+      comunidadCultural: (persona as any).comunidad_cultural ? {
+        id: String((persona as any).comunidad_cultural.id),
+        nombre: (persona as any).comunidad_cultural.nombre
+      } : null,
       telefono: persona.telefono || '',
-      enQueEresLider: [], // No disponible en respuesta actual
+      // 🔄 en_que_eres_lider: Backend devuelve STRING o null
+      enQueEresLider: (persona as any).en_que_eres_lider 
+        ? [(persona as any).en_que_eres_lider] 
+        : [],
       correoElectronico: persona.email || '',
-      enfermedades: [], // No disponible en respuesta actual
-      necesidadesEnfermo: [], // No disponible
-      solicitudComunionCasa: false, // No disponible
+      // 🔄 enfermedades: Array con {id_persona, id, nombre}
+      enfermedades: ((persona as any).enfermedades || []).map((e: any) => ({
+        id: e.id || 0,
+        nombre: e.nombre || ''
+      })),
+      // 🔄 necesidad_enfermo: STRING singular (no array)
+      necesidadesEnfermo: (persona as any).necesidad_enfermo 
+        ? [(persona as any).necesidad_enfermo]
+        : [],
+      solicitudComunionCasa: (persona as any).solicitudComunionCasa || false,
       profesionMotivoFechaCelebrar: {
-        profesion: null,
-        celebraciones: [],
+        profesion: (persona as any).profesion ? {
+          id: (persona as any).profesion.id,
+          nombre: (persona as any).profesion.nombre
+        } : null,
+        // 🔄 celebraciones: Backend incluye {id_persona, id, motivo, dia, mes, created_at, updated_at}
+        celebraciones: ((persona as any).celebraciones || []).map((c: any) => ({
+          id: c.id ? String(c.id) : createCelebracionId(),
+          motivo: c.motivo || '',
+          dia: String(c.dia || ''),
+          mes: String(c.mes || '')
+        }))
       },
-      // Campos de habilidades y destrezas (arrays vacíos por defecto)
-      habilidades: [],
-      destrezas: []
+      // Campos de habilidades y destrezas
+      habilidades: ((persona as any).habilidades || []).map((h: any) => ({
+        id: h.id || 0,
+        nombre: h.nombre || '',
+        nivel: h.nivel || ''
+      })),
+      destrezas: ((persona as any).destrezas || []).map((d: any) => ({
+        id: d.id || 0,
+        nombre: d.nombre || ''
+      }))
     };
   });
 
@@ -283,9 +321,9 @@ const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDa
         id: miembro.parentesco,
         nombre: miembro.parentesco
       } : null,
-      talla_camisa: '',
-      talla_pantalon: '',
-      talla_zapato: '',
+      talla_camisa: (miembro as any).talla_camisa || '',
+      talla_pantalon: (miembro as any).talla_pantalon || '',
+      talla_zapato: (miembro as any).talla_zapato || '',
       estudio: miembro.nivel_estudios ? {
         id: miembro.nivel_estudios,
         nombre: miembro.nivel_estudios
@@ -294,18 +332,24 @@ const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDa
         id: miembro.comunidad_cultural,
         nombre: miembro.comunidad_cultural
       } : null,
-      telefono: '',
-      enQueEresLider: [],
-      correoElectronico: '',
-      enfermedades: [],
-      necesidadesEnfermo: [],
-      solicitudComunionCasa: false,
+      telefono: (miembro as any).telefono || '',
+      enQueEresLider: (miembro as any).enQueEresLider || [],
+      correoElectronico: (miembro as any).correo_electronico || (miembro as any).email || '',
+      enfermedades: (miembro as any).enfermedades || [],
+      necesidadesEnfermo: (miembro as any).necesidadesEnfermo || [],
+      solicitudComunionCasa: (miembro as any).solicitudComunionCasa || false,
       profesionMotivoFechaCelebrar: {
         profesion: miembro.profesion_oficio ? {
           id: miembro.profesion_oficio,
           nombre: miembro.profesion_oficio
-        } : null,
+        } : (miembro as any).profesionMotivoFechaCelebrar?.profesion || null,
         celebraciones: (() => {
+          // Si ya viene en el nuevo formato
+          if ((miembro as any).profesionMotivoFechaCelebrar?.celebraciones) {
+            return (miembro as any).profesionMotivoFechaCelebrar.celebraciones;
+          }
+          
+          // Si viene en formato legacy (campos separados)
           const legacyMember = miembro as any;
           const motivo = legacyMember?.motivo_fecha_celebrar?.trim?.() || '';
           const dia = legacyMember?.dia_fecha_celebrar?.trim?.() || '';
@@ -323,9 +367,9 @@ const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDa
           return [];
         })(),
       },
-      // Campos de habilidades y destrezas (arrays vacíos por defecto)
-      habilidades: [],
-      destrezas: []
+      // Campos de habilidades y destrezas
+      habilidades: (miembro as any).habilidades || [],
+      destrezas: (miembro as any).destrezas || []
     };
   });
 

@@ -107,6 +107,8 @@ const Surveys = () => {
     hasPrevPage: false
   };
 
+
+
   // Calcular estadísticas desde los 756w
   const stats = useMemo(() => {
     return encuestas.reduce((acc, encuesta) => {
@@ -222,11 +224,8 @@ const Surveys = () => {
   const handleViewDetails = (id: string | number) => {
     const idString = typeof id === 'number' ? id.toString() : id;
     
-    // Usar modal en lugar de navegación
-    const encuesta = encuestas.find(e => e.id_encuesta === idString);
-    setSelectedSurveyId(idString);
-    setSelectedSurveyData(encuesta);
-    setDetailModalOpen(true);
+    // Navegar a la página completa de detalles
+    navigate(`/surveys/${idString}`);
   };
 
   /**
@@ -878,7 +877,7 @@ const Surveys = () => {
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <User className="w-3 h-3 text-gray-400" />
-                        Sistema
+                        <span className="text-sm">{encuesta.usuario_creador || 'Sistema'}</span>
                       </div>
                     </TableCell>
                     <TableCell>

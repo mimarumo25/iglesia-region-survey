@@ -898,7 +898,6 @@ const FamilyMemberDialog = ({
                           options={habilidades}
                           value={(field.value || []) as Array<{ id: number; nombre: string; nivel?: string }>}
                           onChange={(selected) => {
-                            console.log('🔄 Habilidades onChange:', selected);
                             field.onChange(selected);
                           }}
                           placeholder="Seleccionar habilidades..."
@@ -928,7 +927,6 @@ const FamilyMemberDialog = ({
                           options={destrezas}
                           value={(field.value || []) as Array<{ id: number; nombre: string }>}
                           onChange={(selected) => {
-                            console.log('🔄 Destrezas onChange:', selected);
                             field.onChange(selected);
                           }}
                           placeholder="Seleccionar destrezas..."

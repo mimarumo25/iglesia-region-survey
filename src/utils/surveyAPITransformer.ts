@@ -37,23 +37,28 @@ interface APIFamilyMember {
     id: number | string;
     nombre: string;
   };
-  "talla_camisa/blusa": string; // Nota: la API espera este formato específico
+  talla_camisa: string;
   talla_pantalon: string;
   talla_zapato: string;
-  profesion: {
-    id: number | string;
-    nombre: string;
-  } | null;
-  motivoFechaCelebrar: {
-    motivo: string;
-    dia: string;
-    mes: string;
-  };
   // Campos adicionales que pueden estar presentes
-  enQueEresLider?: string | string[];
-  correoElectronico?: string;
-  necesidadesEnfermo?: string | string[];
+  enQueEresLider?: string[];
+  correo_electronico?: string;
+  enfermedades?: Array<{ id: number; nombre: string }>;
+  necesidadesEnfermo?: string[];
   solicitudComunionCasa?: boolean;
+  profesionMotivoFechaCelebrar?: {
+    profesion: {
+      id: number | string;
+      nombre: string;
+    } | null;
+    celebraciones: Array<{
+      motivo: string;
+      dia: string;
+      mes: string;
+    }>;
+  };
+  habilidades?: Array<{ id: number; nombre: string; nivel?: string }>;
+  destrezas?: Array<{ id: number; nombre: string }>;
 }
 
 /**
@@ -107,7 +112,6 @@ export interface APIEncuestaFormat {
     direccion: string;
     telefono: string;
     numero_contrato_epm: string;
-    comunionEnCasa: boolean; // Campo requerido por API
   };
   vivienda: {
     tipo_vivienda: {
@@ -135,6 +139,7 @@ export interface APIEncuestaFormat {
     completed: boolean;
     currentStage: number;
   };
+  version: string;
 }
 
 /**
@@ -183,14 +188,12 @@ function transformFamilyMember(member: FamilyMember): APIFamilyMember {
     ? member.profesionMotivoFechaCelebrar?.celebraciones ?? []
     : [];
 
-  const [primaryCelebracion] = celebraciones;
-
-  // Extraer motivo y fecha de celebración (se envía el primer registro para compatibilidad con la API actual)
-  const motivoFechaCelebrar = {
-    motivo: primaryCelebracion?.motivo || '',
-    dia: primaryCelebracion?.dia || '',
-    mes: primaryCelebracion?.mes || ''
-  };
+  // Mapear celebraciones sin el campo 'id'
+  const celebracionesMapeadas = celebraciones.map(c => ({
+    motivo: c.motivo || '',
+    dia: c.dia || '',
+    mes: c.mes || ''
+  }));
 
   return {
     nombres: member.nombres || '',
@@ -203,16 +206,21 @@ function transformFamilyMember(member: FamilyMember): APIFamilyMember {
     estudio: transformConfigurationItem(member.estudio) || { id: 1, nombre: 'Primaria' },
     parentesco: transformConfigurationItem(member.parentesco) || { id: 1, nombre: 'Jefe de Hogar' },
     comunidadCultural: transformConfigurationItem(member.comunidadCultural) || { id: 1, nombre: 'Ninguna' },
-    "talla_camisa/blusa": member.talla_camisa || 'M', // Transformar nombre de campo
+    talla_camisa: member.talla_camisa || 'M',
     talla_pantalon: member.talla_pantalon || '32',
     talla_zapato: member.talla_zapato || '38',
-    profesion: profesion,
-    motivoFechaCelebrar: motivoFechaCelebrar,
-    // Campos opcionales
-    enQueEresLider: Array.isArray(member.enQueEresLider) ? member.enQueEresLider.join(', ') : (member.enQueEresLider as any),
-    correoElectronico: member.correoElectronico,
-    necesidadesEnfermo: Array.isArray(member.necesidadesEnfermo) ? member.necesidadesEnfermo.join(', ') : (member.necesidadesEnfermo as any),
-    solicitudComunionCasa: member.solicitudComunionCasa
+    // Campos opcionales - mantener como arrays/objetos según schema
+    enQueEresLider: Array.isArray(member.enQueEresLider) ? member.enQueEresLider : [],
+    correo_electronico: member.correoElectronico || '',
+    enfermedades: member.enfermedades || [],
+    necesidadesEnfermo: Array.isArray(member.necesidadesEnfermo) ? member.necesidadesEnfermo : [],
+    solicitudComunionCasa: member.solicitudComunionCasa || false,
+    profesionMotivoFechaCelebrar: {
+      profesion: profesion,
+      celebraciones: celebracionesMapeadas
+    },
+    habilidades: member.habilidades || [],
+    destrezas: member.destrezas || []
   };
 }
 
@@ -245,9 +253,7 @@ export function transformSurveyDataForAPI(data: SurveySessionData): APIEncuestaF
     apellido_familiar: data.informacionGeneral.apellido_familiar || '',
     direccion: data.informacionGeneral.direccion || '',
     telefono: data.informacionGeneral.telefono || '',
-    numero_contrato_epm: data.informacionGeneral.numero_contrato_epm || '',
-    // comunionEnCasa se calcula como true si algún miembro solicita comunión en casa
-    comunionEnCasa: data.familyMembers.some(member => member.solicitudComunionCasa === true)
+    numero_contrato_epm: data.informacionGeneral.numero_contrato_epm || ''
   };
 
   // Transformar vivienda
@@ -275,7 +281,8 @@ export function transformSurveyDataForAPI(data: SurveySessionData): APIEncuestaF
     observaciones: data.observaciones,
     familyMembers,
     deceasedMembers,
-    metadata: data.metadata
+    metadata: data.metadata,
+    version: '2.0'
   };
 
   return transformedData;

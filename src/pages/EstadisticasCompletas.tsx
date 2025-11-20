@@ -45,14 +45,11 @@ const EstadisticasCompletas = () => {
 
   const cargarEstadisticas = async () => {
     try {
-      console.log("📊 Cargando estadísticas completas...")
       setIsLoading(true)
       setError(null)
       const data = await obtenerEstadisticasCompletas()
-      console.log("✅ Estadísticas cargadas:", data)
       setEstadisticas(data)
     } catch (err: any) {
-      console.error('❌ Error al cargar estadísticas completas:', err)
       setError(err.message || 'Error al cargar estadísticas del sistema')
     } finally {
       setIsLoading(false)

@@ -46,7 +46,6 @@ export const BasicSearch: React.FC<BasicSearchProps> = ({
   };
 
   const handleResultClick = (result: any) => {
-    console.log('Resultado seleccionado:', result);
     setIsOpen(false);
     // Aquí iría la navegación
   };

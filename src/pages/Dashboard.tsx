@@ -36,9 +36,7 @@ const DashboardMain = () => {
         const dataCompletas = await obtenerEstadisticasCompletas();
         
         setEstadisticasCompletas(dataCompletas);
-        console.log("✅ Estadísticas completas cargadas:", dataCompletas);
       } catch (err: any) {
-        console.error('Error al cargar estadísticas:', err);
         setError(err.message || 'Error al cargar estadísticas del dashboard');
       } finally {
         setIsLoading(false);

@@ -25,16 +25,6 @@ export const UserMenu: React.FC = () => {
   const { currentTheme, setTheme, themePresets, isDarkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
 
-  // Debug en desarrollo
-  if (import.meta.env.DEV) {
-    console.log('🔍 UserMenu Debug:', { 
-      user, 
-      hasUser: !!user, 
-      isAuthenticated,
-      skipAuth: import.meta.env.VITE_SKIP_AUTH 
-    });
-  }
-
   // Si no hay usuario y no estamos en modo skip auth, no mostrar nada
   if (!user && import.meta.env.VITE_SKIP_AUTH !== 'true') {
     return null;
@@ -50,9 +40,6 @@ export const UserMenu: React.FC = () => {
       </Button>
     );
   }
-
-  // Si llegamos aquí, tenemos un usuario válido
-  console.log('🔍 UserMenu: Renderizando con usuario válido:', user.firstName, user.lastName);
 
   // Obtener iniciales del usuario con validación
   const getInitials = (firstName?: string, lastName?: string): string => {
@@ -97,29 +84,22 @@ export const UserMenu: React.FC = () => {
   };
 
   const handleProfileClick = () => {
-    console.log('🔍 UserMenu: Navegando al perfil...');
     try {
       navigate('/profile');
-      console.log('✅ UserMenu: Navegación al perfil iniciada');
     } catch (error) {
-      console.error('❌ UserMenu: Error al navegar al perfil:', error);
+      // Error silenciado
     }
   };
 
   const fullName = getFullName();
 
   return (
-    <DropdownMenu onOpenChange={(open) => {
-      console.log('🔍 UserMenu: DropdownMenu onOpenChange:', open);
-    }}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button 
           variant="ghost" 
           className="relative h-10 w-10 rounded-full hover:bg-primary/10 transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-primary/20"
           title={`Menú de ${fullName}`}
-          onClick={() => {
-            console.log('🔍 UserMenu: Button onClick disparado');
-          }}
         >
           <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-sm">
             <AvatarImage 
@@ -161,7 +141,6 @@ export const UserMenu: React.FC = () => {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('🔍 UserMenu: Click en Perfil detectado');
             handleProfileClick();
           }}
         >

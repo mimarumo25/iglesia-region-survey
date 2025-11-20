@@ -7,6 +7,7 @@
 
 import { getApiClient } from '@/config/api';
 import type { PersonaSalud, SaludFiltros, SaludResponse } from '@/types/salud';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 // Endpoint para el módulo de salud
 const SALUD_ENDPOINT = '/api/personas/salud';
@@ -62,6 +63,10 @@ export const getPersonasSalud = async (filtros?: SaludFiltros): Promise<{ person
     };
   } catch (error: any) {
     console.error('Error obteniendo personas con condiciones de salud:', error);
+    
+    // Mostrar toast de error
+    showErrorToast(error, 'obtener personas con condiciones de salud');
+    
     throw new Error(
       error.response?.data?.message || 
       'Error al obtener el listado de personas con condiciones de salud'
@@ -127,8 +132,16 @@ export const exportSaludToExcel = async (filtros?: SaludFiltros): Promise<void> 
     link.download = `reporte_salud_${new Date().toISOString().split('T')[0]}.xlsx`;
     link.click();
     window.URL.revokeObjectURL(link.href);
+    
+    // Toast de éxito
+    showSuccessToast('Reporte descargado', 'El archivo Excel se ha generado correctamente');
+    
   } catch (error: any) {
     console.error('Error exportando reporte de salud:', error);
+    
+    // Mostrar toast de error
+    showErrorToast(error, 'exportar reporte de salud a Excel');
+    
     throw new Error(
       error.response?.data?.message || 
       'Error al exportar el reporte de salud a Excel'

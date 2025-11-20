@@ -13,6 +13,7 @@
  */
 
 import { apiClient } from '@/interceptors/axios';
+import { showErrorToast } from '@/utils/toastErrorHandler';
 
 // ============================================================================
 // INTERFACES Y TIPOS
@@ -39,6 +40,7 @@ export interface EncuestaListItem {
   estado_encuesta: 'pending' | 'in_progress' | 'completed' | 'validated';
   numero_encuestas: number;
   fecha_ultima_encuesta: string;
+  usuario_creador?: string; // Usuario que creó la encuesta
   tipo_vivienda: {
     id: string;
     nombre: string;
@@ -307,6 +309,7 @@ class EncuestasService {
       
     } catch (error) {
       console.error('❌ Error al obtener encuestas:', error);
+      showErrorToast(error, 'obtener encuestas');
       throw this.handleApiError(error, 'obtener encuestas');
     }
   }
@@ -322,6 +325,7 @@ class EncuestasService {
       
     } catch (error) {
       console.error(`❌ Error al obtener encuesta ${id}:`, error);
+      showErrorToast(error, `obtener encuesta ${id}`);
       throw this.handleApiError(error, `obtener encuesta ${id}`);
     }
   }
@@ -338,6 +342,7 @@ class EncuestasService {
       
     } catch (error) {
       console.error('❌ Error al crear encuesta:', error);
+      showErrorToast(error, 'crear encuesta');
       throw this.handleApiError(error, 'crear encuesta');
     }
   }
@@ -354,6 +359,7 @@ class EncuestasService {
       
     } catch (error) {
       console.error(`❌ Error al actualizar encuesta ${id}:`, error);
+      showErrorToast(error, `actualizar encuesta ${id}`);
       throw this.handleApiError(error, `actualizar encuesta ${id}`);
     }
   }
@@ -369,6 +375,7 @@ class EncuestasService {
       
     } catch (error) {
       console.error(`❌ Error al eliminar encuesta ${id}:`, error);
+      showErrorToast(error, `eliminar encuesta ${id}`);
       throw this.handleApiError(error, `eliminar encuesta ${id}`);
     }
   }
@@ -384,6 +391,7 @@ class EncuestasService {
       
     } catch (error) {
       console.error(`❌ Error al validar encuesta ${id}:`, error);
+      showErrorToast(error, `validar encuesta ${id}`);
       throw this.handleApiError(error, `validar encuesta ${id}`);
     }
   }
@@ -399,6 +407,7 @@ class EncuestasService {
       
     } catch (error) {
       console.error('❌ Error al obtener estadísticas:', error);
+      showErrorToast(error, 'obtener estadísticas');
       throw this.handleApiError(error, 'obtener estadísticas');
     }
   }

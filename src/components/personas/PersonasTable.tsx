@@ -38,16 +38,6 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
   // Calcular total de páginas
   const totalPages = Math.ceil(total / pageSize);
 
-  // Debug: Log para verificar valores
-  console.log('📊 PersonasTable - Debug Paginación:', {
-    total,
-    pageSize,
-    totalPages,
-    currentPage,
-    hasOnPageChange: !!onPageChange,
-    personasLength: personas.length
-  });
-
   /**
    * Genera array de números de página a mostrar
    */

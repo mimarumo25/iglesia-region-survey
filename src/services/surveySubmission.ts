@@ -28,18 +28,89 @@
 import { apiPost, apiPatch } from '@/interceptors/axios';
 import { SurveySessionData } from '@/types/survey';
 import { transformSurveyDataForAPI, validateAPIFormat, logDataDifferences } from '@/utils/surveyAPITransformer';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
+
+/**
+ * Nueva estructura de errores del API de encuestas
+ * Proporciona información detallada sobre errores de validación de catálogos
+ */
+export interface APIErrorResponse {
+  status: 'error';
+  code: string; // Ejemplo: "INVALID_CATALOG_REFERENCE"
+  message: string; // Mensaje principal del error
+  details: string; // Detalles específicos del error
+  suggestion: string; // Sugerencia de solución
+  catalog?: string; // Nombre del catálogo afectado (ej: "parentescos")
+  invalidId?: number | string; // ID inválido que causó el error
+  person?: string; // Nombre de la persona relacionada con el error
+  field?: string; // Campo específico que causó el error
+}
 
 export interface SurveySubmissionResponse {
   success: boolean;
   message: string;
   data?: any;
   surveyId?: string;
+  errorDetails?: APIErrorResponse; // Detalles estructurados del error
 }
 
 /**
  * Servicio especializado para envío de encuestas
  */
 export class SurveySubmissionService {
+  
+  /**
+   * Formatea un mensaje de error detallado usando la nueva estructura del API
+   * @param errorResponse - Respuesta de error del API
+   * @returns Mensaje formateado amigable para el usuario
+   */
+  private static formatErrorMessage(errorResponse: APIErrorResponse): string {
+    const parts: string[] = [];
+    
+    // Mensaje principal
+    if (errorResponse.message) {
+      parts.push(errorResponse.message);
+    }
+    
+    // Detalles específicos
+    if (errorResponse.details) {
+      parts.push(`\n📋 ${errorResponse.details}`);
+    }
+    
+    // Información de contexto (catálogo, ID, persona)
+    if (errorResponse.catalog && errorResponse.invalidId) {
+      parts.push(`\n🔍 Catálogo: "${errorResponse.catalog}", ID inválido: ${errorResponse.invalidId}`);
+    }
+    
+    if (errorResponse.person) {
+      parts.push(`\n👤 Persona: ${errorResponse.person}`);
+    }
+    
+    if (errorResponse.field) {
+      parts.push(`\n📝 Campo: ${errorResponse.field}`);
+    }
+    
+    // Sugerencia de solución
+    if (errorResponse.suggestion) {
+      parts.push(`\n💡 Sugerencia: ${errorResponse.suggestion}`);
+    }
+    
+    return parts.join('');
+  }
+
+  /**
+   * Verifica si la respuesta es un error estructurado del nuevo formato
+   * @param errorResponse - Respuesta del servidor
+   * @returns true si es el nuevo formato de error
+   */
+  private static isStructuredError(errorResponse: any): errorResponse is APIErrorResponse {
+    return (
+      errorResponse &&
+      errorResponse.status === 'error' &&
+      typeof errorResponse.code === 'string' &&
+      typeof errorResponse.message === 'string'
+    );
+  }
   
   /**
    * Envía una encuesta al servidor usando la estructura de datos nueva
@@ -68,6 +139,9 @@ export class SurveySubmissionService {
       
       const response = await apiPost('/api/encuesta', apiData);
       
+      // Mostrar toast de éxito
+      showSuccessToast('Encuesta enviada', 'La encuesta se ha guardado correctamente');
+      
       return {
         success: true,
         message: 'Encuesta enviada correctamente',
@@ -79,8 +153,33 @@ export class SurveySubmissionService {
       console.error('❌ Error al enviar encuesta:', error);
       console.error('📋 Datos que causaron el error:', surveyData);
       
+      // Mostrar toast de error
+      showErrorToast(error, 'enviar encuesta');
+      
       // Extraer información detallada del error
       const errorResponse = error.response?.data;
+      const statusCode = error.response?.status || 500;
+      
+      // Verificar si es el nuevo formato de error estructurado
+      if (this.isStructuredError(errorResponse)) {
+        const formattedMessage = this.formatErrorMessage(errorResponse);
+        
+        console.error('🔴 Error estructurado del API:', {
+          code: errorResponse.code,
+          catalog: errorResponse.catalog,
+          invalidId: errorResponse.invalidId,
+          person: errorResponse.person
+        });
+        
+        return {
+          success: false,
+          message: formattedMessage,
+          data: errorResponse,
+          errorDetails: errorResponse
+        };
+      }
+      
+      // Fallback para errores en formato antiguo
       let errorMessage = 'Error desconocido al enviar la encuesta';
       
       if (errorResponse) {
@@ -94,8 +193,6 @@ export class SurveySubmissionService {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
-      const statusCode = error.response?.status || 500;
       
       return {
         success: false,
@@ -127,14 +224,11 @@ export class SurveySubmissionService {
         };
       }
       
-      // Log diferencias para debugging (solo en desarrollo)
-      if (process.env.NODE_ENV === 'development') {
-        console.log('📤 Actualizando encuesta con PATCH:', surveyId);
-        logDataDifferences(surveyData, apiData);
-      }
-      
       // Usar PATCH para actualizar solo campos específicos
       const response = await apiPatch(`/api/encuesta/${surveyId}`, apiData);
+      
+      // Mostrar toast de éxito
+      showSuccessToast('Encuesta actualizada', 'Los cambios se han guardado correctamente');
       
       return {
         success: true,
@@ -147,8 +241,33 @@ export class SurveySubmissionService {
       console.error('❌ Error al actualizar encuesta:', error);
       console.error('📋 Datos que causaron el error:', surveyData);
       
+      // Mostrar toast de error
+      showErrorToast(error, 'actualizar encuesta');
+      
       // Extraer información detallada del error
       const errorResponse = error.response?.data;
+      const statusCode = error.response?.status || 500;
+      
+      // Verificar si es el nuevo formato de error estructurado
+      if (this.isStructuredError(errorResponse)) {
+        const formattedMessage = this.formatErrorMessage(errorResponse);
+        
+        console.error('🔴 Error estructurado del API:', {
+          code: errorResponse.code,
+          catalog: errorResponse.catalog,
+          invalidId: errorResponse.invalidId,
+          person: errorResponse.person
+        });
+        
+        return {
+          success: false,
+          message: formattedMessage,
+          data: errorResponse,
+          errorDetails: errorResponse
+        };
+      }
+      
+      // Fallback para errores en formato antiguo
       let errorMessage = 'Error desconocido al actualizar la encuesta';
       
       if (errorResponse) {
@@ -162,8 +281,6 @@ export class SurveySubmissionService {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
-      const statusCode = error.response?.status || 500;
       
       return {
         success: false,
@@ -355,14 +472,11 @@ export class SurveySubmissionService {
       storageKeys.forEach(key => {
         if (localStorage.getItem(key)) {
           localStorage.removeItem(key);
-          console.log(`🧹 localStorage limpiado: ${key}`);
         }
       });
       
-      console.log('✅ LocalStorage completamente limpio después del envío exitoso');
-      
     } catch (error) {
-      console.error('❌ Error al limpiar localStorage:', error);
+      // Error silenciado
     }
   }
 }

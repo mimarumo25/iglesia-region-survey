@@ -72,8 +72,6 @@ export const SafeRenderer: React.FC<SafeRendererProps> = ({
                       error.message?.includes('NotFoundError');
 
     if (isDOMError && mountedRef.current) {
-      console.log('🔄 Attempting DOM error recovery...');
-      
       // Intentar recuperación forzando un re-render
       setTimeout(() => {
         if (mountedRef.current) {

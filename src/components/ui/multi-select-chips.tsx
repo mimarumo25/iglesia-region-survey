@@ -77,26 +77,20 @@ export const MultiSelectWithChips = ({
 
   // Función para agregar o quitar una opción
   const toggleOption = (option: MultiSelectOption) => {
-    console.log('🔘 toggleOption llamado:', { option, currentValue: value });
-    
     if (isSelected(option)) {
       // Remover opción
       const newValue = value.filter(item => item.id !== option.id);
-      console.log('➖ Removiendo opción. Nuevo valor:', newValue);
       onChange(newValue);
     } else {
       // Agregar opción
       const newValue = [...value, option];
-      console.log('➕ Agregando opción. Nuevo valor:', newValue);
       onChange(newValue);
     }
   }
 
   // Función para remover una opción específica
   const removeOption = (optionId: number | string) => {
-    console.log('🗑️ removeOption llamado:', { optionId, currentValue: value });
     const newValue = value.filter(item => item.id !== optionId);
-    console.log('🗑️ Nuevo valor después de remover:', newValue);
     onChange(newValue);
   }
 

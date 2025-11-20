@@ -18,7 +18,6 @@ export const SimpleSearch: React.FC<SimpleSearchProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
-    console.log('Búsqueda:', e.target.value);
   };
 
   return (

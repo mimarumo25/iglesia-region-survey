@@ -28,7 +28,6 @@ export const habilidadesService = {
   ): Promise<HabilidadesApiResponse> => {
     // Si usamos datos mock, retornarlos directamente
     if (USE_MOCK_DATA) {
-      console.log('⚠️ [habilidadesService.getHabilidades] Usando datos MOCK (backend no disponible)');
       return {
         status: 'success',
         data: HABILIDADES_MOCK,
@@ -105,10 +104,6 @@ export const habilidadesService = {
   getActiveHabilidades: async (): Promise<ServerResponse<Habilidad[]>> => {
     // Si usamos datos mock, retornarlos directamente
     if (USE_MOCK_DATA) {
-      // Silenciar en producción, solo mostrar en modo debug
-      if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_MOCK === 'true') {
-        console.log('⚠️ [habilidadesService.getActiveHabilidades] Usando datos MOCK (backend no disponible)');
-      }
       return {
         success: true,
         timestamp: new Date().toISOString(),
@@ -120,9 +115,6 @@ export const habilidadesService = {
       const response = await apiClient.get('/api/catalog/habilidades');
       return response.data;
     } catch (error) {
-      if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_MOCK === 'true') {
-        console.error('❌ [habilidadesService.getActiveHabilidades] Error - usando fallback MOCK');
-      }
       return {
         success: true,
         timestamp: new Date().toISOString(),

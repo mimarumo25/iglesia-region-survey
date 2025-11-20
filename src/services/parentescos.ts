@@ -6,6 +6,7 @@ import {
   ParentescosResponse,
   ServerResponse 
 } from '@/types/parentescos';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 class ParentescosService {
   
@@ -51,9 +52,11 @@ class ParentescosService {
       
       // Si es error de autenticación, lanzar error específico
       if (error.response?.status === 401) {
+        showErrorToast(error, 'obtener parentescos');
         throw new Error('Debe iniciar sesión para acceder a los datos de parentescos');
       }
       
+      showErrorToast(error, 'obtener parentescos');
       throw error;
     }
   }
@@ -76,6 +79,7 @@ class ParentescosService {
       };
     } catch (error) {
       console.error('Error al obtener parentesco por ID:', error);
+      showErrorToast(error, 'obtener parentesco por ID');
       throw error;
     }
   }
@@ -92,6 +96,8 @@ class ParentescosService {
       // La API devuelve {success: true, message: {parentesco_data}, data: "mensaje"}
       const newParentesco = response.data?.message;
       
+      showSuccessToast('Parentesco creado', 'El parentesco se ha creado correctamente');
+      
       return {
         status: response.data?.success ? 'success' : 'error',
         message: response.data?.data || 'Parentesco creado correctamente',
@@ -99,6 +105,7 @@ class ParentescosService {
       };
     } catch (error) {
       console.error('Error al crear parentesco:', error);
+      showErrorToast(error, 'crear parentesco');
       throw error;
     }
   }
@@ -115,6 +122,8 @@ class ParentescosService {
       // La API podría tener estructura anidada, manejamos ambos casos
       const updatedParentesco = response.data?.message?.data || response.data?.data || response.data?.message;
       
+      showSuccessToast('Parentesco actualizado', 'El parentesco se ha actualizado correctamente');
+      
       return {
         status: response.data?.success ? 'success' : 'error',
         message: response.data?.data || 'Parentesco actualizado correctamente',
@@ -122,6 +131,7 @@ class ParentescosService {
       };
     } catch (error) {
       console.error('Error al actualizar parentesco:', error);
+      showErrorToast(error, 'actualizar parentesco');
       throw error;
     }
   }
@@ -133,8 +143,10 @@ class ParentescosService {
       await client.delete(
         `/api/catalog/parentescos/${id}`
       );
+      showSuccessToast('Parentesco eliminado', 'El parentesco se ha eliminado correctamente');
     } catch (error) {
       console.error('Error al eliminar parentesco:', error);
+      showErrorToast(error, 'eliminar parentesco');
       throw error;
     }
   }
@@ -166,6 +178,7 @@ class ParentescosService {
       return [];
     } catch (error) {
       console.error('Error al buscar parentescos:', error);
+      showErrorToast(error, 'buscar parentescos');
       throw error;
     }
   }

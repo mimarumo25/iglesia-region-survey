@@ -9,6 +9,7 @@ import {
 } from '@/types/auth';
 import { TokenManager } from '@/utils/cookies';
 import { API_BASE_URL, API_TIMEOUTS, DEFAULT_HEADERS, DEV_CONFIG, API_ENDPOINTS } from '@/config/api';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 // Instancia de axios configurada para autenticación
 const authApi = axios.create({
@@ -104,8 +105,14 @@ export class AuthService {
       // Almacenar tokens de forma segura
       this.storeTokens(transformedData.data);
 
+      // Toast de éxito
+      showSuccessToast('Inicio de sesión exitoso', `Bienvenido ${transformedData.data.user.firstName}`);
+
       return transformedData;
     } catch (error) {
+      // Mostrar toast de error
+      showErrorToast(error, 'iniciar sesión');
+      
       if (axios.isAxiosError(error)) {
         // Manejar errores específicos de la API
         const errorMessage = error.response?.data?.message || 
@@ -143,6 +150,9 @@ export class AuthService {
 
       return response.data;
     } catch (error) {
+      // Mostrar toast de error
+      showErrorToast(error, 'renovar sesión');
+      
       // Si falla el refresh, limpiar cookies y forzar re-login
       this.clearSession();
       
@@ -242,10 +252,14 @@ export class AuthService {
         });
       }
     } catch (error) {
+      // Mostrar toast de error
+      showErrorToast(error, 'cerrar sesión');
       // Continuar con logout local incluso si falla el servidor
     } finally {
       // Siempre limpiar la sesión local
       this.clearSession();
+      // Toast de información
+      showSuccessToast('Sesión cerrada', 'Has salido correctamente del sistema');
     }
   }
 
@@ -264,8 +278,14 @@ export class AuthService {
         },
       });
 
+      // Toast de éxito
+      showSuccessToast('Email enviado', 'Revisa tu correo para restablecer tu contraseña');
+
       return response.data;
     } catch (error: any) {
+      // Mostrar toast de error
+      showErrorToast(error, 'solicitar recuperación de contraseña');
+      
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);
       }
@@ -291,8 +311,14 @@ export class AuthService {
         },
       });
 
+      // Toast de éxito
+      showSuccessToast('Contraseña restablecida', 'Tu contraseña ha sido actualizada correctamente');
+
       return response.data;
     } catch (error: any) {
+      // Mostrar toast de error
+      showErrorToast(error, 'restablecer contraseña');
+      
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);
       }
@@ -315,9 +341,15 @@ export class AuthService {
         },
       });
 
+      // Toast de éxito
+      showSuccessToast('Email verificado', 'Tu correo ha sido verificado exitosamente');
+
       return response.data;
     } catch (error: any) {
       console.error('Error al verificar email:', error);
+      
+      // Mostrar toast de error
+      showErrorToast(error, 'verificar email');
       
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);

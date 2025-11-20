@@ -1,6 +1,7 @@
 import { apiClient } from '@/interceptors/axios';
 import axios from 'axios';
 import { AXIOS_CONFIG, API_ENDPOINTS, DEV_CONFIG } from '@/config/api';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 // Cliente básico sin autenticación para modo desarrollo
 const basicClient = axios.create(AXIOS_CONFIG);
@@ -109,6 +110,7 @@ class TiposIdentificacionService {
       return transformedResponse;
     } catch (error) {
       console.error('Error al obtener tipos de identificación:', error);
+      showErrorToast(error, 'obtener tipos de identificación');
       throw error;
     }
   }
@@ -123,6 +125,7 @@ class TiposIdentificacionService {
       return response.data;
     } catch (error) {
       console.error('Error al obtener tipo de identificación por ID:', error);
+      showErrorToast(error, 'obtener tipo de identificación');
       throw error;
     }
   }
@@ -135,9 +138,11 @@ class TiposIdentificacionService {
         `/api/catalog/tipos-identificacion`,
         tipo
       );
+      showSuccessToast('Tipo de identificación creado', 'El registro se ha creado correctamente');
       return response.data;
     } catch (error) {
       console.error('Error al crear tipo de identificación:', error);
+      showErrorToast(error, 'crear tipo de identificación');
       throw error;
     }
   }
@@ -150,9 +155,11 @@ class TiposIdentificacionService {
         `/api/catalog/tipos-identificacion/${id}`,
         tipo
       );
+      showSuccessToast('Tipo de identificación actualizado', 'El registro se ha actualizado correctamente');
       return response.data;
     } catch (error) {
       console.error('Error al actualizar tipo de identificación:', error);
+      showErrorToast(error, 'actualizar tipo de identificación');
       throw error;
     }
   }
@@ -164,8 +171,10 @@ class TiposIdentificacionService {
       await client.delete(
         `/api/catalog/tipos-identificacion/${id}`
       );
+      showSuccessToast('Tipo de identificación eliminado', 'El registro se ha eliminado correctamente');
     } catch (error) {
       console.error('Error al eliminar tipo de identificación:', error);
+      showErrorToast(error, 'eliminar tipo de identificación');
       throw error;
     }
   }
@@ -215,6 +224,7 @@ class TiposIdentificacionService {
       return transformedResponse;
     } catch (error) {
       console.error('Error al buscar tipos de identificación:', error);
+      showErrorToast(error, 'buscar tipos de identificación');
       throw error;
     }
   }
@@ -263,6 +273,7 @@ class TiposIdentificacionService {
       return transformedResponse;
     } catch (error) {
       console.error('Error al obtener tipos de identificación activos:', error);
+      showErrorToast(error, 'obtener tipos de identificación activos');
       throw error;
     }
   }
@@ -277,6 +288,7 @@ class TiposIdentificacionService {
       return response.data;
     } catch (error) {
       console.error('Error al obtener estadísticas de tipos de identificación:', error);
+      showErrorToast(error, 'obtener estadísticas de tipos de identificación');
       throw error;
     }
   }

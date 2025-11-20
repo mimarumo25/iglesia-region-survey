@@ -8,6 +8,7 @@
 
 import { getApiClient, API_ENDPOINTS } from '@/config/api';
 import { DifuntosResponse, DifuntosFilters } from '@/types/difuntos';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 /**
  * Obtiene la lista de difuntos con filtros opcionales
@@ -65,6 +66,9 @@ export const getDifuntos = async (filters?: DifuntosFilters): Promise<DifuntosRe
   } catch (error: any) {
     console.error('Error fetching difuntos:', error);
     
+    // Mostrar toast de error
+    showErrorToast(error, 'consultar difuntos');
+    
     // Manejar diferentes tipos de errores
     if (error.response?.status === 404) {
       throw new Error('No se encontraron registros de difuntos');
@@ -111,10 +115,16 @@ export const downloadDifuntosExcelReport = async (filters?: DifuntosFilters): Pr
       }
     });
     
+    // Toast de éxito
+    showSuccessToast('Excel generado', 'El reporte se ha descargado correctamente');
+    
     return response.data;
     
   } catch (error: any) {
     console.error('Error downloading difuntos Excel report:', error);
+    
+    // Mostrar toast de error
+    showErrorToast(error, 'descargar reporte de difuntos en Excel');
     
     // Manejar diferentes tipos de errores
     if (error.response?.status === 404) {
@@ -161,10 +171,17 @@ export const exportDifuntosToPDF = async (filters?: DifuntosFilters): Promise<Bl
       responseType: 'blob'
     });
     
+    // Toast de éxito
+    showSuccessToast('PDF generado', 'El documento se ha descargado correctamente');
+    
     return response.data;
     
   } catch (error: any) {
     console.error('Error exporting difuntos to PDF:', error);
+    
+    // Mostrar toast de error
+    showErrorToast(error, 'exportar difuntos a PDF');
+    
     throw new Error('Error al generar el PDF de difuntos');
   }
 };
@@ -199,10 +216,17 @@ export const exportDifuntosToExcel = async (filters?: DifuntosFilters): Promise<
       responseType: 'blob'
     });
     
+    // Toast de éxito
+    showSuccessToast('Excel generado', 'El archivo se ha descargado correctamente');
+    
     return response.data;
     
   } catch (error: any) {
     console.error('Error exporting difuntos to Excel:', error);
+    
+    // Mostrar toast de error
+    showErrorToast(error, 'exportar difuntos a Excel');
+    
     throw new Error('Error al generar el Excel de difuntos');
   }
 };

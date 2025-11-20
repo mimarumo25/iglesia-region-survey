@@ -11,7 +11,6 @@ const DestrezasTest = () => {
   const { data: allData, isLoading: allLoading, error: allError } = useQuery({
     queryKey: ['destrezas-test-all'],
     queryFn: () => {
-      console.log('🧪 TEST: Llamando a getDestrezas()');
       return destrezasService.getDestrezas(1, 100, 'id_destreza', 'ASC');
     },
     retry: false,
@@ -21,7 +20,6 @@ const DestrezasTest = () => {
   const { data: activeData, isLoading: activeLoading, error: activeError } = useQuery({
     queryKey: ['destrezas-test-active'],
     queryFn: () => {
-      console.log('🧪 TEST: Llamando a getActiveDestrezas()');
       return destrezasService.getActiveDestrezas();
     },
     retry: false,

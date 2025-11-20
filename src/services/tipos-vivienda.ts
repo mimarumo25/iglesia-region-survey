@@ -7,6 +7,7 @@ import {
   ServerResponse,
   ApiTiposViviendaResponse
 } from '@/types/tipos-vivienda';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 class TiposViviendaService {
   
@@ -54,6 +55,7 @@ class TiposViviendaService {
       return transformedResponse;
     } catch (error) {
       console.error('Error al obtener tipos de vivienda:', error);
+      showErrorToast(error, 'obtener tipos de vivienda');
       throw error;
     }
   }
@@ -76,6 +78,7 @@ class TiposViviendaService {
       };
     } catch (error) {
       console.error('Error al obtener tipo de vivienda por ID:', error);
+      showErrorToast(error, 'obtener tipo de vivienda por ID');
       throw error;
     }
   }
@@ -92,6 +95,8 @@ class TiposViviendaService {
       // La API podría devolver la estructura anidada o directa, manejamos ambos casos
       const newTipoVivienda = response.data.data?.data || response.data.data || response.data;
       
+      showSuccessToast('Tipo de vivienda creado', 'El tipo de vivienda se ha creado correctamente');
+      
       return {
         status: response.data.status || 'success',
         message: response.data.message || 'Tipo de vivienda creado correctamente',
@@ -99,6 +104,7 @@ class TiposViviendaService {
       };
     } catch (error) {
       console.error('Error al crear tipo de vivienda:', error);
+      showErrorToast(error, 'crear tipo de vivienda');
       throw error;
     }
   }
@@ -115,6 +121,8 @@ class TiposViviendaService {
       // La API podría devolver la estructura anidada o directa, manejamos ambos casos
       const updatedTipoVivienda = response.data.data?.data || response.data.data || response.data;
       
+      showSuccessToast('Tipo de vivienda actualizado', 'El tipo de vivienda se ha actualizado correctamente');
+      
       return {
         status: response.data.status || 'success',
         message: response.data.message || 'Tipo de vivienda actualizado correctamente',
@@ -122,6 +130,7 @@ class TiposViviendaService {
       };
     } catch (error) {
       console.error('Error al actualizar tipo de vivienda:', error);
+      showErrorToast(error, 'actualizar tipo de vivienda');
       throw error;
     }
   }
@@ -133,8 +142,10 @@ class TiposViviendaService {
       await client.delete(
         `/api/catalog/tipos-vivienda/${id}`
       );
+      showSuccessToast('Tipo de vivienda eliminado', 'El tipo de vivienda se ha eliminado correctamente');
     } catch (error) {
       console.error('Error al eliminar tipo de vivienda:', error);
+      showErrorToast(error, 'eliminar tipo de vivienda');
       throw error;
     }
   }
@@ -185,6 +196,7 @@ class TiposViviendaService {
       return transformedResponse;
     } catch (error) {
       console.error('Error al buscar tipos de vivienda:', error);
+      showErrorToast(error, 'buscar tipos de vivienda');
       throw error;
     }
   }
@@ -234,6 +246,7 @@ class TiposViviendaService {
       return transformedResponse;
     } catch (error) {
       console.error('Error al obtener tipos de vivienda activos:', error);
+      showErrorToast(error, 'obtener tipos de vivienda activos');
       throw error;
     }
   }

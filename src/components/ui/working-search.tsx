@@ -190,7 +190,6 @@ export const WorkingSearch: React.FC<WorkingSearchProps> = ({
   };
 
   const handleResultClick = (result: any) => {
-    console.log('Navegando a:', result.path);
     navigate(result.path);
     setIsOpen(false);
   };

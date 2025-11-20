@@ -6,6 +6,7 @@ import {
   EstudiosResponse,
   ApiEstudiosResponse
 } from '@/types/estudios';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 class EstudiosService {
   // Obtener todos los estudios con paginación
@@ -48,6 +49,7 @@ class EstudiosService {
       };
     } catch (error) {
       console.error('Error al obtener estudios:', error);
+      showErrorToast(error, 'obtener estudios');
       throw error;
     }
   }
@@ -88,6 +90,7 @@ class EstudiosService {
       };
     } catch (error) {
       console.error('Error al buscar estudios:', error);
+      showErrorToast(error, 'buscar estudios');
       throw error;
     }
   }
@@ -100,6 +103,7 @@ class EstudiosService {
       return response.data.data;
     } catch (error) {
       console.error('Error al obtener estudio por ID:', error);
+      showErrorToast(error, 'obtener estudio por ID');
       throw error;
     }
   }
@@ -109,9 +113,11 @@ class EstudiosService {
     try {
       const client = getApiClient();
       const response = await client.post(`/api/catalog/estudios`, estudio);
+      showSuccessToast('Estudio creado', 'El nivel de estudio se ha creado correctamente');
       return response.data.data;
     } catch (error) {
       console.error('Error al crear estudio:', error);
+      showErrorToast(error, 'crear estudio');
       throw error;
     }
   }
@@ -121,9 +127,11 @@ class EstudiosService {
     try {
       const client = getApiClient();
       const response = await client.put(`/api/catalog/estudios/${id}`, estudio);
+      showSuccessToast('Estudio actualizado', 'El nivel de estudio se ha actualizado correctamente');
       return response.data.data;
     } catch (error) {
       console.error('Error al actualizar estudio:', error);
+      showErrorToast(error, 'actualizar estudio');
       throw error;
     }
   }
@@ -133,8 +141,10 @@ class EstudiosService {
     try {
       const client = getApiClient();
       await client.delete(`/api/catalog/estudios/${id}`);
+      showSuccessToast('Estudio eliminado', 'El nivel de estudio se ha eliminado correctamente');
     } catch (error) {
       console.error('Error al eliminar estudio:', error);
+      showErrorToast(error, 'eliminar estudio');
       throw error;
     }
   }
@@ -158,6 +168,7 @@ class EstudiosService {
       return response.data;
     } catch (error) {
       console.error('Error al obtener estadísticas:', error);
+      showErrorToast(error, 'obtener estadísticas de estudios');
       throw error;
     }
   }
@@ -167,9 +178,11 @@ class EstudiosService {
     try {
       const client = getApiClient();
       const response = await client.patch(`/api/catalog/estudios/${id}/toggle-status`);
+      showSuccessToast('Estado actualizado', 'El estado del estudio se ha actualizado correctamente');
       return response.data.data;
     } catch (error) {
       console.error('Error al cambiar estado:', error);
+      showErrorToast(error, 'cambiar estado del estudio');
       throw error;
     }
   }

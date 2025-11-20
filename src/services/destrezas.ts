@@ -26,11 +26,8 @@ export const destrezasService = {
     sortBy: string = 'id_destreza',
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ): Promise<DestrezasApiResponse> => {
-    console.log('🔍 [destrezasService.getDestrezas] Solicitando destrezas:', { page, limit, sortBy, sortOrder });
-    
     // Si usamos datos mock, retornarlos directamente
     if (USE_MOCK_DATA) {
-      console.log('⚠️ [destrezasService.getDestrezas] Usando datos MOCK (backend no disponible)');
       return {
         status: 'success',
         data: DESTREZAS_MOCK,
@@ -43,12 +40,9 @@ export const destrezasService = {
       const response = await apiClient.get('/api/catalog/destrezas', {
         params: { page, limit, sortBy, sortOrder }
       });
-      console.log('✅ [destrezasService.getDestrezas] Respuesta recibida:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ [destrezasService.getDestrezas] Error:', error.response?.data || error.message);
       // Fallback a datos mock en caso de error
-      console.log('⚠️ [destrezasService.getDestrezas] Usando datos MOCK como fallback');
       return {
         status: 'success',
         data: DESTREZAS_MOCK,
@@ -115,9 +109,6 @@ export const destrezasService = {
     
     // Si usamos datos mock, retornarlos directamente
     if (USE_MOCK_DATA) {
-      if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_MOCK === 'true') {
-        console.log('⚠️ [destrezasService.getActiveDestrezas] Usando datos MOCK (backend no disponible)');
-      }
       return {
         success: true,
         timestamp: new Date().toISOString(),
@@ -127,15 +118,8 @@ export const destrezasService = {
     
     try {
       const response = await apiClient.get('/api/catalog/destrezas');
-      if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_MOCK === 'true') {
-        console.log('✅ [destrezasService.getActiveDestrezas] Respuesta recibida:', response.data);
-      }
       return response.data;
     } catch (error: any) {
-      if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_MOCK === 'true') {
-        console.error('❌ [destrezasService.getActiveDestrezas] Error:', error.response?.data || error.message);
-        console.log('⚠️ [destrezasService.getActiveDestrezas] Usando datos MOCK como fallback');
-      }
       // Fallback a datos mock en caso de error
       return {
         success: true,

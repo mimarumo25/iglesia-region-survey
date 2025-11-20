@@ -7,6 +7,7 @@ import {
   ApiResponse
 } from '@/types/enfermedades';
 import { API_ENDPOINTS } from '@/config/api';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 class EnfermedadesService {
   // Obtener todas las enfermedades con paginación
@@ -46,6 +47,7 @@ class EnfermedadesService {
       };
     } catch (error) {
       console.error('Error al obtener enfermedades:', error);
+      showErrorToast(error, 'obtener enfermedades');
       throw error;
     }
   }
@@ -59,6 +61,7 @@ class EnfermedadesService {
       return response.data.data;
     } catch (error) {
       console.error('Error al obtener enfermedad por ID:', error);
+      showErrorToast(error, 'obtener enfermedad por ID');
       throw error;
     }
   }
@@ -70,9 +73,11 @@ class EnfermedadesService {
         API_ENDPOINTS.CATALOG.ENFERMEDADES,
         enfermedad
       );
+      showSuccessToast('Enfermedad creada', 'La enfermedad se ha registrado correctamente');
       return response.data.data;
     } catch (error) {
       console.error('Error al crear enfermedad:', error);
+      showErrorToast(error, 'crear enfermedad');
       throw error;
     }
   }
@@ -84,9 +89,11 @@ class EnfermedadesService {
         `${API_ENDPOINTS.CATALOG.ENFERMEDADES}/${id}`,
         enfermedad
       );
+      showSuccessToast('Enfermedad actualizada', 'Los cambios se han guardado correctamente');
       return response.data.data;
     } catch (error) {
       console.error('Error al actualizar enfermedad:', error);
+      showErrorToast(error, 'actualizar enfermedad');
       throw error;
     }
   }
@@ -95,8 +102,10 @@ class EnfermedadesService {
   async deleteEnfermedad(id: string): Promise<void> {
     try {
       await apiClient.delete(`${API_ENDPOINTS.CATALOG.ENFERMEDADES}/${id}`);
+      showSuccessToast('Enfermedad eliminada', 'El registro se ha eliminado correctamente');
     } catch (error) {
       console.error('Error al eliminar enfermedad:', error);
+      showErrorToast(error, 'eliminar enfermedad');
       throw error;
     }
   }
@@ -130,6 +139,7 @@ class EnfermedadesService {
       };
     } catch (error) {
       console.error('Error al buscar enfermedades:', error);
+      showErrorToast(error, 'buscar enfermedades');
       throw error;
     }
   }
@@ -164,6 +174,7 @@ class EnfermedadesService {
       };
     } catch (error) {
       console.error('Error al obtener enfermedades por categoría:', error);
+      showErrorToast(error, 'obtener enfermedades por categoría');
       throw error;
     }
   }

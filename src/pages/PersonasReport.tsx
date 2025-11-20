@@ -189,17 +189,7 @@ const PersonasReport = () => {
       setPersonas(response.data.data);
       setTotal(response.data.total);
 
-      // Debug: Log para cambio de página
-      console.log('📄 Cambio de Página:', {
-        newPage,
-        endpoint,
-        params: cleanParams,
-        total: response.data.total,
-        dataLength: response.data.data.length
-      });
-
     } catch (error: any) {
-      console.error('Error consultando personas:', error);
       toast({
         title: "❌ Error en la consulta",
         description: error.response?.data?.message || "No se pudo obtener el consolidado",
@@ -282,17 +272,6 @@ const PersonasReport = () => {
       setTotal(response.data.total);
       setHasQueried(true);
 
-      // Debug: Log para verificar respuesta de la API
-      console.log('🔍 PersonasReport - Respuesta API:', {
-        endpoint,
-        params: cleanParams,
-        total: response.data.total,
-        page: response.data.page,
-        limit: response.data.limit,
-        dataLength: response.data.data.length,
-        calculatedPages: Math.ceil(response.data.total / (response.data.limit || 100))
-      });
-
       toast({
         title: "✅ Consulta exitosa",
         description: `Se encontraron ${response.data.total} personas`,
@@ -300,7 +279,6 @@ const PersonasReport = () => {
       });
 
     } catch (error: any) {
-      console.error('Error consultando personas:', error);
       toast({
         title: "❌ Error en la consulta",
         description: error.response?.data?.message || "No se pudo obtener el consolidado",

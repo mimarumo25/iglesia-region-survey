@@ -11,10 +11,7 @@ export const UserMenuSimple: React.FC = () => {
   const { user } = useAuthContext();
   const navigate = useNavigate();
 
-  console.log('🔍 UserMenuSimple: Renderizando con usuario:', user);
-
   const handleProfileClick = () => {
-    console.log('🔍 UserMenuSimple: Click en perfil detectado');
     navigate('/profile');
   };
 

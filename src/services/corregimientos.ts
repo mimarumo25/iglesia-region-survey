@@ -1,4 +1,5 @@
 import { getApiClient } from '@/config/api';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 export interface Corregimiento {
   id_corregimiento: number;
@@ -65,6 +66,7 @@ class CorregimientosService {
       return response.data;
     } catch (error) {
       console.error('Error al obtener corregimientos:', error);
+      showErrorToast(error, 'obtener corregimientos');
       throw error;
     }
   }
@@ -79,6 +81,7 @@ class CorregimientosService {
       return response.data?.data || response.data || [];
     } catch (error) {
       console.error(`Error al obtener corregimientos para municipio ${municipioId}:`, error);
+      showErrorToast(error, 'obtener corregimientos por municipio');
       throw error;
     }
   }
@@ -93,6 +96,7 @@ class CorregimientosService {
       return response.data;
     } catch (error) {
       console.error(`Error al obtener corregimiento ${id}:`, error);
+      showErrorToast(error, 'obtener corregimiento por ID');
       throw error;
     }
   }
@@ -109,9 +113,11 @@ class CorregimientosService {
         id_municipio_municipios: corregimiento.id_municipio || corregimiento.id_municipio_municipios,
       };
       const response = await client.post(baseUrl, payload);
+      showSuccessToast('Corregimiento creado', 'El corregimiento se ha creado correctamente');
       return response.data;
     } catch (error) {
       console.error('Error al crear corregimiento:', error);
+      showErrorToast(error, 'crear corregimiento');
       throw error;
     }
   }
@@ -128,9 +134,11 @@ class CorregimientosService {
         id_municipio_municipios: corregimiento.id_municipio || corregimiento.id_municipio_municipios,
       };
       const response = await client.put(`${baseUrl}/${id}`, payload);
+      showSuccessToast('Corregimiento actualizado', 'El corregimiento se ha actualizado correctamente');
       return response.data;
     } catch (error) {
       console.error(`Error al actualizar corregimiento ${id}:`, error);
+      showErrorToast(error, 'actualizar corregimiento');
       throw error;
     }
   }
@@ -142,9 +150,11 @@ class CorregimientosService {
     try {
       const client = getApiClient();
       await client.delete(`${baseUrl}/${id}`);
+      showSuccessToast('Corregimiento eliminado', 'El corregimiento se ha eliminado correctamente');
       return true;
     } catch (error) {
       console.error(`Error al eliminar corregimiento ${id}:`, error);
+      showErrorToast(error, 'eliminar corregimiento');
       throw error;
     }
   }

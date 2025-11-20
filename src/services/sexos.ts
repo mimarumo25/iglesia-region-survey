@@ -7,6 +7,7 @@ import {
   ServerResponse, 
   ApiSexosResponse 
 } from '@/types/sexos';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 class SexosService {
   // Obtener todos los sexos con paginación
@@ -33,6 +34,7 @@ class SexosService {
       return response.data;
     } catch (error) {
       console.error('Error al obtener sexos:', error);
+      showErrorToast(error, 'obtener sexos');
       throw error;
     }
   }
@@ -47,6 +49,7 @@ class SexosService {
       return response.data;
     } catch (error) {
       console.error('Error al obtener sexo por ID:', error);
+      showErrorToast(error, 'obtener sexo por ID');
       throw error;
     }
   }
@@ -59,9 +62,11 @@ class SexosService {
         `/api/catalog/sexos`,
         sexo
       );
+      showSuccessToast('Sexo creado', 'El sexo se ha creado correctamente');
       return response.data;
     } catch (error) {
       console.error('Error al crear sexo:', error);
+      showErrorToast(error, 'crear sexo');
       throw error;
     }
   }
@@ -74,9 +79,11 @@ class SexosService {
         `/api/catalog/sexos/${id}`,
         sexo
       );
+      showSuccessToast('Sexo actualizado', 'El sexo se ha actualizado correctamente');
       return response.data;
     } catch (error) {
       console.error('Error al actualizar sexo:', error);
+      showErrorToast(error, 'actualizar sexo');
       throw error;
     }
   }
@@ -88,8 +95,10 @@ class SexosService {
       await client.delete(
         `/api/catalog/sexos/${id}`
       );
+      showSuccessToast('Sexo eliminado', 'El sexo se ha eliminado correctamente');
     } catch (error) {
       console.error('Error al eliminar sexo:', error);
+      showErrorToast(error, 'eliminar sexo');
       throw error;
     }
   }
@@ -120,6 +129,7 @@ class SexosService {
       return response.data;
     } catch (error) {
       console.error('Error al buscar sexos:', error);
+      showErrorToast(error, 'buscar sexos');
       throw error;
     }
   }
@@ -145,6 +155,7 @@ class SexosService {
       return response.data;
     } catch (error) {
       console.error('Error al obtener estadísticas de sexos:', error);
+      showErrorToast(error, 'obtener estadísticas de sexos');
       throw error;
     }
   }

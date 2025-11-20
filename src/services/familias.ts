@@ -14,6 +14,7 @@ import type {
   FamiliasConsolidadoResponse,
   FamiliaConsolidada
 } from '@/types/familias';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 /**
  * Construye query params para la URL
@@ -37,6 +38,9 @@ const buildQueryParams = (filtros?: FiltrosFamiliasConsolidado): string => {
  */
 const handleApiError = (error: any, contexto: string): never => {
   console.error(`Error en ${contexto}:`, error);
+  
+  // Mostrar toast de error
+  showErrorToast(error, contexto);
   
   if (error.response) {
     const status = error.response.status;
@@ -218,6 +222,9 @@ export const exportFamiliasToExcel = async (
     // Limpieza
     document.body.removeChild(link);
     window.URL.revokeObjectURL(downloadUrl);
+    
+    // Mostrar toast de éxito
+    showSuccessToast('Excel descargado', 'El archivo se ha generado correctamente');
     
   } catch (error: any) {
     return handleApiError(error, 'exportación de familias a Excel');

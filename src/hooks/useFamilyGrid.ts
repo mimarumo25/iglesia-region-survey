@@ -511,28 +511,13 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
 
   const onSubmit = (data: FamilyMemberFormData) => {
     try {
-      // Log detallado de los datos recibidos para debugging
-      console.log('📋 onSubmit - Datos recibidos:', {
-        habilidades: data.habilidades,
-        destrezas: data.destrezas,
-        fullData: data
-      });
-
       // Validar que los arrays de habilidades y destrezas estén bien formados
       const habilidadesValidas = (data.habilidades || []).filter(h => {
-        const isValid = h && h.id && h.nombre && h.nombre.trim() !== '';
-        if (!isValid) {
-          console.warn('⚠️ Habilidad inválida detectada y filtrada:', h);
-        }
-        return isValid;
+        return h && h.id && h.nombre && h.nombre.trim() !== '';
       });
 
       const destrezasValidas = (data.destrezas || []).filter(d => {
-        const isValid = d && d.id && d.nombre && d.nombre.trim() !== '';
-        if (!isValid) {
-          console.warn('⚠️ Destreza inválida detectada y filtrada:', d);
-        }
-        return isValid;
+        return d && d.id && d.nombre && d.nombre.trim() !== '';
       });
 
       const celebracionesValidas = (data.profesionMotivoFechaCelebrar?.celebraciones || [])
@@ -588,9 +573,6 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
       closeDialog();
       
     } catch (error) {
-      console.error('❌ Error en onSubmit:', error);
-      console.error('Stack trace:', (error as Error).stack);
-      
       toast({ 
         title: "Error al guardar", 
         description: error instanceof Error ? error.message : "Hubo un problema al procesar la información del miembro. Por favor, inténtalo de nuevo.",

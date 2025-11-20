@@ -1,4 +1,5 @@
 import { apiGet, apiPost, apiPut, apiDelete } from '@/interceptors/axios';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 // Interfaces para municipios
 export interface Municipio {
@@ -160,6 +161,7 @@ export class MunicipiosService {
     } catch (error: any) {
       console.error('Error al obtener municipios:', error);
       const errorMessage = this.extractErrorMessage(error, 'Error al obtener municipios');
+      showErrorToast(error, 'obtener municipios');
       throw new Error(errorMessage);
     }
   }
@@ -174,6 +176,7 @@ export class MunicipiosService {
     } catch (error: any) {
       console.error('Error al obtener municipio:', error);
       const errorMessage = this.extractErrorMessage(error, 'Error al obtener municipio');
+      showErrorToast(error, 'obtener municipio');
       throw new Error(errorMessage);
     }
   }
@@ -191,6 +194,7 @@ export class MunicipiosService {
       };
       
       const response = await apiPost<MunicipioResponse>(MunicipiosService.baseUrl, municipioData);
+      showSuccessToast('Municipio creado', 'El municipio se ha creado correctamente');
       return response.data.data;
     } catch (error: any) {
       console.error('❌ Error al crear municipio:', {
@@ -200,6 +204,7 @@ export class MunicipiosService {
       });
       
       const errorMessage = this.extractErrorMessage(error, 'Error al crear municipio');
+      showErrorToast(error, 'crear municipio');
       throw new Error(errorMessage);
     }
   }
@@ -210,10 +215,12 @@ export class MunicipiosService {
   static async updateMunicipio(id: string, municipio: UpdateMunicipioRequest): Promise<Municipio> {
     try {
       const response = await apiPut<MunicipioResponse>(`${MunicipiosService.baseUrl}/${id}`, municipio);
+      showSuccessToast('Municipio actualizado', 'El municipio se ha actualizado correctamente');
       return response.data.data;
     } catch (error: any) {
       console.error('Error al actualizar municipio:', error);
       const errorMessage = this.extractErrorMessage(error, 'Error al actualizar municipio');
+      showErrorToast(error, 'actualizar municipio');
       throw new Error(errorMessage);
     }
   }
@@ -224,10 +231,12 @@ export class MunicipiosService {
   static async deleteMunicipio(id: string): Promise<boolean> {
     try {
       await apiDelete(`${MunicipiosService.baseUrl}/${id}`);
+      showSuccessToast('Municipio eliminado', 'El municipio se ha eliminado correctamente');
       return true;
     } catch (error: any) {
       console.error('Error al eliminar municipio:', error);
       const errorMessage = this.extractErrorMessage(error, 'Error al eliminar municipio');
+      showErrorToast(error, 'eliminar municipio');
       throw new Error(errorMessage);
     }
   }

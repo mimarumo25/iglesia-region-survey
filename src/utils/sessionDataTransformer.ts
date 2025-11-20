@@ -153,11 +153,6 @@ export const saveSurveyToLocalStorage = (surveyData: SurveySessionData, key: str
     };
     
     localStorage.setItem(key, JSON.stringify(dataToSave));
-    
-    // Log limpio del JSON que se guardó
-    console.clear();
-    console.log('💾 GUARDADO EN LOCALSTORAGE:');
-    console.log(JSON.stringify(dataToSave, null, 2));
   } catch (error) {
     // Error silenciado
   }

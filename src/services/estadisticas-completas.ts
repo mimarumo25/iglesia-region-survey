@@ -38,32 +38,23 @@ import type {
  */
 export const obtenerEstadisticasCompletas = async (): Promise<EstadisticasCompletasDatos> => {
   try {
-    console.log("🔄 Iniciando petición a /api/estadisticas/completas...")
-    
     const response = await apiClient.get<EstadisticasCompletasResponse>(
       "/api/estadisticas/completas"
     )
 
-    console.log("✅ Respuesta recibida:", response.data)
-
     // Validar respuesta
     if (!response.data.exito || !response.data.datos) {
-      console.error("❌ Respuesta inválida:", response.data)
       throw new Error(
         response.data.mensaje || "Error al obtener estadísticas completas"
       )
     }
 
-    console.log("✅ Estadísticas obtenidas correctamente")
     return response.data.datos
   } catch (error: any) {
     // Propagar error con mensaje descriptivo
     const errorMessage = error.response?.data?.mensaje 
       || error.message 
       || "Error desconocido al obtener estadísticas completas"
-    
-    console.error("❌ Error en obtenerEstadisticasCompletas:", errorMessage)
-    console.error("Error completo:", error)
     
     throw new Error(errorMessage)
   }

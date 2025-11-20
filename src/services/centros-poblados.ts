@@ -1,4 +1,5 @@
 import { getApiClient } from '@/config/api';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 export interface CentroPoblado {
   id_centro_poblado: string;
@@ -63,6 +64,7 @@ class CentrosPobladosService {
       return response.data;
     } catch (error) {
       console.error('Error al obtener centros poblados:', error);
+      showErrorToast(error, 'obtener centros poblados');
       throw error;
     }
   }
@@ -77,6 +79,7 @@ class CentrosPobladosService {
       return response.data?.data || response.data || [];
     } catch (error) {
       console.error(`Error al obtener centros poblados para municipio ${municipioId}:`, error);
+      showErrorToast(error, 'obtener centros poblados por municipio');
       throw error;
     }
   }
@@ -91,6 +94,7 @@ class CentrosPobladosService {
       return response.data;
     } catch (error) {
       console.error(`Error al obtener centro poblado ${id}:`, error);
+      showErrorToast(error, 'obtener centro poblado por ID');
       throw error;
     }
   }
@@ -104,9 +108,11 @@ class CentrosPobladosService {
       const response = await client.post(baseUrl, centroPoblado);
       // El backend devuelve { status, message, data }
       const responseData = response.data?.data || response.data;
+      showSuccessToast('Centro poblado creado', 'El centro poblado se ha creado correctamente');
       return responseData;
     } catch (error) {
       console.error('Error al crear centro poblado:', error);
+      showErrorToast(error, 'crear centro poblado');
       throw error;
     }
   }
@@ -120,9 +126,11 @@ class CentrosPobladosService {
       const response = await client.put(`${baseUrl}/${id}`, centroPoblado);
       // El backend devuelve { status, message, data }
       const responseData = response.data?.data || response.data;
+      showSuccessToast('Centro poblado actualizado', 'El centro poblado se ha actualizado correctamente');
       return responseData;
     } catch (error) {
       console.error(`Error al actualizar centro poblado ${id}:`, error);
+      showErrorToast(error, 'actualizar centro poblado');
       throw error;
     }
   }
@@ -134,9 +142,11 @@ class CentrosPobladosService {
     try {
       const client = getApiClient();
       await client.delete(`${baseUrl}/${id}`);
+      showSuccessToast('Centro poblado eliminado', 'El centro poblado se ha eliminado correctamente');
       return true;
     } catch (error) {
       console.error(`Error al eliminar centro poblado ${id}:`, error);
+      showErrorToast(error, 'eliminar centro poblado');
       throw error;
     }
   }

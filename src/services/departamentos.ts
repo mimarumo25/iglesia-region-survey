@@ -1,4 +1,5 @@
 import { getApiClient } from '@/config/api';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 // Interfaces para Departamentos
 export interface Departamento {
@@ -73,6 +74,7 @@ export const departamentosService = {
       throw new Error('Formato de respuesta inválido');
     } catch (error: any) {
       console.error('Error al obtener departamento:', error);
+      showErrorToast(error, 'obtener departamento');
       throw new Error(error.response?.data?.message || 'Error al obtener departamento');
     }
   },
@@ -88,6 +90,7 @@ export const departamentosService = {
       
       // Verificar si es el nuevo formato
       if (apiResponse.status === 'success') {
+        showSuccessToast('Departamento creado', 'El departamento se ha creado correctamente');
         return {
           success: true,
           timestamp: new Date().toISOString(),
@@ -97,6 +100,7 @@ export const departamentosService = {
       
       // Formato anterior de éxito
       if (apiResponse.success) {
+        showSuccessToast('Departamento creado', 'El departamento se ha creado correctamente');
         return {
           success: true,
           timestamp: apiResponse.timestamp || new Date().toISOString(),
@@ -128,6 +132,7 @@ export const departamentosService = {
         }
       }
       
+      showErrorToast(error, 'crear departamento');
       throw new Error(errorMessage);
     }
   },
@@ -143,6 +148,7 @@ export const departamentosService = {
       
       // Verificar si es el nuevo formato
       if (apiResponse.status === 'success' && apiResponse.data) {
+        showSuccessToast('Departamento actualizado', 'El departamento se ha actualizado correctamente');
         return {
           success: true,
           timestamp: new Date().toISOString(),
@@ -152,6 +158,7 @@ export const departamentosService = {
       
       // Formato anterior de éxito
       if (apiResponse.success && apiResponse.data) {
+        showSuccessToast('Departamento actualizado', 'El departamento se ha actualizado correctamente');
         return {
           success: true,
           timestamp: apiResponse.timestamp || new Date().toISOString(),
@@ -183,6 +190,7 @@ export const departamentosService = {
         }
       }
       
+      showErrorToast(error, 'actualizar departamento');
       throw new Error(errorMessage);
     }
   },
@@ -197,6 +205,7 @@ export const departamentosService = {
       const apiResponse = response.data as ApiResponse<any>;
       
       if (apiResponse.status === 'success') {
+        showSuccessToast('Departamento eliminado', 'El departamento se ha eliminado correctamente');
         return {
           success: true,
           timestamp: new Date().toISOString()
@@ -206,6 +215,7 @@ export const departamentosService = {
       throw new Error('Formato de respuesta inválido');
     } catch (error: any) {
       console.error('Error al eliminar departamento:', error);
+      showErrorToast(error, 'eliminar departamento');
       throw new Error(error.response?.data?.message || 'Error al eliminar departamento');
     }
   },
@@ -230,6 +240,7 @@ export const departamentosService = {
       throw new Error('Formato de respuesta inválido');
     } catch (error: any) {
       console.error('Error al obtener departamentos activos:', error);
+      showErrorToast(error, 'obtener departamentos activos');
       throw new Error(error.response?.data?.message || 'Error al obtener departamentos activos');
     }
   },

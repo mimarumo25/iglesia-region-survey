@@ -38,7 +38,7 @@ import {
 } from "lucide-react";
 
 // Importar servicios y tipos
-import { useEncuestas } from "@/hooks/useEncuestas";
+import { useEncuesta } from "@/hooks/useEncuestas";
 import { EncuestaListItem } from "@/services/encuestas";
 import { useResponsiveTable } from "@/hooks/useResponsiveTable";
 import { MemberMobileCard } from "@/components/ui/MemberMobileCard";
@@ -51,14 +51,14 @@ const SurveyDetails = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Hook para obtener encuesta
-  const { data: encuestaData, isLoading: loading, error } = useEncuestas().getEncuestaById(id || '');
+  // Hook para obtener encuesta (usando el helper correcto)
+  const { data: encuestaData, isLoading: loading, error } = useEncuesta(id || '');
   
   // Hook para responsive design
   const { shouldUseMobileView, isMobile, isVerySmall } = useResponsiveTable();
 
-  // Estado derivado
-  const encuesta = encuestaData?.data || null;
+  // Estado derivado - Cast a any porque backend devuelve EncuestaListItem pero TypeScript espera EncuestaCompleta
+  const encuesta = encuestaData?.data as any;
 
   // Manejo de error
   React.useEffect(() => {
@@ -163,7 +163,7 @@ const SurveyDetails = () => {
           <CardContent className="p-6 text-center">
             <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Error al cargar encuesta</h3>
-            <p className="text-gray-600 mb-4">{error}</p>
+            <p className="text-gray-600 mb-4">{error?.message || 'Error desconocido'}</p>
             <div className="flex gap-2">
               <Button onClick={() => navigate("/surveys")} variant="outline">
                 Volver a Encuestas
@@ -179,9 +179,9 @@ const SurveyDetails = () => {
   }
 
   return (
-    <div className={`container mx-auto ${isMobile ? 'p-4' : 'p-6'} mobile-scroll-container`}>
+    <div className={`container mx-auto ${isMobile ? 'px-3 py-4' : 'p-6'} mobile-scroll-container`}>
       {/* Header */}
-      <div className={`flex ${isMobile ? 'flex-col' : 'flex-col md:flex-row md:items-center md:justify-between'} gap-4 mb-6`}>
+      <div className={`flex ${isMobile ? 'flex-col' : 'flex-col md:flex-row md:items-center md:justify-between'} ${isMobile ? 'gap-3 mb-4' : 'gap-4 mb-6'}`}>
         <div className="flex items-center gap-4">
           <Button 
             onClick={() => navigate("/surveys")} 
@@ -302,6 +302,18 @@ const SurveyDetails = () => {
               <p className="text-sm text-gray-500">Vereda</p>
               <p className="font-medium">{encuesta.vereda.nombre}</p>
             </div>
+            {(encuesta as any).corregimiento && (
+              <div>
+                <p className="text-sm text-gray-500">Corregimiento</p>
+                <p className="font-medium">{(encuesta as any).corregimiento.nombre}</p>
+              </div>
+            )}
+            {(encuesta as any).centro_poblado && (
+              <div>
+                <p className="text-sm text-gray-500">Centro Poblado</p>
+                <p className="font-medium">{(encuesta as any).centro_poblado.nombre}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -316,15 +328,15 @@ const SurveyDetails = () => {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">Total Miembros</span>
-              <Badge variant="outline">{encuesta.miembros_familia.total_miembros}</Badge>
+              <Badge variant="outline">{encuesta.miembros_familia?.total_miembros || 0}</Badge>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">Personas Fallecidas</span>
-              <Badge variant="outline">{encuesta.personas_fallecidas.total_fallecidos}</Badge>
+              <Badge variant="outline">{encuesta.deceasedMembers?.length || 0}</Badge>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">Tamaño Familia</span>
-              <Badge variant="outline">{encuesta.tamaño_familia}</Badge>
+              <Badge variant="outline">{encuesta.tamaño_familia || 0}</Badge>
             </div>
             <div>
               <p className="text-sm text-gray-500">Fecha Creación</p>
@@ -342,6 +354,43 @@ const SurveyDetails = () => {
                 </div>
               </div>
             )}
+            {/* Mostrar encuestador/creador */}
+            {(() => {
+              const encuestador = (encuesta as any).usuario_creador
+                || encuesta.encuestador
+                || (encuesta as any).created_by 
+                || (encuesta as any).createdBy 
+                || (encuesta as any).user_id
+                || encuesta.metadatos?.usuario_creador
+                || encuesta.metadatos?.created_by
+                || encuesta.metadatos?.encuestador;
+              
+              return encuestador ? (
+                <div>
+                  <p className="text-sm text-gray-500">Encuestador</p>
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-gray-400" />
+                    <Badge variant="secondary">{encuestador}</Badge>
+                  </div>
+                </div>
+              ) : null;
+            })()}
+            {(encuesta as any).numero_contrato_epm && (
+              <div>
+                <p className="text-sm text-gray-500">Contrato EPM</p>
+                <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+                  {(encuesta as any).numero_contrato_epm}
+                </code>
+              </div>
+            )}
+            {(encuesta as any).comunion_en_casa !== undefined && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">Comunión en Casa</span>
+                <Badge variant={(encuesta as any).comunion_en_casa ? "default" : "outline"}>
+                  {(encuesta as any).comunion_en_casa ? "Sí" : "No"}
+                </Badge>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -355,15 +404,48 @@ const SurveyDetails = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className={`grid gap-6 ${shouldUseMobileView ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
+          <div className={`grid gap-6 ${shouldUseMobileView ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+            {/* Acueducto */}
             <div>
               <p className="text-sm text-gray-500 mb-2">Sistema de Acueducto</p>
-              <Badge variant="outline">{encuesta.acueducto.nombre}</Badge>
+              {Array.isArray(encuesta.acueducto) ? (
+                <div className="space-y-1">
+                  {encuesta.acueducto.map((ac: any) => (
+                    <Badge key={ac.id} variant="outline" className="mr-1">{ac.nombre}</Badge>
+                  ))}
+                </div>
+              ) : (
+                <Badge variant="outline">{encuesta.acueducto?.nombre || 'No especificado'}</Badge>
+              )}
             </div>
+            
+            {/* Aguas Residuales */}
             <div>
               <p className="text-sm text-gray-500 mb-2">Aguas Residuales</p>
-              {encuesta.aguas_residuales ? (
+              {Array.isArray(encuesta.aguas_residuales) ? (
+                <div className="space-y-1">
+                  {encuesta.aguas_residuales.map((ar: any) => (
+                    <Badge key={ar.id} variant="outline" className="mr-1 mb-1">{ar.nombre}</Badge>
+                  ))}
+                </div>
+              ) : encuesta.aguas_residuales ? (
                 <Badge variant="outline">{encuesta.aguas_residuales.nombre}</Badge>
+              ) : (
+                <span className="text-gray-400">No especificado</span>
+              )}
+            </div>
+            
+            {/* Disposición de Basuras */}
+            <div>
+              <p className="text-sm text-gray-500 mb-2">Disposición de Basuras</p>
+              {encuesta.basuras && encuesta.basuras.length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {encuesta.basuras.map((b: any) => (
+                    <Badge key={b.id} variant="secondary" className="text-xs">
+                      {b.nombre}
+                    </Badge>
+                  ))}
+                </div>
               ) : (
                 <span className="text-gray-400">No especificado</span>
               )}
@@ -372,7 +454,7 @@ const SurveyDetails = () => {
         </CardContent>
       </Card>
 
-      {/* Miembros de Familia - Responsive */}
+      {/* Miembros de Familia - DETALLE COMPLETO */}
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -380,103 +462,277 @@ const SurveyDetails = () => {
             Miembros de Familia ({encuesta.miembros_familia.total_miembros})
           </CardTitle>
           <CardDescription>
-            Información de todos los miembros activos de la familia
+            Información completa de todos los miembros activos de la familia
           </CardDescription>
         </CardHeader>
-        <CardContent className={shouldUseMobileView ? "p-4" : ""}>
+        <CardContent className="space-y-4">
           {encuesta.miembros_familia.personas.length > 0 ? (
-            shouldUseMobileView ? (
-              // Vista móvil: Cards
-              <div className="space-y-4 mobile-view-transition">
-                {encuesta.miembros_familia.personas.map((miembro, index) => (
-                  <MemberMobileCard
-                    key={miembro.id}
-                    member={miembro}
-                    familyAddress={encuesta.direccion_familia}
-                    index={index}
-                    compact={false}
-                  />
-                ))}
-              </div>
-            ) : (
-              // Vista desktop: Tabla
-              <div className="desktop-view-transition">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nombre Completo</TableHead>
-                      <TableHead>Identificación</TableHead>
-                      <TableHead>Edad</TableHead>
-                      <TableHead>Sexo</TableHead>
-                      <TableHead>Estado Civil</TableHead>
-                      <TableHead>Estudios</TableHead>
-                      <TableHead>Contacto</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {encuesta.miembros_familia.personas.map((miembro, index) => (
-                      <TableRow key={miembro.id}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{miembro.nombre_completo}</p>
-                            <div className="flex gap-1 text-xs text-gray-500 mt-1">
-                              <span>👕 {miembro.tallas.camisa}</span>
-                              <span>👖 {miembro.tallas.pantalon}</span>
-                              <span>👟 {miembro.tallas.zapato}</span>
-                            </div>
+            <div className="space-y-6">
+              {encuesta.miembros_familia.personas.map((miembro: any, index: number) => {
+                return (
+                <Card key={miembro.id} className={`border-2 hover:border-primary/50 transition-colors ${isMobile ? 'mb-4' : ''}`}>
+                  <CardHeader className={isMobile ? "pb-2 pt-3 px-3" : "pb-3"}>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className={`${isMobile ? 'text-base' : 'text-lg'} flex items-center gap-2`}>
+                          <User className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} text-primary`} />
+                          {miembro.nombre_completo}
+                        </CardTitle>
+                        <div className="flex gap-2 mt-2">
+                          {miembro.parentesco && (
+                            <Badge variant="secondary" className={isMobile ? "text-xs" : ""}>{miembro.parentesco.nombre}</Badge>
+                          )}
+                          <Badge variant="outline" className={isMobile ? "text-xs" : ""}>{miembro.sexo?.descripcion || miembro.sexo?.nombre}</Badge>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-primary`}>{miembro.edad || calculateAge(miembro.fecha_nacimiento)}</p>
+                        <p className="text-xs text-gray-500">años</p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className={`space-y-${isMobile ? '3' : '4'} ${isMobile ? 'px-3 pb-3' : ''}`}>
+                    {/* Información Personal */}
+                    <div>
+                      <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
+                        <User className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} /> Información Personal
+                      </h4>
+                      <div className={`grid grid-cols-1 ${isMobile ? 'gap-2' : 'md:grid-cols-2 lg:grid-cols-3 gap-3'} text-sm`}>
+                        <div>
+                          <p className="text-gray-500">Identificación</p>
+                          <p className="font-medium">{miembro.identificacion.numero}</p>
+                          <p className="text-xs text-gray-400">{miembro.identificacion.tipo?.nombre}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500">Fecha de Nacimiento</p>
+                          <p className="font-medium">{formatDate(miembro.fecha_nacimiento)}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500">Estado Civil</p>
+                          <p className="font-medium">{miembro.estado_civil.nombre}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Contacto */}
+                    <div>
+                      <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
+                        <Phone className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} /> Contacto
+                      </h4>
+                      <div className={`grid grid-cols-1 ${isMobile ? 'gap-2' : 'md:grid-cols-2 gap-3'} text-sm`}>
+                        {miembro.telefono && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="w-4 h-4 text-gray-400" />
+                            <span>{miembro.telefono}</span>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="text-sm">{miembro.identificacion.numero}</p>
-                            {miembro.identificacion.tipo && (
-                              <p className="text-xs text-gray-500">
-                                {miembro.identificacion.tipo.codigo}
-                              </p>
-                            )}
+                        )}
+                        {miembro.email && !miembro.email.includes('@temp.com') && (
+                          <div className="flex items-center gap-2">
+                            <Mail className="w-4 h-4 text-gray-400" />
+                            <span className="text-xs break-all">{miembro.email}</span>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="text-sm">{miembro.edad || calculateAge(miembro.fecha_nacimiento)} años</p>
-                            <p className="text-xs text-gray-500">
-                              {formatDate(miembro.fecha_nacimiento)}
-                            </p>
+                        )}
+                        {miembro.direccion && (
+                          <div className="flex items-center gap-2 col-span-full">
+                            <MapPin className="w-4 h-4 text-gray-400" />
+                            <span>{miembro.direccion}</span>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-xs">
-                            {miembro.sexo.descripcion}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <p className="text-sm">{miembro.estado_civil.nombre}</p>
-                        </TableCell>
-                        <TableCell>
-                          <p className="text-sm">{miembro.estudios.nombre}</p>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            {miembro.telefono && (
-                              <div className="flex items-center gap-1 text-xs">
-                                <Phone className="w-3 h-3" />
-                                {miembro.telefono}
+                        )}
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Educación y Profesión */}
+                    <div>
+                      <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
+                        <GraduationCap className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} /> Educación y Profesión
+                      </h4>
+                      <div className={`grid grid-cols-1 ${isMobile ? 'gap-2' : 'md:grid-cols-2 gap-3'} text-sm`}>
+                        <div>
+                          <p className="text-gray-500">Nivel de Estudios</p>
+                          <p className="font-medium">{miembro.estudios.nombre}</p>
+                        </div>
+                        {miembro.profesion && (
+                          <div>
+                            <p className="text-gray-500">Profesión/Oficio</p>
+                            <p className="font-medium">{miembro.profesion.nombre}</p>
+                          </div>
+                        )}
+                        {miembro.comunidad_cultural && (
+                          <div>
+                            <p className="text-gray-500">Comunidad Cultural</p>
+                            <p className="font-medium">{miembro.comunidad_cultural.nombre}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Tallas */}
+                    <div>
+                      <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
+                        <Shirt className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} /> Tallas
+                      </h4>
+                      <div className={`flex ${isMobile ? 'flex-col gap-2' : 'gap-4'} text-sm`}>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500">👕 Camisa:</span>
+                          <Badge variant="outline">{miembro.tallas.camisa}</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500">👖 Pantalón:</span>
+                          <Badge variant="outline">{miembro.tallas.pantalon}</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500">👟 Zapato:</span>
+                          <Badge variant="outline">{miembro.tallas.zapato}</Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Liderazgo */}
+                    {miembro.en_que_eres_lider && (
+                      <>
+                        <Separator />
+                        <div>
+                          <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                            👑 Áreas de Liderazgo
+                          </h4>
+                          <p className="text-sm">{miembro.en_que_eres_lider}</p>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Habilidades */}
+                    {miembro.habilidades && miembro.habilidades.length > 0 ? (
+                      <>
+                        <Separator />
+                        <div>
+                          <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                            ⭐ Habilidades
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {miembro.habilidades.map((h: any) => (
+                              <Badge key={h.id} variant="secondary" className="text-xs">
+                                {h.nombre} {h.nivel && `(${h.nivel})`}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Separator />
+                        <div>
+                          <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                            ⭐ Habilidades
+                          </h4>
+                          <p className="text-xs text-gray-400 italic">Sin habilidades registradas</p>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Destrezas */}
+                    {miembro.destrezas && miembro.destrezas.length > 0 ? (
+                      <>
+                        <Separator />
+                        <div>
+                          <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                            🛠️ Destrezas
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {miembro.destrezas.map((d: any) => (
+                              <Badge key={d.id} variant="outline" className="text-xs">
+                                {d.nombre}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Separator />
+                        <div>
+                          <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                            🛠️ Destrezas
+                          </h4>
+                          <p className="text-xs text-gray-400 italic">Sin destrezas registradas</p>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Celebraciones */}
+                    {miembro.celebraciones && miembro.celebraciones.length > 0 && (
+                      <>
+                        <Separator />
+                        <div>
+                          <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
+                            <Calendar className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} /> Fechas para Celebrar
+                          </h4>
+                          <div className={`${isMobile ? 'space-y-1.5' : 'space-y-2'}`}>
+                            {miembro.celebraciones.map((c: any, idx: number) => (
+                              <div key={c.id || idx} className="flex items-center gap-2 text-sm">
+                                <Badge variant="outline">{c.dia}/{c.mes}</Badge>
+                                <span>{c.motivo}</span>
                               </div>
-                            )}
-                            {miembro.email && !miembro.email.includes('@temp.com') && (
-                              <div className="flex items-center gap-1 text-xs">
-                                <Mail className="w-3 h-3" />
-                                {miembro.email}
-                              </div>
-                            )}
+                            ))}
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )
+                        </div>
+                      </>
+                    )}
+
+                    {/* Enfermedades */}
+                    {miembro.enfermedades && miembro.enfermedades.length > 0 ? (
+                      <>
+                        <Separator />
+                        <div>
+                          <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
+                            <Heart className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-red-500`} /> Enfermedades
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {miembro.enfermedades.map((e: any) => (
+                              <Badge key={e.id} variant="destructive" className="text-xs">
+                                {e.nombre}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Separator />
+                        <div>
+                          <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
+                            <Heart className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-400`} /> Enfermedades
+                          </h4>
+                          <p className="text-xs text-gray-400 italic">Sin enfermedades registradas</p>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Necesidades de Enfermo */}
+                    {miembro.necesidad_enfermo && (
+                      <>
+                        <Separator />
+                        <div>
+                          <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
+                            <AlertTriangle className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-orange-500`} /> Necesidades del Enfermo
+                          </h4>
+                          <p className={`text-sm bg-orange-50 ${isMobile ? 'p-2' : 'p-3'} rounded border border-orange-200`}>
+                            {miembro.necesidad_enfermo}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+                );
+              })}
+            </div>
           ) : (
             <div className="text-center py-8 text-gray-500">
               <Users className="w-12 h-12 mx-auto mb-2" />
@@ -487,55 +743,55 @@ const SurveyDetails = () => {
       </Card>
 
       {/* Personas Fallecidas */}
-      {encuesta.personas_fallecidas.total_fallecidos > 0 && (
+      {encuesta.deceasedMembers && encuesta.deceasedMembers.length > 0 && (
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Heart className="w-5 h-5" />
-              Personas Fallecidas ({encuesta.personas_fallecidas.total_fallecidos})
+              <Heart className="w-5 h-5 text-purple-600" />
+              Personas Fallecidas ({encuesta.deceasedMembers.length})
             </CardTitle>
             <CardDescription>
               Registro de familiares fallecidos
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nombre Completo</TableHead>
-                  <TableHead>Fecha Fallecimiento</TableHead>
-                  <TableHead>Parentesco</TableHead>
-                  <TableHead>Causa</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {encuesta.personas_fallecidas.fallecidos.map((fallecido) => (
-                  <TableRow key={fallecido.id}>
-                    <TableCell>
-                      <p className="font-medium">{fallecido.nombre_completo}</p>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        {formatDate(fallecido.fecha_fallecimiento)}
+            <div className="space-y-4">
+              {encuesta.deceasedMembers.map((fallecido: any, index: number) => (
+                <Card key={index} className="border-purple-200 bg-purple-50/30">
+                  <CardContent className="pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Nombre Completo</p>
+                        <p className="font-semibold text-purple-900">{fallecido.nombres}</p>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {fallecido.era_padre && <Badge variant="outline">Padre</Badge>}
-                        {fallecido.era_madre && <Badge variant="outline">Madre</Badge>}
-                        {!fallecido.era_padre && !fallecido.era_madre && (
-                          <span className="text-gray-500">Familiar</span>
-                        )}
+                      <div>
+                        <p className="text-sm text-gray-500">Fecha de Fallecimiento</p>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-purple-500" />
+                          <p className="font-medium">{formatDate(fallecido.fechaFallecimiento)}</p>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-sm">{fallecido.causa_fallecimiento}</p>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      <div>
+                        <p className="text-sm text-gray-500">Sexo</p>
+                        <Badge variant="outline">{fallecido.sexo.nombre}</Badge>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Parentesco</p>
+                        <Badge variant="secondary">{fallecido.parentesco.nombre}</Badge>
+                      </div>
+                      {fallecido.causaFallecimiento && (
+                        <div className="col-span-full">
+                          <p className="text-sm text-gray-500">Causa de Fallecimiento</p>
+                          <p className="text-sm mt-1 p-2 bg-white rounded border">
+                            {fallecido.causaFallecimiento}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}

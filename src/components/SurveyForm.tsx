@@ -541,11 +541,9 @@ const SurveyForm = () => {
       let response;
       if (isEditMode && surveyId) {
         // Modo edición - actualizar encuesta existente
-        console.log('📝 Actualizando encuesta existente:', surveyId);
         response = await SurveySubmissionService.updateSurvey(surveyId, structuredSurveyData);
       } else {
         // Modo creación - crear nueva encuesta
-        console.log('📝 Creando nueva encuesta');
         response = await SurveySubmissionService.submitSurvey(structuredSurveyData);
       }
       
@@ -576,11 +574,31 @@ const SurveyForm = () => {
       } else {
         console.error('❌ Error en el envío:', response);
         
+        // Mostrar error con detalles estructurados si están disponibles
+        const errorTitle = response.errorDetails?.code 
+          ? `❌ ${response.errorDetails.code.replace(/_/g, ' ')}`
+          : "❌ Error al enviar al servidor";
+        
+        const errorDescription = response.errorDetails
+          ? `${response.message}\n\nLos datos se guardaron localmente.`
+          : `${response.message} - Los datos se guardaron localmente.`;
+        
         toast({
-          title: "❌ Error al enviar al servidor",
-          description: response.message + " - Los datos se guardaron localmente.",
+          title: errorTitle,
+          description: errorDescription,
           variant: "destructive"
         });
+        
+        // Log adicional para debugging si hay detalles de error
+        if (response.errorDetails) {
+          console.error('🔴 Detalles del error:', {
+            code: response.errorDetails.code,
+            catalog: response.errorDetails.catalog,
+            invalidId: response.errorDetails.invalidId,
+            person: response.errorDetails.person,
+            suggestion: response.errorDetails.suggestion
+          });
+        }
       }
       
     } catch (error) {

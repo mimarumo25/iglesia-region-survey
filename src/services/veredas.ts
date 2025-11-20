@@ -8,6 +8,7 @@ import {
   MunicipiosResponse,
   ServerResponse 
 } from '@/types/veredas';
+import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 class VeredasService {
   // ===== MÉTODOS PARA MUNICIPIOS =====
@@ -37,6 +38,7 @@ class VeredasService {
       return response.data;
     } catch (error) {
       console.error('Error al obtener municipios:', error);
+      showErrorToast(error, 'obtener municipios');
       throw error;
     }
   }
@@ -51,6 +53,7 @@ class VeredasService {
       return response.data;
     } catch (error) {
       console.error('Error al obtener municipio por ID:', error);
+      showErrorToast(error, 'obtener municipio por ID');
       throw error;
     }
   }
@@ -124,6 +127,7 @@ class VeredasService {
       };
     } catch (error) {
       console.error('❌ Error al obtener veredas:', error);
+      showErrorToast(error, 'obtener veredas');
       throw error;
     }
   }
@@ -138,6 +142,7 @@ class VeredasService {
       return response.data;
     } catch (error) {
       console.error('Error al obtener vereda por ID:', error);
+      showErrorToast(error, 'obtener vereda por ID');
       throw error;
     }
   }
@@ -150,9 +155,11 @@ class VeredasService {
         `/api/catalog/veredas`,
         vereda
       );
+      showSuccessToast('Vereda creada', 'La vereda se ha creado correctamente');
       return response.data;
     } catch (error) {
       console.error('Error al crear vereda:', error);
+      showErrorToast(error, 'crear vereda');
       throw error;
     }
   }
@@ -165,9 +172,11 @@ class VeredasService {
         `/api/catalog/veredas/${id}`,
         vereda
       );
+      showSuccessToast('Vereda actualizada', 'La vereda se ha actualizado correctamente');
       return response.data;
     } catch (error) {
       console.error('Error al actualizar vereda:', error);
+      showErrorToast(error, 'actualizar vereda');
       throw error;
     }
   }
@@ -179,8 +188,10 @@ class VeredasService {
       await client.delete(
         `/api/catalog/veredas/${id}`
       );
+      showSuccessToast('Vereda eliminada', 'La vereda se ha eliminado correctamente');
     } catch (error) {
       console.error('Error al eliminar vereda:', error);
+      showErrorToast(error, 'eliminar vereda');
       throw error;
     }
   }
@@ -247,6 +258,7 @@ class VeredasService {
       };
     } catch (error) {
       console.error('❌ Error al buscar veredas:', error);
+      showErrorToast(error, 'buscar veredas');
       throw error;
     }
   }
@@ -289,6 +301,7 @@ class VeredasService {
       return processedVeredas;
     } catch (error) {
       console.error('❌ Error al obtener veredas por municipio:', error);
+      showErrorToast(error, 'obtener veredas por municipio');
       throw error;
     }
   }
