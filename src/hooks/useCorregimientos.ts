@@ -29,18 +29,18 @@ export const useCorregimientos = () => {
     limit: number = 10,
     sortBy: string = 'nombre',
     sortOrder: 'ASC' | 'DESC' = 'ASC',
-    searchTerm: string = ''
+    searchTerm: string | undefined = ''
   ) => {
     return useQuery<CorregimientosQueryResponse, Error>({
-      queryKey: ['corregimientos', { page, limit, sortBy, sortOrder, searchTerm }],
+      queryKey: ['corregimientos', { page, limit, sortBy, sortOrder, searchTerm: searchTerm || '' }],
       queryFn: async () => {
         try {
           const response = await corregimientosService.getCorregimientos(page, limit, sortBy, sortOrder);
           
           // Filtrar por búsqueda si hay término
           let filteredData = response.data || [];
-          if (searchTerm) {
-            const searchLower = searchTerm.toLowerCase();
+          if (searchTerm && typeof searchTerm === 'string' && searchTerm.trim()) {
+            const searchLower = searchTerm.toLowerCase().trim();
             filteredData = filteredData.filter(
               (c) => c.nombre.toLowerCase().includes(searchLower)
             );

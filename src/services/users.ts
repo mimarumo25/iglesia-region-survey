@@ -9,9 +9,10 @@ export interface CreateUserRequest {
   primer_apellido: string;
   segundo_apellido?: string;
   correo_electronico: string;
-  password: string;
+  contrasena: string;  // Backend espera 'contrasena'
   telefono?: string;
   numero_documento?: string;
+  rol: string;  // Backend requiere 'rol': "Administrador" | "Encuestador"
 }
 
 export interface UpdateUserRequest {
@@ -143,9 +144,44 @@ export class UsersService {
       } else {
         throw new Error(response.data.message || 'Error al crear usuario');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating user:', error);
-      throw error;
+      
+      // Manejar errores de validación del backend
+      if (error.response?.data?.code === 'VALIDATION_ERROR' && error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const errorMessages: string[] = [];
+        
+        // Agrupar errores por campo
+        const groupedErrors: Record<string, string[]> = {};
+        errors.forEach((err: any) => {
+          if (!groupedErrors[err.field]) {
+            groupedErrors[err.field] = [];
+          }
+          groupedErrors[err.field].push(err.message);
+        });
+        
+        // Crear mensajes amigables
+        Object.entries(groupedErrors).forEach(([field, messages]) => {
+          const fieldName = field === 'contrasena' ? 'Contraseña' :
+                          field === 'telefono' ? 'Teléfono' :
+                          field === 'rol' ? 'Rol' :
+                          field === 'correo_electronico' ? 'Email' :
+                          field === 'primer_nombre' ? 'Primer Nombre' :
+                          field === 'primer_apellido' ? 'Primer Apellido' : field;
+          errorMessages.push(`${fieldName}: ${messages.join(', ')}`);
+        });
+        
+        throw new Error(`Por favor corrija los siguientes errores:\n\n${errorMessages.join('\n')}`);
+      }
+      
+      // Manejar otros errores específicos
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      
+      // Error genérico
+      throw new Error('Error al conectar con el servidor. Verifique su conexión e intente nuevamente.');
     }
   }
 

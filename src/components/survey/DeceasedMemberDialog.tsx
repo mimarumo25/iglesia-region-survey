@@ -147,7 +147,7 @@ const DeceasedMemberDialog: React.FC<DeceasedMemberDialogProps> = ({
                           onChange={field.onChange}
                           placeholder="Seleccionar fecha de fallecimiento"
                           title="Fecha de Fallecimiento"
-                          description="Selecciona día, mes y año del fallecimiento"
+                          description="Elija una fecha de fallecimiento"
                         />
                       </FormControl>
                       <FormMessage className="text-destructive text-xs font-medium" />

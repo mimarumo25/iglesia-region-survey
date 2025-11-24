@@ -3,7 +3,7 @@
  * Vista principal con tabs para diferentes tipos de reportes
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,10 @@ import FamiliasAccordionList from "@/components/familias/FamiliasAccordionList";
 import { useSaludData } from "@/hooks/useSaludData";
 import type { SaludFiltros } from "@/types/salud";
 import SaludList from "@/components/salud/SaludList";
+import { useParroquias } from "@/hooks/useParroquias";
+import { useCorregimientos } from "@/hooks/useCorregimientos";
+import { useCentrosPoblados } from "@/hooks/useCentrosPoblados";
+import { useSectores } from "@/hooks/useSectores";
 
 /**
  * 📊 Módulo de Reportes y Estadísticas - Sistema MIA
@@ -94,6 +98,8 @@ interface FamiliasFilters {
   municipio: string;
   sector: string;
   vereda: string;
+  corregimiento: string;
+  centro_poblado: string;
   limite: number;
   offset: number;
 }
@@ -109,6 +115,8 @@ interface SaludFiltersUI {
   parroquia: string;
   municipio: string;
   sector: string;
+  corregimiento: string;
+  centro_poblado: string;
   limite: number;
   offset: number;
 }
@@ -117,6 +125,12 @@ const Reports = () => {
   const [activeTab, setActiveTab] = useState("familias");
   const configData = useConfigurationData();
   const { toast } = useToast();
+
+  // Hooks dinámicos para filtrado por municipio
+  const { useParroquiasByMunicipioQuery } = useParroquias();
+  const { useCorregimientosByMunicipioQuery } = useCorregimientos();
+  const { useCentrosPobladosByMunicipioQuery } = useCentrosPoblados();
+  const { useSectoresByMunicipioQuery } = useSectores();
 
   // Hook para gestión de datos de salud
   const {
@@ -135,6 +149,8 @@ const Reports = () => {
     municipio: "",
     sector: "",
     vereda: "",
+    corregimiento: "",
+    centro_poblado: "",
     limite: 100,
     offset: 0
   });
@@ -153,6 +169,8 @@ const Reports = () => {
     parroquia: "",
     municipio: "",
     sector: "",
+    corregimiento: "",
+    centro_poblado: "",
     limite: 100,
     offset: 0
   });
@@ -161,6 +179,53 @@ const Reports = () => {
   const [saludCurrentPage, setSaludCurrentPage] = useState(1);
   const saludLimite = saludFilters.limite || 10;
   const saludTotalPages = Math.ceil(saludTotal / saludLimite);
+
+  // ============================================================
+  // 🔍 QUERIES DINÁMICAS POR MUNICIPIO - SALUD
+  // ============================================================
+
+  /**
+   * Queries que se activan cuando se selecciona un municipio en Salud
+   * Estas llamadas a la API filtran directamente en el backend
+   */
+  const { data: saludParroquiasByMunicipioData } = useParroquiasByMunicipioQuery(
+    saludFilters.municipio || ""
+  );
+
+  const { data: saludSectoresByMunicipioData } = useSectoresByMunicipioQuery(
+    saludFilters.municipio ? Number(saludFilters.municipio) : null
+  );
+
+  const { data: saludCorregimientosByMunicipioData } = useCorregimientosByMunicipioQuery(
+    saludFilters.municipio ? Number(saludFilters.municipio) : null
+  );
+
+  const { data: saludCentrosPobladosByMunicipioData } = useCentrosPobladosByMunicipioQuery(
+    saludFilters.municipio ? Number(saludFilters.municipio) : null
+  );
+
+  // ============================================================
+  // 🔍 QUERIES DINÁMICAS POR MUNICIPIO - FAMILIAS
+  // ============================================================
+
+  /**
+   * Queries que se activan cuando se selecciona un municipio en Familias
+   */
+  const { data: familiasParroquiasByMunicipioData } = useParroquiasByMunicipioQuery(
+    familiasFilters.municipio || ""
+  );
+
+  const { data: familiasSectoresByMunicipioData } = useSectoresByMunicipioQuery(
+    familiasFilters.municipio ? Number(familiasFilters.municipio) : null
+  );
+
+  const { data: familiasCorregimientosByMunicipioData } = useCorregimientosByMunicipioQuery(
+    familiasFilters.municipio ? Number(familiasFilters.municipio) : null
+  );
+
+  const { data: familiasCentrosPobladosByMunicipioData } = useCentrosPobladosByMunicipioQuery(
+    familiasFilters.municipio ? Number(familiasFilters.municipio) : null
+  );
 
   /**
    * Maneja el cambio de página en Salud
@@ -173,18 +238,261 @@ const Reports = () => {
     setSaludFilters(prev => ({ ...prev, offset: newOffset }));
   };
 
+  // ============================================================
+  // 🔍 FILTRADO JERÁRQUICO POR MUNICIPIO - FAMILIAS
+  // ============================================================
+  
+  /**
+   * Filtrar opciones de Parroquia basadas en el municipio seleccionado
+   * Prioriza datos dinámicos de la API, fallback a filtro local
+   */
+  const filteredFamiliasParroquiaOptions = useMemo(() => {
+    if (!familiasFilters.municipio) return configData.parroquiaOptions;
+    
+    // Si hay datos dinámicos de la API, usarlos
+    if (Array.isArray(familiasParroquiasByMunicipioData) && familiasParroquiasByMunicipioData.length > 0) {
+      return familiasParroquiasByMunicipioData.map(p => ({
+        value: p.id_parroquia?.toString() || '',
+        label: p.nombre || 'Sin nombre',
+        description: `Parroquia del municipio`,
+        category: 'Ubicación'
+      }));
+    }
+    
+    // Fallback: Filtro local (método anterior)
+    return configData.parroquiaOptions.filter(option => {
+      const parroquia = configData.parroquiaItems?.find(p => p.id === option.value);
+      return parroquia?.id_municipio?.toString() === familiasFilters.municipio;
+    });
+  }, [familiasFilters.municipio, familiasParroquiasByMunicipioData, configData.parroquiaOptions, configData.parroquiaItems]);
+
+  /**
+   * Filtrar opciones de Sector basadas en el municipio seleccionado
+   * Prioriza datos dinámicos de la API, fallback a filtro local
+   */
+  const filteredFamiliasSectorOptions = useMemo(() => {
+    if (!familiasFilters.municipio) return configData.sectorOptions;
+    
+    // Si hay datos dinámicos de la API, usarlos
+    if (Array.isArray(familiasSectoresByMunicipioData) && familiasSectoresByMunicipioData.length > 0) {
+      return familiasSectoresByMunicipioData.map(s => ({
+        value: s.id_sector?.toString() || '',
+        label: s.nombre || 'Sin nombre',
+        description: `Sector del municipio`,
+        category: 'Ubicación'
+      }));
+    }
+    
+    // Fallback: Filtro local
+    return configData.sectorOptions.filter(option => {
+      const sector = configData.sectorItems?.find(s => s.id === option.value);
+      return sector?.id_municipio?.toString() === familiasFilters.municipio;
+    });
+  }, [familiasFilters.municipio, familiasSectoresByMunicipioData, configData.sectorOptions, configData.sectorItems]);
+
+  /**
+   * Filtrar opciones de Vereda basadas en el municipio seleccionado
+   */
+  const filteredFamiliasVeredaOptions = useMemo(() => {
+    if (!familiasFilters.municipio) return configData.veredaOptions;
+    
+    return configData.veredaOptions.filter(option => {
+      const vereda = configData.veredaItems?.find(v => v.id === option.value);
+      return vereda?.id_municipio?.toString() === familiasFilters.municipio;
+    });
+  }, [familiasFilters.municipio, configData.veredaOptions, configData.veredaItems]);
+
+  /**
+   * Filtrar opciones de Corregimiento basadas en el municipio seleccionado
+   * Prioriza datos dinámicos de la API, fallback a filtro local
+   */
+  const filteredFamiliasCorregimientoOptions = useMemo(() => {
+    if (!familiasFilters.municipio) return configData.corregimientoOptions;
+    
+    // Si hay datos dinámicos de la API, usarlos (el hook devuelve array directamente)
+    if (familiasCorregimientosByMunicipioData && Array.isArray(familiasCorregimientosByMunicipioData) && familiasCorregimientosByMunicipioData.length > 0) {
+      return familiasCorregimientosByMunicipioData.map(c => ({
+        value: c.id_corregimiento?.toString() || '',
+        label: c.nombre || 'Sin nombre',
+        description: `Corregimiento del municipio`,
+        category: 'Ubicación'
+      }));
+    }
+    
+    // Fallback: Filtro local
+    return configData.corregimientoOptions.filter(option => {
+      const corregimiento = configData.corregimientoItems?.find(c => c.id === option.value);
+      return corregimiento?.id_municipio?.toString() === familiasFilters.municipio;
+    });
+  }, [familiasFilters.municipio, familiasCorregimientosByMunicipioData, configData.corregimientoOptions, configData.corregimientoItems]);
+
+  /**
+   * Filtrar opciones de Centro Poblado basadas en el municipio seleccionado
+   * Prioriza datos dinámicos de la API, fallback a filtro local
+   */
+  const filteredFamiliasCentroPobladoOptions = useMemo(() => {
+    if (!familiasFilters.municipio) return configData.centroPobladoOptions;
+    
+    // Si hay datos dinámicos de la API, usarlos (el hook devuelve array directamente)
+    if (familiasCentrosPobladosByMunicipioData && Array.isArray(familiasCentrosPobladosByMunicipioData) && familiasCentrosPobladosByMunicipioData.length > 0) {
+      return familiasCentrosPobladosByMunicipioData.map(cp => ({
+        value: cp.id_centro_poblado?.toString() || '',
+        label: cp.nombre || 'Sin nombre',
+        description: `Centro poblado del municipio`,
+        category: 'Ubicación'
+      }));
+    }
+    
+    // Fallback: Filtro local
+    return configData.centroPobladoOptions.filter(option => {
+      const centroPoblado = configData.centroPobladoItems?.find(cp => cp.id === option.value);
+      return centroPoblado?.id_municipio?.toString() === familiasFilters.municipio;
+    });
+  }, [familiasFilters.municipio, familiasCentrosPobladosByMunicipioData, configData.centroPobladoOptions, configData.centroPobladoItems]);
+
+  // ============================================================
+  // 🔍 FILTRADO JERÁRQUICO POR MUNICIPIO - SALUD
+  // ============================================================
+
+  /**
+   * Filtrar opciones de Parroquia basadas en el municipio seleccionado (Salud)
+   * Prioriza datos dinámicos de la API, fallback a filtro local
+   */
+  const filteredSaludParroquiaOptions = useMemo(() => {
+    if (!saludFilters.municipio) return configData.parroquiaOptions;
+    
+    // Si hay datos dinámicos de la API, usarlos
+    if (saludParroquiasByMunicipioData?.data) {
+      return saludParroquiasByMunicipioData.data.map(p => ({
+        value: p.id_parroquia?.toString() || '',
+        label: p.nombre || 'Sin nombre',
+        description: `Parroquia del municipio`,
+        category: 'Ubicación'
+      }));
+    }
+    
+    // Fallback: Filtro local
+    return configData.parroquiaOptions.filter(option => {
+      const parroquia = configData.parroquiaItems?.find(p => p.id === option.value);
+      return parroquia?.id_municipio?.toString() === saludFilters.municipio;
+    });
+  }, [saludFilters.municipio, saludParroquiasByMunicipioData, configData.parroquiaOptions, configData.parroquiaItems]);
+
+  /**
+   * Filtrar opciones de Sector basadas en el municipio seleccionado (Salud)
+   * Prioriza datos dinámicos de la API, fallback a filtro local
+   */
+  const filteredSaludSectorOptions = useMemo(() => {
+    if (!saludFilters.municipio) return configData.sectorOptions;
+    
+    // Si hay datos dinámicos de la API, usarlos
+    if (saludSectoresByMunicipioData?.data) {
+      return saludSectoresByMunicipioData.data.map(s => ({
+        value: s.id_sector?.toString() || '',
+        label: s.nombre || 'Sin nombre',
+        description: `Sector del municipio`,
+        category: 'Ubicación'
+      }));
+    }
+    
+    // Fallback: Filtro local
+    return configData.sectorOptions.filter(option => {
+      const sector = configData.sectorItems?.find(s => s.id === option.value);
+      return sector?.id_municipio?.toString() === saludFilters.municipio;
+    });
+  }, [saludFilters.municipio, saludSectoresByMunicipioData, configData.sectorOptions, configData.sectorItems]);
+
+  /**
+   * Filtrar opciones de Corregimiento basadas en el municipio seleccionado (Salud)
+   * Prioriza datos dinámicos de la API, fallback a filtro local
+   */
+  const filteredSaludCorregimientoOptions = useMemo(() => {
+    if (!saludFilters.municipio) return configData.corregimientoOptions;
+    
+    // Si hay datos dinámicos de la API, usarlos (el hook devuelve array directamente)
+    if (saludCorregimientosByMunicipioData && Array.isArray(saludCorregimientosByMunicipioData) && saludCorregimientosByMunicipioData.length > 0) {
+      return saludCorregimientosByMunicipioData.map(c => ({
+        value: c.id_corregimiento?.toString() || '',
+        label: c.nombre || 'Sin nombre',
+        description: `Corregimiento del municipio`,
+        category: 'Ubicación'
+      }));
+    }
+    
+    // Fallback: Filtro local
+    return configData.corregimientoOptions.filter(option => {
+      const corregimiento = configData.corregimientoItems?.find(c => c.id === option.value);
+      return corregimiento?.id_municipio?.toString() === saludFilters.municipio;
+    });
+  }, [saludFilters.municipio, saludCorregimientosByMunicipioData, configData.corregimientoOptions, configData.corregimientoItems]);
+
+  /**
+   * Filtrar opciones de Centro Poblado basadas en el municipio seleccionado (Salud)
+   * Prioriza datos dinámicos de la API, fallback a filtro local
+   */
+  const filteredSaludCentroPobladoOptions = useMemo(() => {
+    if (!saludFilters.municipio) return configData.centroPobladoOptions;
+    
+    // Si hay datos dinámicos de la API, usarlos (el hook devuelve array directamente)
+    if (saludCentrosPobladosByMunicipioData && Array.isArray(saludCentrosPobladosByMunicipioData) && saludCentrosPobladosByMunicipioData.length > 0) {
+      return saludCentrosPobladosByMunicipioData.map(cp => ({
+        value: cp.id_centro_poblado?.toString() || '',
+        label: cp.nombre || 'Sin nombre',
+        description: `Centro poblado del municipio`,
+        category: 'Ubicación'
+      }));
+    }
+    
+    // Fallback: Filtro local
+    return configData.centroPobladoOptions.filter(option => {
+      const centroPoblado = configData.centroPobladoItems?.find(cp => cp.id === option.value);
+      return centroPoblado?.id_municipio?.toString() === saludFilters.municipio;
+    });
+  }, [saludFilters.municipio, saludCentrosPobladosByMunicipioData, configData.centroPobladoOptions, configData.centroPobladoItems]);
+
   /**
    * Maneja cambios en filtros de Familias
+   * Si cambia el municipio, resetea los filtros dependientes
    */
   const handleFamiliasFilterChange = (key: keyof FamiliasFilters, value: any) => {
-    setFamiliasFilters(prev => ({ ...prev, [key]: value }));
+    setFamiliasFilters(prev => {
+      // Si cambió el municipio, resetear todos los filtros dependientes
+      if (key === 'municipio') {
+        return {
+          ...prev,
+          municipio: value,
+          parroquia: "",
+          sector: "",
+          vereda: "",
+          corregimiento: "",
+          centro_poblado: ""
+        };
+      }
+      
+      return { ...prev, [key]: value };
+    });
   };
 
   /**
    * Maneja cambios en filtros de Salud
+   * Si cambia el municipio, resetea los filtros dependientes
    */
   const handleSaludFilterChange = (key: keyof SaludFiltersUI, value: any) => {
-    setSaludFilters(prev => ({ ...prev, [key]: value }));
+    setSaludFilters(prev => {
+      // Si cambió el municipio, resetear todos los filtros dependientes
+      if (key === 'municipio') {
+        return {
+          ...prev,
+          municipio: value,
+          parroquia: "",
+          sector: "",
+          corregimiento: "",
+          centro_poblado: ""
+        };
+      }
+      
+      return { ...prev, [key]: value };
+    });
   };
 
   /**
@@ -196,6 +504,8 @@ const Reports = () => {
       municipio: "",
       sector: "",
       vereda: "",
+      corregimiento: "",
+      centro_poblado: "",
       limite: 100,
       offset: 0
     });
@@ -215,6 +525,8 @@ const Reports = () => {
       parroquia: "",
       municipio: "",
       sector: "",
+      corregimiento: "",
+      centro_poblado: "",
       limite: 100,
       offset: 0
     });
@@ -261,6 +573,8 @@ const Reports = () => {
       const filtrosAPI = {
         id_parroquia: familiasFilters.parroquia ? Number(familiasFilters.parroquia) : undefined,
         id_municipio: familiasFilters.municipio ? Number(familiasFilters.municipio) : undefined,
+        id_corregimiento: familiasFilters.corregimiento ? Number(familiasFilters.corregimiento) : undefined,
+        id_centro_poblado: familiasFilters.centro_poblado ? Number(familiasFilters.centro_poblado) : undefined,
         id_sector: familiasFilters.sector ? Number(familiasFilters.sector) : undefined,
         id_vereda: familiasFilters.vereda ? Number(familiasFilters.vereda) : undefined,
         limite: familiasFilters.limite,
@@ -300,6 +614,8 @@ const Reports = () => {
       const filtrosAPI = {
         id_parroquia: familiasFilters.parroquia ? Number(familiasFilters.parroquia) : undefined,
         id_municipio: familiasFilters.municipio ? Number(familiasFilters.municipio) : undefined,
+        id_corregimiento: familiasFilters.corregimiento ? Number(familiasFilters.corregimiento) : undefined,
+        id_centro_poblado: familiasFilters.centro_poblado ? Number(familiasFilters.centro_poblado) : undefined,
         id_sector: familiasFilters.sector ? Number(familiasFilters.sector) : undefined,
         id_vereda: familiasFilters.vereda ? Number(familiasFilters.vereda) : undefined,
         limite: familiasFilters.limite,
@@ -342,6 +658,8 @@ const Reports = () => {
       id_sexo: saludFilters.sexo ? Number(saludFilters.sexo) : undefined,
       id_parroquia: saludFilters.parroquia ? Number(saludFilters.parroquia) : undefined,
       id_municipio: saludFilters.municipio ? Number(saludFilters.municipio) : undefined,
+      id_corregimiento: saludFilters.corregimiento ? Number(saludFilters.corregimiento) : undefined,
+      id_centro_poblado: saludFilters.centro_poblado ? Number(saludFilters.centro_poblado) : undefined,
       id_sector: saludFilters.sector ? Number(saludFilters.sector) : undefined,
       limite: saludFilters.limite,
       offset: saludFilters.offset
@@ -383,6 +701,8 @@ const Reports = () => {
       id_sexo: saludFilters.sexo ? Number(saludFilters.sexo) : undefined,
       id_parroquia: saludFilters.parroquia ? Number(saludFilters.parroquia) : undefined,
       id_municipio: saludFilters.municipio ? Number(saludFilters.municipio) : undefined,
+      id_corregimiento: saludFilters.corregimiento ? Number(saludFilters.corregimiento) : undefined,
+      id_centro_poblado: saludFilters.centro_poblado ? Number(saludFilters.centro_poblado) : undefined,
       id_sector: saludFilters.sector ? Number(saludFilters.sector) : undefined,
       limite: 5000 // Límite alto para exportación completa
     };
@@ -465,23 +785,12 @@ const Reports = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Campos de filtros - Ubicación geográfica */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-                  {/* Parroquia */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                  {/* Municipio - FILTRO PRINCIPAL */}
                   <div className="space-y-2">
-                    <Label htmlFor="familia_parroquia" className="text-sm font-medium">Parroquia</Label>
-                    <Autocomplete
-                      options={configData.parroquiaOptions}
-                      value={familiasFilters.parroquia}
-                      onValueChange={(value) => handleFamiliasFilterChange('parroquia', value)}
-                      placeholder="Seleccionar parroquia..."
-                      loading={configData.parroquiasLoading}
-                      emptyText="No se encontraron parroquias"
-                    />
-                  </div>
-
-                  {/* Municipio */}
-                  <div className="space-y-2">
-                    <Label htmlFor="familia_municipio" className="text-sm font-medium">Municipio</Label>
+                    <Label htmlFor="familia_municipio" className="text-sm font-medium">
+                      Municipio <span className="text-primary">⭐</span>
+                    </Label>
                     <Autocomplete
                       options={configData.municipioOptions}
                       value={familiasFilters.municipio}
@@ -492,29 +801,73 @@ const Reports = () => {
                     />
                   </div>
 
-                  {/* Sector */}
+                  {/* Parroquia - Filtrada por municipio */}
                   <div className="space-y-2">
-                    <Label htmlFor="familia_sector" className="text-sm font-medium">Sector</Label>
+                    <Label htmlFor="familia_parroquia" className="text-sm font-medium">Parroquia</Label>
                     <Autocomplete
-                      options={configData.sectorOptions}
-                      value={familiasFilters.sector}
-                      onValueChange={(value) => handleFamiliasFilterChange('sector', value)}
-                      placeholder="Seleccionar sector..."
-                      loading={configData.sectoresLoading}
-                      emptyText="No se encontraron sectores"
+                      options={filteredFamiliasParroquiaOptions}
+                      value={familiasFilters.parroquia}
+                      onValueChange={(value) => handleFamiliasFilterChange('parroquia', value)}
+                      placeholder={familiasFilters.municipio ? "Seleccionar parroquia..." : "Primero seleccione municipio"}
+                      loading={configData.parroquiasLoading}
+                      disabled={!familiasFilters.municipio}
+                      emptyText="No hay parroquias en este municipio"
                     />
                   </div>
 
-                  {/* Vereda */}
+                  {/* Sector - Filtrado por municipio */}
+                  <div className="space-y-2">
+                    <Label htmlFor="familia_sector" className="text-sm font-medium">Sector</Label>
+                    <Autocomplete
+                      options={filteredFamiliasSectorOptions}
+                      value={familiasFilters.sector}
+                      onValueChange={(value) => handleFamiliasFilterChange('sector', value)}
+                      placeholder={familiasFilters.municipio ? "Seleccionar sector..." : "Primero seleccione municipio"}
+                      loading={configData.sectoresLoading}
+                      disabled={!familiasFilters.municipio}
+                      emptyText="No hay sectores en este municipio"
+                    />
+                  </div>
+
+                  {/* Vereda - Filtrada por municipio */}
                   <div className="space-y-2">
                     <Label htmlFor="familia_vereda" className="text-sm font-medium">Vereda</Label>
                     <Autocomplete
-                      options={configData.veredaOptions}
+                      options={filteredFamiliasVeredaOptions}
                       value={familiasFilters.vereda}
                       onValueChange={(value) => handleFamiliasFilterChange('vereda', value)}
-                      placeholder="Seleccionar vereda..."
+                      placeholder={familiasFilters.municipio ? "Seleccionar vereda..." : "Primero seleccione municipio"}
                       loading={configData.veredasLoading}
-                      emptyText="No se encontraron veredas"
+                      disabled={!familiasFilters.municipio}
+                      emptyText="No hay veredas en este municipio"
+                    />
+                  </div>
+
+                  {/* Corregimiento - Filtrado por municipio */}
+                  <div className="space-y-2">
+                    <Label htmlFor="familia_corregimiento" className="text-sm font-medium">Corregimiento</Label>
+                    <Autocomplete
+                      options={filteredFamiliasCorregimientoOptions}
+                      value={familiasFilters.corregimiento}
+                      onValueChange={(value) => handleFamiliasFilterChange('corregimiento', value)}
+                      placeholder={familiasFilters.municipio ? "Seleccionar corregimiento..." : "Primero seleccione municipio"}
+                      loading={configData.corregimientosLoading}
+                      disabled={!familiasFilters.municipio}
+                      emptyText="No hay corregimientos en este municipio"
+                    />
+                  </div>
+
+                  {/* Centro Poblado - Filtrado por municipio */}
+                  <div className="space-y-2">
+                    <Label htmlFor="familia_centro_poblado" className="text-sm font-medium">Centro Poblado</Label>
+                    <Autocomplete
+                      options={filteredFamiliasCentroPobladoOptions}
+                      value={familiasFilters.centro_poblado}
+                      onValueChange={(value) => handleFamiliasFilterChange('centro_poblado', value)}
+                      placeholder={familiasFilters.municipio ? "Seleccionar centro poblado..." : "Primero seleccione municipio"}
+                      loading={configData.centrosPobladosLoading}
+                      disabled={!familiasFilters.municipio}
+                      emptyText="No hay centros poblados en este municipio"
                     />
                   </div>
                 </div>
@@ -584,7 +937,7 @@ const Reports = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Campos de filtros - Datos de salud */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
                   {/* Enfermedad */}
                   <div className="space-y-2">
                     <Label htmlFor="salud_enfermedad" className="text-sm font-medium">Enfermedad</Label>
@@ -645,23 +998,12 @@ const Reports = () => {
                 <Separator className="my-4 sm:my-6" />
 
                 {/* Filtros de ubicación geográfica */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-                  {/* Parroquia */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                  {/* Municipio - FILTRO PRINCIPAL */}
                   <div className="space-y-2">
-                    <Label htmlFor="salud_parroquia" className="text-sm font-medium">Parroquia</Label>
-                    <Autocomplete
-                      options={configData.parroquiaOptions}
-                      value={saludFilters.parroquia}
-                      onValueChange={(value) => handleSaludFilterChange('parroquia', value)}
-                      placeholder="Seleccionar parroquia..."
-                      loading={configData.parroquiasLoading}
-                      emptyText="No se encontraron parroquias"
-                    />
-                  </div>
-
-                  {/* Municipio */}
-                  <div className="space-y-2">
-                    <Label htmlFor="salud_municipio" className="text-sm font-medium">Municipio</Label>
+                    <Label htmlFor="salud_municipio" className="text-sm font-medium">
+                      Municipio <span className="text-primary">⭐</span>
+                    </Label>
                     <Autocomplete
                       options={configData.municipioOptions}
                       value={saludFilters.municipio}
@@ -672,16 +1014,59 @@ const Reports = () => {
                     />
                   </div>
 
-                  {/* Sector */}
+                  {/* Parroquia - Filtrada por municipio */}
+                  <div className="space-y-2">
+                    <Label htmlFor="salud_parroquia" className="text-sm font-medium">Parroquia</Label>
+                    <Autocomplete
+                      options={filteredSaludParroquiaOptions}
+                      value={saludFilters.parroquia}
+                      onValueChange={(value) => handleSaludFilterChange('parroquia', value)}
+                      placeholder={saludFilters.municipio ? "Seleccionar parroquia..." : "Primero seleccione municipio"}
+                      loading={configData.parroquiasLoading}
+                      disabled={!saludFilters.municipio}
+                      emptyText="No hay parroquias en este municipio"
+                    />
+                  </div>
+
+                  {/* Sector - Filtrado por municipio */}
                   <div className="space-y-2">
                     <Label htmlFor="salud_sector" className="text-sm font-medium">Sector</Label>
                     <Autocomplete
-                      options={configData.sectorOptions}
+                      options={filteredSaludSectorOptions}
                       value={saludFilters.sector}
                       onValueChange={(value) => handleSaludFilterChange('sector', value)}
-                      placeholder="Seleccionar sector..."
+                      placeholder={saludFilters.municipio ? "Seleccionar sector..." : "Primero seleccione municipio"}
                       loading={configData.sectoresLoading}
-                      emptyText="No se encontraron sectores"
+                      disabled={!saludFilters.municipio}
+                      emptyText="No hay sectores en este municipio"
+                    />
+                  </div>
+
+                  {/* Corregimiento - Filtrado por municipio */}
+                  <div className="space-y-2">
+                    <Label htmlFor="salud_corregimiento" className="text-sm font-medium">Corregimiento</Label>
+                    <Autocomplete
+                      options={filteredSaludCorregimientoOptions}
+                      value={saludFilters.corregimiento}
+                      onValueChange={(value) => handleSaludFilterChange('corregimiento', value)}
+                      placeholder={saludFilters.municipio ? "Seleccionar corregimiento..." : "Primero seleccione municipio"}
+                      loading={configData.corregimientosLoading}
+                      disabled={!saludFilters.municipio}
+                      emptyText="No hay corregimientos en este municipio"
+                    />
+                  </div>
+
+                  {/* Centro Poblado - Filtrado por municipio */}
+                  <div className="space-y-2">
+                    <Label htmlFor="salud_centro_poblado" className="text-sm font-medium">Centro Poblado</Label>
+                    <Autocomplete
+                      options={filteredSaludCentroPobladoOptions}
+                      value={saludFilters.centro_poblado}
+                      onValueChange={(value) => handleSaludFilterChange('centro_poblado', value)}
+                      placeholder={saludFilters.municipio ? "Seleccionar centro poblado..." : "Primero seleccione municipio"}
+                      loading={configData.centrosPobladosLoading}
+                      disabled={!saludFilters.municipio}
+                      emptyText="No hay centros poblados en este municipio"
                     />
                   </div>
 

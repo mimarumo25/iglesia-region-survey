@@ -43,7 +43,7 @@ import {
   Sparkles,
   Eye
 } from "lucide-react";
-import type { MiembroFamiliaConsolidado } from "@/types/familias";
+import type { MiembroFamiliaConsolidado, CelebracionMiembro, EnfermedadMiembro } from "@/types/familias";
 
 interface MiembrosTableWithDialogProps {
   miembros: MiembroFamiliaConsolidado[];
@@ -324,8 +324,8 @@ const MiembrosTableWithDialog = ({ miembros }: MiembrosTableWithDialogProps) => 
                   <Heart className="h-5 w-5" />
                   Salud y Vida Espiritual
                 </h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {/* Card: Salud */}
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Card: Salud y Enfermedades */}
                   <Card className="border-red-500/20 shadow-sm hover:shadow-md transition-shadow">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base flex items-center gap-2">
@@ -334,15 +334,29 @@ const MiembrosTableWithDialog = ({ miembros }: MiembrosTableWithDialogProps) => 
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3 text-sm">
-                      <div className="p-3 rounded-md bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
-                        <p className="text-xs text-muted-foreground mb-1">Enfermedades</p>
-                        <p className="font-medium text-red-700 dark:text-red-400">
-                          {selectedMiembro.enfermedades || "Ninguna registrada"}
-                        </p>
-                      </div>
+                      {/* Lista de enfermedades */}
+                      {selectedMiembro.todas_las_enfermedades && selectedMiembro.todas_las_enfermedades.length > 0 ? (
+                        <div className="p-3 rounded-md bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
+                          <p className="text-xs text-muted-foreground mb-2 font-semibold">Enfermedades Registradas</p>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedMiembro.todas_las_enfermedades.map((enfermedad, idx) => (
+                              <Badge key={idx} variant="destructive" className="text-xs">
+                                {enfermedad.nombre}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-3 rounded-md bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
+                          <p className="font-medium text-green-700 dark:text-green-400">
+                            ✅ Sin enfermedades registradas
+                          </p>
+                        </div>
+                      )}
+                      
                       {selectedMiembro.necesidades_enfermo && (
                         <div className="p-3 rounded-md bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800">
-                          <p className="text-xs text-muted-foreground mb-1">Necesidades Especiales</p>
+                          <p className="text-xs text-muted-foreground mb-1 font-semibold">Necesidades Especiales</p>
                           <p className="font-medium text-orange-700 dark:text-orange-400">
                             {selectedMiembro.necesidades_enfermo}
                           </p>
@@ -428,25 +442,37 @@ const MiembrosTableWithDialog = ({ miembros }: MiembrosTableWithDialogProps) => 
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3 text-sm">
-                      <div className="p-2 rounded-md bg-muted/30">
-                        <p className="text-xs text-muted-foreground mb-1">Motivo</p>
-                        <p className="font-medium">{selectedMiembro.celebracion?.motivo || "-"}</p>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="p-2 rounded-md bg-muted/30">
-                          <p className="text-xs text-muted-foreground mb-1">Día</p>
-                          <p className="font-medium">{selectedMiembro.celebracion?.dia || "-"}</p>
+                      {selectedMiembro.todas_las_celebraciones && selectedMiembro.todas_las_celebraciones.length > 0 ? (
+                        <div className="space-y-2">
+                          {selectedMiembro.todas_las_celebraciones.map((celebracion, idx) => {
+                            const meses = [
+                              "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                              "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+                            ];
+                            const mesNombre = meses[celebracion.mes - 1] || celebracion.mes;
+                            
+                            return (
+                              <div key={idx} className="p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex-1">
+                                    <p className="font-semibold text-amber-900 dark:text-amber-100 mb-1">
+                                      {celebracion.motivo}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="secondary" className="text-xs">
+                                        📅 {celebracion.dia} de {mesNombre}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                  <Sparkles className="h-5 w-5 text-amber-500 flex-shrink-0" />
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                        <div className="p-2 rounded-md bg-muted/30">
-                          <p className="text-xs text-muted-foreground mb-1">Mes</p>
-                          <p className="font-medium">{selectedMiembro.celebracion?.mes || "-"}</p>
-                        </div>
-                      </div>
-                      {selectedMiembro.celebracion?.dia && selectedMiembro.celebracion?.mes && (
-                        <div className="flex items-center justify-center p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
-                          <Badge variant="secondary" className="font-medium text-sm">
-                            🎉 {selectedMiembro.celebracion.dia} de {selectedMiembro.celebracion.mes}
-                          </Badge>
+                      ) : (
+                        <div className="text-center py-4 text-muted-foreground">
+                          <p className="text-sm">Sin celebraciones registradas</p>
                         </div>
                       )}
                     </CardContent>

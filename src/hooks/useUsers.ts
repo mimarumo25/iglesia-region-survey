@@ -71,17 +71,23 @@ export const useUsers = () => {
       onSuccess: (data, variables) => {
         queryClient.invalidateQueries({ queryKey: ['users'] }); // Invalida la lista de usuarios
         toast({
-          title: "Usuario creado",
-          description: `Usuario ${variables.primer_nombre} ${variables.primer_apellido} creado exitosamente.`,
-          variant: "default"
+          title: "✅ Usuario creado exitosamente",
+          description: `${variables.primer_nombre} ${variables.primer_apellido} fue agregado al sistema.`,
+          variant: "default",
+          duration: 5000,
         });
       },
       onError: (error: any) => {
         console.error('Error creating user:', error);
+        
+        // Extraer mensaje de error con saltos de línea preservados
+        const errorMessage = error.message || "Error al crear usuario";
+        
         toast({
-          title: "Error",
-          description: error.message || "Error al crear usuario",
-          variant: "destructive"
+          title: "❌ Error al crear usuario",
+          description: errorMessage,
+          variant: "destructive",
+          duration: 8000, // Más tiempo para leer errores de validación
         });
       },
     });

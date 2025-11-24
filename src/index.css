@@ -575,4 +575,14 @@ All colors MUST be HSL - MIA Verde y Azul Temático
   pointer-events: none;
 }
 
+/* Fix para Select/Combobox - Prevenir desbordamiento de texto */
+[role="combobox"] > span {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow: hidden !important;
+  display: block !important;
+  max-width: 100% !important;
+  line-height: 1.3 !important;
+}
+
 /* Todas las animaciones y efectos eliminados */

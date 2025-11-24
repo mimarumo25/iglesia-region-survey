@@ -50,6 +50,8 @@ export interface DifuntosFilters {
   id_municipio?: string;
   id_parroquia?: string;
   id_vereda?: string;
+  id_corregimiento?: string;
+  id_centro_poblado?: string;
   pagina?: number;
   limite?: number;
 }

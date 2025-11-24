@@ -126,20 +126,20 @@ export function Autocomplete({
             role="combobox"
             aria-expanded={open}
             className={cn(
-              "w-full justify-between h-12 bg-gray-100 border-2 border-gray-400 text-gray-900 font-semibold shadow-inner rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 hover:bg-gray-200 hover:border-gray-500 transition-all duration-200",
+              "w-full justify-between min-h-[2.5rem] h-auto py-2 bg-gray-100 border-2 border-gray-400 text-gray-900 font-semibold shadow-inner rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 hover:bg-gray-200 hover:border-gray-500 transition-all duration-200",
               !selectedOption && "text-gray-500",
               disabled && "opacity-50 cursor-not-allowed",
               className
             )}
             disabled={disabled || loading}
           >
-            <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
               <Search className="w-4 h-4 flex-shrink-0 text-gray-600" />
-              <span className="truncate text-left">
+              <span className="text-left break-words text-xs sm:text-sm leading-tight overflow-hidden">
                 {selectedOption ? selectedOption.label : placeholder}
               </span>
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-1 flex-shrink-0 ml-2">
               {selectedOption && !disabled && (
                 <div
                   role="button"
@@ -171,16 +171,16 @@ export function Autocomplete({
           <Command className="rounded-xl border-0 shadow-lg">
             <CommandInput 
               placeholder={searchPlaceholder} 
-              className="h-12 border-0 focus:ring-0 bg-gray-50 text-gray-900 font-medium placeholder:text-gray-500"
+              className="h-10 sm:h-12 border-0 focus:ring-0 bg-gray-50 text-gray-900 text-xs sm:text-sm font-medium placeholder:text-gray-500"
               value={searchValue}
               onValueChange={setSearchValue}
             />
             <CommandList 
               className="max-h-60 overflow-auto"
             >
-              <CommandEmpty className="py-6 text-center text-sm text-gray-500">
+              <CommandEmpty className="py-6 text-center text-xs sm:text-sm text-gray-500">
                 <div className="flex flex-col items-center gap-2">
-                  <Search className="w-8 h-8 text-gray-300" />
+                  <Search className="w-6 h-6 sm:w-8 sm:h-8 text-gray-300" />
                   <span>{emptyText}</span>
                 </div>
               </CommandEmpty>
@@ -196,15 +196,15 @@ export function Autocomplete({
                       setOpen(false)
                       setSearchValue("")
                     }}
-                    className="cursor-pointer hover:bg-blue-50 px-3 py-3 text-gray-800 rounded-lg transition-colors duration-150 mx-1 my-0.5 flex items-center gap-3"
+                    className="cursor-pointer hover:bg-blue-50 px-2 sm:px-3 py-2 sm:py-3 text-gray-800 rounded-lg transition-colors duration-150 mx-1 my-0.5 flex items-start gap-2 sm:gap-3"
                   >
                     <Check
                       className={cn(
-                        "h-4 w-4 flex-shrink-0",
+                        "h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0 mt-0.5",
                         value === option.value ? "opacity-100 text-blue-600" : "opacity-0"
                       )}
                     />
-                    <span className="flex-1 text-sm font-medium truncate">{option.label}</span>
+                    <span className="flex-1 text-xs sm:text-sm font-medium break-words leading-tight">{option.label}</span>
                   </CommandItem>
                 ))}
               </CommandGroup>

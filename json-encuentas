@@ -1,0 +1,362 @@
+{
+    "status": "success",
+    "message": "Encuestas obtenidas exitosamente",
+    "data": [
+        {
+            "id_encuesta": "2",
+            "apellido_familiar": "Calle Lobo",
+            "direccion_familia": "Carrera 66#49b-28",
+            "telefono": "3002569856",
+            "codigo_familia": "FAM_1763476448477_913074d6",
+            "estado_encuesta": "completed",
+            "numero_encuestas": 1,
+            "fecha_ultima_encuesta": "2025-11-18",
+            "tipo_vivienda": {
+                "id": "2",
+                "nombre": "Apartamento"
+            },
+            "tamaño_familia": 3,
+            "sector": {
+                "id": "1",
+                "nombre": "Sector centro"
+            },
+            "municipio": {
+                "id": "1110",
+                "nombre": "Yolombó"
+            },
+            "vereda": {
+                "id": "1",
+                "nombre": "Vereda el Rubi"
+            },
+            "parroquia": {
+                "id": "1",
+                "nombre": "Parroquia Jesús Crucificado"
+            },
+            "corregimiento": {
+                "id": "1",
+                "nombre": "Corregimiento San Mike"
+            },
+            "basuras": [
+                {
+                    "id": "1",
+                    "nombre": "Recolección Pública"
+                }
+            ],
+            "acueducto": {
+                "id": "1",
+                "nombre": "Acueducto Municipal"
+            },
+            "aguas_residuales": {
+                "id": "1",
+                "nombre": "Alcantarillado"
+            },
+            "comunion_en_casa": false,
+            "numero_contrato_epm": "1245678563",
+            "miembros_familia": {
+                "total_miembros": 2,
+                "personas": [
+                    {
+                        "id": "2",
+                        "nombre_completo": "Mario Calle",
+                        "identificacion": {
+                            "numero": "1025488523",
+                            "tipo": {
+                                "id": "3",
+                                "nombre": "Cédula de Ciudadanía",
+                                "codigo": "CC"
+                            }
+                        },
+                        "telefono": "300-256-4869",
+                        "email": "mariocalle@yopmail.com",
+                        "fecha_nacimiento": "1970-11-18",
+                        "direccion": "Carrera 66#49b-28",
+                        "estudios": {
+                            "id": "3",
+                            "nombre": "Educación Secundaria"
+                        },
+                        "edad": 55,
+                        "sexo": {
+                            "id": "1",
+                            "nombre": "Masculino"
+                        },
+                        "estado_civil": {
+                            "id": 6,
+                            "nombre": "Viudo(a)"
+                        },
+                        "tallas": {
+                            "camisa": "L",
+                            "pantalon": "34",
+                            "zapato": "41"
+                        },
+                        "destrezas": [],
+                        "habilidades": [],
+                        "en_que_eres_lider": null,
+                        "profesion": {
+                            "id": "6",
+                            "nombre": "Agricultor"
+                        },
+                        "parentesco": {
+                            "id": "25",
+                            "nombre": "Jefe de Hogar"
+                        },
+                        "comunidad_cultural": {
+                            "id": "2",
+                            "nombre": "Mestizo"
+                        },
+                        "celebraciones": [
+                            {
+                                "id_persona": "2",
+                                "id": "2",
+                                "motivo": "cumpleaños",
+                                "dia": 19,
+                                "mes": 11,
+                                "created_at": "2025-11-18T14:34:08.473Z",
+                                "updated_at": "2025-11-18T14:34:08.473Z"
+                            }
+                        ],
+                        "enfermedades": [],
+                        "motivo_celebrar_deprecated": "cumpleaños",
+                        "dia_celebrar_deprecated": 19,
+                        "mes_celebrar_deprecated": 11,
+                        "necesidad_enfermo_deprecated": null
+                    },
+                    {
+                        "id": "3",
+                        "nombre_completo": "Lucas Calle Lobo",
+                        "identificacion": {
+                            "numero": "1245789630",
+                            "tipo": {
+                                "id": "2",
+                                "nombre": "Tarjeta de Identidad",
+                                "codigo": "TI"
+                            }
+                        },
+                        "telefono": "3002569856",
+                        "email": null,
+                        "fecha_nacimiento": "2015-11-03",
+                        "direccion": "Carrera 66#49b-28",
+                        "estudios": {
+                            "id": "1",
+                            "nombre": "Educación Primaria"
+                        },
+                        "edad": 10,
+                        "sexo": {
+                            "id": "1",
+                            "nombre": "Masculino"
+                        },
+                        "estado_civil": {
+                            "id": 1,
+                            "nombre": "Soltero(a)"
+                        },
+                        "tallas": {
+                            "camisa": "14",
+                            "pantalon": "28",
+                            "zapato": "35"
+                        },
+                        "destrezas": [],
+                        "habilidades": [],
+                        "en_que_eres_lider": null,
+                        "profesion": {
+                            "id": "8",
+                            "nombre": "Estudiante"
+                        },
+                        "parentesco": {
+                            "id": "4",
+                            "nombre": "Hijo"
+                        },
+                        "comunidad_cultural": {
+                            "id": "2",
+                            "nombre": "Mestizo"
+                        },
+                        "celebraciones": [
+                            {
+                                "id_persona": "3",
+                                "id": "3",
+                                "motivo": "cumpleñaos",
+                                "dia": 4,
+                                "mes": 11,
+                                "created_at": "2025-11-18T14:34:08.473Z",
+                                "updated_at": "2025-11-18T14:34:08.473Z"
+                            }
+                        ],
+                        "enfermedades": [],
+                        "motivo_celebrar_deprecated": "cumpleñaos",
+                        "dia_celebrar_deprecated": 4,
+                        "mes_celebrar_deprecated": 11,
+                        "necesidad_enfermo_deprecated": null
+                    }
+                ]
+            },
+            "deceasedMembers": [
+                {
+                    "nombres": "Maritza Lobo",
+                    "fechaFallecimiento": "2020-05-15",
+                    "sexo": {
+                        "id": 2,
+                        "nombre": "Femenino"
+                    },
+                    "parentesco": {
+                        "id": 3,
+                        "nombre": "Madre"
+                    },
+                    "causaFallecimiento": "Covid 19"
+                }
+            ],
+            "metadatos": {
+                "fecha_creacion": "2025-11-18",
+                "estado": "completed",
+                "version": "1.0"
+            }
+        },
+        {
+            "id_encuesta": "1",
+            "apellido_familiar": "Garzon Rodriguez",
+            "direccion_familia": "calle 55 # 32-27",
+            "telefono": "3013445333",
+            "codigo_familia": "FAM_1763270411989_5be4e471",
+            "estado_encuesta": "completed",
+            "numero_encuestas": 1,
+            "fecha_ultima_encuesta": "2025-11-16",
+            "tipo_vivienda": {
+                "id": "1",
+                "nombre": "Casa"
+            },
+            "tamaño_familia": 2,
+            "sector": {
+                "id": "1",
+                "nombre": "Sector centro"
+            },
+            "municipio": {
+                "id": "1110",
+                "nombre": "Yolombó"
+            },
+            "vereda": {
+                "id": "1",
+                "nombre": "Vereda el Rubi"
+            },
+            "parroquia": {
+                "id": "1",
+                "nombre": "Parroquia Jesús Crucificado"
+            },
+            "corregimiento": {
+                "id": "1",
+                "nombre": "Corregimiento San Mike"
+            },
+            "basuras": [
+                {
+                    "id": "1",
+                    "nombre": "Recolección Pública"
+                }
+            ],
+            "acueducto": {
+                "id": "2",
+                "nombre": "Acueducto Comunal"
+            },
+            "aguas_residuales": {
+                "id": "2",
+                "nombre": "Pozo Séptico"
+            },
+            "comunion_en_casa": false,
+            "numero_contrato_epm": "55459875",
+            "miembros_familia": {
+                "total_miembros": 1,
+                "personas": [
+                    {
+                        "id": "1",
+                        "nombre_completo": "Michael Garzon Rodriguez",
+                        "identificacion": {
+                            "numero": "1645484987",
+                            "tipo": {
+                                "id": "3",
+                                "nombre": "Cédula de Ciudadanía",
+                                "codigo": "CC"
+                            }
+                        },
+                        "telefono": "311-696-7019",
+                        "email": "mike7019@gmail.com",
+                        "fecha_nacimiento": "1993-04-04",
+                        "direccion": "calle 55 # 32-27",
+                        "estudios": {
+                            "id": "6",
+                            "nombre": "Universitario"
+                        },
+                        "edad": 32,
+                        "sexo": {
+                            "id": "1",
+                            "nombre": "Masculino"
+                        },
+                        "estado_civil": {
+                            "id": 5,
+                            "nombre": "Separado(a)"
+                        },
+                        "tallas": {
+                            "camisa": "10",
+                            "pantalon": "30",
+                            "zapato": "37"
+                        },
+                        "destrezas": [],
+                        "habilidades": [],
+                        "en_que_eres_lider": null,
+                        "profesion": {
+                            "id": "1",
+                            "nombre": "Ingeniero"
+                        },
+                        "parentesco": {
+                            "id": "25",
+                            "nombre": "Jefe de Hogar"
+                        },
+                        "comunidad_cultural": {
+                            "id": "5",
+                            "nombre": "Otra"
+                        },
+                        "celebraciones": [
+                            {
+                                "id_persona": "1",
+                                "id": "1",
+                                "motivo": "Cumpleaños",
+                                "dia": 5,
+                                "mes": 4,
+                                "created_at": "2025-11-16T05:20:11.987Z",
+                                "updated_at": "2025-11-16T05:20:11.987Z"
+                            }
+                        ],
+                        "enfermedades": [],
+                        "motivo_celebrar_deprecated": "Cumpleaños",
+                        "dia_celebrar_deprecated": 5,
+                        "mes_celebrar_deprecated": 4,
+                        "necesidad_enfermo_deprecated": null
+                    }
+                ]
+            },
+            "deceasedMembers": [
+                {
+                    "nombres": "Jefferson Garzon",
+                    
+                    "fechaFallecimiento": "2025-11-13",
+                    "sexo": {
+                        "id": 1,
+                        "nombre": "Masculino"
+                    },
+                    "parentesco": {
+                        "id": 1,
+                        "nombre": "Abuelo"
+                    },
+                    "causaFallecimiento": "Muerte Natural"
+                }
+            ],
+            "metadatos": {
+                "fecha_creacion": "2025-11-16",
+                "estado": "completed",
+                "version": "1.0"
+            }
+        }
+    ],
+    "pagination": {
+        "currentPage": 1,
+        "totalPages": 1,
+        "totalItems": 2,
+        "itemsPerPage": 10,
+        "hasNextPage": false,
+        "hasPrevPage": false
+    }
+}

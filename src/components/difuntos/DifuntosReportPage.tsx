@@ -75,47 +75,53 @@ export const DifuntosReportPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header de la página */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-6 w-6" />
-                Reportes de Difuntos
+        <CardHeader className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-1">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                <span>Reportes de Difuntos</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 Consulta y genera reportes detallados de registros de difuntos 
                 con filtros avanzados por ubicación, parentesco y fechas
               </CardDescription>
             </div>
-          </div>
-        </CardHeader>
-        
-        {/* Botones de exportación */}
-        {difuntos.length > 0 && (
-          <CardContent className="pt-0">
-            <div className="flex gap-3">
+            
+            {/* Botones de acción agrupados */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+              <Button 
+                onClick={() => handleSearch({})}
+                disabled={isLoading}
+                className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-xs sm:text-sm h-9"
+              >
+                {isLoading ? (
+                  <div className="animate-spin h-3 w-3 sm:h-4 sm:w-4 border-2 border-current border-t-transparent rounded-full" />
+                ) : (
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                )}
+                <span>Consultar</span>
+              </Button>
               <Button
                 variant="default"
-                size="sm"
                 onClick={exportToExcel}
                 disabled={isExporting || difuntos.length === 0}
-                className="bg-green-600 hover:bg-green-700"
+                className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-xs sm:text-sm h-9"
               >
                 {isExporting ? (
-                  <div className="animate-spin h-4 w-4 mr-2 border-2 border-current border-t-transparent rounded-full" />
+                  <div className="animate-spin h-3 w-3 sm:h-4 sm:w-4 border-2 border-current border-t-transparent rounded-full" />
                 ) : (
-                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  <FileSpreadsheet className="h-3 w-3 sm:h-4 sm:w-4" />
                 )}
-                Descargar Excel
+                <span className="hidden xs:inline">Descargar Excel</span>
+                <span className="xs:hidden">Excel</span>
               </Button>
-              
-              <div className="flex-1" />
             </div>
-          </CardContent>
-        )}
+          </div>
+        </CardHeader>
       </Card>
 
       {/* Formulario de filtros */}

@@ -14,6 +14,8 @@ interface ModernDatePickerProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  title?: string;
+  description?: string;
 }
 
 const ModernDatePicker = ({ 
@@ -21,10 +23,13 @@ const ModernDatePicker = ({
   onChange, 
   placeholder = "Seleccionar fecha",
   disabled = false,
-  className = ""
+  className = "",
+  title = "Seleccionar fecha",
+  description = "Elija una fecha"
 }: ModernDatePickerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'calendar' | 'selectors'>('calendar');
+  const [calendarMonth, setCalendarMonth] = useState<Date>(value || new Date());
   
   // Estados para los selectores individuales
   const [selectedYear, setSelectedYear] = useState<string>('');
@@ -66,6 +71,7 @@ const ModernDatePicker = ({
       setSelectedYear(value.getFullYear().toString());
       setSelectedMonth(value.getMonth().toString());
       setSelectedDay(value.getDate().toString());
+      setCalendarMonth(value);
     } else {
       setSelectedYear('');
       setSelectedMonth('');
@@ -144,18 +150,18 @@ const ModernDatePicker = ({
           variant="outline"
           disabled={disabled}
           className={cn(
-            "w-full justify-between text-left font-normal bg-gray-100 border-2 border-gray-400 text-gray-900 rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 hover:bg-gray-200 hover:border-gray-500 transition-all duration-200 h-11",
+            "w-full justify-between text-left font-normal bg-gray-100 border-2 border-gray-400 text-gray-900 rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 hover:bg-gray-200 hover:border-gray-500 transition-all duration-200 min-h-[2.5rem] h-auto py-2",
             !(value && value instanceof Date && !isNaN(value.getTime())) && "text-gray-500",
             className
           )}
         >
-          <div className="flex items-center">
-            <CalendarIcon className="mr-3 h-4 w-4 text-gray-600" />
-            <span className="flex-1">
+          <div className="flex items-center flex-1 min-w-0">
+            <CalendarIcon className="mr-2 h-4 w-4 text-gray-600 flex-shrink-0" />
+            <span className="flex-1 break-words leading-tight text-xs sm:text-sm">
               {value && value instanceof Date && !isNaN(value.getTime()) ? format(value, "PPP", { locale: es }) : placeholder}
             </span>
           </div>
-          <ChevronDown className="h-4 w-4 text-gray-600 opacity-50" />
+          <ChevronDown className="h-4 w-4 text-gray-600 opacity-50 flex-shrink-0 ml-2" />
         </Button>
       </PopoverTrigger>
       <PopoverContent 
@@ -166,8 +172,8 @@ const ModernDatePicker = ({
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-t-xl border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-semibold text-gray-800 text-sm">Seleccionar fecha</h4>
-              <p className="text-xs text-gray-600">Elija una fecha de nacimiento</p>
+              <h4 className="font-semibold text-gray-800 text-sm">{title}</h4>
+              <p className="text-xs text-gray-600">{description}</p>
             </div>
             <div className="flex gap-1">
               <Button
@@ -192,40 +198,91 @@ const ModernDatePicker = ({
 
         <div className="p-3">
           {viewMode === 'calendar' ? (
-            <Calendar
-              mode="single"
-              selected={value && value instanceof Date && !isNaN(value.getTime()) ? value : undefined}
-              onSelect={handleDateSelect}
-              disabled={(date) =>
-                date > new Date() || date < new Date("1900-01-01")
-              }
-              initialFocus
-              locale={es}
-              defaultMonth={value && value instanceof Date && !isNaN(value.getTime()) ? value : new Date()}
-              className="rounded-lg"
-              classNames={{
-                months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                month: "space-y-4",
-                caption: "flex justify-center pt-2 pb-2 relative items-center min-h-[40px]",
-                caption_label: "text-sm font-bold text-gray-800 mx-auto px-8",
-                nav: "space-x-1 flex items-center",
-                nav_button: "h-7 w-7 bg-white border border-gray-300 rounded-md opacity-80 hover:opacity-100 hover:bg-blue-50 transition-all duration-200 z-10",
-                nav_button_previous: "absolute left-2 top-1/2 transform -translate-y-1/2",
-                nav_button_next: "absolute right-2 top-1/2 transform -translate-y-1/2",
-                table: "w-full border-collapse space-y-1",
-                head_row: "flex w-full mb-2",
-                head_cell: "text-gray-600 rounded-md w-9 font-medium text-[0.8rem] text-center flex-1",
-                row: "flex w-full mt-1",
-                cell: "h-9 w-9 text-center text-sm p-0 relative hover:bg-blue-50 rounded-md transition-colors duration-200 cursor-pointer flex-1",
-                day: "h-8 w-8 p-0 font-normal hover:bg-blue-100 rounded-md transition-all duration-200 flex items-center justify-center w-full",
-                day_selected: "bg-blue-600 text-white hover:bg-blue-700 rounded-md shadow-md font-semibold",
-                day_today: "bg-orange-100 text-orange-800 font-bold border border-orange-300 rounded-md",
-                day_outside: "text-gray-400 opacity-50",
-                day_disabled: "text-gray-300 opacity-30 cursor-not-allowed",
-                day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                day_hidden: "invisible",
-              }}
-            />
+            <div className="space-y-3">
+              {/* Controles rápidos de navegación */}
+              <div className="flex gap-2 items-center justify-center bg-gradient-to-r from-blue-50 to-purple-50 p-2 rounded-lg border border-blue-200">
+                <div className="flex-1">
+                  <Select 
+                    value={calendarMonth.getFullYear().toString()} 
+                    onValueChange={(year) => {
+                      const newMonth = new Date(calendarMonth);
+                      newMonth.setFullYear(parseInt(year));
+                      setCalendarMonth(newMonth);
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs font-medium">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[250px]">
+                      {years.map((year) => (
+                        <SelectItem key={year} value={year.toString()} className="text-xs">
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex-1">
+                  <Select 
+                    value={calendarMonth.getMonth().toString()} 
+                    onValueChange={(month) => {
+                      const newMonth = new Date(calendarMonth);
+                      newMonth.setMonth(parseInt(month));
+                      setCalendarMonth(newMonth);
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs font-medium">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {months.map((month) => (
+                        <SelectItem key={month.value} value={month.value} className="text-xs">
+                          {month.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Calendario */}
+              <Calendar
+                mode="single"
+                selected={value && value instanceof Date && !isNaN(value.getTime()) ? value : undefined}
+                onSelect={handleDateSelect}
+                month={calendarMonth}
+                onMonthChange={setCalendarMonth}
+                disabled={(date) =>
+                  date > new Date() || date < new Date("1900-01-01")
+                }
+                initialFocus
+                locale={es}
+                className="rounded-lg"
+                classNames={{
+                  months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                  month: "space-y-4",
+                  caption: "flex justify-center pt-2 pb-2 relative items-center min-h-[40px]",
+                  caption_label: "text-sm font-bold text-gray-800 mx-auto px-8",
+                  nav: "space-x-1 flex items-center",
+                  nav_button: "h-7 w-7 bg-white border border-gray-300 rounded-md opacity-80 hover:opacity-100 hover:bg-blue-50 transition-all duration-200 z-10",
+                  nav_button_previous: "absolute left-2 top-1/2 transform -translate-y-1/2",
+                  nav_button_next: "absolute right-2 top-1/2 transform -translate-y-1/2",
+                  table: "w-full border-collapse space-y-1",
+                  head_row: "flex w-full mb-2",
+                  head_cell: "text-gray-600 rounded-md w-9 font-medium text-[0.8rem] text-center flex-1",
+                  row: "flex w-full mt-1",
+                  cell: "h-9 w-9 text-center text-sm p-0 relative hover:bg-blue-50 rounded-md transition-colors duration-200 cursor-pointer flex-1",
+                  day: "h-8 w-8 p-0 font-normal hover:bg-blue-100 rounded-md transition-all duration-200 flex items-center justify-center w-full",
+                  day_selected: "bg-blue-600 text-white hover:bg-blue-700 rounded-md shadow-md font-semibold",
+                  day_today: "bg-orange-100 text-orange-800 font-bold border border-orange-300 rounded-md",
+                  day_outside: "text-gray-400 opacity-50",
+                  day_disabled: "text-gray-300 opacity-30 cursor-not-allowed",
+                  day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                  day_hidden: "invisible",
+                }}
+              />
+            </div>
           ) : (
             <div className="space-y-4 min-w-[300px]">
               <div className="text-center text-sm font-medium text-gray-700 mb-3">

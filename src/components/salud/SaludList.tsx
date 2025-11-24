@@ -135,6 +135,8 @@ const SaludList = ({
                 <TableHead className="min-w-[150px]">Parroquia</TableHead>
                 <TableHead className="min-w-[150px]">Municipio</TableHead>
                 <TableHead className="min-w-[130px]">Sector</TableHead>
+                <TableHead className="min-w-[150px]">Corregimiento</TableHead>
+                <TableHead className="min-w-[150px]">Centro Poblado</TableHead>
                 <TableHead className="min-w-[130px]">Vereda</TableHead>
                 <TableHead className="min-w-[180px]">Dirección</TableHead>
                 <TableHead className="min-w-[120px]">Contacto</TableHead>
@@ -192,11 +194,26 @@ const SaludList = ({
                         {persona.salud.tiene_enfermedades ? (
                           <div className="space-y-1">
                             <div className="flex flex-wrap gap-1">
-                              {persona.salud.enfermedades.map((enfermedad, idx) => (
-                                <Badge key={idx} variant="destructive" className="text-xs">
-                                  {enfermedad}
-                                </Badge>
-                              ))}
+                              {(() => {
+                                // Validación defensiva: convertir string separado por comas a array
+                                let enfermedades: string[] = [];
+                                
+                                if (Array.isArray(persona.salud.enfermedades)) {
+                                  enfermedades = persona.salud.enfermedades;
+                                } else if (typeof persona.salud.enfermedades === 'string' && persona.salud.enfermedades.trim()) {
+                                  // Separar por comas y limpiar espacios
+                                  enfermedades = persona.salud.enfermedades
+                                    .split(',')
+                                    .map(e => e.trim())
+                                    .filter(e => e.length > 0);
+                                }
+                                
+                                return enfermedades.map((enfermedad, idx) => (
+                                  <Badge key={idx} variant="destructive" className="text-xs">
+                                    {enfermedad}
+                                  </Badge>
+                                ));
+                              })()}
                             </div>
                             {persona.salud.necesidades_medicas && (
                               <p className="text-xs text-muted-foreground">
@@ -233,6 +250,28 @@ const SaludList = ({
                     {persona.sector ? (
                       <span className="text-xs text-muted-foreground">
                         {persona.sector}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">N/A</span>
+                    )}
+                  </TableCell>
+
+                  {/* Corregimiento */}
+                  <TableCell>
+                    {persona.corregimiento ? (
+                      <span className="text-xs text-muted-foreground">
+                        {persona.corregimiento}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">N/A</span>
+                    )}
+                  </TableCell>
+
+                  {/* Centro Poblado */}
+                  <TableCell>
+                    {persona.centro_poblado ? (
+                      <span className="text-xs text-muted-foreground">
+                        {persona.centro_poblado}
                       </span>
                     ) : (
                       <span className="text-xs text-muted-foreground">N/A</span>
@@ -333,11 +372,26 @@ const SaludList = ({
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-red-900 mb-1">Condiciones de Salud:</p>
                       <div className="flex flex-wrap gap-1">
-                        {persona.salud.enfermedades.map((enfermedad, idx) => (
-                          <Badge key={idx} variant="destructive" className="text-xs">
-                            {enfermedad}
-                          </Badge>
-                        ))}
+                        {(() => {
+                          // Validación defensiva: convertir string separado por comas a array
+                          let enfermedades: string[] = [];
+                          
+                          if (Array.isArray(persona.salud.enfermedades)) {
+                            enfermedades = persona.salud.enfermedades;
+                          } else if (typeof persona.salud.enfermedades === 'string' && persona.salud.enfermedades.trim()) {
+                            // Separar por comas y limpiar espacios
+                            enfermedades = persona.salud.enfermedades
+                              .split(',')
+                              .map(e => e.trim())
+                              .filter(e => e.length > 0);
+                          }
+                          
+                          return enfermedades.map((enfermedad, idx) => (
+                            <Badge key={idx} variant="destructive" className="text-xs">
+                              {enfermedad}
+                            </Badge>
+                          ));
+                        })()}
                       </div>
                       {persona.salud.necesidades_medicas && (
                         <p className="text-xs text-red-700 mt-1">
@@ -357,10 +411,14 @@ const SaludList = ({
                       <span className="text-muted-foreground"> • {persona.municipio}</span>
                     </p>
                   </div>
-                  {(persona.sector || persona.vereda) && (
+                  {(persona.sector || persona.corregimiento || persona.centro_poblado || persona.vereda) && (
                     <p className="text-xs text-muted-foreground ml-5">
                       {persona.sector && `Sector: ${persona.sector}`}
-                      {persona.sector && persona.vereda && ' • '}
+                      {persona.sector && (persona.corregimiento || persona.centro_poblado || persona.vereda) && ' • '}
+                      {persona.corregimiento && `Corregimiento: ${persona.corregimiento}`}
+                      {persona.corregimiento && (persona.centro_poblado || persona.vereda) && ' • '}
+                      {persona.centro_poblado && `Centro Poblado: ${persona.centro_poblado}`}
+                      {persona.centro_poblado && persona.vereda && ' • '}
                       {persona.vereda && `Vereda: ${persona.vereda}`}
                     </p>
                   )}

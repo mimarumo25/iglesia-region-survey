@@ -41,6 +41,8 @@ import { useEnfermedades } from "@/hooks/useEnfermedades";
 import { useComunidadesCulturales } from "@/hooks/useComunidadesCulturales";
 import { useDepartamentos } from "@/hooks/useDepartamentos";
 import { useSistemasAcueducto } from "@/hooks/useSistemasAcueducto";
+import { useCorregimientos } from "@/hooks/useCorregimientos";
+import { useCentrosPoblados } from "@/hooks/useCentrosPoblados";
 
 export interface ConfigurationData {
   // Sectores - con objetos ConfigurationItem
@@ -150,6 +152,18 @@ export interface ConfigurationData {
   sistemasAcueductoLoading: boolean;
   sistemasAcueductoError: ApiError;
 
+  // Corregimientos - con objetos ConfigurationItem
+  corregimientoOptions: AutocompleteOption[];
+  corregimientoItems: ConfigurationItem[];
+  corregimientosLoading: boolean;
+  corregimientosError: ApiError;
+
+  // Centros Poblados - con objetos ConfigurationItem
+  centroPobladoOptions: AutocompleteOption[];
+  centroPobladoItems: ConfigurationItem[];
+  centrosPobladosLoading: boolean;
+  centrosPobladosError: ApiError;
+
   // Estado general de carga
   isAnyLoading: boolean;
   hasAnyError: boolean;
@@ -212,6 +226,8 @@ export const useConfigurationData = (): ConfigurationData => {
   const { useVeredasQuery } = useVeredas();
   const { useActiveDepartamentosQuery } = useDepartamentos();
   const { useSistemasAcueductoActivosQuery } = useSistemasAcueducto();
+  const { useCorregimientosQuery } = useCorregimientos();
+  const { useCentrosPobladosQuery } = useCentrosPoblados();
 
   // Queries básicas (las que sabemos que funcionan)
   const { data: sectoresData, isLoading: sectoresLoading, error: sectoresError } = useActiveSectoresQuery();
@@ -245,6 +261,10 @@ export const useConfigurationData = (): ConfigurationData => {
   const { data: departamentosData, isLoading: departamentosLoading, error: departamentosError } = departamentosQuery;
   const sistemasAcueductoQuery = useSistemasAcueductoActivosQuery(1, 50);
   const { data: sistemasAcueductoData, isLoading: sistemasAcueductoLoading, error: sistemasAcueductoError } = sistemasAcueductoQuery;
+  const corregimientosQuery = useCorregimientosQuery(1, 100);
+  const { data: corregimientosData, isLoading: corregimientosLoading, error: corregimientosError } = corregimientosQuery;
+  const centrosPobladosQuery = useCentrosPobladosQuery(1, 100);
+  const { data: centrosPobladosData, isLoading: centrosPobladosLoading, error: centrosPobladosError } = centrosPobladosQuery;
 
   // Memoización de opciones para autocomplete y items estructurados
   const sectorOptions = useMemo((): AutocompleteOption[] => {
@@ -289,11 +309,28 @@ export const useConfigurationData = (): ConfigurationData => {
   }, [sectoresData]);
 
   const sectorItems = useMemo((): ConfigurationItem[] => {
-    return sectorOptions.map(option => ({
-      id: option.value,
-      nombre: option.label
+    if (!sectoresData?.data) {
+      return [];
+    }
+    
+    let sectores: any[] = [];
+    
+    // Extraer sectores desde la estructura de datos
+    if (typeof sectoresData.data === 'object' && 'data' in sectoresData.data && Array.isArray(sectoresData.data.data)) {
+      sectores = sectoresData.data.data;
+    } else if (typeof sectoresData.data === 'object' && 'sectors' in sectoresData.data && Array.isArray(sectoresData.data.sectors)) {
+      sectores = sectoresData.data.sectors;
+    } else if (Array.isArray(sectoresData.data)) {
+      sectores = sectoresData.data;
+    }
+    
+    // Mapear sectores incluyendo id_municipio
+    return sectores.map(sector => ({
+      id: sector.id_sector,
+      nombre: sector.nombre,
+      id_municipio: sector.id_municipio || sector.municipio_id || null
     }));
-  }, [sectorOptions]);
+  }, [sectoresData]);
 
   const userOptions = useMemo((): AutocompleteOption[] => {
     return Array.isArray(usersData) ? usersData.map(user => ({
@@ -399,6 +436,17 @@ export const useConfigurationData = (): ConfigurationData => {
     }));
   }, [parroquiasData]);
 
+  const parroquiaItems = useMemo((): ConfigurationItem[] => {
+    if (!parroquiasData?.data || !Array.isArray(parroquiasData.data)) {
+      return [];
+    }
+    return parroquiasData.data.map(parroquia => ({
+      id: parroquia.id_parroquia?.toString() || '',
+      nombre: parroquia.nombre || 'Sin nombre',
+      id_municipio: parroquia.id_municipio || parroquia.municipio?.id_municipio || null
+    }));
+  }, [parroquiasData]);
+
   const municipioOptions = useMemo((): AutocompleteOption[] => {
     if (!mountedRef.current || !municipiosData || !Array.isArray(municipiosData)) {
       return [];
@@ -463,6 +511,17 @@ export const useConfigurationData = (): ConfigurationData => {
     }));
   }, [veredasData]);
 
+  const veredaItems = useMemo((): ConfigurationItem[] => {
+    if (!veredasData?.data || !Array.isArray(veredasData.data)) {
+      return [];
+    }
+    return veredasData.data.map(vereda => ({
+      id: vereda.id_vereda?.toString() || '',
+      nombre: vereda.nombre || 'Sin nombre',
+      id_municipio: vereda.id_municipio || vereda.municipio_id || null
+    }));
+  }, [veredasData]);
+
   const departamentoOptions = useMemo((): AutocompleteOption[] => {
     if (!departamentosData?.data || !Array.isArray(departamentosData.data)) {
       return [];
@@ -488,6 +547,100 @@ export const useConfigurationData = (): ConfigurationData => {
       popular: false
     }));
   }, [sistemasAcueductoData]);
+
+  const corregimientoOptions = useMemo((): AutocompleteOption[] => {
+    // El hook useCorregimientosQuery devuelve una estructura {data: Array, pagination: Object}
+    let corregimientosArray: any[] = [];
+    
+    if (corregimientosData) {
+      if (Array.isArray(corregimientosData)) {
+        corregimientosArray = corregimientosData;
+      } else if (corregimientosData.data && Array.isArray(corregimientosData.data)) {
+        corregimientosArray = corregimientosData.data;
+      }
+    }
+    
+    if (!corregimientosArray || corregimientosArray.length === 0) {
+      return [];
+    }
+    
+    return corregimientosArray.map((corregimiento: any) => ({
+      value: corregimiento.id_corregimiento?.toString() || '',
+      label: corregimiento.nombre || 'Sin nombre',
+      description: `Corregimiento del municipio`,
+      category: 'Ubicación',
+      popular: false
+    }));
+  }, [corregimientosData]);
+
+  const corregimientoItems = useMemo((): ConfigurationItem[] => {
+    let corregimientosArray: any[] = [];
+    
+    if (corregimientosData) {
+      if (Array.isArray(corregimientosData)) {
+        corregimientosArray = corregimientosData;
+      } else if (corregimientosData.data && Array.isArray(corregimientosData.data)) {
+        corregimientosArray = corregimientosData.data;
+      }
+    }
+    
+    if (!corregimientosArray || corregimientosArray.length === 0) {
+      return [];
+    }
+    
+    return corregimientosArray.map((corregimiento: any) => ({
+      id: corregimiento.id_corregimiento?.toString() || '',
+      nombre: corregimiento.nombre || 'Sin nombre',
+      id_municipio: corregimiento.id_municipio || corregimiento.municipio_id || null
+    }));
+  }, [corregimientosData]);
+
+  const centroPobladoOptions = useMemo((): AutocompleteOption[] => {
+    // El hook useCentrosPobladosQuery devuelve una estructura {data: Array, pagination: Object}
+    let centrosPobladosArray: any[] = [];
+    
+    if (centrosPobladosData) {
+      if (Array.isArray(centrosPobladosData)) {
+        centrosPobladosArray = centrosPobladosData;
+      } else if (centrosPobladosData.data && Array.isArray(centrosPobladosData.data)) {
+        centrosPobladosArray = centrosPobladosData.data;
+      }
+    }
+    
+    if (!centrosPobladosArray || centrosPobladosArray.length === 0) {
+      return [];
+    }
+    
+    return centrosPobladosArray.map((centroPoblado: any) => ({
+      value: centroPoblado.id_centro_poblado?.toString() || '',
+      label: centroPoblado.nombre || 'Sin nombre',
+      description: `Centro poblado del municipio`,
+      category: 'Ubicación',
+      popular: false
+    }));
+  }, [centrosPobladosData]);
+
+  const centroPobladoItems = useMemo((): ConfigurationItem[] => {
+    let centrosPobladosArray: any[] = [];
+    
+    if (centrosPobladosData) {
+      if (Array.isArray(centrosPobladosData)) {
+        centrosPobladosArray = centrosPobladosData;
+      } else if (centrosPobladosData.data && Array.isArray(centrosPobladosData.data)) {
+        centrosPobladosArray = centrosPobladosData.data;
+      }
+    }
+    
+    if (!centrosPobladosArray || centrosPobladosArray.length === 0) {
+      return [];
+    }
+    
+    return centrosPobladosArray.map((centroPoblado: any) => ({
+      id: centroPoblado.id_centro_poblado?.toString() || '',
+      nombre: centroPoblado.nombre || 'Sin nombre',
+      id_municipio: centroPoblado.id_municipio || centroPoblado.municipio_id || null
+    }));
+  }, [centrosPobladosData]);
 
   const disposicionBasuraOptions = useMemo((): AutocompleteOption[] => {
     // Verificamos la estructura de datos que devuelve la API: DisposicionBasuraResponse
@@ -827,7 +980,7 @@ export const useConfigurationData = (): ConfigurationData => {
 
     // Parroquias
     parroquiaOptions: parroquiaOptions || [],
-    parroquiaItems: convertToConfigurationItems(parroquiaOptions || []),
+    parroquiaItems: parroquiaItems || [],
     parroquiasLoading,
     parroquiasError,
 
@@ -839,7 +992,7 @@ export const useConfigurationData = (): ConfigurationData => {
 
     // Veredas
     veredaOptions: veredaOptions || [],
-    veredaItems: convertToConfigurationItems(veredaOptions || []),
+    veredaItems: veredaItems || [],
     veredasLoading,
     veredasError,
 
@@ -854,6 +1007,18 @@ export const useConfigurationData = (): ConfigurationData => {
     sistemasAcueductoItems: convertToConfigurationItems(sistemasAcueductoOptions || []),
     sistemasAcueductoLoading,
     sistemasAcueductoError,
+
+    // Corregimientos
+    corregimientoOptions: corregimientoOptions || [],
+    corregimientoItems: corregimientoItems || [],
+    corregimientosLoading,
+    corregimientosError,
+
+    // Centros Poblados
+    centroPobladoOptions: centroPobladoOptions || [],
+    centroPobladoItems: centroPobladoItems || [],
+    centrosPobladosLoading,
+    centrosPobladosError,
 
     // Estados generales
     isAnyLoading,

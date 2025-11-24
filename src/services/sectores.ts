@@ -115,6 +115,18 @@ class SectoresService {
     }
   }
 
+  // Obtener sectores por municipio
+  async getSectoresByMunicipio(municipioId: string | number): Promise<Sector[]> {
+    try {
+      const client = getApiClient();
+      const response = await client.get(`/api/catalog/sectores/municipio/${municipioId}`);
+      return response.data?.data || response.data || [];
+    } catch (error) {
+      console.error(`Error al obtener sectores para municipio ${municipioId}:`, error);
+      throw error;
+    }
+  }
+
   // Obtener estadísticas de sectores
   async getSectoresStatistics(): Promise<ServerResponse<SectoresStatsResponse>> {
     try {

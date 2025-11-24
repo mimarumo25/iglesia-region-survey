@@ -94,6 +94,8 @@ export interface FiltrosGeograficos {
   id_parroquia?: number;
   id_sector?: number;
   id_vereda?: number;
+  id_corregimiento?: number;
+  id_centro_poblado?: number;
   page?: number;
   limit?: number;
   format?: 'json' | 'excel';

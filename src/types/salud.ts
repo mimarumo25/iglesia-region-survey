@@ -5,9 +5,10 @@
 
 /**
  * Interfaz para la información de salud de una persona
+ * Nota: enfermedades puede ser array, string o null dependiendo de la API
  */
 export interface SaludInfo {
-  enfermedades: string[];
+  enfermedades: string[] | string | null;
   necesidades_medicas: string | null;
   tiene_enfermedades: boolean;
 }
@@ -23,9 +24,12 @@ export interface PersonaSalud {
   sexo: string;
   telefono: string;
   fecha_nacimiento: string;
+  apellido_familiar: string;
   municipio: string;
   sector: string;
   vereda: string;
+  corregimiento: string;
+  centro_poblado: string;
   parroquia: string;
   direccion: string;
   telefono_familia: string;
@@ -53,6 +57,8 @@ export interface SaludFiltros {
   id_parroquia?: number;
   id_municipio?: number;
   id_sector?: number;
+  id_corregimiento?: number;
+  id_centro_poblado?: number;
   limite?: number;
   offset?: number;
 }

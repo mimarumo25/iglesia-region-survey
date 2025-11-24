@@ -7,6 +7,30 @@
  */
 
 /**
+ * Celebración especial de un miembro
+ */
+export interface CelebracionMiembro {
+  id_persona: string;
+  id: string;
+  motivo: string;
+  dia: number;
+  mes: number;
+  created_at: string;
+  updated_at: string;
+  nombre_completo: string;
+}
+
+/**
+ * Enfermedad de un miembro
+ */
+export interface EnfermedadMiembro {
+  id_persona: string;
+  id: string;
+  nombre: string;
+  nombre_completo: string;
+}
+
+/**
  * Miembro individual de una familia
  */
 export interface MiembroFamiliaConsolidado {
@@ -29,15 +53,19 @@ export interface MiembroFamiliaConsolidado {
   necesidades_enfermo: string;
   comunion_casa: boolean;
   tallas: {
+    id_persona?: string;
+    nombre_completo?: string;
     camisa_blusa: string;
     pantalon: string;
     calzado: string;
   };
-  celebracion: {
+  celebracion?: {
     motivo: string;
     dia: string;
     mes: string;
   };
+  todas_las_celebraciones: CelebracionMiembro[];
+  todas_las_enfermedades: EnfermedadMiembro[];
 }
 
 /**
@@ -65,6 +93,8 @@ export interface FamiliaConsolidada {
   departamento_nombre: string;
   sector_nombre: string;
   vereda_nombre: string;
+  corregimiento_nombre: string;
+  centro_poblado_nombre: string;
   tipo_vivienda: string;
   dispocision_basura: string;
   tipos_agua_residuales: string;
@@ -81,6 +111,8 @@ export interface FiltrosFamiliasConsolidado {
   id_municipio?: number | string;
   id_sector?: number | string;
   id_vereda?: number | string;
+  id_corregimiento?: number | string;
+  id_centro_poblado?: number | string;
   limite?: number;
   offset?: number;
 }

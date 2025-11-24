@@ -253,6 +253,33 @@ export const useSectores = () => {
     });
   };
 
+  // Query para obtener sectores por municipio
+  const useSectoresByMunicipioQuery = (municipioId: string | number | null) => {
+    return useQuery({
+      queryKey: ['sectores', { municipio: municipioId }],
+      queryFn: async () => {
+        if (!municipioId) return { data: [] };
+        
+        try {
+          const sectores = await sectoresService.getSectoresByMunicipio(municipioId);
+          return {
+            success: true,
+            data: Array.isArray(sectores) 
+              ? sectores.map(sector => normalizeSector(sector as SectorApiItem))
+              : [],
+            message: 'Sectores obtenidos exitosamente'
+          };
+        } catch (error) {
+          console.error('Error al obtener sectores por municipio:', error);
+          return { data: [] };
+        }
+      },
+      enabled: !!municipioId,
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+    });
+  };
+
   // Query para obtener estadísticas
   const useSectoresStatsQuery = () => {
     return useQuery({
@@ -393,6 +420,7 @@ export const useSectores = () => {
     useSearchSectoresQuery,
     useSectorByIdQuery,
     useActiveSectoresQuery,
+    useSectoresByMunicipioQuery,
     useSectoresStatsQuery,
     useMunicipiosDisponiblesQuery,
     

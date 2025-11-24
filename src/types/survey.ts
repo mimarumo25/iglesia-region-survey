@@ -4,6 +4,7 @@
 export interface ConfigurationItem {
   id: string | number; // ID puede ser string o número dependiendo de la fuente
   nombre: string;
+  id_municipio?: string | number | null; // Opcional: para filtrado jerárquico por municipio
 }
 
 // Interfaz mejorada para miembros de familia con objetos estructurados

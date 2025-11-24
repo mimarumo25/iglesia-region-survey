@@ -59,22 +59,100 @@ const UsersPage = () => {
     password: "",
     telefono: "",
     numero_documento: "",
+    rol: "",  // Inicializar campo rol
   });
 
-  // Manejo del formulario
+  // Validación de contraseña
+  const validatePassword = (password: string): { valid: boolean; message?: string } => {
+    if (password.length < 8 || password.length > 100) {
+      return { valid: false, message: "La contraseña debe tener entre 8 y 100 caracteres" };
+    }
+    if (!/[a-z]/.test(password)) {
+      return { valid: false, message: "La contraseña debe contener al menos una letra minúscula" };
+    }
+    if (!/[A-Z]/.test(password)) {
+      return { valid: false, message: "La contraseña debe contener al menos una letra mayúscula" };
+    }
+    if (!/[0-9]/.test(password)) {
+      return { valid: false, message: "La contraseña debe contener al menos un número" };
+    }
+    if (!/[@$!%*?&#^()_+=\-\[\]{}|:;"'<>,.~`]/.test(password)) {
+      return { valid: false, message: "La contraseña debe contener al menos un carácter especial" };
+    }
+    return { valid: true };
+  };
+
+  // Validación de teléfono
+  const validatePhone = (phone: string): { valid: boolean; message?: string } => {
+    if (!phone) return { valid: true }; // Es opcional
+    if (phone.length < 10 || phone.length > 20) {
+      return { valid: false, message: "El teléfono debe tener entre 10 y 20 caracteres" };
+    }
+    return { valid: true };
+  };
+
+  // Validación de email
+  const validateEmail = (email: string): { valid: boolean; message?: string } => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return { valid: false, message: "El formato del email no es válido" };
+    }
+    return { valid: true };
+  };
+
+  // Manejo del formulario con validaciones
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.primer_nombre.trim() || !formData.primer_apellido.trim() || !formData.correo_electronico.trim() || !formData.password.trim()) return;
+    
+    // Validaciones básicas
+    if (!formData.primer_nombre.trim() || !formData.primer_apellido.trim() || !formData.correo_electronico.trim() || !formData.password.trim() || !formData.rol.trim()) {
+      return;
+    }
 
+    // Validar email
+    const emailValidation = validateEmail(formData.correo_electronico);
+    if (!emailValidation.valid) {
+      // toast({
+      //   title: "❌ Error de validación",
+      //   description: emailValidation.message,
+      //   variant: "destructive",
+      // });
+      return;
+    }
+
+    // Validar contraseña
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.valid) {
+      // toast({
+      //   title: "❌ Error de validación",
+      //   description: passwordValidation.message,
+      //   variant: "destructive",
+      // });
+      return;
+    }
+
+    // Validar teléfono si se proporcionó
+    const phoneValidation = validatePhone(formData.telefono);
+    if (!phoneValidation.valid) {
+      // toast({
+      //   title: "❌ Error de validación",
+      //   description: phoneValidation.message,
+      //   variant: "destructive",
+      // });
+      return;
+    }
+
+    // Mapear 'password' a 'contrasena' para el backend
     createMutation.mutate({
       primer_nombre: formData.primer_nombre.trim(),
       segundo_nombre: formData.segundo_nombre.trim() || undefined,
       primer_apellido: formData.primer_apellido.trim(),
       segundo_apellido: formData.segundo_apellido.trim() || undefined,
       correo_electronico: formData.correo_electronico.trim(),
-      password: formData.password.trim(),
+      contrasena: formData.password.trim(),  // Mapear password -> contrasena
       telefono: formData.telefono.trim() || undefined,
       numero_documento: formData.numero_documento.trim() || undefined,
+      rol: formData.rol.trim(),  // Enviar rol al backend
     }, {
       onSuccess: () => {
         setShowCreateDialog(false);
@@ -86,7 +164,8 @@ const UsersPage = () => {
           correo_electronico: "", 
           password: "", 
           telefono: "", 
-          numero_documento: "" 
+          numero_documento: "",
+          rol: ""  // Resetear rol
         });
       }
     });
@@ -119,7 +198,8 @@ const UsersPage = () => {
           correo_electronico: "", 
           password: "", 
           telefono: "", 
-          numero_documento: "" 
+          numero_documento: "",
+          rol: ""  // Resetear rol
         });
       }
     });
@@ -146,7 +226,8 @@ const UsersPage = () => {
       correo_electronico: "", 
       password: "", 
       telefono: "", 
-      numero_documento: "" 
+      numero_documento: "",
+      rol: ""  // Resetear rol
     });
     openCreateDialog();
   };

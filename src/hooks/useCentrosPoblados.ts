@@ -4,8 +4,8 @@ import { centrosPobladosService, CentroPoblado, CreateCentroPobladoRequest, Upda
 import { useMunicipios } from '@/hooks/useMunicipios';
 
 // Función para filtrar centros poblados del lado del cliente
-const filterBySearch = (centrosPoblados: CentroPoblado[], searchTerm: string): CentroPoblado[] => {
-  if (!searchTerm.trim()) return centrosPoblados;
+const filterBySearch = (centrosPoblados: CentroPoblado[], searchTerm: string | undefined | null): CentroPoblado[] => {
+  if (!searchTerm || typeof searchTerm !== 'string' || !searchTerm.trim()) return centrosPoblados;
   
   const term = searchTerm.toLowerCase().trim();
   return centrosPoblados.filter((cp) => 
@@ -53,13 +53,13 @@ export const useCentrosPoblados = () => {
    * Query para obtener todos los centros poblados con búsqueda, filtro y paginación
    */
   const useCentrosPobladosQuery = (
-    searchTerm: string = '',
+    searchTerm: string | undefined = '',
     municipioFilter: string = '',
     page: number = 1,
     limit: number = 10
   ) => {
     return useQuery<{ data: CentroPoblado[]; page: number; limit: number; total: number; totalPages: number }, Error>({
-      queryKey: ['centrosPoblados', { searchTerm, municipioFilter, page, limit }],
+      queryKey: ['centrosPoblados', { searchTerm: searchTerm || '', municipioFilter, page, limit }],
       queryFn: async () => {
         try {
           // Obtener todos los centros poblados (limit máximo: 100 según validación del backend)

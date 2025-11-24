@@ -48,6 +48,8 @@ export const getPersonasSalud = async (filtros?: SaludFiltros): Promise<{ person
     if (filtros?.id_parroquia) params.append('id_parroquia', filtros.id_parroquia.toString());
     if (filtros?.id_municipio) params.append('id_municipio', filtros.id_municipio.toString());
     if (filtros?.id_sector) params.append('id_sector', filtros.id_sector.toString());
+    if (filtros?.id_corregimiento) params.append('id_corregimiento', filtros.id_corregimiento.toString());
+    if (filtros?.id_centro_poblado) params.append('id_centro_poblado', filtros.id_centro_poblado.toString());
     if (filtros?.limite) params.append('limite', filtros.limite.toString());
     if (filtros?.offset !== undefined) params.append('offset', filtros.offset.toString());
 
@@ -110,6 +112,8 @@ export const exportSaludToExcel = async (filtros?: SaludFiltros): Promise<void> 
     if (filtros?.id_parroquia) params.append('id_parroquia', filtros.id_parroquia.toString());
     if (filtros?.id_municipio) params.append('id_municipio', filtros.id_municipio.toString());
     if (filtros?.id_sector) params.append('id_sector', filtros.id_sector.toString());
+    if (filtros?.id_corregimiento) params.append('id_corregimiento', filtros.id_corregimiento.toString());
+    if (filtros?.id_centro_poblado) params.append('id_centro_poblado', filtros.id_centro_poblado.toString());
     
     // Límite por defecto de 5000 para exportación (como en el ejemplo curl)
     const limite = filtros?.limite || 5000;
