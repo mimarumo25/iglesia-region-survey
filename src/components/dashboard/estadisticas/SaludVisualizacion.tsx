@@ -93,15 +93,15 @@ const SaludVisualizacion = ({ salud, className }: SaludVisualizacionProps) => {
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-card/95 backdrop-blur-sm border-2 border-primary/20 rounded-xl p-4 shadow-xl">
-          <p className="font-semibold text-sm mb-2">{payload[0].payload.nombreCompleto}</p>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground flex items-center justify-between gap-4">
+        <div className="bg-card/95 backdrop-blur-sm border-2 border-primary/20 rounded-lg sm:rounded-xl p-2.5 sm:p-4 shadow-xl max-w-[200px] sm:max-w-none">
+          <p className="font-semibold text-[10px] sm:text-sm mb-1.5 sm:mb-2 leading-tight break-words">{payload[0].payload.nombreCompleto}</p>
+          <div className="space-y-0.5 sm:space-y-1">
+            <p className="text-[9px] sm:text-xs text-muted-foreground flex items-center justify-between gap-2 sm:gap-4">
               <span>Casos:</span>
               <span className="font-bold text-primary">{payload[0].value}</span>
             </p>
             {payload[1] && (
-              <p className="text-xs text-muted-foreground flex items-center justify-between gap-4">
+              <p className="text-[9px] sm:text-xs text-muted-foreground flex items-center justify-between gap-2 sm:gap-4">
                 <span>Porcentaje:</span>
                 <span className="font-bold text-secondary">{payload[1].value}%</span>
               </p>
@@ -115,33 +115,35 @@ const SaludVisualizacion = ({ salud, className }: SaludVisualizacionProps) => {
 
   return (
     <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="bg-gradient-to-r from-red-500/10 via-orange-500/10 to-amber-500/10 border-b">
-        <CardTitle className="flex items-center gap-3">
-          <div className="p-2 bg-red-500/10 rounded-xl">
-            <Activity className="w-6 h-6 text-red-600" />
+      <CardHeader className="bg-gradient-to-r from-red-500/10 via-orange-500/10 to-amber-500/10 border-b p-4 sm:p-6">
+        <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1">
+            <div className="p-1.5 sm:p-2 bg-red-500/10 rounded-lg sm:rounded-xl flex-shrink-0">
+              <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-red-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base sm:text-xl font-bold leading-tight">Estadísticas de Salud</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground font-normal leading-tight">
+                Análisis completo del estado de salud poblacional
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h3 className="text-xl font-bold">Estadísticas de Salud</h3>
-            <p className="text-sm text-muted-foreground font-normal">
-              Análisis completo del estado de salud poblacional
-            </p>
-          </div>
-          <Badge variant="outline" className="text-xs">
-            {salud.top10EnfermedadesMasComunes.length} enfermedades registradas
+          <Badge variant="outline" className="text-[10px] sm:text-xs self-start sm:self-auto whitespace-nowrap">
+            {salud.top10EnfermedadesMasComunes.length} enfermedades
           </Badge>
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="p-6 space-y-8">
+      <CardContent className="p-3 sm:p-6 space-y-6 sm:space-y-8">
         {/* Tarjetas de resumen mejoradas */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           {estadisticasPrincipales.map((stat, index) => {
             const Icon = stat.icon
             return (
               <div 
                 key={index} 
                 className={cn(
-                  "group relative p-5 rounded-2xl overflow-hidden",
+                  "group relative p-3 sm:p-5 rounded-xl sm:rounded-2xl overflow-hidden",
                   "hover:shadow-xl hover:-translate-y-1",
                   "transition-all duration-500 cursor-pointer",
                   "border-2 border-transparent hover:border-primary/20",
@@ -158,27 +160,27 @@ const SaludVisualizacion = ({ salud, className }: SaludVisualizacionProps) => {
                   stat.gradient
                 )} />
                 
-                <div className="relative space-y-3">
+                <div className="relative space-y-2 sm:space-y-3">
                   <div className="flex items-center justify-between">
                     <div className={cn(
-                      "p-2 rounded-xl transition-transform group-hover:scale-110 group-hover:rotate-6",
+                      "p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition-transform group-hover:scale-110 group-hover:rotate-6",
                       stat.iconBg
                     )}>
-                      <Icon className={cn("w-5 h-5", stat.iconColor)} />
+                      <Icon className={cn("w-3.5 h-3.5 sm:w-5 sm:h-5", stat.iconColor)} />
                     </div>
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 leading-tight">
                       {stat.change}
                     </Badge>
                   </div>
                   
                   <div>
                     <p className={cn(
-                      "text-3xl font-bold bg-gradient-to-br bg-clip-text text-transparent",
+                      "text-xl sm:text-3xl font-bold bg-gradient-to-br bg-clip-text text-transparent leading-tight",
                       stat.gradient
                     )}>
                       {stat.value.toLocaleString('es-CO')}
                     </p>
-                    <p className="text-sm font-medium text-muted-foreground mt-1">
+                    <p className="text-[10px] sm:text-sm font-medium text-muted-foreground mt-0.5 sm:mt-1 leading-tight">
                       {stat.label}
                     </p>
                   </div>
@@ -189,29 +191,34 @@ const SaludVisualizacion = ({ salud, className }: SaludVisualizacionProps) => {
         </div>
 
         {/* Gráfico de enfermedades más comunes mejorado */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-500/10 rounded-lg">
-                <AlertCircle className="w-5 h-5 text-red-600" />
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-red-500/10 rounded-lg flex-shrink-0">
+                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
               </div>
               <div>
-                <h3 className="text-lg font-bold">Enfermedades Más Comunes</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="text-sm sm:text-lg font-bold leading-tight">Enfermedades Más Comunes</h3>
+                <p className="text-[10px] sm:text-sm text-muted-foreground leading-tight">
                   Top 6 condiciones de salud registradas
                 </p>
               </div>
             </div>
-            <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white">
+            <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white text-[9px] sm:text-xs self-start sm:self-auto whitespace-nowrap">
               Análisis Principal
             </Badge>
           </div>
           
-          <div className="bg-muted/30 rounded-2xl p-6 border-2 border-muted">
+          <div className="bg-muted/30 rounded-xl sm:rounded-2xl p-3 sm:p-6 border-2 border-muted">
             <ResponsiveContainer width="100%" height={350}>
               <BarChart 
                 data={dataEnfermedades}
-                margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                margin={{ 
+                  top: 10, 
+                  right: window.innerWidth < 640 ? 5 : 30, 
+                  left: window.innerWidth < 640 ? -10 : 20, 
+                  bottom: window.innerWidth < 640 ? 70 : 80 
+                }}
               >
                 <defs>
                   {COLORS.map((color, index) => (
@@ -226,23 +233,26 @@ const SaludVisualizacion = ({ salud, className }: SaludVisualizacionProps) => {
                   dataKey="nombre" 
                   angle={-45}
                   textAnchor="end"
-                  height={100}
-                  tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                  height={window.innerWidth < 640 ? 80 : 100}
+                  tick={{ fontSize: window.innerWidth < 640 ? 9 : 11, fill: 'hsl(var(--muted-foreground))' }}
                   stroke="hsl(var(--border))"
                 />
                 <YAxis 
                   stroke="hsl(var(--border))"
-                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                  tick={{ fontSize: window.innerWidth < 640 ? 10 : 12, fill: 'hsl(var(--muted-foreground))' }}
+                  width={window.innerWidth < 640 ? 30 : 60}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend 
-                  wrapperStyle={{ paddingTop: '20px' }}
+                  wrapperStyle={{ paddingTop: window.innerWidth < 640 ? '10px' : '20px' }}
                   iconType="circle"
+                  iconSize={window.innerWidth < 640 ? 8 : 10}
+                  wrapperClassName="text-xs sm:text-sm"
                 />
                 <Bar 
                   dataKey="casos" 
                   name="Casos Registrados"
-                  radius={[12, 12, 0, 0]}
+                  radius={[window.innerWidth < 640 ? 8 : 12, window.innerWidth < 640 ? 8 : 12, 0, 0]}
                   animationDuration={1500}
                 >
                   {dataEnfermedades.map((entry, index) => (

@@ -7,6 +7,7 @@
  * 
  * Características:
  * - Tabla responsive con información de difuntos
+ * - Vista de tarjetas en móvil
  * - Acciones de editar y eliminar por fila
  * - Estado vacío con call-to-action
  * - Formateo de fechas localizado
@@ -28,7 +29,7 @@ import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Edit, Trash2, Calendar } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, User, Heart, Users } from "lucide-react";
 import { DeceasedFamilyMember } from "@/types/survey";
 
 interface DeceasedMemberTableProps {
@@ -39,20 +40,98 @@ interface DeceasedMemberTableProps {
 }
 
 /**
+ * Tarjeta móvil para mostrar un miembro difunto
+ */
+const DeceasedMobileCard: React.FC<{
+  member: DeceasedFamilyMember;
+  onEdit: () => void;
+  onDelete: () => void;
+}> = ({ member, onEdit, onDelete }) => (
+  <div className="p-4 bg-card rounded-xl border border-border shadow-sm space-y-3">
+    {/* Header con nombre y acciones */}
+    <div className="flex items-start justify-between gap-3">
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+          <Heart className="w-5 h-5 text-red-600 dark:text-red-400" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h4 className="font-semibold text-foreground truncate text-sm">
+            {member.nombres}
+          </h4>
+          <p className="text-xs text-muted-foreground">
+            {member.fechaFallecimiento 
+              ? format(member.fechaFallecimiento, "dd MMM yyyy", { locale: es })
+              : 'Fecha no especificada'
+            }
+          </p>
+        </div>
+      </div>
+      
+      {/* Botones de acción */}
+      <div className="flex items-center gap-1 shrink-0">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onEdit}
+          className="h-9 w-9 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30 touch-manipulation"
+          aria-label="Editar difunto"
+        >
+          <Edit className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onDelete}
+          className="h-9 w-9 p-0 hover:bg-red-100 dark:hover:bg-red-900/30 touch-manipulation"
+          aria-label="Eliminar difunto"
+        >
+          <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+        </Button>
+      </div>
+    </div>
+
+    {/* Información en grid */}
+    <div className="grid grid-cols-2 gap-2 text-sm">
+      {/* Sexo */}
+      <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+        <User className="w-4 h-4 text-blue-500 shrink-0" />
+        <div className="min-w-0">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Sexo</p>
+          <p className="font-medium text-foreground truncate text-xs">
+            {member.sexo?.nombre || 'No especificado'}
+          </p>
+        </div>
+      </div>
+
+      {/* Parentesco */}
+      <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+        <Users className="w-4 h-4 text-green-500 shrink-0" />
+        <div className="min-w-0">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Parentesco</p>
+          <p className="font-medium text-foreground truncate text-xs">
+            {member.parentesco?.nombre || 'No especificado'}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {/* Causa de fallecimiento */}
+    {member.causaFallecimiento && (
+      <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Causa</p>
+        <p className="text-xs text-foreground line-clamp-2">
+          {member.causaFallecimiento}
+        </p>
+      </div>
+    )}
+  </div>
+);
+
+/**
  * Tabla para mostrar y gestionar miembros difuntos
  * 
  * @param props - Props del componente
  * @returns JSX.Element
- * 
- * @example
- * ```tsx
- * <DeceasedMemberTable
- *   deceasedMembers={deceasedMembers}
- *   onEdit={handleEdit}
- *   onDelete={handleDelete}
- *   onAddFirst={handleAddFirst}
- * />
- * ```
  */
 const DeceasedMemberTable: React.FC<DeceasedMemberTableProps> = ({
   deceasedMembers,
@@ -65,19 +144,19 @@ const DeceasedMemberTable: React.FC<DeceasedMemberTableProps> = ({
   if (deceasedMembers.length === 0) {
     return (
       <Card className="shadow-lg border-border rounded-xl bg-card dark:bg-card dark:border-border">
-        <CardContent className="p-8 text-center">
+        <CardContent className="p-6 sm:p-8 text-center">
           <div className="text-muted-foreground mb-4">
-            <Calendar className="w-12 h-12 mx-auto opacity-50" />
+            <Calendar className="w-10 h-10 sm:w-12 sm:h-12 mx-auto opacity-50" />
           </div>
-          <h4 className="text-lg font-semibold text-muted-foreground dark:text-muted-foreground mb-2">
+          <h4 className="text-base sm:text-lg font-semibold text-muted-foreground dark:text-muted-foreground mb-2">
             No hay difuntos registrados
           </h4>
-          <p className="text-muted-foreground dark:text-muted-foreground mb-6 max-w-md mx-auto">
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground mb-6 max-w-md mx-auto">
             Registre información sobre familiares difuntos con detalles del fallecimiento y parentesco.
           </p>
           <Button 
             onClick={onAddFirst}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2"
+            className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2 touch-manipulation"
           >
             <Plus className="w-4 h-4 mr-2" />
             Agregar Primer Difunto
@@ -87,11 +166,23 @@ const DeceasedMemberTable: React.FC<DeceasedMemberTableProps> = ({
     );
   }
 
-  // Tabla con difuntos
   return (
     <Card className="shadow-lg border-border rounded-xl bg-card dark:bg-card dark:border-border overflow-hidden">
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
+        {/* Vista móvil: Tarjetas */}
+        <div className="md:hidden p-3 space-y-3">
+          {deceasedMembers.map((member) => (
+            <DeceasedMobileCard
+              key={member.id}
+              member={member}
+              onEdit={() => onEdit(member)}
+              onDelete={() => onDelete(member.id)}
+            />
+          ))}
+        </div>
+
+        {/* Vista desktop: Tabla */}
+        <div className="hidden md:block overflow-x-auto">
           <Table>
             {/* Header de la tabla */}
             <TableHeader>

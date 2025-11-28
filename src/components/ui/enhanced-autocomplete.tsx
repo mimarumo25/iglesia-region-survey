@@ -42,6 +42,7 @@ interface EnhancedAutocompleteProps {
   showDescriptions?: boolean
   allowClear?: boolean
   maxHeight?: string
+  mobilePlaceholder?: string
 }
 
 export function EnhancedAutocomplete({
@@ -59,6 +60,7 @@ export function EnhancedAutocomplete({
   showDescriptions = true,
   allowClear = true,
   maxHeight = "300px",
+  mobilePlaceholder,
 }: EnhancedAutocompleteProps) {
   const [open, setOpen] = React.useState(false)
   const [searchValue, setSearchValue] = React.useState("")
@@ -211,14 +213,16 @@ export function EnhancedAutocomplete({
                       <Star className="w-3 h-3 text-yellow-500 fill-current flex-shrink-0" />
                     )}
                   </div>
-                  {selectedOption.description && showDescriptions && (
-                    <p className="text-xs text-gray-500 truncate">
-                      {selectedOption.description}
-                    </p>
-                  )}
                 </div>
               ) : (
-                <span className="text-gray-500 font-normal">{placeholder}</span>
+                <span className="text-gray-500 font-normal">
+                  {mobilePlaceholder ? (
+                    <>
+                      <span className="sm:hidden">{mobilePlaceholder}</span>
+                      <span className="hidden sm:inline">{placeholder}</span>
+                    </>
+                  ) : placeholder}
+                </span>
               )}
             </div>
           </div>
@@ -261,8 +265,8 @@ export function EnhancedAutocomplete({
           />
           
           <CommandList 
-            className="overflow-auto" 
-            style={{ maxHeight }}
+            className="overflow-auto overscroll-contain touch-pan-y" 
+            style={{ maxHeight, WebkitOverflowScrolling: 'touch' }}
           >
             <CommandEmpty className="py-8 text-center text-sm text-gray-500">
               <div className="flex flex-col items-center gap-3">

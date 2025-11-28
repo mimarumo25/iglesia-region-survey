@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { isValidColombianPhone, formatColombianPhone, VALIDATION_MESSAGES } from "@/utils/validationHelpers";
-import { CheckCircle, AlertCircle, Phone } from "lucide-react";
 
 interface PhoneInputProps extends Omit<React.ComponentProps<typeof Input>, 'onChange'> {
   label?: string;
@@ -86,12 +85,6 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(({
     return "";
   };
 
-  const getIcon = () => {
-    if (showError) return <AlertCircle className="w-4 h-4 text-red-500" />;
-    if (showSuccess) return <CheckCircle className="w-4 h-4 text-green-500" />;
-    return <Phone className="w-4 h-4 text-muted-foreground" />;
-  };
-
   return (
     <div className="space-y-2">
       {label && (
@@ -110,7 +103,6 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(({
           onBlur={handleBlur}
           onFocus={handleFocus}
           className={cn(
-            "pl-10 pr-10",
             {
               "border-red-500 focus:border-red-500 focus:ring-red-500": inputState === 'error',
               "border-green-500 focus:border-green-500 focus:ring-green-500": inputState === 'success',
@@ -119,18 +111,6 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(({
           )}
           placeholder="300-123-4567"
         />
-        
-        {/* Ícono izquierdo */}
-        <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-          <Phone className="w-4 h-4 text-muted-foreground" />
-        </div>
-        
-        {/* Ícono derecho de validación */}
-        {showValidation && touched && !focused && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            {getIcon()}
-          </div>
-        )}
       </div>
       
       {/* Mensaje de ayuda/error */}

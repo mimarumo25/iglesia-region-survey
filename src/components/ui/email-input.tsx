@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { isValidEmail, VALIDATION_MESSAGES } from "@/utils/validationHelpers";
-import { CheckCircle, AlertCircle, Mail } from "lucide-react";
 
 interface EmailInputProps extends Omit<React.ComponentProps<typeof Input>, 'onChange'> {
   label?: string;
@@ -77,12 +76,6 @@ export const EmailInput = React.forwardRef<HTMLInputElement, EmailInputProps>(({
     return "";
   };
 
-  const getIcon = () => {
-    if (showError) return <AlertCircle className="w-4 h-4 text-red-500" />;
-    if (showSuccess) return <CheckCircle className="w-4 h-4 text-green-500" />;
-    return <Mail className="w-4 h-4 text-muted-foreground" />;
-  };
-
   return (
     <div className="space-y-2">
       {label && (
@@ -101,7 +94,6 @@ export const EmailInput = React.forwardRef<HTMLInputElement, EmailInputProps>(({
           onBlur={handleBlur}
           onFocus={handleFocus}
           className={cn(
-            "pl-10 pr-10",
             {
               "border-red-500 focus:border-red-500 focus:ring-red-500": inputState === 'error',
               "border-green-500 focus:border-green-500 focus:ring-green-500": inputState === 'success',
@@ -112,18 +104,6 @@ export const EmailInput = React.forwardRef<HTMLInputElement, EmailInputProps>(({
           autoComplete="email"
           spellCheck="false"
         />
-        
-        {/* Ícono izquierdo */}
-        <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-          <Mail className="w-4 h-4 text-muted-foreground" />
-        </div>
-        
-        {/* Ícono derecho de validación */}
-        {showValidation && touched && !focused && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            {getIcon()}
-          </div>
-        )}
       </div>
       
       {/* Mensaje de ayuda/error */}

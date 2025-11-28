@@ -31,15 +31,17 @@ const FamilyMemberTable = ({ familyMembers, onEdit, onDelete, onAddFirst }: Fami
   if (familyMembers.length === 0) {
     return (
       <Card className="border-dashed border-2 border-border dark:border-border rounded-2xl">
-        <CardContent className="flex flex-col items-center justify-center py-8">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <Plus className="w-8 h-8 text-gray-400" />
+        <CardContent className="flex flex-col items-center justify-center py-6 sm:py-8 px-4">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+            <Plus className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
           </div>
-          <p className="text-gray-500 mb-4 font-medium">No hay miembros familiares agregados</p>
+          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-3 sm:mb-4 font-medium text-center">
+            No hay miembros familiares agregados
+          </p>
           <Button 
             variant="outline" 
             onClick={onAddFirst}
-            className="flex items-center gap-2 border-2 border-gray-300 hover:border-blue-400 rounded-xl transition-all duration-200"
+            className="flex items-center gap-2 w-full sm:w-auto h-11 sm:h-10 border-2 border-gray-300 hover:border-blue-400 rounded-xl transition-all duration-200 touch-manipulation"
           >
             <Plus className="w-4 h-4" />
             Agregar primer miembro
@@ -50,7 +52,7 @@ const FamilyMemberTable = ({ familyMembers, onEdit, onDelete, onAddFirst }: Fami
   }
 
   return (
-    <div className="border-2 border-gray-400 rounded-2xl overflow-hidden shadow-lg bg-white dark:bg-card">
+    <div className="border-2 border-gray-400 dark:border-gray-600 rounded-2xl overflow-hidden shadow-lg bg-white dark:bg-card">
       <ResponsiveTable
         data={familyMembers}
         columns={[

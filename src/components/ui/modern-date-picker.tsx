@@ -150,18 +150,18 @@ const ModernDatePicker = ({
           variant="outline"
           disabled={disabled}
           className={cn(
-            "w-full justify-between text-left font-normal bg-gray-100 border-2 border-gray-400 text-gray-900 rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 hover:bg-gray-200 hover:border-gray-500 transition-all duration-200 min-h-[2.5rem] h-auto py-2",
+            "w-full justify-between text-left font-normal bg-gray-100 border-2 border-gray-400 text-gray-900 rounded-xl focus:bg-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 hover:bg-gray-200 hover:border-gray-500 transition-all duration-200 min-h-[2.5rem] h-auto py-2 px-2 sm:px-3",
             !(value && value instanceof Date && !isNaN(value.getTime())) && "text-gray-500",
             className
           )}
         >
           <div className="flex items-center flex-1 min-w-0">
-            <CalendarIcon className="mr-2 h-4 w-4 text-gray-600 flex-shrink-0" />
-            <span className="flex-1 break-words leading-tight text-xs sm:text-sm">
+            <CalendarIcon className="mr-1.5 sm:mr-2 h-4 w-4 text-gray-600 flex-shrink-0" />
+            <span className="flex-1 break-words leading-tight text-sm sm:text-base">
               {value && value instanceof Date && !isNaN(value.getTime()) ? format(value, "PPP", { locale: es }) : placeholder}
             </span>
           </div>
-          <ChevronDown className="h-4 w-4 text-gray-600 opacity-50 flex-shrink-0 ml-2" />
+          <ChevronDown className="h-4 w-4 text-gray-600 opacity-50 flex-shrink-0 ml-1 sm:ml-2" />
         </Button>
       </PopoverTrigger>
       <PopoverContent 

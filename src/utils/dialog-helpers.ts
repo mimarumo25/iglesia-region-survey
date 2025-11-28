@@ -35,19 +35,19 @@ export function useDialogState(initialState: boolean = false) {
  */
 export const DIALOG_CONFIG = {
   content: {
-    className: "max-w-5xl max-h-[90vh] overflow-y-auto bg-card border-2 border-border rounded-2xl shadow-2xl dark:bg-card dark:border-border"
+    className: "w-[calc(100%-1rem)] sm:w-full max-w-5xl max-h-[90vh] overflow-y-auto overflow-x-hidden bg-card border-2 border-border rounded-2xl shadow-2xl dark:bg-card dark:border-border"
   },
   header: {
-    className: "bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-2xl border-b border-border dark:border-border p-6"
+    className: "bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-2xl border-b border-border dark:border-border p-4 sm:p-6"
   },
   title: {
-    className: "text-xl font-bold text-foreground dark:text-foreground flex items-center gap-2"
+    className: "text-lg sm:text-xl font-bold text-foreground dark:text-foreground flex items-center gap-2"
   },
   description: {
-    className: "text-muted-foreground dark:text-muted-foreground mt-2"
+    className: "text-sm sm:text-base text-muted-foreground dark:text-muted-foreground mt-2"
   },
   footer: {
-    className: "p-6 bg-muted/30 rounded-b-2xl border-t border-border dark:bg-muted/30 dark:border-border"
+    className: "p-4 sm:p-6 bg-muted/30 rounded-b-2xl border-t border-border dark:bg-muted/30 dark:border-border"
   }
 } as const;
 

@@ -67,6 +67,7 @@ const CommandList = React.forwardRef<
       return
     }
 
+    // Manejador para scroll con rueda del mouse (desktop)
     const handleWheel = (event: WheelEvent) => {
       const { scrollHeight, clientHeight } = element
       const scrollTop = element.scrollTop
@@ -90,10 +91,49 @@ const CommandList = React.forwardRef<
       element.scrollTop += event.deltaY
     }
 
+    // Variables para tracking de touch
+    let touchStartY = 0
+    let touchCurrentY = 0
+
+    // Manejador para inicio de touch (móvil)
+    const handleTouchStart = (event: TouchEvent) => {
+      if (event.touches.length === 1) {
+        touchStartY = event.touches[0].clientY
+        touchCurrentY = touchStartY
+      }
+    }
+
+    // Manejador para movimiento de touch (móvil)
+    const handleTouchMove = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return
+
+      const { scrollHeight, clientHeight, scrollTop } = element
+      const canScroll = scrollHeight > clientHeight
+
+      if (!canScroll) return
+
+      touchCurrentY = event.touches[0].clientY
+      const deltaY = touchStartY - touchCurrentY
+      
+      const isScrollingDown = deltaY > 0
+      const isScrollingUp = deltaY < 0
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1
+      const isAtTop = scrollTop <= 0
+
+      // Solo prevenir el evento si podemos hacer scroll internamente
+      if (!((isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop))) {
+        event.stopPropagation()
+      }
+    }
+
     element.addEventListener("wheel", handleWheel, { passive: false })
+    element.addEventListener("touchstart", handleTouchStart, { passive: true })
+    element.addEventListener("touchmove", handleTouchMove, { passive: false })
 
     return () => {
       element.removeEventListener("wheel", handleWheel)
+      element.removeEventListener("touchstart", handleTouchStart)
+      element.removeEventListener("touchmove", handleTouchMove)
     }
   }, [])
 
@@ -117,8 +157,19 @@ const CommandList = React.forwardRef<
   return (
     <CommandPrimitive.List
       ref={setRefs}
-      className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
-      style={style}
+      className={cn(
+        "max-h-[300px] overflow-y-auto overflow-x-hidden",
+        // Estilos para mejorar scroll táctil en móvil
+        "overscroll-contain touch-pan-y",
+        // Habilitar scroll suave y momentum en iOS
+        "[&]:webkit-overflow-scrolling-touch",
+        className
+      )}
+      style={{
+        ...style,
+        // Scroll suave con momentum en iOS/Safari
+        WebkitOverflowScrolling: 'touch',
+      }}
       {...props}
     />
   )

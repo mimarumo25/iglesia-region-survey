@@ -199,26 +199,25 @@ const FamilyMemberDialog = ({
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6 px-1 sm:px-0 overflow-x-hidden">
             {/* SECCIÓN 1: INFORMACIÓN BÁSICA PERSONAL */}
-            <div className="p-6 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-800">
-              <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">1</span>
-                Información Básica Personal
+            <div className="p-3 sm:p-6 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-800">
+              <h4 className="text-base sm:text-lg font-bold text-foreground dark:text-foreground mb-3 sm:mb-4 flex items-center gap-2">
+                <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center shrink-0">1</span>
+                <span className="leading-tight">Información Básica Personal</span>
               </h4>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
                 Datos identificativos principales del miembro familiar
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Nombres */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 overflow-hidden">
                 <FormField
                   control={form.control}
                   name="nombres"
                   render={({ field }) => (
-                    <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
-                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-1">
+                    <FormItem className="space-y-1.5 sm:space-y-2 p-3 sm:p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm overflow-hidden">
+                      <FormLabel className="text-foreground dark:text-foreground font-bold text-xs sm:text-sm flex items-center gap-1">
                         Nombres y Apellidos *
-                        <AlertCircle className="w-3 h-3 text-destructive" />
+                        <AlertCircle className="w-3 h-3 text-destructive shrink-0" />
                       </FormLabel>
                       <FormControl>
                         <Input 
@@ -226,7 +225,7 @@ const FamilyMemberDialog = ({
                           value={field.value || ''}
                           onChange={(e) => field.onChange(e.target.value)}
                           onBlur={(e) => field.onChange(trimString(e.target.value))}
-                          className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
+                          className="w-full bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
                           placeholder="Ingrese nombres y apellidos completos"
                           data-testid="family-member-nombres-input"
                           id="family-member-nombres"
@@ -242,13 +241,14 @@ const FamilyMemberDialog = ({
                   control={form.control}
                   name="fechaNacimiento"
                   render={({ field }) => (
-                    <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
-                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Fecha de Nacimiento</FormLabel>
+                    <FormItem className="space-y-1.5 sm:space-y-2 p-3 sm:p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm overflow-hidden">
+                      <FormLabel className="text-foreground dark:text-foreground font-bold text-xs sm:text-sm">Fecha de Nacimiento</FormLabel>
                       <FormControl>
                         <EnhancedBirthDatePicker
                           value={field.value}
                           onChange={field.onChange}
                           placeholder="Seleccionar fecha de nacimiento"
+                          className="w-full"
                         />
                       </FormControl>
                       <FormMessage className="text-destructive text-xs font-medium" />
@@ -261,10 +261,10 @@ const FamilyMemberDialog = ({
                   control={form.control}
                   name="numeroIdentificacion"
                   render={({ field }) => (
-                    <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
-                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-1">
+                    <FormItem className="space-y-1.5 sm:space-y-2 p-3 sm:p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm overflow-hidden">
+                      <FormLabel className="text-foreground dark:text-foreground font-bold text-xs sm:text-sm flex items-center gap-1">
                         Número de Identificación *
-                        <AlertCircle className="w-3 h-3 text-destructive" />
+                        <AlertCircle className="w-3 h-3 text-destructive shrink-0" />
                       </FormLabel>
                       <FormControl>
                         <Input 
@@ -272,7 +272,7 @@ const FamilyMemberDialog = ({
                           value={field.value || ''}
                           onChange={(e) => field.onChange(e.target.value)}
                           onBlur={(e) => field.onChange(trimString(e.target.value))}
-                          className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
+                          className="w-full bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
                           placeholder="Ingrese número de identificación"
                           data-testid="family-member-numero-identificacion-input"
                           id="family-member-numero-identificacion"
@@ -288,10 +288,10 @@ const FamilyMemberDialog = ({
                   control={form.control}
                   name="tipoIdentificacion"
                   render={({ field }) => (
-                    <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
-                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-1">
+                    <FormItem className="space-y-1.5 sm:space-y-2 p-3 sm:p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm overflow-hidden">
+                      <FormLabel className="text-foreground dark:text-foreground font-bold text-xs sm:text-sm flex items-center gap-1">
                         Tipo de Identificación *
-                        <AlertCircle className="w-3 h-3 text-destructive" />
+                        <AlertCircle className="w-3 h-3 text-destructive shrink-0" />
                       </FormLabel>
                       <FormControl>
                         <AutocompleteWithLoading
@@ -312,15 +312,15 @@ const FamilyMemberDialog = ({
             </div>
 
             {/* SECCIÓN 2: INFORMACIÓN DE CONTACTO */}
-            <div className="p-6 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-200 dark:border-green-800">
-              <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-green-600 text-white text-xs flex items-center justify-center">2</span>
-                Información de Contacto
+            <div className="p-3 sm:p-6 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-200 dark:border-green-800">
+              <h4 className="text-base sm:text-lg font-bold text-foreground dark:text-foreground mb-3 sm:mb-4 flex items-center gap-2">
+                <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-green-600 text-white text-xs flex items-center justify-center shrink-0">2</span>
+                <span className="leading-tight">Información de Contacto</span>
               </h4>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
                 Datos de contacto y comunicación
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 overflow-hidden">
                 {/* Teléfono */}
                 <FormField
                   control={form.control}
@@ -367,15 +367,15 @@ const FamilyMemberDialog = ({
             </div>
 
             {/* SECCIÓN 3: INFORMACIÓN DEMOGRÁFICA */}
-            <div className="p-6 bg-purple-50 dark:bg-purple-900/10 rounded-xl border border-purple-200 dark:border-purple-800">
-              <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-purple-600 text-white text-xs flex items-center justify-center">3</span>
-                Información Demográfica
+            <div className="p-3 sm:p-6 bg-purple-50 dark:bg-purple-900/10 rounded-xl border border-purple-200 dark:border-purple-800">
+              <h4 className="text-base sm:text-lg font-bold text-foreground dark:text-foreground mb-3 sm:mb-4 flex items-center gap-2">
+                <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-purple-600 text-white text-xs flex items-center justify-center shrink-0">3</span>
+                <span className="leading-tight">Información Demográfica</span>
               </h4>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
                 Información sobre sexo, parentesco y estado civil
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 overflow-hidden">
                 {/* Sexo */}
                 <FormField
                   control={form.control}
@@ -448,15 +448,15 @@ const FamilyMemberDialog = ({
             </div>
 
             {/* SECCIÓN 4: INFORMACIÓN EDUCATIVA Y PROFESIONAL */}
-            <div className="p-6 bg-orange-50 dark:bg-orange-900/10 rounded-xl border border-orange-200 dark:border-orange-800">
-              <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-orange-600 text-white text-xs flex items-center justify-center">4</span>
-                Información Educativa y Profesional
+            <div className="p-3 sm:p-6 bg-orange-50 dark:bg-orange-900/10 rounded-xl border border-orange-200 dark:border-orange-800">
+              <h4 className="text-base sm:text-lg font-bold text-foreground dark:text-foreground mb-3 sm:mb-4 flex items-center gap-2">
+                <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-orange-600 text-white text-xs flex items-center justify-center shrink-0">4</span>
+                <span className="leading-tight">Información Educativa y Profesional</span>
               </h4>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
                 Nivel de estudios y profesión
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 overflow-hidden">
                 {/* Estudio */}
                 <FormField
                   control={form.control}
@@ -506,15 +506,15 @@ const FamilyMemberDialog = ({
             </div>
 
             {/* SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD */}
-            <div className="p-6 bg-indigo-50 dark:bg-indigo-900/10 rounded-xl border border-indigo-200 dark:border-indigo-800">
-              <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center">5</span>
-                Información Cultural y de Salud
+            <div className="p-3 sm:p-6 bg-indigo-50 dark:bg-indigo-900/10 rounded-xl border border-indigo-200 dark:border-indigo-800">
+              <h4 className="text-base sm:text-lg font-bold text-foreground dark:text-foreground mb-3 sm:mb-4 flex items-center gap-2">
+                <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center shrink-0">5</span>
+                <span className="leading-tight">Información Cultural y de Salud</span>
               </h4>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
                 Comunidad cultural, enfermedades y necesidades especiales
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 overflow-hidden">
                 {/* Comunidad Cultural */}
                 <FormField
                   control={form.control}
@@ -619,15 +619,15 @@ const FamilyMemberDialog = ({
             </div>
 
             {/* SECCIÓN 6: INFORMACIÓN DE TALLAS */}
-            <div className="p-6 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-800">
-              <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-4 flex items-center gap-2">
-                <Shirt className="w-5 h-5 text-blue-600" />
-                Información de Tallas
+            <div className="p-3 sm:p-6 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-800">
+              <h4 className="text-base sm:text-lg font-bold text-foreground dark:text-foreground mb-3 sm:mb-4 flex items-center gap-2">
+                <Shirt className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 shrink-0" />
+                <span className="leading-tight">Información de Tallas</span>
               </h4>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
                 Selecciona las tallas más comunes utilizadas en Colombia
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 overflow-hidden">
                 {/* Talla de Camisa/Blusa */}
                 <FormField
                   control={form.control}
@@ -703,26 +703,26 @@ const FamilyMemberDialog = ({
             </div>
 
             {/* SECCIÓN 7: INFORMACIÓN DE CELEBRACIONES */}
-            <div className="p-6 bg-pink-50 dark:bg-pink-900/10 rounded-xl border border-pink-200 dark:border-pink-800">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="p-3 sm:p-6 bg-pink-50 dark:bg-pink-900/10 rounded-xl border border-pink-200 dark:border-pink-800">
+              <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-2 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-pink-600 text-white text-xs flex items-center justify-center">7</span>
-                    Fechas a Celebrar
+                  <h4 className="text-base sm:text-lg font-bold text-foreground dark:text-foreground mb-1.5 sm:mb-2 flex items-center gap-2">
+                    <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-pink-600 text-white text-xs flex items-center justify-center shrink-0">7</span>
+                    <span className="leading-tight">Fechas a Celebrar</span>
                   </h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Información sobre celebraciones especiales (cumpleaños, aniversarios, etc.)
                   </p>
                 </div>
                 <Button
                   type="button"
                   variant="default"
-                  size="lg"
+                  size="default"
                   onClick={handleAddCelebracion}
-                  className="flex items-center gap-2 bg-gradient-to-r from-primary to-blue-600 text-white shadow-lg hover:from-primary/90 hover:to-blue-600/90"
+                  className="flex items-center justify-center gap-2 w-full sm:w-auto h-10 sm:h-11 bg-gradient-to-r from-primary to-blue-600 text-white shadow-lg hover:from-primary/90 hover:to-blue-600/90 rounded-xl touch-manipulation"
                 >
                   <Plus className="h-4 w-4" />
-                  Agregar fecha
+                  <span>Agregar fecha</span>
                 </Button>
               </div>
 
@@ -764,7 +764,7 @@ const FamilyMemberDialog = ({
                         )}
                       />
 
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 overflow-hidden">
                         <FormField
                           control={form.control}
                           name={`profesionMotivoFechaCelebrar.celebraciones.${index}.motivo` as const}
@@ -842,15 +842,15 @@ const FamilyMemberDialog = ({
             </div>
 
             {/* SECCIÓN 8: INFORMACIÓN DE SERVICIOS Y LIDERAZGO */}
-            <div className="p-6 bg-teal-50 dark:bg-teal-900/10 rounded-xl border border-teal-200 dark:border-teal-800">
-              <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-teal-600 text-white text-xs flex items-center justify-center">8</span>
-                Información de Servicios y Liderazgo
+            <div className="p-3 sm:p-6 bg-teal-50 dark:bg-teal-900/10 rounded-xl border border-teal-200 dark:border-teal-800">
+              <h4 className="text-base sm:text-lg font-bold text-foreground dark:text-foreground mb-3 sm:mb-4 flex items-center gap-2">
+                <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-teal-600 text-white text-xs flex items-center justify-center shrink-0">8</span>
+                <span className="leading-tight">Información de Servicios y Liderazgo</span>
               </h4>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
                 Liderazgo y servicios religiosos
               </p>
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-3 sm:gap-4 overflow-hidden">
                 {/* En qué eres líder */}
                 <FormField
                   control={form.control}
@@ -874,15 +874,15 @@ const FamilyMemberDialog = ({
             </div>
 
             {/* SECCIÓN 9: HABILIDADES Y DESTREZAS (NUEVA) */}
-            <div className="p-6 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800">
-              <h4 className="text-lg font-bold text-foreground dark:text-foreground mb-4 flex items-center gap-2">
-                <Lightbulb className="w-5 h-5 text-amber-600" />
-                Habilidades y Destrezas
+            <div className="p-3 sm:p-6 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800">
+              <h4 className="text-base sm:text-lg font-bold text-foreground dark:text-foreground mb-3 sm:mb-4 flex items-center gap-2">
+                <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 shrink-0" />
+                <span className="leading-tight">Habilidades y Destrezas</span>
               </h4>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
                 Selecciona las habilidades profesionales y destrezas técnicas del miembro familiar
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 overflow-hidden">
                 {/* Habilidades */}
                 <FormField
                   control={form.control}

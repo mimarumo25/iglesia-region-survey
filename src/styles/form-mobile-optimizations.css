@@ -1,0 +1,606 @@
+/* 📱 Optimizaciones de Formularios para Vista Móvil */
+/* Mejoras específicas para inputs, selects y campos de formulario en pantallas pequeñas */
+
+/* ===========================================
+   INPUTS Y TEXTAREA - Optimización de tamaño y legibilidad
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Asegurar que todos los inputs tengan tamaño de fuente legible */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="search"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: 13px !important;
+    line-height: 1.3;
+    padding: 8px 10px !important;
+    min-height: 40px;
+  }
+
+  /* Prevenir zoom automático en iOS cuando el font es menor a 16px */
+  /* Pero mantener legibilidad con tamaño apropiado */
+  input:focus,
+  textarea:focus,
+  select:focus {
+    font-size: 13px !important;
+  }
+
+  /* Asegurar que el texto ocupe todo el ancho disponible */
+  input,
+  textarea,
+  select {
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  /* Mejorar visualización del texto dentro de inputs */
+  input::placeholder,
+  textarea::placeholder {
+    font-size: 12px;
+    opacity: 0.6;
+    line-height: 1.3;
+  }
+
+  /* Asegurar que el valor ingresado sea completamente visible */
+  input:not(:placeholder-shown),
+  textarea:not(:placeholder-shown) {
+    font-weight: 500;
+  }
+}
+
+/* ===========================================
+   SELECT Y COMBOBOX - Mejoras de visualización
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Optimizar selectores para que el texto sea completamente visible */
+  [role="combobox"],
+  button[role="combobox"] {
+    font-size: 13px !important;
+    padding: 8px 28px 8px 10px !important;
+    min-height: 40px;
+    text-align: left;
+    white-space: normal !important;
+    line-height: 1.3;
+  }
+
+  /* Asegurar que el texto seleccionado ocupe todo el espacio */
+  [role="combobox"] > span,
+  button[role="combobox"] > span {
+    display: block;
+    width: calc(100% - 24px);
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+    word-wrap: break-word;
+    word-break: break-word;
+    line-height: 1.3;
+    font-size: 13px !important;
+    font-weight: 500;
+  }
+
+  /* Ícono de chevron más compacto */
+  [role="combobox"] svg,
+  button[role="combobox"] svg {
+    flex-shrink: 0;
+    margin-left: 4px;
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Items del dropdown con mejor tamaño */
+  [role="option"] {
+    font-size: 13px !important;
+    padding: 10px 12px !important;
+    min-height: 40px;
+    line-height: 1.3;
+    white-space: normal;
+    word-wrap: break-word;
+    word-break: break-word;
+  }
+}
+
+/* ===========================================
+   LABELS Y FORM ITEMS - Mejor organización
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Labels más pequeños pero legibles */
+  label,
+  .form-label {
+    font-size: 11px !important;
+    line-height: 1.2;
+    margin-bottom: 3px;
+    display: block;
+    font-weight: 600;
+  }
+
+  /* Espaciado entre campos del formulario */
+  .space-y-2 > * + *,
+  [class*="space-y"] > * + * {
+    margin-top: 10px !important;
+  }
+
+  /* Contenedores de campos con mejor padding */
+  .form-item,
+  [class*="form-item"] {
+    padding: 0 !important;
+    margin-bottom: 8px;
+  }
+}
+
+/* ===========================================
+   DATE PICKER - Optimización móvil
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Botón del date picker */
+  .modern-date-picker button,
+  button[class*="date-picker"] {
+    font-size: 13px !important;
+    padding: 8px 10px !important;
+    min-height: 40px;
+    justify-content: flex-start;
+    line-height: 1.3;
+  }
+
+  /* Texto dentro del date picker */
+  .modern-date-picker button span,
+  button[class*="date-picker"] span {
+    font-size: 13px !important;
+    line-height: 1.3;
+    white-space: normal;
+    word-break: break-word;
+    font-weight: 500;
+  }
+
+  /* Ícono de calendario */
+  .modern-date-picker svg,
+  button[class*="date-picker"] svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    margin-right: 6px;
+  }
+}
+
+/* ===========================================
+   FORM MENSAJES DE ERROR - Legibilidad
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Mensajes de error y descripción */
+  .text-destructive,
+  [class*="form-message"],
+  [class*="error"] {
+    font-size: 10px !important;
+    line-height: 1.2;
+    margin-top: 2px;
+  }
+
+  /* Descripción de campos */
+  .text-muted-foreground,
+  [class*="form-description"] {
+    font-size: 10px !important;
+    line-height: 1.2;
+  }
+}
+
+/* ===========================================
+   RADIO BUTTONS Y CHECKBOXES - Touch targets
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Áreas de click más grandes */
+  input[type="radio"],
+  input[type="checkbox"] {
+    min-width: 18px;
+    min-height: 18px;
+    margin-right: 8px;
+  }
+
+  /* Labels de radio/checkbox con mejor espacio de toque */
+  label[for]:has(input[type="radio"]),
+  label[for]:has(input[type="checkbox"]) {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    font-size: 13px;
+    line-height: 1.3;
+  }
+}
+
+/* ===========================================
+   BOTONES DE FORMULARIO - Accesibilidad táctil
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Botones con tamaño mínimo táctil */
+  button[type="submit"],
+  button[type="button"],
+  .button,
+  [class*="btn"] {
+    min-height: 42px;
+    font-size: 13px !important;
+    padding: 10px 14px !important;
+    touch-action: manipulation;
+    line-height: 1.3;
+  }
+
+  /* Botones de acción secundaria */
+  button[variant="outline"],
+  button[variant="ghost"] {
+    min-height: 38px;
+    font-size: 12px !important;
+  }
+}
+
+/* ===========================================
+   CONTENEDORES DE FORMULARIO - Layout móvil
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Form containers con padding apropiado */
+  form {
+    padding: 12px;
+  }
+
+  /* Secciones del formulario */
+  .form-section,
+  [class*="section"] {
+    margin-bottom: 20px;
+  }
+
+  /* Grid de formulario en una sola columna */
+  .grid-cols-2,
+  .grid-cols-3,
+  [class*="grid-cols"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ===========================================
+   POPOVER Y DROPDOWN - Optimización móvil
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Popover content más ancho en móvil */
+  [data-radix-popper-content-wrapper] {
+    max-width: 90vw !important;
+  }
+
+  /* Dropdown menus con mejor altura */
+  [role="listbox"],
+  [role="menu"] {
+    max-height: 60vh !important;
+    font-size: 14px;
+  }
+
+  /* Scroll suave en dropdowns */
+  [role="listbox"],
+  [role="menu"] {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+/* ===========================================
+   AUTOCOMPLETE Y SEARCH - Mejoras móviles
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Input de búsqueda/autocomplete */
+  input[type="search"],
+  [role="searchbox"] {
+    font-size: 13px !important;
+    padding: 8px 10px !important;
+    border-radius: 8px;
+    line-height: 1.3;
+  }
+
+  /* Resultados de búsqueda */
+  .search-results,
+  [class*="autocomplete"] {
+    font-size: 13px;
+    max-height: 50vh;
+  }
+
+  /* Items de resultados */
+  .search-results > *,
+  [class*="autocomplete"] > * {
+    padding: 10px 12px;
+    min-height: 40px;
+    line-height: 1.3;
+  }
+}
+
+/* ===========================================
+   ANIMACIONES Y TRANSICIONES - Performance móvil
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Reducir animaciones para mejor performance */
+  * {
+    animation-duration: 0.2s !important;
+    transition-duration: 0.15s !important;
+  }
+
+  /* Optimizar para GPU */
+  input,
+  select,
+  textarea,
+  button {
+    transform: translateZ(0);
+    will-change: auto;
+  }
+}
+
+/* ===========================================
+   ACCESIBILIDAD - Mejoras adicionales
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Focus visible más prominente en móvil */
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  button:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+
+  /* Estados hover convertidos a active en móvil */
+  @media (hover: none) {
+    *:active {
+      /* Usar active en lugar de hover en dispositivos táctiles */
+      opacity: 0.8;
+    }
+  }
+}
+
+/* ===========================================
+   COMPONENTES ESPECÍFICOS - Autocomplete, Command, Popover
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Autocomplete trigger button */
+  button[role="combobox"].autocomplete-trigger,
+  button[class*="autocomplete"] {
+    font-size: 13px !important;
+    padding: 8px 10px !important;
+    min-height: 40px;
+    line-height: 1.3;
+  }
+
+  /* Autocomplete selected text */
+  button[role="combobox"] span[class*="text-left"],
+  button[class*="autocomplete"] span {
+    font-size: 13px !important;
+    line-height: 1.3;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  /* Command items (autocomplete results) */
+  [cmdk-item],
+  [role="option"],
+  .command-item {
+    font-size: 13px !important;
+    padding: 8px 10px !important;
+    min-height: 40px;
+    line-height: 1.3;
+  }
+
+  /* Command input */
+  [cmdk-input],
+  input[class*="command"] {
+    font-size: 13px !important;
+    padding: 8px 10px !important;
+    line-height: 1.3;
+  }
+
+  /* Popover content padding ajustado */
+  [data-radix-popper-content-wrapper] > div {
+    padding: 4px;
+  }
+
+  /* Command list scroll optimization */
+  [cmdk-list] {
+    max-height: 50vh !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ===========================================
+   UTILITIES - Clases helper para texto en móvil
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Utilidad para truncar texto de manera inteligente */
+  .mobile-text-wrap {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto;
+    line-height: 1.3;
+  }
+
+  /* Tamaño de fuente consistente para formularios */
+  .mobile-text-sm {
+    font-size: 13px !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Altura de campo consistente */
+  .mobile-field-height {
+    min-height: 40px !important;
+    height: auto !important;
+  }
+
+  /* Padding consistente para campos */
+  .mobile-field-padding {
+    padding: 8px 10px !important;
+  }
+
+  /* Aplicar automáticamente a elementos de formulario comunes */
+  input:not([type="radio"]):not([type="checkbox"]),
+  textarea,
+  select,
+  button[role="combobox"] {
+    font-size: 13px !important;
+    line-height: 1.3 !important;
+    padding: 8px 10px !important;
+  }
+}
+
+/* ===========================================
+   SAFARI iOS - Fixes específicos
+   =========================================== */
+
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 640px) {
+    /* Prevenir zoom en focus para iOS */
+    input,
+    select,
+    textarea {
+      font-size: max(13px, 1rem) !important;
+    }
+
+    /* Fix para altura de inputs en iOS */
+    input,
+    select {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 40px;
+    }
+
+    /* Fix para select en iOS */
+    select {
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 14px;
+      padding-right: 32px !important;
+    }
+  }
+}
+
+/* ===========================================
+   COMPONENTES DE DASHBOARD - Optimización móvil
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Card Headers de estadísticas */
+  .card-header {
+    padding: 12px !important;
+  }
+
+  /* Badges en headers */
+  .badge {
+    font-size: 9px !important;
+    padding: 2px 6px !important;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  /* Títulos de cards */
+  h3[class*="font-bold"] {
+    font-size: 14px !important;
+    line-height: 1.2;
+  }
+
+  /* Subtítulos y descripciones */
+  p[class*="text-muted-foreground"] {
+    font-size: 11px !important;
+    line-height: 1.2;
+  }
+
+  /* Stats cards - números grandes */
+  .stat-value,
+  p[class*="text-3xl"] {
+    font-size: 20px !important;
+    line-height: 1.1;
+  }
+
+  /* Stats labels */
+  .stat-label {
+    font-size: 10px !important;
+    line-height: 1.2;
+  }
+
+  /* Iconos en stats cards */
+  svg[class*="w-5"],
+  svg[class*="h-5"] {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  svg[class*="w-6"],
+  svg[class*="h-6"] {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  /* Recharts - Optimizar tooltips */
+  .recharts-tooltip-wrapper {
+    max-width: 180px !important;
+  }
+
+  .recharts-default-tooltip {
+    font-size: 10px !important;
+    padding: 8px !important;
+  }
+
+  /* Recharts - Legend */
+  .recharts-legend-wrapper {
+    font-size: 10px !important;
+  }
+
+  .recharts-legend-item-text {
+    font-size: 10px !important;
+  }
+
+  /* Grid de stats - mejor espaciado en móvil */
+  .grid.grid-cols-2 {
+    gap: 8px !important;
+  }
+
+  /* Reducir padding en containers de gráficos */
+  .bg-muted\/30 {
+    padding: 12px !important;
+  }
+}
+
+/* ===========================================
+   RECHARTS MOBILE - Optimizaciones específicas
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Ajustar tamaño de texto en ejes */
+  .recharts-cartesian-axis-tick-value tspan {
+    font-size: 9px !important;
+  }
+
+  /* Optimizar espacio de leyenda */
+  .recharts-legend-wrapper {
+    padding-top: 8px !important;
+  }
+
+  /* Hacer tooltips más compactos */
+  .recharts-tooltip-item {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Ajustar grid del gráfico */
+  .recharts-cartesian-grid {
+    stroke-dasharray: 2 2 !important;
+  }
+}

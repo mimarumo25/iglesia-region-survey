@@ -37,6 +37,7 @@ interface AutocompleteProps {
   disabled?: boolean
   className?: string
   loading?: boolean
+  mobilePlaceholder?: string
 }
 
 export function Autocomplete({
@@ -49,6 +50,7 @@ export function Autocomplete({
   disabled = false,
   className,
   loading = false,
+  mobilePlaceholder,
 }: AutocompleteProps) {
   const [open, setOpen] = React.useState(false)
   const [searchValue, setSearchValue] = React.useState("")
@@ -136,7 +138,14 @@ export function Autocomplete({
             <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
               <Search className="w-4 h-4 flex-shrink-0 text-gray-600" />
               <span className="text-left break-words text-xs sm:text-sm leading-tight overflow-hidden">
-                {selectedOption ? selectedOption.label : placeholder}
+                {selectedOption ? selectedOption.label : (
+                  mobilePlaceholder ? (
+                    <>
+                      <span className="sm:hidden">{mobilePlaceholder}</span>
+                      <span className="hidden sm:inline">{placeholder}</span>
+                    </>
+                  ) : placeholder
+                )}
               </span>
             </div>
             <div className="flex items-center gap-1 flex-shrink-0 ml-2">
@@ -176,7 +185,8 @@ export function Autocomplete({
               onValueChange={setSearchValue}
             />
             <CommandList 
-              className="max-h-60 overflow-auto"
+              className="max-h-60 overflow-auto overscroll-contain touch-pan-y"
+              style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <CommandEmpty className="py-6 text-center text-xs sm:text-sm text-gray-500">
                 <div className="flex flex-col items-center gap-2">

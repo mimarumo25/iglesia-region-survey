@@ -885,7 +885,7 @@ const SurveyForm = () => {
             {currentStageData.description}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6 p-6">
+        <CardContent className="space-y-4 p-3 sm:space-y-6 sm:p-6">
           {currentStageData.type === 'family_grid' ? (
             <FamilyGrid 
               familyMembers={familyMembers}
@@ -900,7 +900,7 @@ const SurveyForm = () => {
             currentStageData.fields?.map((field) => (
               <div 
                 key={field.id} 
-                className="p-4 bg-muted/50 rounded-xl border border-border hover:border-ring hover:shadow-sm transition-all duration-200 dark:bg-muted/50 dark:border-border dark:hover:border-ring"
+                className="sm:p-4 sm:bg-muted/50 sm:rounded-xl sm:border sm:border-border sm:hover:border-ring sm:hover:shadow-sm sm:transition-all sm:duration-200 sm:dark:bg-muted/50 sm:dark:border-border sm:dark:hover:border-ring"
                 data-testid={`field-container-${field.id}`}
               >
                 {field.id === "autorizacion_datos" ? (

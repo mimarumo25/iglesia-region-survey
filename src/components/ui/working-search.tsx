@@ -233,10 +233,10 @@ export const WorkingSearch: React.FC<WorkingSearchProps> = ({
     <div className={cn("working-search-container relative w-full", className)}>
       {/* Input de búsqueda con diseño adaptivo */}
       <div className="relative w-full">
-        {/* Icono de búsqueda - adaptado para móvil */}
+        {/* Icono de búsqueda - oculto en móvil */}
         <Search className={cn(
           "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none z-10",
-          isMobile ? "w-4 h-4" : "w-5 h-5"
+          isMobile ? "hidden" : "w-5 h-5"
         )} />
         
         <Input
@@ -247,7 +247,7 @@ export const WorkingSearch: React.FC<WorkingSearchProps> = ({
           className={cn(
             "w-full pr-12 text-sm text-left rounded-xl border-border/50 bg-gray-100 dark:bg-gray-800 backdrop-blur-sm hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 shadow-sm",
             isMobile 
-              ? "pl-10 py-2.5 text-base min-h-[44px]" // Más altura en móvil para mejor touch target
+              ? "pl-3 py-2.5 text-base min-h-[44px]" // Sin ícono en móvil, menos padding izquierdo
               : "pl-12 py-3"
           )}
         />
@@ -327,23 +327,23 @@ export const WorkingSearch: React.FC<WorkingSearchProps> = ({
                         )} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <h4 className={cn(
-                            "font-medium text-foreground truncate",
-                            isMobile ? "text-sm" : ""
+                            "font-medium text-foreground",
+                            isMobile ? "text-sm leading-tight" : "truncate"
                           )}>
                             {result.title}
                           </h4>
                           <Badge variant="secondary" className={cn(
                             `${getTypeColor(result.type)}`,
-                            isMobile ? "text-xs px-1" : "text-xs"
+                            isMobile ? "text-[10px] px-1.5 py-0.5 flex-shrink-0" : "text-xs"
                           )}>
                             {getTypeLabel(result.type)}
                           </Badge>
                         </div>
                         <p className={cn(
-                          "text-muted-foreground truncate",
-                          isMobile ? "text-xs" : "text-sm"
+                          "text-muted-foreground",
+                          isMobile ? "text-xs leading-tight line-clamp-2" : "text-sm truncate"
                         )}>
                           {result.subtitle}
                         </p>

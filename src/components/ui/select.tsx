@@ -17,7 +17,7 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-auto min-h-[2.5rem] w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-xs sm:text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:break-words [&>span]:leading-tight [&>span]:text-left [&>span]:flex-1 [&>span]:min-w-0 [&>span]:mr-2 [&>span]:overflow-hidden [&>span]:whitespace-normal [&>span]:max-w-full",
+      "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm leading-tight ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:break-words [&>span]:leading-tight [&>span]:text-left [&>span]:flex-1 [&>span]:min-w-0 [&>span]:mr-1 [&>span]:overflow-hidden [&>span]:whitespace-normal [&>span]:max-w-full [&>span]:text-sm",
       className
     )}
     {...props}
@@ -76,6 +76,8 @@ const SelectContent = React.forwardRef<
         "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         position === "popper" &&
           "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+        // Mejorar scroll táctil en móvil
+        "touch-manipulation",
         className
       )}
       position={position}
@@ -85,9 +87,12 @@ const SelectContent = React.forwardRef<
       <SelectPrimitive.Viewport
         className={cn(
           "p-1",
+          // Habilitar scroll táctil nativo en móvil
+          "overscroll-contain touch-pan-y",
           position === "popper" &&
             "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
         )}
+        style={{ WebkitOverflowScrolling: 'touch' }}
       >
         {children}
       </SelectPrimitive.Viewport>
@@ -116,18 +121,18 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-default select-none items-start rounded-sm py-2 pl-8 pr-2 text-xs sm:text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex w-full cursor-default select-none items-center rounded-sm py-2 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 min-h-[2.5rem]",
       className
     )}
     {...props}
   >
-    <span className="absolute left-2 top-2 flex h-3.5 w-3.5 items-center justify-center">
+    <span className="absolute left-2 flex h-4 w-4 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+        <Check className="h-4 w-4" />
       </SelectPrimitive.ItemIndicator>
     </span>
 
-    <SelectPrimitive.ItemText className="break-words leading-tight">
+    <SelectPrimitive.ItemText className="break-words leading-tight text-sm w-full">
       {children}
     </SelectPrimitive.ItemText>
   </SelectPrimitive.Item>

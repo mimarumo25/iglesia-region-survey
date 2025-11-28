@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,18 +21,46 @@ interface StandardFormFieldProps {
   error?: any;
 }
 
+// Componente para manejar textos largos con "Ver más"
+const ExpandableLabel = ({ text, limit = 80 }: { text: string, limit?: number }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  if (!text || text.length <= limit) return <span>{text}</span>;
+  
+  return (
+    <span>
+      {isExpanded ? text : `${text.substring(0, limit)}...`}
+      <button 
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsExpanded(!isExpanded);
+        }}
+        className="ml-1 text-primary font-bold hover:underline text-xs inline-block"
+      >
+        {isExpanded ? "Ver menos" : "Ver más"}
+      </button>
+    </span>
+  );
+};
+
 // Clases estandarizadas para todos los componentes del formulario con soporte para tema oscuro
 const STANDARD_STYLES = {
-  label: "text-foreground font-bold text-sm mb-2 block dark:text-foreground",
-  input: "bg-input border-2 border-input-border text-foreground font-semibold shadow-inner rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 hover:bg-accent hover:border-input-border transition-all duration-200 h-12 dark:bg-input dark:border-input-border dark:text-foreground dark:focus:bg-accent dark:focus:border-primary",
-  textarea: "bg-input border-2 border-input-border text-foreground font-semibold shadow-inner rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 hover:bg-accent hover:border-input-border min-h-24 resize-y transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground dark:focus:bg-accent dark:focus:border-primary",
-  checkboxContainer: "flex items-center space-x-3 p-4 bg-muted border-2 border-border rounded-xl hover:bg-accent hover:border-border transition-all duration-200 dark:bg-muted dark:border-border dark:hover:bg-accent",
-  checkbox: "h-5 w-5 accent-primary scale-110 rounded-md",
-  checkboxLabel: "text-foreground font-semibold cursor-pointer select-none dark:text-foreground",
-  fieldContainer: "space-y-2",
-  multipleCheckboxGrid: "grid grid-cols-1 gap-3",
-  loadingContainer: "flex items-center justify-center p-4 bg-muted rounded-xl dark:bg-muted",
-  errorContainer: "flex items-center justify-center p-4 bg-destructive/10 border-2 border-destructive/20 rounded-xl dark:bg-destructive/10 dark:border-destructive/20"
+  label: "text-foreground font-bold text-xs sm:text-sm mb-1 sm:mb-1.5 block dark:text-foreground leading-tight",
+  input: "bg-input border-2 border-input-border text-foreground text-sm font-semibold shadow-inner rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 hover:bg-accent hover:border-input-border transition-all duration-200 h-9 sm:h-10 leading-tight dark:bg-input dark:border-input-border dark:text-foreground dark:focus:bg-accent dark:focus:border-primary",
+  textarea: "bg-input border-2 border-input-border text-foreground text-sm font-semibold shadow-inner rounded-xl focus:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20 hover:bg-accent hover:border-input-border min-h-20 resize-y transition-all duration-200 leading-tight dark:bg-input dark:border-input-border dark:text-foreground dark:focus:bg-accent dark:focus:border-primary",
+  // Contenedor de checkbox mejorado para móvil: área táctil más grande (min-height 48px), mejor espaciado
+  checkboxContainer: "flex items-center gap-3 sm:gap-4 p-3 sm:p-4 min-h-[52px] sm:min-h-[56px] bg-muted border-2 border-border rounded-xl hover:bg-accent hover:border-primary/30 active:bg-accent active:scale-[0.99] transition-all duration-200 dark:bg-muted dark:border-border dark:hover:bg-accent cursor-pointer touch-manipulation",
+  // Checkbox más grande para móvil con mejor área de toque
+  checkbox: "h-5 w-5 sm:h-5 sm:w-5 accent-primary rounded-md shrink-0",
+  // Label de checkbox con tamaño legible en móvil
+  checkboxLabel: "text-foreground text-sm sm:text-sm font-semibold cursor-pointer select-none leading-snug flex-1 dark:text-foreground",
+  fieldContainer: "space-y-1 sm:space-y-1.5",
+  // Grid de múltiples checkboxes con mejor espaciado en móvil
+  multipleCheckboxGrid: "grid grid-cols-1 gap-2 sm:gap-3",
+  loadingContainer: "flex items-center justify-center p-2 sm:p-4 bg-muted rounded-xl dark:bg-muted",
+  errorContainer: "flex items-center justify-center p-2 sm:p-4 bg-destructive/10 border-2 border-destructive/20 rounded-xl dark:bg-destructive/10 dark:border-destructive/20"
 } as const;
 
 const StandardFormField = ({ 
@@ -49,7 +78,7 @@ const StandardFormField = ({
       className={STANDARD_STYLES.label}
       data-testid={`label-${field.id}`}
     >
-      {field.label} {field.required && <span className="text-destructive">*</span>}
+      <ExpandableLabel text={field.label} /> {field.required && <span className="text-destructive">*</span>}
     </Label>
   );
 
@@ -117,6 +146,7 @@ const StandardFormField = ({
             value={value || ''}
             onValueChange={(val) => onChange(field.id, trimString(val))}
             placeholder={field.placeholder || `Seleccionar ${field.label.toLowerCase()}...`}
+            mobilePlaceholder="Seleccionar..."
             emptyText={field.emptyText || `No hay ${field.label.toLowerCase()} disponibles`}
             searchPlaceholder={field.searchPlaceholder || `Buscar ${field.label.toLowerCase()}...`}
             isLoading={isLoading}
@@ -146,7 +176,7 @@ const StandardFormField = ({
             className={STANDARD_STYLES.checkboxLabel}
             data-testid={`label-${field.id}`}
           >
-            {field.label} {field.required && <span className="text-destructive">*</span>}
+            <ExpandableLabel text={field.label} limit={120} /> {field.required && <span className="text-destructive">*</span>}
           </Label>
         </div>
       );
@@ -179,7 +209,7 @@ const StandardFormField = ({
                   className={STANDARD_STYLES.checkboxLabel}
                   data-testid={`label-${field.id}-${option.toLowerCase().replace(/\s+/g, '-')}`}
                 >
-                  {option}
+                  <ExpandableLabel text={option} />
                 </Label>
               </div>
             ))}
@@ -255,7 +285,7 @@ const StandardFormField = ({
                   className={STANDARD_STYLES.checkboxLabel}
                   data-testid={`label-${field.id}-${option.value}`}
                 >
-                  {option.label}
+                  <ExpandableLabel text={option.label} />
                 </Label>
               </div>
             ))}
