@@ -118,13 +118,13 @@ export const SurveyMobileCard = ({
                 {encuesta.apellido_familiar}
               </h3>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant="outline" className="text-xs">
+            <div className="flex items-center gap-2 flex-wrap mt-1">
+              <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600 border-gray-200">
                 {encuesta.codigo_familia}
               </Badge>
-              <Badge 
+              <Badge
                 variant={getStatusBadgeVariant(encuesta.estado_encuesta)}
-                className="text-xs"
+                className="text-xs font-medium"
               >
                 {getStatusText(encuesta.estado_encuesta)}
               </Badge>
@@ -137,13 +137,13 @@ export const SurveyMobileCard = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 flex-shrink-0"
+                className="h-9 w-9 flex-shrink-0 text-gray-500 hover:text-gray-900 active:bg-gray-100"
                 disabled={isDeleting}
               >
                 {isDeleting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <MoreHorizontal className="w-4 h-4" />
+                  <MoreHorizontal className="w-5 h-5" />
                 )}
               </Button>
             </DropdownMenuTrigger>
@@ -156,12 +156,9 @@ export const SurveyMobileCard = ({
                 <Edit3 className="w-4 h-4 mr-2" />
                 Editar
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="text-red-600" 
-                onClick={() => onDelete({
-                  ...encuesta,
-                  id: surveyId
-                })}
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={() => onDelete(encuesta)}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Eliminar
@@ -174,7 +171,7 @@ export const SurveyMobileCard = ({
         <div className="space-y-2">
           <div className="flex items-start gap-2">
             <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-gray-600 leading-tight">
+            <p className="text-sm text-gray-700 leading-tight font-medium">
               {encuesta.direccion_familia}
             </p>
           </div>
@@ -198,7 +195,7 @@ export const SurveyMobileCard = ({
           {encuesta.telefono && (
             <div className="flex items-center gap-2">
               <Phone className="w-3 h-3 text-gray-400" />
-              <p className="text-sm text-gray-600">{encuesta.telefono}</p>
+              <p className="text-sm text-gray-700 font-medium">{encuesta.telefono}</p>
             </div>
           )}
         </div>
@@ -210,7 +207,7 @@ export const SurveyMobileCard = ({
               <Users className="w-3 h-3" />
               <span>{encuesta.miembros_familia?.total_miembros || 0} miembros</span>
             </div>
-            
+
             {encuesta.personas_fallecidas?.total_fallecidos > 0 && (
               <div className="flex items-center gap-1">
                 <span>💔</span>

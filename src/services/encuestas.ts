@@ -211,7 +211,7 @@ export interface EncuestaCompleta {
   codigo_familia: string;
   apellido_familiar: string;
   estado_encuesta: 'pending' | 'in_progress' | 'completed' | 'validated';
-  
+
   // Ubicación geográfica
   id_departamento?: string;
   id_municipio?: string;
@@ -219,16 +219,16 @@ export interface EncuestaCompleta {
   id_sector?: string;
   direccion?: string;
   coordenadas_gps?: string;
-  
+
   // Información de vivienda
   vivienda: InformacionVivienda;
-  
+
   // Información socioeconómica
   socioeconomica: InformacionSocioeconomica;
-  
+
   // Miembros de la familia
   miembros_familia: MiembroFamilia[];
-  
+
   // Metadatos
   fecha_creacion?: string;
   fecha_actualizacion?: string;
@@ -269,14 +269,10 @@ export interface EncuestaResponse {
 export interface EncuestasSearchParams {
   page?: number;
   limit?: number;
-  search?: string;
-  estado?: string;
-  departamento?: string;
+  q?: string; // Búsqueda general (apellido_familiar, parroquia, sector, municipio)
+  sector?: string | number;
+  encuestador_id?: string;
   municipio?: string;
-  vereda?: string;
-  sector?: string;
-  fechaDesde?: string;
-  fechaHasta?: string;
 }
 
 // ============================================================================
@@ -289,24 +285,25 @@ class EncuestasService {
    */
   async getEncuestas(params: EncuestasSearchParams = {}): Promise<EncuestasResponse> {
     try {
-      const response = await apiClient.get('/api/encuesta', { 
-        params: {
-          page: params.page || 1,
-          limit: params.limit || 10,
-          search: params.search || '',
-          estado: params.estado || '',
-          departamento: params.departamento || '',
-          municipio: params.municipio || '',
-          vereda: params.vereda || '',
-          sector: params.sector || '',
-          fecha_desde: params.fechaDesde || '',
-          fecha_hasta: params.fechaHasta || '',
-        }
+      // Construir parámetros solo con valores definidos
+      const queryParams: Record<string, any> = {
+        page: params.page || 1,
+        limit: params.limit || 10,
+      };
+
+      // Agregar filtros opcionales solo si tienen valor
+      if (params.q) queryParams.q = params.q;
+      if (params.sector) queryParams.sector = params.sector;
+      if (params.encuestador_id) queryParams.encuestador_id = params.encuestador_id;
+      if (params.municipio) queryParams.municipio = params.municipio;
+
+      const response = await apiClient.get('/api/encuesta', {
+        params: queryParams
       });
-      
+
       // La API devuelve directamente el formato esperado
       return response.data;
-      
+
     } catch (error) {
       console.error('❌ Error al obtener encuestas:', error);
       showErrorToast(error, 'obtener encuestas');
@@ -320,9 +317,9 @@ class EncuestasService {
   async getEncuestaById(id: string): Promise<EncuestaResponse> {
     try {
       const response = await apiClient.get(`/api/encuesta/${id}`);
-      
+
       return response.data;
-      
+
     } catch (error) {
       console.error(`❌ Error al obtener encuesta ${id}:`, error);
       showErrorToast(error, `obtener encuesta ${id}`);
@@ -336,10 +333,10 @@ class EncuestasService {
   async createEncuesta(encuestaData: Omit<EncuestaCompleta, 'id_encuesta'>): Promise<EncuestaResponse> {
     try {
       const response = await apiClient.post('/api/encuesta', encuestaData);
-      
+
       return response.data;
       return response.data;
-      
+
     } catch (error) {
       console.error('❌ Error al crear encuesta:', error);
       showErrorToast(error, 'crear encuesta');
@@ -354,9 +351,9 @@ class EncuestasService {
   async updateEncuesta(id: string, encuestaData: Partial<EncuestaCompleta>): Promise<EncuestaResponse> {
     try {
       const response = await apiClient.patch(`/api/encuesta/${id}`, encuestaData);
-      
+
       return response.data;
-      
+
     } catch (error) {
       console.error(`❌ Error al actualizar encuesta ${id}:`, error);
       showErrorToast(error, `actualizar encuesta ${id}`);
@@ -370,9 +367,9 @@ class EncuestasService {
   async deleteEncuesta(id: string): Promise<{ success: boolean; message: string }> {
     try {
       const response = await apiClient.delete(`/api/encuesta/${id}`);
-      
+
       return response.data;
-      
+
     } catch (error) {
       console.error(`❌ Error al eliminar encuesta ${id}:`, error);
       showErrorToast(error, `eliminar encuesta ${id}`);
@@ -386,9 +383,9 @@ class EncuestasService {
   async validarEncuesta(id: string): Promise<EncuestaResponse> {
     try {
       const response = await apiClient.patch(`/api/encuesta/${id}/validar`);
-      
+
       return response.data;
-      
+
     } catch (error) {
       console.error(`❌ Error al validar encuesta ${id}:`, error);
       showErrorToast(error, `validar encuesta ${id}`);
@@ -402,9 +399,9 @@ class EncuestasService {
   async getEstadisticas(): Promise<any> {
     try {
       const response = await apiClient.get('/api/encuesta/estadisticas');
-      
+
       return response.data;
-      
+
     } catch (error) {
       console.error('❌ Error al obtener estadísticas:', error);
       showErrorToast(error, 'obtener estadísticas');
@@ -420,24 +417,24 @@ class EncuestasService {
    * Manejo centralizado de errores de la API
    */
   handleApiError(error: any, context: string): Error {
-    const errorMessage = error?.response?.data?.message || 
-                        error?.message || 
-                        `Error desconocido al ${context}`;
-    
+    const errorMessage = error?.response?.data?.message ||
+      error?.message ||
+      `Error desconocido al ${context}`;
+
     const statusCode = error?.response?.status;
-    
+
     console.error(`🚨 Error en ${context}:`, {
       message: errorMessage,
       status: statusCode,
       url: error?.config?.url,
       method: error?.config?.method
     });
-    
+
     // Retornar error personalizado con información útil
     const customError = new Error(errorMessage);
     (customError as any).statusCode = statusCode;
     (customError as any).context = context;
-    
+
     return customError;
   }
 
@@ -446,20 +443,20 @@ class EncuestasService {
    */
   validateEncuestaData(data: Partial<EncuestaCompleta>): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
-    
+
     // Validaciones básicas
     if (!data.codigo_familia?.trim()) {
       errors.push('El código de familia es requerido');
     }
-    
+
     if (!data.apellido_familiar?.trim()) {
       errors.push('El apellido familiar es requerido');
     }
-    
+
     if (!data.miembros_familia || data.miembros_familia.length === 0) {
       errors.push('Debe incluir al menos un miembro de familia');
     }
-    
+
     // Validar que exista un jefe de familia
     const jefesFamilia = data.miembros_familia?.filter(m => m.es_jefe_familia) || [];
     if (jefesFamilia.length === 0) {
@@ -467,7 +464,7 @@ class EncuestasService {
     } else if (jefesFamilia.length > 1) {
       errors.push('Solo puede haber un jefe de familia');
     }
-    
+
     // Validaciones de miembros
     data.miembros_familia?.forEach((miembro, index) => {
       if (!miembro.nombres?.trim()) {
@@ -477,7 +474,7 @@ class EncuestasService {
         errors.push(`Miembro ${index + 1}: Los apellidos son requeridos`);
       }
     });
-    
+
     return {
       isValid: errors.length === 0,
       errors

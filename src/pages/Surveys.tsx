@@ -62,28 +62,30 @@ import "@/styles/surveys-mobile.css";
 const Surveys = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   // Hook para responsive design
   const { shouldUseMobileView, isMobile, isVerySmall } = useResponsiveTable();
-  
+
   // Estados para filtros
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sectorFilter, setSectorFilter] = useState("");
   const [surveyorFilter, setSurveyorFilter] = useState("");
+  const [municipioFilter, setMunicipioFilter] = useState("");
 
   // Hook de encuestas con parámetros de consulta
   const [queryParams, setQueryParams] = useState<EncuestasSearchParams>({
     page: 1,
     limit: 10,
-    search: searchTerm,
-    estado: statusFilter !== 'all' ? statusFilter : undefined,
+    q: searchTerm || undefined,
     sector: sectorFilter || undefined,
+    encuestador_id: surveyorFilter || undefined,
+    municipio: municipioFilter || undefined,
   });
 
   // Hook de encuestas para obtener datos
   const encuestasQuery = useEncuestasList(queryParams);
-  
+
   // Extraer datos del query
   const encuestasData = encuestasQuery.data;
   const encuestasLoading = encuestasQuery.isLoading;
@@ -91,9 +93,9 @@ const Surveys = () => {
   const refetchEncuestas = encuestasQuery.refetch;
 
   // Hook para mutations
-  const { 
+  const {
     deleteEncuesta,
-    isDeleting 
+    isDeleting
   } = useEncuestas();
 
   // Estados para datos de encuestas (actualizados desde React Query)
@@ -109,26 +111,31 @@ const Surveys = () => {
 
 
 
-  // Calcular estadísticas desde los 756w
+  // Calcular estadísticas reales desde los datos del backend
   const stats = useMemo(() => {
-    return encuestas.reduce((acc, encuesta) => {
-      acc.total++;
-      switch (encuesta.estado_encuesta) {
-        case 'completed':
-          acc.completed++;
-          break;
-        case 'pending':
-          acc.pending++;
-          break;
-        case 'in_progress':
-          acc.in_progress++;
-          break;
-        default:
-          acc.cancelled++;
-      }
-      return acc;
-    }, { total: 0, completed: 0, pending: 0, in_progress: 0, cancelled: 0 });
-  }, [encuestas]);
+    // Total de la paginación actual
+    const totalEncuestas = paginationFromAPI.totalItems;
+    
+    // Contar encuestas en la página actual
+    const encuestasPaginaActual = encuestas.length;
+    
+    // Contar sectores únicos
+    const sectoresUnicos = new Set(encuestas.map(e => e.sector_id).filter(Boolean)).size;
+    
+    // Contar municipios únicos
+    const municipiosUnicos = new Set(encuestas.map(e => e.municipio_id).filter(Boolean)).size;
+    
+    // Contar familias únicas (por apellido)
+    const familiasUnicas = new Set(encuestas.map(e => e.apellido_familiar).filter(Boolean)).size;
+    
+    return {
+      total: totalEncuestas,
+      enPagina: encuestasPaginaActual,
+      sectores: sectoresUnicos,
+      municipios: municipiosUnicos,
+      familias: familiasUnicas,
+    };
+  }, [encuestas, paginationFromAPI]);
 
   // Estados para operaciones CRUD
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -145,6 +152,9 @@ const Surveys = () => {
     sectorOptions = [],
     sectoresLoading = false,
     sectoresError,
+    municipioOptions = [],
+    municipiosLoading = false,
+    municipiosError,
     userOptions: surveyorOptions = [],
     usersLoading = false,
     usersError,
@@ -163,14 +173,15 @@ const Surveys = () => {
       setQueryParams({
         page: 1, // Resetear a la primera página al filtrar
         limit: paginationFromAPI.itemsPerPage,
-        search: searchTerm || undefined,
-        estado: statusFilter !== 'all' ? statusFilter : undefined,
+        q: searchTerm || undefined,
         sector: sectorFilter || undefined,
+        encuestador_id: surveyorFilter || undefined,
+        municipio: municipioFilter || undefined,
       });
     }, 500); // Debounce de 500ms
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, statusFilter, sectorFilter, surveyorFilter, paginationFromAPI.itemsPerPage]);
+  }, [searchTerm, sectorFilter, surveyorFilter, municipioFilter, paginationFromAPI.itemsPerPage]);
 
   // ============================================================================
   // FUNCIONES CRUD
@@ -194,7 +205,7 @@ const Surveys = () => {
 
     try {
       await deleteEncuesta.mutateAsync(itemToDelete.id_encuesta);
-      
+
       toast({
         title: "Encuesta eliminada",
         description: `La encuesta de ${itemToDelete.apellido_familiar} ha sido eliminada exitosamente`
@@ -223,7 +234,7 @@ const Surveys = () => {
    */
   const handleViewDetails = (id: string | number) => {
     const idString = typeof id === 'number' ? id.toString() : id;
-    
+
     // Navegar a la página completa de detalles
     navigate(`/surveys/${idString}`);
   };
@@ -274,7 +285,7 @@ const Surveys = () => {
     setSearchTerm("");
     setSectorFilter("");
     setSurveyorFilter("");
-    setStatusFilter("all");
+    setMunicipioFilter("");
   };
 
   /**
@@ -350,9 +361,9 @@ const Surveys = () => {
           "flex gap-2",
           shouldUseMobileView ? "flex-col" : ""
         )}>
-          <Button 
-            onClick={handleRefresh} 
-            variant="outline" 
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
             className="flex items-center gap-2"
             disabled={encuestasLoading}
             size={shouldUseMobileView ? "sm" : "default"}
@@ -360,12 +371,12 @@ const Surveys = () => {
             <RefreshCw className={`w-4 h-4 ${encuestasLoading ? 'animate-spin' : ''}`} />
             {shouldUseMobileView ? "Actualizar" : "Actualizar"}
           </Button>
-          <Button 
-            onClick={() => navigate("/survey")} 
+          <Button
+            onClick={() => navigate("/survey")}
             className={cn(
               "flex items-center gap-2 font-semibold button-ripple",
-              shouldUseMobileView 
-                ? "mobile-primary-button text-white shadow-lg w-full justify-center py-3" 
+              shouldUseMobileView
+                ? "mobile-primary-button text-white shadow-lg w-full justify-center py-3"
                 : ""
             )}
             size={shouldUseMobileView ? "lg" : "default"}
@@ -405,186 +416,107 @@ const Surveys = () => {
         </Card>
       )}
 
-      {/* Stats Cards - Responsive */}
-      <div className={cn(
-        "grid gap-4 mb-6",
-        shouldUseMobileView 
-          ? "grid-cols-2" 
-          : "grid-cols-1 md:grid-cols-5"
-      )}>
+      {/* Stats Cards - Responsive: 1, 2, 3, 5 columnas */}
+      <div className="grid gap-3 sm:gap-4 mb-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {/* Card 1: Total de Encuestas - siempre visible */}
         <Card>
-          <CardContent className={cn(
-            "p-4",
-            shouldUseMobileView && "p-3"
-          )}>
+          <CardContent className="p-4 sm:p-5">
             <div className="flex items-center gap-3">
-              <div className={cn(
-                "bg-blue-100 rounded-lg flex items-center justify-center",
-                shouldUseMobileView ? "w-8 h-8" : "w-10 h-10"
-              )}>
-                <FileText className={cn(
-                  "text-blue-600",
-                  shouldUseMobileView ? "w-4 h-4" : "w-5 h-5"
-                )} />
+              <div className="bg-blue-100 rounded-lg flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
+                <FileText className="text-blue-600 w-6 h-6 sm:w-7 sm:h-7" />
               </div>
-              <div>
-                <p className={cn(
-                  "text-gray-600",
-                  shouldUseMobileView ? "text-xs" : "text-sm"
-                )}>
-                  Total
+              <div className="min-w-0 flex-1">
+                <p className="text-gray-600 text-xs sm:text-sm font-medium">
+                  Total Encuestas
                 </p>
-                <p className={cn(
-                  "font-bold text-gray-900",
-                  shouldUseMobileView ? "text-lg" : "text-2xl"
-                )}>
-                  {stats.total}
+                <p className="font-bold text-gray-900 text-2xl sm:text-3xl">
+                  {stats.total.toLocaleString()}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className={cn(
-            "p-4",
-            shouldUseMobileView && "p-3"
-          )}>
+        {/* Card 2: Familias Registradas - visible desde tablet */}
+        <Card className="hidden sm:block">
+          <CardContent className="p-4 sm:p-5">
             <div className="flex items-center gap-3">
-              <div className={cn(
-                "bg-green-100 rounded-lg flex items-center justify-center",
-                shouldUseMobileView ? "w-8 h-8" : "w-10 h-10"
-              )}>
-                <CheckCircle className={cn(
-                  "text-green-600",
-                  shouldUseMobileView ? "w-4 h-4" : "w-5 h-5"
-                )} />
+              <div className="bg-purple-100 rounded-lg flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
+                <User className="text-purple-600 w-6 h-6 sm:w-7 sm:h-7" />
               </div>
-              <div>
-                <p className={cn(
-                  "text-gray-600",
-                  shouldUseMobileView ? "text-xs" : "text-sm"
-                )}>
-                  {shouldUseMobileView ? "Compl." : "Completadas"}
+              <div className="min-w-0 flex-1">
+                <p className="text-gray-600 text-xs sm:text-sm font-medium">
+                  Familias
                 </p>
-                <p className={cn(
-                  "font-bold text-gray-900",
-                  shouldUseMobileView ? "text-lg" : "text-2xl"
-                )}>
-                  {stats.completed}
+                <p className="font-bold text-gray-900 text-2xl sm:text-3xl">
+                  {stats.familias.toLocaleString()}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {!isVerySmall && (
-          <>
-            <Card>
-              <CardContent className={cn(
-                "p-4",
-                shouldUseMobileView && "p-3"
-              )}>
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "bg-yellow-100 rounded-lg flex items-center justify-center",
-                    shouldUseMobileView ? "w-8 h-8" : "w-10 h-10"
-                  )}>
-                    <Clock className={cn(
-                      "text-yellow-600",
-                      shouldUseMobileView ? "w-4 h-4" : "w-5 h-5"
-                    )} />
-                  </div>
-                  <div>
-                    <p className={cn(
-                      "text-gray-600",
-                      shouldUseMobileView ? "text-xs" : "text-sm"
-                    )}>
-                      {shouldUseMobileView ? "Pend." : "Pendientes"}
-                    </p>
-                    <p className={cn(
-                      "font-bold text-gray-900",
-                      shouldUseMobileView ? "text-lg" : "text-2xl"
-                    )}>
-                      {stats.pending}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Card 3: Sectores - visible desde laptop */}
+        <Card className="hidden lg:block">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="bg-green-100 rounded-lg flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
+                <MapPin className="text-green-600 w-6 h-6 sm:w-7 sm:h-7" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-gray-600 text-xs sm:text-sm font-medium">
+                  Sectores
+                </p>
+                <p className="font-bold text-gray-900 text-2xl sm:text-3xl">
+                  {stats.sectores.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-            <Card>
-              <CardContent className={cn(
-                "p-4",
-                shouldUseMobileView && "p-3"
-              )}>
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "bg-blue-100 rounded-lg flex items-center justify-center",
-                    shouldUseMobileView ? "w-8 h-8" : "w-10 h-10"
-                  )}>
-                    <Clock className={cn(
-                      "text-blue-600",
-                      shouldUseMobileView ? "w-4 h-4" : "w-5 h-5"
-                    )} />
-                  </div>
-                  <div>
-                    <p className={cn(
-                      "text-gray-600",
-                      shouldUseMobileView ? "text-xs" : "text-sm"
-                    )}>
-                      {shouldUseMobileView ? "En Prog." : "En Progreso"}
-                    </p>
-                    <p className={cn(
-                      "font-bold text-gray-900",
-                      shouldUseMobileView ? "text-lg" : "text-2xl"
-                    )}>
-                      {stats.in_progress}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Card 4: Municipios - solo visible en desktop */}
+        <Card className="hidden xl:block">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="bg-orange-100 rounded-lg flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
+                <MapPin className="text-orange-600 w-6 h-6 sm:w-7 sm:h-7" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-gray-600 text-xs sm:text-sm font-medium">
+                  Municipios
+                </p>
+                <p className="font-bold text-gray-900 text-2xl sm:text-3xl">
+                  {stats.municipios.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-            <Card>
-              <CardContent className={cn(
-                "p-4",
-                shouldUseMobileView && "p-3"
-              )}>
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "bg-red-100 rounded-lg flex items-center justify-center",
-                    shouldUseMobileView ? "w-8 h-8" : "w-10 h-10"
-                  )}>
-                    <XCircle className={cn(
-                      "text-red-600",
-                      shouldUseMobileView ? "w-4 h-4" : "w-5 h-5"
-                    )} />
-                  </div>
-                  <div>
-                    <p className={cn(
-                      "text-gray-600",
-                      shouldUseMobileView ? "text-xs" : "text-sm"
-                    )}>
-                      {shouldUseMobileView ? "Cancel." : "Canceladas"}
-                    </p>
-                    <p className={cn(
-                      "font-bold text-gray-900",
-                      shouldUseMobileView ? "text-lg" : "text-2xl"
-                    )}>
-                      {stats.cancelled}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
+        {/* Card 5: En Página Actual - solo visible en desktop */}
+        <Card className="hidden xl:block">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="bg-cyan-100 rounded-lg flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
+                <FileText className="text-cyan-600 w-6 h-6 sm:w-7 sm:h-7" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-gray-600 text-xs sm:text-sm font-medium">
+                  En Página
+                </p>
+                <p className="font-bold text-gray-900 text-2xl sm:text-3xl">
+                  {stats.enPagina.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Loading skeleton para servicios */}
       {isAnyLoading && (
-        <LoadingSkeleton 
+        <LoadingSkeleton
           showServices={true}
           variant="compact"
           className="mb-6"
@@ -599,108 +531,110 @@ const Surveys = () => {
         )}>
           <div className={cn(
             "gap-4",
-            shouldUseMobileView ? "space-y-3" : "flex flex-col lg:flex-row"
+            shouldUseMobileView
+              ? "space-y-4"
+              : "flex flex-col w-full"
           )}>
-            {/* Búsqueda principal */}
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder={shouldUseMobileView 
-                    ? "Buscar familia..." 
-                    : "Buscar por familia, sector o encuestador..."
-                  }
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+            {!shouldUseMobileView && (
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <Filter className="w-4 h-4 text-blue-600" />
+                Filtros de Búsqueda
+              </div>
+            )}
+
+            {/* Grid de filtros - Responsive Grid System */}
+            <div className="grid gap-3 sm:gap-4 items-end grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+              {/* Search Term - Full width on mobile/tablet, 2 cols on desktop */}
+              <div className="space-y-1.5 col-span-full xl:col-span-2">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">
+                  Búsqueda General
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Buscar por apellido, parroquia, sector o municipio..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 h-10 bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Filtro por Municipio - siempre visible */}
+              <div className="space-y-1.5 min-w-0">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">
+                  Municipio
+                </label>
+                <div className="h-10">
+                  <AutocompleteWithLoading
+                    options={municipioOptions}
+                    value={municipioFilter}
+                    onValueChange={setMunicipioFilter}
+                    placeholder="Todos los municipios"
+                    emptyText="No encontrado"
+                    searchPlaceholder="Buscar municipio..."
+                    isLoading={municipiosLoading}
+                    error={municipiosError}
+                    errorText="Error al cargar"
+                  />
+                </div>
+              </div>
+
+              {/* Filtro por Sector - siempre visible */}
+              <div className="space-y-1.5 min-w-0">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">
+                  Sector
+                </label>
+                <div className="h-10">
+                  <AutocompleteWithLoading
+                    options={sectorOptions}
+                    value={sectorFilter}
+                    onValueChange={setSectorFilter}
+                    placeholder="Todos los sectores"
+                    emptyText="No encontrado"
+                    searchPlaceholder="Buscar sector..."
+                    isLoading={sectoresLoading}
+                    error={sectoresError}
+                    errorText="Error al cargar"
+                  />
+                </div>
+              </div>
+
+              {/* Filtro por Encuestador - siempre visible */}
+              <div className="space-y-1.5 min-w-0">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">
+                  Encuestador
+                </label>
+                <div className="h-10">
+                  <AutocompleteWithLoading
+                    options={surveyorOptions}
+                    value={surveyorFilter}
+                    onValueChange={setSurveyorFilter}
+                    placeholder="Todos los encuestadores"
+                    emptyText="No encontrado"
+                    searchPlaceholder="Buscar encuestador..."
+                    isLoading={usersLoading}
+                    error={usersError}
+                    errorText="Error al cargar"
+                  />
+                </div>
               </div>
             </div>
-            
-            {/* Filtros */}
-            <div className={cn(
-              "gap-3",
-              shouldUseMobileView 
-                ? "space-y-2" 
-                : "flex flex-col md:flex-row items-start md:items-center"
-            )}>
-              {!shouldUseMobileView && (
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Filter className="w-4 h-4" />
-                  Filtros:
-                </div>
-              )}
-              
-              {/* Grid de filtros - Responsive */}
-              <div className={cn(
-                "gap-2",
-                shouldUseMobileView 
-                  ? "grid grid-cols-2" 
-                  : "flex flex-wrap"
-              )}>
-                {/* Filtro por Estado */}
-                <div className={cn(shouldUseMobileView ? "" : "min-w-[140px]")}>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className={cn(shouldUseMobileView && "h-9 text-sm")}>
-                      <SelectValue placeholder="Estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="completed">Completadas</SelectItem>
-                      <SelectItem value="pending">Pendientes</SelectItem>
-                      <SelectItem value="in_progress">En Progreso</SelectItem>
-                      <SelectItem value="cancelled">Canceladas</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
 
-                {/* Filtro por Sector - Solo desktop */}
-                {!shouldUseMobileView && (
-                  <div className="min-w-[180px]">
-                    <AutocompleteWithLoading
-                      options={sectorOptions}
-                      value={sectorFilter}
-                      onValueChange={setSectorFilter}
-                      placeholder="Filtrar por sector..."
-                      emptyText="No hay sectores disponibles"
-                      searchPlaceholder="Buscar sector..."
-                      isLoading={sectoresLoading}
-                      error={sectoresError}
-                      errorText="Error al cargar sectores"
-                    />
-                  </div>
-                )}
-
-                {/* Filtro por Encuestador - Solo desktop */}
-                {!shouldUseMobileView && (
-                  <div className="min-w-[200px]">
-                    <AutocompleteWithLoading
-                      options={surveyorOptions}
-                      value={surveyorFilter}
-                      onValueChange={setSurveyorFilter}
-                      placeholder="Filtrar por encuestador..."
-                      emptyText="No hay encuestadores disponibles"
-                      searchPlaceholder="Buscar encuestador..."
-                      isLoading={usersLoading}
-                      error={usersError}
-                      errorText="Error al cargar usuarios"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Botón de limpiar filtros */}
-              {(sectorFilter || surveyorFilter || statusFilter !== "all" || searchTerm) && (
+            {/* Botón de limpiar filtros */}
+            {(sectorFilter || surveyorFilter || municipioFilter || searchTerm) && (
+              <div className="flex justify-end pt-2 border-t border-gray-100 mt-2">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={handleClearFilters}
-                  className="text-gray-600"
+                  className="text-gray-500 hover:text-red-500 hover:bg-red-50"
                 >
-                  {shouldUseMobileView ? "Limpiar" : "Limpiar filtros"}
+                  <XCircle className="w-4 h-4 mr-2" />
+                  {shouldUseMobileView ? "Limpiar Filtros" : "Limpiar todos los filtros"}
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -743,14 +677,14 @@ const Surveys = () => {
                   <div className="text-6xl mb-2">📋</div>
                   <p className="text-lg font-semibold text-gray-700">No hay encuestas disponibles</p>
                   <p className="text-sm text-center text-gray-500">
-                    {searchTerm || statusFilter !== "all" || sectorFilter || surveyorFilter
+                    {searchTerm || sectorFilter || surveyorFilter || municipioFilter
                       ? "No se encontraron encuestas con los filtros aplicados"
                       : "Comienza creando tu primera encuesta familiar"
                     }
                   </p>
-                  {!(searchTerm || statusFilter !== "all" || sectorFilter || surveyorFilter) && (
-                    <Button 
-                      onClick={() => navigate("/survey")} 
+                  {!(searchTerm || sectorFilter || surveyorFilter || municipioFilter) && (
+                    <Button
+                      onClick={() => navigate("/survey")}
                       className="mt-3 bg-primary hover:bg-primary/90 text-white font-semibold shadow-lg px-6 py-3 button-ripple mobile-primary-button"
                       size="lg"
                     >
@@ -811,14 +745,14 @@ const Surveys = () => {
                           <div className="text-6xl mb-2">📋</div>
                           <p className="text-lg font-semibold text-gray-700">No hay encuestas disponibles</p>
                           <p className="text-sm text-gray-500">
-                            {searchTerm || statusFilter !== "all" || sectorFilter || surveyorFilter
+                            {searchTerm || sectorFilter || surveyorFilter
                               ? "No se encontraron encuestas con los filtros aplicados"
                               : "Comienza creando tu primera encuesta familiar"
                             }
                           </p>
-                          {!(searchTerm || statusFilter !== "all" || sectorFilter || surveyorFilter) && (
-                            <Button 
-                              onClick={() => navigate("/survey")} 
+                          {!(searchTerm || sectorFilter || surveyorFilter) && (
+                            <Button
+                              onClick={() => navigate("/survey")}
                               className="mt-3 bg-primary hover:bg-primary/90 text-white font-semibold shadow-lg button-ripple"
                             >
                               <Plus className="w-4 h-4 mr-2" />
@@ -829,125 +763,125 @@ const Surveys = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                // Renderizar encuestas
-                filteredEncuestas.map((encuesta) => (
-                  <TableRow key={`encuesta-${encuesta.id_encuesta}`}>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-gray-900">{encuesta.apellido_familiar}</p>
-                          <Badge variant="outline" className="text-xs">
-                            {encuesta.codigo_familia}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
-                          <MapPin className="w-3 h-3" />
-                          {encuesta.direccion_familia}
-                        </div>
-                        {encuesta.telefono && (
-                          <p className="text-sm text-gray-500">📞 {encuesta.telefono}</p>
-                        )}
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                          <span>👥 {encuesta.miembros_familia.total_miembros} miembros</span>
-                          {encuesta.deceasedMembers && encuesta.deceasedMembers.length > 0 && (
-                            <span>💀 {encuesta.deceasedMembers.length} fallecidos</span>
-                          )}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          🏠 {encuesta.tipo_vivienda?.nombre || "-"}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <Badge variant="outline" className="text-xs">
-                          {encuesta.sector?.nombre || "-"}
-                        </Badge>
-                        <div className="text-xs text-gray-500">
-                          📍 {encuesta.municipio?.nombre}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          ⛪ {encuesta.parroquia?.nombre}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          🌾 {encuesta.vereda?.nombre}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <User className="w-3 h-3 text-gray-400" />
-                        <span className="text-sm">{encuesta.usuario_creador || 'Sistema'}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        {getStatusBadge(encuesta.estado_encuesta)}
-                        <div className="text-xs text-gray-500">
-                          v{encuesta.metadatos.version}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Calendar className="w-3 h-3 text-gray-400" />
-                        {formatDate(encuesta.metadatos.fecha_creacion)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {encuesta.estado_encuesta === 'completed' ? (
-                        <div className="flex items-center gap-1 text-sm">
-                          <Calendar className="w-3 h-3 text-gray-400" />
-                          {formatDate(encuesta.fecha_ultima_encuesta)}
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            className="h-8 w-8 p-0"
-                            disabled={deletingId === encuesta.id_encuesta}
-                          >
-                            {deletingId === encuesta.id_encuesta ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <MoreHorizontal className="h-4 w-4" />
+                    // Renderizar encuestas
+                    filteredEncuestas.map((encuesta) => (
+                      <TableRow key={`encuesta-${encuesta.id_encuesta}`}>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-gray-900">{encuesta.apellido_familiar}</p>
+                              <Badge variant="outline" className="text-xs">
+                                {encuesta.codigo_familia}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-1 text-sm text-gray-500">
+                              <MapPin className="w-3 h-3" />
+                              {encuesta.direccion_familia}
+                            </div>
+                            {encuesta.telefono && (
+                              <p className="text-sm text-gray-500">📞 {encuesta.telefono}</p>
                             )}
-                            <span className="sr-only">Abrir menú</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewDetails(encuesta.id_encuesta)}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Ver Detalles
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(encuesta.id_encuesta)}>
-                            <Edit3 className="w-4 h-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="text-red-600" 
-                            onClick={() => handleDeleteClick(encuesta)}
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Eliminar
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-    </CardContent>
-  </Card>
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                              <span>👥 {encuesta.miembros_familia.total_miembros} miembros</span>
+                              {encuesta.deceasedMembers && encuesta.deceasedMembers.length > 0 && (
+                                <span>💀 {encuesta.deceasedMembers.length} fallecidos</span>
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              🏠 {encuesta.tipo_vivienda?.nombre || "-"}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <Badge variant="outline" className="text-xs">
+                              {encuesta.sector?.nombre || "-"}
+                            </Badge>
+                            <div className="text-xs text-gray-500">
+                              📍 {encuesta.municipio?.nombre}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              ⛪ {encuesta.parroquia?.nombre}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              🌾 {encuesta.vereda?.nombre}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <User className="w-3 h-3 text-gray-400" />
+                            <span className="text-sm">{encuesta.usuario_creador || 'Sistema'}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            {getStatusBadge(encuesta.estado_encuesta)}
+                            <div className="text-xs text-gray-500">
+                              v{encuesta.metadatos.version}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 text-sm">
+                            <Calendar className="w-3 h-3 text-gray-400" />
+                            {formatDate(encuesta.metadatos.fecha_creacion)}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {encuesta.estado_encuesta === 'completed' ? (
+                            <div className="flex items-center gap-1 text-sm">
+                              <Calendar className="w-3 h-3 text-gray-400" />
+                              {formatDate(encuesta.fecha_ultima_encuesta)}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                className="h-8 w-8 p-0"
+                                disabled={deletingId === encuesta.id_encuesta}
+                              >
+                                {deletingId === encuesta.id_encuesta ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <MoreHorizontal className="h-4 w-4" />
+                                )}
+                                <span className="sr-only">Abrir menú</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleViewDetails(encuesta.id_encuesta)}>
+                                <Eye className="w-4 h-4 mr-2" />
+                                Ver Detalles
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEdit(encuesta.id_encuesta)}>
+                                <Edit3 className="w-4 h-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleDeleteClick(encuesta)}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Paginación */}
       {paginationFromAPI.totalItems > 0 && (
@@ -1013,8 +947,8 @@ const Surveys = () => {
       {/* Botón flotante para móviles cuando hay contenido */}
       {shouldUseMobileView && filteredEncuestas.length > 0 && (
         <div className="fixed bottom-6 right-6 z-50">
-          <Button 
-            onClick={() => navigate("/survey")} 
+          <Button
+            onClick={() => navigate("/survey")}
             className="fab-button bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-full w-14 h-14 p-0"
             size="lg"
             title="Nueva Encuesta"
@@ -1043,7 +977,7 @@ const SurveysWithSafeRenderer = () => (
             <p className="text-gray-600 text-sm mb-4">
               Hubo un problema al cargar el componente. Por favor, recarga la página.
             </p>
-            <Button 
+            <Button
               onClick={() => window.location.reload()}
               className="w-full"
             >
@@ -1056,7 +990,7 @@ const SurveysWithSafeRenderer = () => (
     onError={(error, errorInfo) => {
       console.error('Error en componente Surveys:', error);
       console.error('ErrorInfo:', errorInfo);
-      
+
       // Logging específico para errores de DOM
       if (error.message?.includes('removeChild') || error.message?.includes('NotFoundError')) {
         // DOM manipulation error - auto-recovery in 2 seconds
