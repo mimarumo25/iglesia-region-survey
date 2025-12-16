@@ -40,8 +40,31 @@ export const transformEncuestaToFormData = (encuesta: EncuestaListItem | Encuest
  * Transforma EncuestaListItem (del listado) a FormData
  */
 const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDataFromEncuesta => {
-  // ⚠️ Advertencia: El campo numero_contrato_epm no está disponible en la API
-  console.warn('⚠️ Campo "numero_contrato_epm" no disponible en respuesta de API. El usuario deberá volver a ingresarlo si desea modificarlo.');
+  // 📊 Logging detallado para debugging
+  console.group('🔄 Transformando encuesta a formulario');
+  console.log('📥 Datos de entrada:', {
+    id: encuesta.id_encuesta,
+    apellido: encuesta.apellido_familiar,
+    corregimiento: encuesta.corregimiento,
+    numero_contrato_epm: encuesta.numero_contrato_epm,
+    basuras: encuesta.basuras,
+    aguas_residuales: encuesta.aguas_residuales,
+    sustento_familia: (encuesta as any).sustento_familia
+  });
+  
+  // ⚠️ Advertencias para campos no disponibles
+  const camposNoDisponibles = [];
+  if (!encuesta.numero_contrato_epm) camposNoDisponibles.push('numero_contrato_epm');
+  if (!(encuesta as any).sustento_familia) camposNoDisponibles.push('sustento_familia');
+  if (!encuesta.corregimiento) camposNoDisponibles.push('corregimiento');
+  if (!encuesta.aguas_residuales || (Array.isArray(encuesta.aguas_residuales) && encuesta.aguas_residuales.length === 0)) {
+    camposNoDisponibles.push('aguas_residuales');
+  }
+  if (!encuesta.basuras || encuesta.basuras.length === 0) camposNoDisponibles.push('disposicion_basura');
+  
+  if (camposNoDisponibles.length > 0) {
+    console.warn('⚠️ Campos sin datos en la base de datos:', camposNoDisponibles.join(', '));
+  }
   
   // 1. Transformar información general del formulario
   const formData: Record<string, any> = {
@@ -112,7 +135,15 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
   };
 
   // 2. Transformar miembros de familia
-  const familyMembers: FamilyMember[] = (encuesta.miembros_familia?.personas || []).map((persona) => {
+  console.log(`👥 Transformando ${encuesta.miembros_familia?.personas?.length || 0} miembros de familia`);
+  
+  const familyMembers: FamilyMember[] = (encuesta.miembros_familia?.personas || []).map((persona, index) => {
+    console.log(`  Miembro ${index + 1}: ${persona.nombre_completo}`, {
+      profesion: (persona as any).profesion,
+      habilidades: (persona as any).habilidades,
+      destrezas: (persona as any).destrezas
+    });
+    
     // Crear objetos ConfigurationItem para campos complejos
     const tipoIdentificacion: ConfigurationItem | null = persona.identificacion?.tipo ? {
       id: persona.identificacion.tipo.id,
@@ -219,6 +250,19 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
       causaFallecimiento: difunto.causaFallecimiento || ''
     };
   });
+
+  console.log('📤 Resultado de la transformación:', {
+    formData: {
+      corregimiento: formData.corregimiento,
+      numero_contrato_epm: formData.numero_contrato_epm,
+      disposicion_basura: formData.disposicion_basura,
+      aguas_residuales: formData.aguas_residuales,
+      sustento_familia: formData.sustento_familia
+    },
+    familyMembers: familyMembers.length,
+    deceasedMembers: deceasedMembers.length
+  });
+  console.groupEnd();
 
   return {
     formData,

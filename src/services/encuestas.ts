@@ -41,6 +41,10 @@ export interface EncuestaListItem {
   numero_encuestas: number;
   fecha_ultima_encuesta: string;
   usuario_creador?: string; // Usuario que creó la encuesta
+  encuestador?: { // Información del encuestador
+    id: string;
+    nombre: string;
+  };
   tipo_vivienda: {
     id: string;
     nombre: string;

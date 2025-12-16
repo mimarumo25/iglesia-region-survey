@@ -713,14 +713,38 @@ const Surveys = () => {
             <div className="desktop-view-transition">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[300px]">Información Familiar</TableHead>
-                    <TableHead className="w-[200px]">Ubicación</TableHead>
-                    <TableHead className="w-[150px]">Encuestador</TableHead>
-                    <TableHead className="w-[120px]">Estado</TableHead>
-                    <TableHead className="w-[120px]">Fecha Creación</TableHead>
-                    <TableHead className="w-[120px]">Fecha Completada</TableHead>
-                    <TableHead className="text-right w-[100px]">Acciones</TableHead>
+                  <TableRow className="bg-gradient-to-r from-primary/5 to-primary/10">
+                    <TableHead className="w-[320px] font-semibold text-primary">
+                      <div className="flex items-center gap-2">
+                        <span>👨‍👩‍👧‍👦</span>
+                        <span>Información Familiar</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="w-[220px] font-semibold text-primary">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        <span>Ubicación Geográfica</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="w-[160px] font-semibold text-primary">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        <span>Encuestador</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="w-[130px] font-semibold text-primary">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        <span>Creación</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="w-[130px] font-semibold text-primary">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        <span>Completada</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-right w-[100px] font-semibold text-primary">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -731,7 +755,6 @@ const Surveys = () => {
                         <TableCell><Skeleton className="h-16 w-full" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                        <TableCell><Skeleton className="h-6 w-16" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                         <TableCell><Skeleton className="h-8 w-8" /></TableCell>
@@ -765,77 +788,127 @@ const Surveys = () => {
                   ) : (
                     // Renderizar encuestas
                     filteredEncuestas.map((encuesta) => (
-                      <TableRow key={`encuesta-${encuesta.id_encuesta}`}>
-                        <TableCell>
-                          <div className="space-y-1">
+                      <TableRow 
+                        key={`encuesta-${encuesta.id_encuesta}`} 
+                        className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                        onDoubleClick={() => handleViewDetails(encuesta.id_encuesta)}
+                        title="Doble clic para ver detalles"
+                      >
+                        <TableCell className="py-4">
+                          <div className="space-y-2">
+                            {/* Apellido y código */}
                             <div className="flex items-center gap-2">
-                              <p className="font-medium text-gray-900">{encuesta.apellido_familiar}</p>
-                              <Badge variant="outline" className="text-xs">
+                              <span className="text-xs font-medium text-gray-500 min-w-[70px]">Familia:</span>
+                              <p className="font-semibold text-gray-900 text-base">{encuesta.apellido_familiar}</p>
+                              <Badge variant="outline" className="text-xs bg-primary/5 border-primary/20 text-primary font-medium">
                                 {encuesta.codigo_familia}
                               </Badge>
                             </div>
-                            <div className="flex items-center gap-1 text-sm text-gray-500">
-                              <MapPin className="w-3 h-3" />
-                              {encuesta.direccion_familia}
+                            
+                            {/* Dirección */}
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-gray-500 min-w-[70px]">Dirección:</span>
+                              <div className="flex items-center gap-1.5 text-sm text-gray-700">
+                                <MapPin className="w-3.5 h-3.5 text-primary/60" />
+                                <span>{encuesta.direccion_familia}</span>
+                              </div>
                             </div>
+                            
+                            {/* Teléfono */}
                             {encuesta.telefono && (
-                              <p className="text-sm text-gray-500">📞 {encuesta.telefono}</p>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium text-gray-500 min-w-[70px]">Teléfono:</span>
+                                <p className="text-sm text-gray-700 font-medium">📞 {encuesta.telefono}</p>
+                              </div>
                             )}
-                            <div className="flex items-center gap-4 text-xs text-gray-500">
-                              <span>👥 {encuesta.miembros_familia.total_miembros} miembros</span>
-                              {encuesta.deceasedMembers && encuesta.deceasedMembers.length > 0 && (
-                                <span>💀 {encuesta.deceasedMembers.length} fallecidos</span>
-                              )}
+                            
+                            {/* Estadísticas */}
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-gray-500 min-w-[70px]">Miembros:</span>
+                              <div className="flex items-center gap-3 text-xs">
+                                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                                  👥 {encuesta.miembros_familia.total_miembros} Total
+                                </Badge>
+                                {encuesta.deceasedMembers && encuesta.deceasedMembers.length > 0 && (
+                                  <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">
+                                    💀 {encuesta.deceasedMembers.length} Fallecidos
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
-                            <div className="text-xs text-gray-500">
-                              🏠 {encuesta.tipo_vivienda?.nombre || "-"}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <Badge variant="outline" className="text-xs">
-                              {encuesta.sector?.nombre || "-"}
-                            </Badge>
-                            <div className="text-xs text-gray-500">
-                              📍 {encuesta.municipio?.nombre}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              ⛪ {encuesta.parroquia?.nombre}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              🌾 {encuesta.vereda?.nombre}
+                            
+                            {/* Tipo de vivienda */}
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-gray-500 min-w-[70px]">Vivienda:</span>
+                              <Badge variant="outline" className="text-xs bg-gray-50">
+                                🏠 {encuesta.tipo_vivienda?.nombre || "-"}
+                              </Badge>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <User className="w-3 h-3 text-gray-400" />
-                            <span className="text-sm">{encuesta.usuario_creador || 'Sistema'}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            {getStatusBadge(encuesta.estado_encuesta)}
-                            <div className="text-xs text-gray-500">
-                              v{encuesta.metadatos.version}
+                        <TableCell className="py-4">
+                          <div className="space-y-2">
+                            {/* Sector */}
+                            <div className="flex items-start gap-2">
+                              <span className="text-xs font-medium text-gray-500 min-w-[65px] flex-shrink-0">Sector:</span>
+                              <span className="text-sm text-gray-700">{encuesta.sector?.nombre || "-"}</span>
+                            </div>
+                            
+                            {/* Municipio */}
+                            <div className="flex items-start gap-2">
+                              <span className="text-xs font-medium text-gray-500 min-w-[65px] flex-shrink-0">Municipio:</span>
+                              <span className="text-sm text-gray-700">📍 {encuesta.municipio?.nombre}</span>
+                            </div>
+                            
+                            {/* Parroquia */}
+                            <div className="flex items-start gap-2">
+                              <span className="text-xs font-medium text-gray-500 min-w-[65px] flex-shrink-0">Parroquia:</span>
+                              <span className="text-sm text-gray-700">⛪ {encuesta.parroquia?.nombre}</span>
+                            </div>
+                            
+                            {/* Vereda */}
+                            <div className="flex items-start gap-2">
+                              <span className="text-xs font-medium text-gray-500 min-w-[65px] flex-shrink-0">Vereda:</span>
+                              <span className="text-sm text-gray-700">🌾 {encuesta.vereda?.nombre}</span>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1 text-sm">
-                            <Calendar className="w-3 h-3 text-gray-400" />
-                            {formatDate(encuesta.metadatos.fecha_creacion)}
+                        <TableCell className="py-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <User className="w-4 h-4 text-primary" />
+                            </div>
+                            <span className="text-sm font-medium text-gray-900">
+                              {encuesta.encuestador?.nombre || encuesta.usuario_creador || 'Sistema'}
+                            </span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="py-4">
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <Calendar className="w-3.5 h-3.5 text-primary/60" />
+                              <span className="text-sm font-medium text-gray-700">{formatDate(encuesta.metadatos.fecha_creacion)}</span>
+                            </div>
+                            <span className="text-xs text-gray-500 pl-5">Registro inicial</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
                           {encuesta.estado_encuesta === 'completed' ? (
-                            <div className="flex items-center gap-1 text-sm">
-                              <Calendar className="w-3 h-3 text-gray-400" />
-                              {formatDate(encuesta.fecha_ultima_encuesta)}
+                            <div className="flex flex-col gap-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                                <span className="text-sm font-medium text-gray-700">{formatDate(encuesta.fecha_ultima_encuesta)}</span>
+                              </div>
+                              <span className="text-xs text-green-600 pl-5 font-medium">Finalizada</span>
                             </div>
                           ) : (
-                            <span className="text-gray-400">-</span>
+                            <div className="flex flex-col gap-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <Clock className="w-3.5 h-3.5 text-orange-500" />
+                                <span className="text-gray-500">-</span>
+                              </div>
+                              <span className="text-xs text-orange-600 pl-5 font-medium">En proceso</span>
+                            </div>
                           )}
                         </TableCell>
                         <TableCell className="text-right">
@@ -843,15 +916,19 @@ const Surveys = () => {
                             <DropdownMenuTrigger asChild>
                               <Button
                                 variant="ghost"
-                                className="h-8 w-8 p-0"
+                                className="h-9 px-3 hover:bg-primary/10 hover:text-primary transition-colors group"
                                 disabled={deletingId === encuesta.id_encuesta}
+                                title="Opciones de encuesta"
                               >
                                 {deletingId === encuesta.id_encuesta ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : (
-                                  <MoreHorizontal className="h-4 w-4" />
+                                  <>
+                                    <MoreHorizontal className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                                    <span className="ml-1.5 text-xs font-medium hidden group-hover:inline">Opciones</span>
+                                  </>
                                 )}
-                                <span className="sr-only">Abrir menú</span>
+                                <span className="sr-only">Abrir menú de opciones</span>
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
