@@ -365,12 +365,17 @@ const SurveyDetails = () => {
                 || encuesta.metadatos?.created_by
                 || encuesta.metadatos?.encuestador;
               
-              return encuestador ? (
+              // Extraer el nombre si es un objeto {id, nombre}
+              const encuestadorNombre = typeof encuestador === 'object' && encuestador !== null
+                ? encuestador.nombre || encuestador.name || String(encuestador.id)
+                : encuestador;
+              
+              return encuestadorNombre ? (
                 <div>
                   <p className="text-sm text-gray-500">Encuestador</p>
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-gray-400" />
-                    <Badge variant="secondary">{encuestador}</Badge>
+                    <Badge variant="secondary">{encuestadorNombre}</Badge>
                   </div>
                 </div>
               ) : null;
