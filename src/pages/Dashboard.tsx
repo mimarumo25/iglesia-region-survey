@@ -17,6 +17,7 @@ import {
   EducacionVisualizacion,
   ViviendaVisualizacion
 } from "@/components/dashboard/estadisticas";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 const DashboardMain = () => {
   const navigate = useNavigate();
@@ -117,18 +118,26 @@ const DashboardMain = () => {
           </div>
 
           {/* Resumen General */}
-          <ResumenGeneralCards resumen={estadisticasCompletas.resumen} />
+          <ErrorBoundary variant="component" className="mb-6">
+            <ResumenGeneralCards resumen={estadisticasCompletas.resumen} />
+          </ErrorBoundary>
 
           {/* Grid de Estadísticas Detalladas */}
           <div className="space-y-8">
             {/* Salud */}
-            <SaludVisualizacion salud={estadisticasCompletas.salud} />
+            <ErrorBoundary variant="component">
+              <SaludVisualizacion salud={estadisticasCompletas.salud} />
+            </ErrorBoundary>
 
             {/* Educación */}
-            <EducacionVisualizacion educacion={estadisticasCompletas.educacion} />
+            <ErrorBoundary variant="component">
+              <EducacionVisualizacion educacion={estadisticasCompletas.educacion} />
+            </ErrorBoundary>
 
             {/* Vivienda */}
-            <ViviendaVisualizacion vivienda={estadisticasCompletas.vivienda} />
+            <ErrorBoundary variant="component">
+              <ViviendaVisualizacion vivienda={estadisticasCompletas.vivienda} />
+            </ErrorBoundary>
           </div>
         </>
       )}

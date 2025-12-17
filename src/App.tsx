@@ -14,6 +14,7 @@ import Logo from "@/components/ui/logo";
 import LoaderSkeleton from "@/components/ui/LoaderSkeleton";
 import { RouteTransition } from "@/components/ui/RouteTransition";
 import { getSkeletonType } from "@/config/routes";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 // Lazy-loaded page components
 const Login = React.lazy(() => import("./pages/Login"));
@@ -67,13 +68,17 @@ const App = () => (
           <AuthProvider>
             <Toaster />
             <Sonner />
-            <BrowserRouter
-              future={{
-                v7_startTransition: true,
-                v7_relativeSplatPath: true,
-              }}
+            <ErrorBoundary 
+              showErrorDetails={import.meta.env.DEV}
+              onError={(error) => console.error("Top-level error:", error)}
             >
-            <Suspense fallback={
+              <BrowserRouter
+                future={{
+                  v7_startTransition: true,
+                  v7_relativeSplatPath: true,
+                }}
+              >
+              <Suspense fallback={
               <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-green-100">
                 <div className="mb-6">
                   <Logo size="xl" showText={false} className="w-24 h-24 animate-pulse" />
@@ -562,6 +567,7 @@ const App = () => (
               </Routes>
             </Suspense>
           </BrowserRouter>
+          </ErrorBoundary>
         </AuthProvider>
       </AppWithTypography>
     </ThemeProvider>

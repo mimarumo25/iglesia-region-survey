@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +39,8 @@ import { SurveySubmissionService } from "@/services/surveySubmission";
 import { encuestasService } from "@/services/encuestas";
 import { transformEncuestaToFormData, validateTransformedData } from "@/utils/encuestaToFormTransformer";
 import { hasLeadershipFamilyMember, getLeadershipMessage } from "@/utils/familyValidationHelpers";
+import { ENCUESTAS_QUERY_KEYS } from "@/hooks/useEncuestas";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 // Removed storage debugger import - component was cleaned up
 
 /**
@@ -126,6 +129,7 @@ const formStages: FormStage[] = [
 
 const SurveyForm = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { id: surveyId } = useParams<{ id: string }>(); // Detectar ID de la URL para modo edición
   
   const [currentStage, setCurrentStage] = useState(1);
@@ -138,6 +142,7 @@ const SurveyForm = () => {
   const [isLoadingEncuesta, setIsLoadingEncuesta] = useState(false); // Loading de carga de encuesta
   const [showDataProtectionModal, setShowDataProtectionModal] = useState(false); // NO mostrar automáticamente
   const [hasAcceptedDataProtection, setHasAcceptedDataProtection] = useState(false); // Inicia sin aceptar
+  const [isDraftLoaded, setIsDraftLoaded] = useState(false); // Indica si el borrador ya fue cargado
   const { toast } = useToast();
 
   // Hook para cargar datos de configuración
@@ -178,8 +183,8 @@ const SurveyForm = () => {
 
   // Auto-guardado cuando cambia la etapa (solo nueva estructura)
   useEffect(() => {
-    // ✅ No guardar borrador si la encuesta ya fue enviada exitosamente
-    if (isSubmittedSuccessfully) {
+    // ✅ No guardar borrador si la encuesta ya fue enviada exitosamente o si no se ha cargado el borrador inicial
+    if (isSubmittedSuccessfully || !isDraftLoaded) {
       return;
     }
     
@@ -199,10 +204,16 @@ const SurveyForm = () => {
       // Guardar borrador solo con nueva estructura
       saveSurveyToLocalStorage(draftStructuredData, 'parish-survey-draft');
     }
-  }, [currentStage, formData, familyMembers, deceasedMembers, configurationData, isSubmittedSuccessfully]);
+  }, [currentStage, formData, familyMembers, deceasedMembers, configurationData, isSubmittedSuccessfully, isDraftLoaded]);
 
   // Cargar borrador al iniciar (nueva estructura)
   useEffect(() => {
+    // Si estamos en modo edición, no cargar el borrador general
+    if (surveyId) {
+      setIsDraftLoaded(true);
+      return;
+    }
+
     const draft = localStorage.getItem('parish-survey-draft');
     if (draft) {
       try {
@@ -215,27 +226,27 @@ const SurveyForm = () => {
           
           // Convertir estructura nueva a formato del formulario actual
           const legacyFormData: Record<string, any> = {
-            municipio: draftData.informacionGeneral.municipio?.id || '',
-            parroquia: draftData.informacionGeneral.parroquia?.id || '',
-            sector: draftData.informacionGeneral.sector?.id || '',
-            vereda: draftData.informacionGeneral.vereda?.id || '',
-            corregimiento: draftData.informacionGeneral.corregimiento?.id || '',
-            centro_poblado: draftData.informacionGeneral.centro_poblado?.id || '',
+            municipio: draftData.informacionGeneral.municipio?.id?.toString() || '',
+            parroquia: draftData.informacionGeneral.parroquia?.id?.toString() || '',
+            sector: draftData.informacionGeneral.sector?.id?.toString() || '',
+            vereda: draftData.informacionGeneral.vereda?.id?.toString() || '',
+            corregimiento: draftData.informacionGeneral.corregimiento?.id?.toString() || '',
+            centro_poblado: draftData.informacionGeneral.centro_poblado?.id?.toString() || '',
             // Guardar también los datos completos para usarlos en el transformador
             // ⭐ IMPORTANTE: Normalizar para asegurar IDs numéricos (migración de datos antiguos)
             sector_data: normalizeConfigurationItem(draftData.informacionGeneral.sector),
             vereda_data: normalizeConfigurationItem(draftData.informacionGeneral.vereda),
             corregimiento_data: normalizeConfigurationItem(draftData.informacionGeneral.corregimiento),
             centro_poblado_data: normalizeConfigurationItem(draftData.informacionGeneral.centro_poblado),
-            fecha: draftData.informacionGeneral.fecha,
+            fecha: draftData.informacionGeneral.fecha ? new Date(draftData.informacionGeneral.fecha) : null,
             apellido_familiar: draftData.informacionGeneral.apellido_familiar,
             direccion: draftData.informacionGeneral.direccion,
             telefono: draftData.informacionGeneral.telefono,
             numero_contrato_epm: draftData.informacionGeneral.numero_contrato_epm,
-            tipo_vivienda: draftData.vivienda.tipo_vivienda?.id || '',
+            tipo_vivienda: draftData.vivienda.tipo_vivienda?.id?.toString() || '',
             // 🔄 NUEVO: Convertir DynamicSelectionMap de vuelta a array de IDs
             disposicion_basura: convertSelectionMapToIds(draftData.vivienda.disposicion_basuras || {}),
-            sistema_acueducto: draftData.servicios_agua.sistema_acueducto?.id || '',
+            sistema_acueducto: draftData.servicios_agua.sistema_acueducto?.id?.toString() || '',
             // 🔄 NUEVO: Convertir DynamicSelectionMap de vuelta a array de IDs
             aguas_residuales: convertSelectionMapToIds(draftData.servicios_agua.aguas_residuales || {}),
             sustento_familia: draftData.observaciones.sustento_familia,
@@ -244,18 +255,46 @@ const SurveyForm = () => {
           };
           
           setFormData(legacyFormData);
-          setFamilyMembers(draftData.familyMembers || []);
-          setDeceasedMembers(draftData.deceasedMembers || []);
+          
+          // Convertir fechas en miembros de familia
+          const familyMembersWithDates = (draftData.familyMembers || []).map((member: any) => ({
+            ...member,
+            fechaNacimiento: member.fechaNacimiento ? new Date(member.fechaNacimiento) : null
+          }));
+          setFamilyMembers(familyMembersWithDates);
+          
+          // Convertir fechas en difuntos
+          const deceasedMembersWithDates = (draftData.deceasedMembers || []).map((member: any) => ({
+            ...member,
+            fechaFallecimiento: member.fechaFallecimiento ? new Date(member.fechaFallecimiento) : null
+          }));
+          setDeceasedMembers(deceasedMembersWithDates);
         } else {
           // Estructura legacy (por compatibilidad temporal)
           const { stage, data, familyMembers: savedFamilyMembers, deceasedMembers: savedDeceasedMembers } = draftData;
           setCurrentStage(stage);
-          setFormData(data);
-          if (savedFamilyMembers) {
-            setFamilyMembers(savedFamilyMembers);
+          
+          // Asegurar que la fecha sea un objeto Date si existe
+          if (data && data.fecha && typeof data.fecha === 'string') {
+            data.fecha = new Date(data.fecha);
           }
+          
+          setFormData(data);
+          
+          if (savedFamilyMembers) {
+            const familyMembersWithDates = savedFamilyMembers.map((member: any) => ({
+              ...member,
+              fechaNacimiento: member.fechaNacimiento ? new Date(member.fechaNacimiento) : null
+            }));
+            setFamilyMembers(familyMembersWithDates);
+          }
+          
           if (savedDeceasedMembers) {
-            setDeceasedMembers(savedDeceasedMembers);
+            const deceasedMembersWithDates = savedDeceasedMembers.map((member: any) => ({
+              ...member,
+              fechaFallecimiento: member.fechaFallecimiento ? new Date(member.fechaFallecimiento) : null
+            }));
+            setDeceasedMembers(deceasedMembersWithDates);
           }
         }
 
@@ -269,7 +308,8 @@ const SurveyForm = () => {
         localStorage.removeItem('parish-survey-draft');
       }
     }
-  }, []);
+    setIsDraftLoaded(true);
+  }, [surveyId]);
 
   // Cargar encuesta existente si estamos en modo edición
   useEffect(() => {
@@ -328,12 +368,15 @@ const SurveyForm = () => {
     loadEncuestaForEdit();
   }, [surveyId]); // Solo ejecutar cuando cambia surveyId
 
-  // Asegurar que el campo 'fecha' siempre tenga la fecha actual
+  // Asegurar que el campo 'fecha' siempre tenga la fecha actual si no hay una
   useEffect(() => {
-    setFormData(prev => ({
-      ...prev,
-      fecha: new Date()
-    }));
+    setFormData(prev => {
+      if (prev.fecha) return prev;
+      return {
+        ...prev,
+        fecha: new Date()
+      };
+    });
   }, []);
 
   const handleFieldChange = (fieldId: string, value: any) => {
@@ -342,6 +385,17 @@ const SurveyForm = () => {
         ...prev,
         [fieldId]: value
       };
+
+      // Si se cambia el municipio, limpiar campos dependientes
+      if (fieldId === 'municipio') {
+        updated.parroquia = '';
+        updated.vereda = '';
+        updated.vereda_data = null;
+        updated.corregimiento = '';
+        updated.corregimiento_data = null;
+        updated.centro_poblado = '';
+        updated.centro_poblado_data = null;
+      }
 
       // Para campos dinámicos, guardar también el objeto completo {id, nombre}
       // ⭐ IMPORTANTE: Convertir IDs a número para cumplir con contrato de API
@@ -354,6 +408,8 @@ const SurveyForm = () => {
             id: isNaN(numericId) ? 0 : numericId, 
             nombre: sectorObj.label 
           };
+        } else {
+          updated.sector_data = null;
         }
       } else if (fieldId === 'vereda') {
         // Vereda es dinámico basado en municipio
@@ -364,6 +420,8 @@ const SurveyForm = () => {
             id: isNaN(numericId) ? 0 : numericId, 
             nombre: veredaObj.label 
           };
+        } else {
+          updated.vereda_data = null;
         }
       } else if (fieldId === 'corregimiento') {
         // Corregimiento es dinámico basado en municipio
@@ -374,6 +432,8 @@ const SurveyForm = () => {
             id: isNaN(numericId) ? 0 : numericId, 
             nombre: corregimientoObj.label 
           };
+        } else {
+          updated.corregimiento_data = null;
         }
       } else if (fieldId === 'centro_poblado') {
         // Centro poblado es dinámico basado en municipio
@@ -384,6 +444,8 @@ const SurveyForm = () => {
             id: isNaN(numericId) ? 0 : numericId, 
             nombre: centroPobladoObj.label 
           };
+        } else {
+          updated.centro_poblado_data = null;
         }
       }
       // 🔄 NUEVO: disposicion_basura y aguas_residuales ahora son arrays de IDs directos
@@ -555,6 +617,14 @@ const SurveyForm = () => {
         setFormData({});
         setFamilyMembers([]);
         setDeceasedMembers([]);
+
+        // 🔄 Invalida las queries de encuestas para que se refresquen en el listado
+        // Usamos refetchType: 'all' para asegurar que se recarguen incluso si no están activas
+        await queryClient.invalidateQueries({ 
+          queryKey: ENCUESTAS_QUERY_KEYS.all,
+          exact: false,
+          refetchType: 'all'
+        });
         
         toast({
           title: isEditMode ? "✅ Encuesta actualizada" : "✅ Encuesta creada exitosamente",
@@ -881,45 +951,51 @@ const SurveyForm = () => {
             {currentStageData.description}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4 p-3 sm:space-y-6 sm:p-6">
-          {currentStageData.type === 'family_grid' ? (
-            <FamilyGrid 
-              familyMembers={familyMembers}
-              setFamilyMembers={setFamilyMembers}
-            />
-          ) : currentStageData.type === 'deceased_grid' ? (
-            <DeceasedGrid 
-              deceasedMembers={deceasedMembers}
-              setDeceasedMembers={setDeceasedMembers}
-            />
-          ) : (
-            currentStageData.fields?.map((field) => (
-              <div 
-                key={field.id} 
-                className="sm:p-4 sm:bg-muted/50 sm:rounded-xl sm:border sm:border-border sm:hover:border-ring sm:hover:shadow-sm sm:transition-all sm:duration-200 sm:dark:bg-muted/50 sm:dark:border-border sm:dark:hover:border-ring"
-                data-testid={`field-container-${field.id}`}
-              >
-                {field.id === "autorizacion_datos" ? (
-                  <DataProtectionCheckbox
-                    checked={formData[field.id] === true}
-                    onCheckedChange={(value) => handleFieldChange(field.id, value)}
-                    onOpenModal={() => setShowDataProtectionModal(true)}
-                    hasAcceptedTerms={hasAcceptedDataProtection}
-                  />
-                ) : (
-                  <StandardFormField
-                    field={field}
-                    value={formData[field.id]}
-                    onChange={handleFieldChange}
-                    autocompleteOptions={getFieldAutocompleteOptions(field)}
-                    isLoading={getFieldLoadingState(field)}
-                    error={getFieldErrorState(field)}
-                  />
-                )}
-              </div>
-            ))
-          )}
-        </CardContent>
+        <ErrorBoundary 
+          variant="component" 
+          resetKeys={[currentStage]}
+          className="border-0 shadow-none bg-transparent"
+        >
+          <CardContent className="space-y-4 p-3 sm:space-y-6 sm:p-6">
+            {currentStageData.type === 'family_grid' ? (
+              <FamilyGrid 
+                familyMembers={familyMembers}
+                setFamilyMembers={setFamilyMembers}
+              />
+            ) : currentStageData.type === 'deceased_grid' ? (
+              <DeceasedGrid 
+                deceasedMembers={deceasedMembers}
+                setDeceasedMembers={setDeceasedMembers}
+              />
+            ) : (
+              currentStageData.fields?.map((field) => (
+                <div 
+                  key={field.id} 
+                  className="sm:p-4 sm:bg-muted/50 sm:rounded-xl sm:border sm:border-border sm:hover:border-ring sm:hover:shadow-sm sm:transition-all sm:duration-200 sm:dark:bg-muted/50 sm:dark:border-border sm:dark:hover:border-ring"
+                  data-testid={`field-container-${field.id}`}
+                >
+                  {field.id === "autorizacion_datos" ? (
+                    <DataProtectionCheckbox
+                      checked={formData[field.id] === true}
+                      onCheckedChange={(value) => handleFieldChange(field.id, value)}
+                      onOpenModal={() => setShowDataProtectionModal(true)}
+                      hasAcceptedTerms={hasAcceptedDataProtection}
+                    />
+                  ) : (
+                    <StandardFormField
+                      field={field}
+                      value={formData[field.id]}
+                      onChange={handleFieldChange}
+                      autocompleteOptions={getFieldAutocompleteOptions(field)}
+                      isLoading={getFieldLoadingState(field)}
+                      error={getFieldErrorState(field)}
+                    />
+                  )}
+                </div>
+              ))
+            )}
+          </CardContent>
+        </ErrorBoundary>
       </Card>
 
       {/* Controles de navegación */}

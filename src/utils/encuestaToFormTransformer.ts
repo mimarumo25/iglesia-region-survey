@@ -69,12 +69,12 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
   // 1. Transformar información general del formulario
   const formData: Record<string, any> = {
     // Información general
-    municipio: encuesta.municipio?.id || '',
-    parroquia: encuesta.parroquia?.id || '',
-    sector: encuesta.sector?.id || '',
-    vereda: encuesta.vereda?.id || '',
-    corregimiento: (encuesta as any)?.corregimiento?.id || '',
-    centro_poblado: (encuesta as any)?.centro_poblado?.id || '',
+    municipio: encuesta.municipio?.id ? String(encuesta.municipio.id) : '',
+    parroquia: encuesta.parroquia?.id ? String(encuesta.parroquia.id) : '',
+    sector: encuesta.sector?.id ? String(encuesta.sector.id) : '',
+    vereda: encuesta.vereda?.id ? String(encuesta.vereda.id) : '',
+    corregimiento: (encuesta as any)?.corregimiento?.id ? String((encuesta as any).corregimiento.id) : '',
+    centro_poblado: (encuesta as any)?.centro_poblado?.id ? String((encuesta as any).centro_poblado.id) : '',
     // Guardar datos completos para transformador
     sector_data: encuesta.sector || null,
     vereda_data: encuesta.vereda || null,
@@ -281,12 +281,12 @@ const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDa
   // 1. Transformar información general del formulario
   const formData: Record<string, any> = {
     // Información general - solo IDs
-    municipio: encuesta.id_municipio || '',
+    municipio: encuesta.id_municipio ? String(encuesta.id_municipio) : '',
     parroquia: '', // No disponible directamente en EncuestaCompleta
-    sector: encuesta.id_sector || '',
-    vereda: encuesta.id_vereda || '',
-    corregimiento: (encuesta as any)?.id_corregimiento || '',
-    centro_poblado: (encuesta as any)?.id_centro_poblado || '',
+    sector: encuesta.id_sector ? String(encuesta.id_sector) : '',
+    vereda: encuesta.id_vereda ? String(encuesta.id_vereda) : '',
+    corregimiento: (encuesta as any)?.id_corregimiento ? String((encuesta as any).id_corregimiento) : '',
+    centro_poblado: (encuesta as any)?.id_centro_poblado ? String((encuesta as any).id_centro_poblado) : '',
     // Guardar datos completos para transformador
     sector_data: (encuesta as any)?.sector || null,
     vereda_data: (encuesta as any)?.vereda || null,

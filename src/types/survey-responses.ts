@@ -98,6 +98,8 @@ export interface SurveyPerson {
   comunidad_cultural: LocationItem;
   celebraciones: PersonCelebration[];
   enfermedades: Array<{ id: number; nombre: string }>;
+  solicitudComunionCasa?: boolean; // ✅ NUEVO
+  necesidad_enfermo?: string; // ✅ NUEVO
   
   // Campos deprecated (mantener para compatibilidad)
   motivo_celebrar_deprecated?: string | null;
@@ -182,7 +184,14 @@ export interface SurveyResponseData {
   numero_contrato_epm: string | null;
   
   // ========================================
-  // 👥 MIEMBROS (MEJORADO)
+  // � OBSERVACIONES Y OTROS (NUEVO)
+  // ========================================
+  sustento_familia?: string;
+  observaciones_encuestador?: string;
+  autorizacion_datos?: boolean;
+  
+  // ========================================
+  // �👥 MIEMBROS (MEJORADO)
   // ========================================
   miembros_familia: SurveyFamilyMembers;
   deceasedMembers: DeceasedMember[];

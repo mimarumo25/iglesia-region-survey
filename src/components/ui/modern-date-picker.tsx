@@ -67,11 +67,22 @@ const ModernDatePicker = ({
 
   // Actualizar selectores cuando cambia el valor externo
   useEffect(() => {
-    if (value && value instanceof Date && !isNaN(value.getTime())) {
-      setSelectedYear(value.getFullYear().toString());
-      setSelectedMonth(value.getMonth().toString());
-      setSelectedDay(value.getDate().toString());
-      setCalendarMonth(value);
+    let dateValue: Date | null = null;
+    
+    if (value instanceof Date && !isNaN(value.getTime())) {
+      dateValue = value;
+    } else if (typeof value === 'string' && value.trim() !== '') {
+      const parsedDate = new Date(value);
+      if (!isNaN(parsedDate.getTime())) {
+        dateValue = parsedDate;
+      }
+    }
+
+    if (dateValue) {
+      setSelectedYear(dateValue.getFullYear().toString());
+      setSelectedMonth(dateValue.getMonth().toString());
+      setSelectedDay(dateValue.getDate().toString());
+      setCalendarMonth(dateValue);
     } else {
       setSelectedYear('');
       setSelectedMonth('');

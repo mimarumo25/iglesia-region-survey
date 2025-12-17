@@ -733,6 +733,20 @@ const SurveyDetails = () => {
                         </div>
                       </>
                     )}
+
+                    {/* Solicitud de Comunión en Casa */}
+                    {miembro.solicitudComunionCasa && (
+                      <>
+                        <Separator />
+                        <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                          <Heart className="w-5 h-5 text-blue-600" />
+                          <div>
+                            <p className="text-sm font-semibold text-blue-900">Solicita Comunión en Casa</p>
+                            <p className="text-xs text-blue-700">Este miembro ha solicitado recibir la comunión en su domicilio.</p>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
                 );
@@ -800,6 +814,54 @@ const SurveyDetails = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Observaciones y Consentimiento */}
+      <Card className="mb-8 border-blue-200 bg-blue-50/10">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-blue-600" />
+            Observaciones y Consentimiento
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <Home className="w-4 h-4 text-blue-500" />
+                Sustento de la Familia
+              </p>
+              <div className="p-3 bg-white rounded-lg border border-blue-100 min-h-[80px]">
+                <p className="text-sm text-gray-700">
+                  {encuesta.sustento_familia || encuesta.socioeconomica?.fuente_ingresos || "No especificado"}
+                </p>
+              </div>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <User className="w-4 h-4 text-blue-500" />
+                Observaciones del Encuestador
+              </p>
+              <div className="p-3 bg-white rounded-lg border border-blue-100 min-h-[80px]">
+                <p className="text-sm text-gray-700">
+                  {encuesta.observaciones_encuestador || encuesta.observaciones_generales || "Sin observaciones"}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
+            <CheckCircle className="w-6 h-6 text-green-600" />
+            <div>
+              <p className="font-semibold text-green-900">Autorización de Datos</p>
+              <p className="text-sm text-green-700">
+                {encuesta.autorizacion_datos || encuesta.observaciones?.autorizacion_datos 
+                  ? "El usuario ha autorizado el tratamiento de sus datos personales para vincularse a la parroquia." 
+                  : "No se ha registrado autorización explícita en este campo."}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Metadatos */}
       <Card>

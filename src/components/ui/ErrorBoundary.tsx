@@ -2,6 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -16,6 +17,9 @@ interface ErrorBoundaryProps {
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
   maxRetries?: number;
   showErrorDetails?: boolean;
+  resetKeys?: any[];
+  className?: string;
+  variant?: 'full-page' | 'component';
 }
 
 /**
@@ -40,6 +44,26 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       hasError: true,
       error
     };
+  }
+
+  componentDidUpdate(prevProps: ErrorBoundaryProps) {
+    const { hasError } = this.state;
+    const { resetKeys } = this.props;
+
+    if (
+      hasError &&
+      resetKeys &&
+      prevProps.resetKeys &&
+      this.hasArrayChanged(prevProps.resetKeys, resetKeys)
+    ) {
+      this.handleRetry();
+    }
+  }
+
+  private hasArrayChanged(a: any[], b: any[]) {
+    return (
+      a.length !== b.length || a.some((item, index) => !Object.is(item, b[index]))
+    );
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -129,37 +153,84 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       const isDOMError = this.isDOMManipulationError(this.state.error);
       const maxRetries = this.props.maxRetries ?? 3;
       const canRetry = this.state.retryCount < maxRetries;
+      const variant = this.props.variant || 'full-page';
+
+      if (variant === 'component') {
+        return (
+          <Card className={cn("w-full border-red-200 bg-red-50/30", this.props.className)}>
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-red-100 rounded-full">
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                </div>
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <h3 className="font-semibold text-red-900">Error en el módulo</h3>
+                    <p className="text-sm text-red-700">
+                      {isDOMError 
+                        ? 'Error de renderizado. El sistema intentará recuperarse.'
+                        : 'Este componente no pudo cargarse correctamente.'
+                      }
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    {canRetry && (
+                      <Button 
+                        size="sm"
+                        onClick={this.handleManualRetry}
+                        className="h-8 text-xs"
+                      >
+                        <RefreshCw className="w-3 h-3 mr-1" />
+                        Reintentar
+                      </Button>
+                    )}
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      onClick={this.handleGoBack}
+                      className="h-8 text-xs"
+                    >
+                      <ArrowLeft className="w-3 h-3 mr-1" />
+                      Volver
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      }
 
       return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-          <Card className="w-full max-w-2xl">
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <AlertTriangle className="w-8 h-8 text-red-600" />
+        <div className={cn(
+          "flex items-center justify-center p-4",
+          variant === 'full-page' ? "min-h-[60vh]" : "w-full py-12",
+          this.props.className
+        )}>
+          <Card className="w-full max-w-2xl shadow-xl border-red-100">
+            <CardHeader className="text-center pb-2">
+              <div className="mx-auto w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4 border border-red-100">
+                <AlertTriangle className="w-8 h-8 text-red-500" />
               </div>
-              <CardTitle className="text-2xl text-red-800">
-                {isDOMError ? 'Error de Componente' : 'Error Inesperado'}
+              <CardTitle className="text-2xl text-red-900">
+                {isDOMError ? 'Error de Visualización' : 'Algo no salió como esperábamos'}
               </CardTitle>
-              <CardDescription className="text-gray-600">
+              <CardDescription className="text-gray-500 max-w-md mx-auto">
                 {isDOMError 
-                  ? 'Se produjo un error durante la actualización de componentes. Esto suele ser temporal.'
-                  : 'Algo salió mal. Por favor, intenta de nuevo.'
+                  ? 'Hubo un problema técnico al mostrar este contenido. No te preocupes, tus datos están seguros.'
+                  : 'El sistema encontró un error inesperado. Puedes intentar de nuevo o navegar a otra sección.'
                 }
               </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-4">
               {/* Información sobre reintentos automáticos */}
               {isDOMError && this.state.retryCount > 0 && (
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl flex items-center gap-3">
+                  <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full" />
                   <p className="text-sm text-blue-800">
-                    <span className="font-medium">Reintentos automáticos:</span> {this.state.retryCount} de {maxRetries}
+                    Reintentando automáticamente ({this.state.retryCount}/{maxRetries})...
                   </p>
-                  {this.state.retryCount < maxRetries && (
-                    <p className="text-xs text-blue-600 mt-1">
-                      El sistema intentará corregir el error automáticamente...
-                    </p>
-                  )}
                 </div>
               )}
 
@@ -168,7 +239,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 {canRetry && (
                   <Button 
                     onClick={this.handleManualRetry}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 bg-primary hover:bg-primary/90"
                   >
                     <RefreshCw className="w-4 h-4" />
                     Intentar de Nuevo
@@ -176,56 +247,40 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 )}
 
                 <Button 
-                  onClick={this.handleReload}
+                  onClick={this.handleGoBack}
                   variant="outline"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 border-gray-200 hover:bg-gray-50"
                 >
-                  <RefreshCw className="w-4 h-4" />
-                  Recargar Página
+                  <ArrowLeft className="w-4 h-4" />
+                  Ir al Inicio
                 </Button>
 
                 <Button 
-                  onClick={this.handleGoBack}
-                  variant="outline"
-                  className="flex items-center gap-2"
+                  onClick={this.handleReload}
+                  variant="ghost"
+                  className="flex items-center gap-2 text-gray-500 hover:text-gray-700"
                 >
-                  <ArrowLeft className="w-4 h-4" />
-                  Ir Atrás
+                  <RefreshCw className="w-4 h-4" />
+                  Recargar Todo
                 </Button>
               </div>
 
               {/* Detalles del error (solo en desarrollo) */}
-              {this.props.showErrorDetails && process.env.NODE_ENV === 'development' && this.state.errorInfo && (
-                <details className="mt-6 p-4 bg-gray-100 rounded-lg">
-                  <summary className="cursor-pointer font-medium text-gray-700 mb-2">
-                    Detalles del Error (Desarrollo)
+              {this.props.showErrorDetails && import.meta.env.DEV && this.state.errorInfo && (
+                <details className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <summary className="cursor-pointer font-medium text-gray-600 mb-2 text-sm">
+                    Información técnica para desarrolladores
                   </summary>
-                  <div className="space-y-2 text-xs">
-                    <div>
-                      <strong>Error:</strong>
-                      <pre className="mt-1 p-2 bg-gray-200 rounded text-red-800 overflow-auto">
-                        {this.state.error.toString()}
-                      </pre>
+                  <div className="space-y-2 text-[10px] font-mono">
+                    <div className="p-2 bg-white border border-red-100 rounded text-red-700 overflow-auto max-h-32">
+                      {this.state.error.toString()}
                     </div>
-                    <div>
-                      <strong>Stack Trace:</strong>
-                      <pre className="mt-1 p-2 bg-gray-200 rounded text-gray-700 overflow-auto max-h-40">
-                        {this.state.errorInfo.componentStack}
-                      </pre>
+                    <div className="p-2 bg-white border border-gray-100 rounded text-gray-500 overflow-auto max-h-40">
+                      {this.state.errorInfo.componentStack}
                     </div>
                   </div>
                 </details>
               )}
-
-              {/* Sugerencias para el usuario */}
-              <div className="text-center text-sm text-gray-500">
-                <p>Si el problema persiste:</p>
-                <ul className="mt-2 space-y-1">
-                  <li>• Actualiza la página</li>
-                  <li>• Verifica tu conexión a internet</li>
-                  <li>• Intenta en unos minutos</li>
-                </ul>
-              </div>
             </CardContent>
           </Card>
         </div>

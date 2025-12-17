@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Heart, AlertTriangle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -236,6 +236,29 @@ const PersonDetailCard: React.FC<{ person: SurveyPerson }> = ({ person }) => {
                   {enfermedad.nombre}
                 </Badge>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Necesidades del Enfermo */}
+        {person.necesidad_enfermo && (
+          <div className="space-y-2">
+            <h5 className="text-xs font-bold text-orange-700 uppercase tracking-wide flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3" /> Necesidades del Enfermo
+            </h5>
+            <p className="text-sm bg-orange-50 p-2 rounded border border-orange-200 text-orange-800 italic">
+              {person.necesidad_enfermo}
+            </p>
+          </div>
+        )}
+
+        {/* Solicitud de Comunión en Casa */}
+        {person.solicitudComunionCasa && (
+          <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+            <Heart className="w-5 h-5 text-blue-600" />
+            <div>
+              <p className="text-sm font-semibold text-blue-900">Solicita Comunión en Casa</p>
+              <p className="text-xs text-blue-700">Este miembro ha solicitado recibir la comunión en su domicilio.</p>
             </div>
           </div>
         )}

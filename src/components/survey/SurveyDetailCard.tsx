@@ -48,6 +48,7 @@ import { HousingInfoSection } from './sections/HousingInfoSection'
 import { FamilyMembersSection } from './sections/FamilyMembersSection'
 import { DeceasedMembersSection } from './sections/DeceasedMembersSection'
 import { MetadataSection } from './sections/MetadataSection'
+import { ObservationsSection } from './sections/ObservationsSection'
 
 interface SurveyDetailCardProps {
   survey: SurveyResponseData
@@ -305,7 +306,20 @@ export const SurveyDetailCard: React.FC<SurveyDetailCardProps> = ({
               </AccordionItem>
             )}
 
-            {/* 📅 METADATA */}
+            {/* � OBSERVACIONES */}
+            <AccordionItem value="observations" className="border-0 mb-4">
+              <AccordionTrigger className="bg-blue-50 hover:bg-blue-100 rounded-lg px-4 py-3 transition-colors">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-blue-600" />
+                  <span className="font-semibold text-blue-900">📝 Observaciones y Consentimiento</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-4 pl-4">
+                <ObservationsSection survey={survey} />
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* �📅 METADATA */}
             <AccordionItem value="metadata" className="border-0">
               <AccordionTrigger className="bg-slate-50 hover:bg-slate-100 rounded-lg px-4 py-3 transition-colors">
                 <div className="flex items-center gap-2">

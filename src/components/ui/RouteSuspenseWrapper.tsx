@@ -20,6 +20,7 @@ export const RouteSuspenseWrapper: React.FC<RouteSuspenseWrapperProps> = ({ chil
   return (
     <ErrorBoundary
       maxRetries={2}
+      resetKeys={[location.pathname]}
       showErrorDetails={process.env.NODE_ENV === 'development'}
       onError={(error, errorInfo) => {
         // Log específico para errores de ruta

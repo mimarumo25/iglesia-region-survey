@@ -35,7 +35,7 @@ import { DeceasedFamilyMember, ConfigurationItem } from "@/types/survey";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
 import { useAutocompleteConfiguration } from "@/hooks/useAutocompleteConfiguration";
 import { DeceasedMemberFormData } from "@/hooks/useDeceasedGrid";
-import ErrorBoundary from "@/components/ui/error-boundary";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { 
   DIALOG_CONFIG, 
   DIALOG_BUTTONS, 
@@ -187,7 +187,7 @@ const DeceasedMemberDialog: React.FC<DeceasedMemberDialogProps> = ({
                           Sexo
                         </FormLabel>
                         <FormControl>
-                          <ErrorBoundary>
+                          <ErrorBoundary variant="component">
                             <AutocompleteWithLoading
                               {...autocompleteProps}
                               placeholder="Seleccionar sexo"
@@ -223,7 +223,7 @@ const DeceasedMemberDialog: React.FC<DeceasedMemberDialogProps> = ({
                           Parentesco
                         </FormLabel>
                         <FormControl>
-                          <ErrorBoundary>
+                          <ErrorBoundary variant="component">
                             <AutocompleteWithLoading
                               {...autocompleteProps}
                               placeholder="Seleccionar parentesco"

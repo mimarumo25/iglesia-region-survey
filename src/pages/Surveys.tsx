@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +47,7 @@ import {
 
 // Importar hooks de servicios
 import { useConfigurationData } from "@/hooks/useConfigurationData";
-import { useEncuestas, useEncuestasList } from "@/hooks/useEncuestas";
+import { useEncuestas, useEncuestasList, ENCUESTAS_QUERY_KEYS } from "@/hooks/useEncuestas";
 import { EncuestaListItem, EncuestasSearchParams, EncuestasResponse } from "@/services/encuestas";
 import { useResponsiveTable } from "@/hooks/useResponsiveTable";
 
@@ -62,6 +63,7 @@ import "@/styles/surveys-mobile.css";
 const Surveys = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Hook para responsive design
   const { shouldUseMobileView, isMobile, isVerySmall } = useResponsiveTable();
@@ -89,6 +91,7 @@ const Surveys = () => {
   // Extraer datos del query
   const encuestasData = encuestasQuery.data;
   const encuestasLoading = encuestasQuery.isLoading;
+  const encuestasFetching = encuestasQuery.isFetching;
   const encuestasError = encuestasQuery.error;
   const refetchEncuestas = encuestasQuery.refetch;
 
@@ -275,7 +278,7 @@ const Surveys = () => {
    * Recargar datos manualmente
    */
   const handleRefresh = () => {
-    refetchEncuestas();
+    queryClient.invalidateQueries({ queryKey: ENCUESTAS_QUERY_KEYS.all });
   };
 
   /**
@@ -365,10 +368,10 @@ const Surveys = () => {
             onClick={handleRefresh}
             variant="outline"
             className="flex items-center gap-2"
-            disabled={encuestasLoading}
+            disabled={encuestasFetching}
             size={shouldUseMobileView ? "sm" : "default"}
           >
-            <RefreshCw className={`w-4 h-4 ${encuestasLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${encuestasFetching ? 'animate-spin' : ''}`} />
             {shouldUseMobileView ? "Actualizar" : "Actualizar"}
           </Button>
           <Button
@@ -1038,47 +1041,18 @@ const Surveys = () => {
   );
 };
 
-// Componente principal con error boundary simple
+// Componente principal con error boundary optimizado
 const SurveysWithSafeRenderer = () => (
   <ErrorBoundary
-    fallback={
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FileText className="w-8 h-8 text-blue-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Error al Cargar Encuestas
-            </h3>
-            <p className="text-gray-600 text-sm mb-4">
-              Hubo un problema al cargar el componente. Por favor, recarga la página.
-            </p>
-            <Button
-              onClick={() => window.location.reload()}
-              className="w-full"
-            >
-              Recargar Página
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    }
+    maxRetries={3}
+    showErrorDetails={import.meta.env.DEV}
     onError={(error, errorInfo) => {
       console.error('Error en componente Surveys:', error);
-      console.error('ErrorInfo:', errorInfo);
-
-      // Logging específico para errores de DOM
-      if (error.message?.includes('removeChild') || error.message?.includes('NotFoundError')) {
-        // DOM manipulation error - auto-recovery in 2 seconds
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      }
     }}
   >
     <Surveys />
   </ErrorBoundary>
+);
 );
 
 export default SurveysWithSafeRenderer;

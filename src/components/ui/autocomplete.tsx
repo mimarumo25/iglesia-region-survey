@@ -15,7 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import ErrorBoundary from "@/components/ui/error-boundary"
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary"
 import { trimString, trimSearchValue } from "@/utils/stringTrimHelpers"
 
 export interface AutocompleteOption {
@@ -119,7 +119,7 @@ export function Autocomplete({
   }, [filteredOptions])
 
   return (
-    <ErrorBoundary>
+    <ErrorBoundary variant="component">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button

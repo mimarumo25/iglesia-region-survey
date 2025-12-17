@@ -129,9 +129,9 @@ export const transformFormDataToSurveySession = (
       autorizacion_datos: stringToBoolean(formData.autorizacion_datos),
     },
     
-    // Miembros de familia sin IDs temporales para el backend
-    familyMembers: prepareFamilyMembersForSubmission(familyMembers),
-    deceasedMembers: prepareDeceasedMembersForSubmission(deceasedMembers),
+    // Mantener los miembros con sus IDs para el borrador
+    familyMembers: familyMembers,
+    deceasedMembers: deceasedMembers,
     
     // Metadata
     metadata: {
