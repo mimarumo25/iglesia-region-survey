@@ -1053,6 +1053,5 @@ const SurveysWithSafeRenderer = () => (
     <Surveys />
   </ErrorBoundary>
 );
-);
 
 export default SurveysWithSafeRenderer;
