@@ -82,10 +82,10 @@ export interface EncuestaListItem {
     id: string;
     nombre: string;
   } | null;
-  aguas_residuales: {
+  aguas_residuales: Array<{
     id: string;
     nombre: string;
-  } | null;
+  }>;
   miembros_familia: {
     total_miembros: number;
     personas: Array<{
@@ -136,6 +136,11 @@ export interface EncuestaListItem {
     };
     causaFallecimiento: string;
   }>;
+  observaciones: {
+    sustento_familia: string;
+    observaciones_encuestador: string;
+    autorizacion_datos: boolean;
+  };
   metadatos: {
     fecha_creacion: string;
     estado: string;
@@ -263,7 +268,7 @@ export interface EncuestasResponse {
  */
 export interface EncuestaResponse {
   success: boolean;
-  data: EncuestaCompleta;
+  data: EncuestaListItem;
   message?: string;
 }
 
@@ -322,7 +327,12 @@ class EncuestasService {
     try {
       const response = await apiClient.get(`/api/encuesta/${id}`);
 
-      return response.data;
+      // La API devuelve { status, message, data }, necesitamos extraer solo data
+      return {
+        success: response.data.status === 'success',
+        data: response.data.data, // Los datos reales están en response.data.data
+        message: response.data.message
+      };
 
     } catch (error) {
       console.error(`❌ Error al obtener encuesta ${id}:`, error);
@@ -334,7 +344,7 @@ class EncuestasService {
   /**
    * Crear nueva encuesta familiar completa
    */
-  async createEncuesta(encuestaData: Omit<EncuestaCompleta, 'id_encuesta'>): Promise<EncuestaResponse> {
+  async createEncuesta(encuestaData: Omit<EncuestaListItem, 'id_encuesta'>): Promise<EncuestaResponse> {
     try {
       const response = await apiClient.post('/api/encuesta', encuestaData);
 
@@ -352,7 +362,7 @@ class EncuestasService {
    * Actualizar campos específicos de una encuesta existente
    * Usa PATCH para actualización parcial de campos
    */
-  async updateEncuesta(id: string, encuestaData: Partial<EncuestaCompleta>): Promise<EncuestaResponse> {
+  async updateEncuesta(id: string, encuestaData: Partial<EncuestaListItem>): Promise<EncuestaResponse> {
     try {
       const response = await apiClient.patch(`/api/encuesta/${id}`, encuestaData);
 
@@ -445,7 +455,7 @@ class EncuestasService {
   /**
    * Validar datos de encuesta antes del envío
    */
-  validateEncuestaData(data: Partial<EncuestaCompleta>): { isValid: boolean; errors: string[] } {
+  validateEncuestaData(data: Partial<EncuestaListItem>): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     // Validaciones básicas

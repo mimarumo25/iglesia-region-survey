@@ -184,8 +184,14 @@ export interface SurveyResponseData {
   numero_contrato_epm: string | null;
   
   // ========================================
-  // � OBSERVACIONES Y OTROS (NUEVO)
+  // 📝 OBSERVACIONES Y OTROS (NUEVO)
   // ========================================
+  observaciones?: {
+    sustento_familia?: string;
+    observaciones_encuestador?: string;
+    autorizacion_datos?: boolean;
+  };
+  // Deprecated fields for backward compatibility
   sustento_familia?: string;
   observaciones_encuestador?: string;
   autorizacion_datos?: boolean;

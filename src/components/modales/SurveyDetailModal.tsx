@@ -37,6 +37,7 @@ import LocationSection from "@/components/modales/survey-details/LocationSection
 import ServicesSection from "@/components/modales/survey-details/ServicesSection";
 import FamilyMembersSection from "@/components/modales/survey-details/FamilyMembersSection";
 import DeceasedMembersSection from "@/components/modales/survey-details/DeceasedMembersSection";
+import ObservationsSection from "@/components/modales/survey-details/ObservationsSection";
 import MetadataSection from "@/components/modales/survey-details/MetadataSection";
 
 // Importar estilos para eliminar flickering
@@ -100,6 +101,13 @@ const TAB_CONFIGS: TabConfig[] = [
     component: DeceasedMembersSection,
     showBadge: (data) => data.deceasedMembers && data.deceasedMembers.length > 0,
     badgeCount: (data) => data.deceasedMembers ? data.deceasedMembers.length : 0,
+  },
+  {
+    id: "observations",
+    label: "Observaciones",
+    icon: FileText,
+    component: ObservationsSection,
+    showBadge: (data) => !!(data.observaciones?.sustento_familia || data.observaciones?.observaciones_encuestador),
   },
   {
     id: "metadata",

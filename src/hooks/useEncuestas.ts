@@ -6,7 +6,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { encuestasService, EncuestasSearchParams, EncuestaCompleta } from '@/services/encuestas';
+import { encuestasService, EncuestasSearchParams, EncuestaListItem } from '@/services/encuestas';
 import { useToast } from '@/hooks/use-toast';
 
 // ============================================================================
@@ -80,7 +80,7 @@ export const useEncuestas = () => {
    * Crear nueva encuesta
    */
   const createEncuesta = useMutation({
-    mutationFn: (data: Omit<EncuestaCompleta, 'id_encuesta'>) => 
+    mutationFn: (data: Omit<EncuestaListItem, 'id_encuesta'>) => 
       encuestasService.createEncuesta(data),
     onSuccess: (data) => {
       // Invalidar queries relacionadas
@@ -105,7 +105,7 @@ export const useEncuestas = () => {
    * Actualizar encuesta
    */
   const updateEncuesta = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<EncuestaCompleta> }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<EncuestaListItem> }) =>
       encuestasService.updateEncuesta(id, data),
     onSuccess: (data, variables) => {
       // Actualizar caché específico

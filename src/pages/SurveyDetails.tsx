@@ -832,7 +832,7 @@ const SurveyDetails = () => {
               </p>
               <div className="p-3 bg-white rounded-lg border border-blue-100 min-h-[80px]">
                 <p className="text-sm text-gray-700">
-                  {encuesta.sustento_familia || encuesta.socioeconomica?.fuente_ingresos || "No especificado"}
+                  {encuesta.observaciones?.sustento_familia || encuesta.sustento_familia || encuesta.socioeconomica?.fuente_ingresos || "No especificado"}
                 </p>
               </div>
             </div>
@@ -843,7 +843,7 @@ const SurveyDetails = () => {
               </p>
               <div className="p-3 bg-white rounded-lg border border-blue-100 min-h-[80px]">
                 <p className="text-sm text-gray-700">
-                  {encuesta.observaciones_encuestador || encuesta.observaciones_generales || "Sin observaciones"}
+                  {encuesta.observaciones?.observaciones_encuestador || encuesta.observaciones_encuestador || encuesta.observaciones_generales || "Sin observaciones"}
                 </p>
               </div>
             </div>

@@ -123,10 +123,10 @@ const Surveys = () => {
     const encuestasPaginaActual = encuestas.length;
     
     // Contar sectores únicos
-    const sectoresUnicos = new Set(encuestas.map(e => e.sector_id).filter(Boolean)).size;
+    const sectoresUnicos = new Set(encuestas.map(e => e.sector?.id).filter(Boolean)).size;
     
     // Contar municipios únicos
-    const municipiosUnicos = new Set(encuestas.map(e => e.municipio_id).filter(Boolean)).size;
+    const municipiosUnicos = new Set(encuestas.map(e => e.municipio?.id).filter(Boolean)).size;
     
     // Contar familias únicas (por apellido)
     const familiasUnicas = new Set(encuestas.map(e => e.apellido_familiar).filter(Boolean)).size;

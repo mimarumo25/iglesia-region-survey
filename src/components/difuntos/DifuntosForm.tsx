@@ -403,6 +403,32 @@ export const DifuntosForm = ({ onSearch, isLoading, onClearFilters }: DifuntosFo
                 )}
               />
             </div>
+
+            {/* Botones de acción */}
+            <div className="flex justify-end gap-2 pt-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleClearFilters}
+                disabled={isLoading || !hasActiveFilters}
+                className="text-xs sm:text-sm"
+              >
+                <RotateCcw className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                Limpiar
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="bg-primary hover:bg-primary/90 text-xs sm:text-sm"
+              >
+                {isLoading ? (
+                  <div className="animate-spin mr-2 h-3 w-3 sm:h-4 sm:w-4 border-2 border-current border-t-transparent rounded-full" />
+                ) : (
+                  <Search className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                )}
+                Consultar
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>

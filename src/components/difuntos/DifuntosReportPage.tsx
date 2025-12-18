@@ -72,6 +72,7 @@ export const DifuntosReportPage = () => {
    */
   const handleClearFilters = () => {
     clearFilters();
+    searchDifuntos({});
   };
 
   return (
@@ -93,18 +94,6 @@ export const DifuntosReportPage = () => {
             
             {/* Botones de acción agrupados */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-              <Button 
-                onClick={() => handleSearch({})}
-                disabled={isLoading}
-                className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-xs sm:text-sm h-9"
-              >
-                {isLoading ? (
-                  <div className="animate-spin h-3 w-3 sm:h-4 sm:w-4 border-2 border-current border-t-transparent rounded-full" />
-                ) : (
-                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-                )}
-                <span>Consultar</span>
-              </Button>
               <Button
                 variant="default"
                 onClick={exportToExcel}
