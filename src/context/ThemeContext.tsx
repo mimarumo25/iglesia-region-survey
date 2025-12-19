@@ -90,6 +90,48 @@ export const themePresets: ThemePreset[] = [
     }
   },
   {
+    name: 'teal-mia',
+    displayName: 'Verde Teal MIA',
+    description: 'Tema basado en el verde-azulado del logo MIA oficial',
+    colors: {
+      primary: '180 59% 32%', // Verde teal del logo #1B7071 ligeramente ajustado
+      primaryForeground: '0 0% 98%',
+      primaryLight: '180 59% 42%',
+      primaryDark: '180 59% 22%',
+      primaryHover: '180 59% 37%',
+      secondary: '43 67% 53%', // Dorado del logo #D4AF37
+      secondaryForeground: '0 0% 20%',
+      secondaryLight: '43 67% 63%',
+      secondaryHover: '43 67% 58%',
+      background: '0 0% 98%',
+      foreground: '0 0% 3.9%',
+      card: '0 0% 100%',
+      cardForeground: '0 0% 3.9%',
+      muted: '180 10% 96%',
+      mutedForeground: '215.4 16.3% 46.9%',
+      accent: '180 15% 94%',
+      accentForeground: '0 0% 3.9%',
+      border: '180 20% 88%',
+      input: '0 0% 100%',
+      inputBorder: '180 20% 85%',
+      ring: '180 59% 32%',
+      destructive: '0 75% 45%', // Rojo oscuro inspirado en el logo
+      destructiveForeground: '0 0% 98%',
+      success: '142 76% 36%',
+      successForeground: '0 0% 98%',
+      warning: '43 67% 53%',
+      warningForeground: '0 0% 20%',
+      sidebarBackground: '180 59% 27%', // Verde teal oscuro del logo
+      sidebarForeground: '0 0% 98%',
+      sidebarPrimary: '180 59% 20%',
+      sidebarPrimaryForeground: '0 0% 98%',
+      sidebarAccent: '180 59% 37%',
+      sidebarAccentForeground: '0 0% 98%',
+      sidebarBorder: '180 59% 22%',
+      sidebarRing: '180 59% 37%',
+    }
+  },
+  {
     name: 'default',
     displayName: 'Azul Católico',
     description: 'Tema tradicional con azul católico y dorado litúrgico',
@@ -255,6 +297,48 @@ export const themePresets: ThemePreset[] = [
       sidebarAccentForeground: '0 0% 98%',
       sidebarBorder: '330 81% 45%',
       sidebarRing: '330 81% 60%',
+    }
+  },
+  {
+    name: 'golden',
+    displayName: 'Dorado Bizantino',
+    description: 'Tema basado en el dorado del logo (#D4AF37)',
+    colors: {
+      primary: '43 67% 53%', // Dorado del logo #D4AF37
+      primaryForeground: '0 0% 20%',
+      primaryLight: '43 67% 63%',
+      primaryDark: '43 67% 43%',
+      primaryHover: '43 67% 58%',
+      secondary: '0 0% 10%', // Negro para contraste con dorado
+      secondaryForeground: '43 67% 53%',
+      secondaryLight: '0 0% 20%',
+      secondaryHover: '0 0% 15%',
+      background: '0 0% 98%',
+      foreground: '0 0% 3.9%',
+      card: '0 0% 100%',
+      cardForeground: '0 0% 3.9%',
+      muted: '43 20% 96%',
+      mutedForeground: '215.4 16.3% 46.9%',
+      accent: '43 30% 94%',
+      accentForeground: '0 0% 3.9%',
+      border: '43 30% 88%',
+      input: '0 0% 100%',
+      inputBorder: '43 30% 85%',
+      ring: '43 67% 53%',
+      destructive: '0 84.2% 60.2%',
+      destructiveForeground: '0 0% 98%',
+      success: '142 76% 36%',
+      successForeground: '0 0% 98%',
+      warning: '43 67% 53%',
+      warningForeground: '0 0% 20%',
+      sidebarBackground: '43 67% 43%', // Dorado oscuro
+      sidebarForeground: '0 0% 98%',
+      sidebarPrimary: '43 67% 38%',
+      sidebarPrimaryForeground: '0 0% 98%',
+      sidebarAccent: '43 67% 53%',
+      sidebarAccentForeground: '0 0% 20%',
+      sidebarBorder: '43 67% 48%',
+      sidebarRing: '43 67% 53%',
     }
   },
   {
