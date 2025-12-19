@@ -157,61 +157,64 @@ const ThemeCustomizer: React.FC = () => {
       </div>
 
       <Tabs defaultValue="presets" className="space-y-4 sm:space-y-6">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto min-h-[120px] sm:min-h-[50px]">
-          <TabsTrigger value="presets" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-3 text-xs sm:text-sm h-full">
+        <TabsList className="grid w-full grid-cols-3 h-auto min-h-[100px] sm:min-h-[50px] gap-2 p-2 sm:p-0">
+          <TabsTrigger value="presets" className="flex flex-col sm:flex-row items-center justify-center gap-1 p-2 sm:p-3 text-xs sm:text-sm h-auto">
             <Sparkles className="h-4 w-4 shrink-0" />
-            <span className="text-xs sm:text-sm font-medium text-center">Temas Predefinidos</span>
+            <span className="text-xs sm:text-sm font-medium text-center line-clamp-2">Temas</span>
           </TabsTrigger>
-          <TabsTrigger value="custom" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-3 text-xs sm:text-sm h-full">
+          <TabsTrigger value="custom" className="flex flex-col sm:flex-row items-center justify-center gap-1 p-2 sm:p-3 text-xs sm:text-sm h-auto">
             <Paintbrush className="h-4 w-4 shrink-0" />
-            <span className="text-xs sm:text-sm font-medium text-center">Personalizar</span>
+            <span className="text-xs sm:text-sm font-medium text-center line-clamp-2">Personalizar</span>
           </TabsTrigger>
-          <TabsTrigger value="advanced" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-3 text-xs sm:text-sm h-full">
+          <TabsTrigger value="advanced" className="flex flex-col sm:flex-row items-center justify-center gap-1 p-2 sm:p-3 text-xs sm:text-sm h-auto">
             <Settings className="h-4 w-4 shrink-0" />
-            <span className="text-xs sm:text-sm font-medium text-center">Avanzado</span>
+            <span className="text-xs sm:text-sm font-medium text-center line-clamp-2">Avanzado</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Temas Predefinidos */}
-        <TabsContent value="presets" className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <TabsContent value="presets" className="space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
             {themePresets.map((preset) => (
               <Card 
                 key={preset.name}
-                className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                className={`cursor-pointer transition-all duration-300 hover:shadow-lg overflow-hidden ${
                   currentTheme === preset.name 
                     ? 'ring-2 ring-primary shadow-lg' 
                     : 'hover:shadow-md'
                 }`}
                 onClick={() => setTheme(preset.name)}
               >
-                <CardHeader className="pb-3 p-3 sm:p-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <CardTitle className="text-base sm:text-lg text-center sm:text-left">{preset.displayName}</CardTitle>
+                <CardHeader className="pb-2 p-2 sm:p-3">
+                  <div className="flex flex-col gap-1">
+                    <CardTitle className="text-sm sm:text-base line-clamp-1">{preset.displayName}</CardTitle>
                     {currentTheme === preset.name && (
-                      <Badge variant="default" className="flex items-center gap-1 mx-auto sm:mx-0 w-fit">
+                      <Badge variant="default" className="flex items-center gap-1 w-fit text-xs">
                         <Check className="h-3 w-3" />
-                        <span className="text-xs">Activo</span>
+                        <span>Activo</span>
                       </Badge>
                     )}
                   </div>
-                  <CardDescription className="text-xs sm:text-sm text-center sm:text-left">
+                  <CardDescription className="text-xs line-clamp-2">
                     {preset.description}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="p-3 sm:p-4 pt-0">
-                  <div className="flex gap-2 justify-center sm:justify-start">
+                <CardContent className="p-2 sm:p-3 pt-0">
+                  <div className="flex gap-2 justify-start">
                     <div 
-                      className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white shadow-sm"
+                      className="w-6 h-6 rounded-full border-2 border-white shadow-sm flex-shrink-0"
                       style={{ backgroundColor: `hsl(${preset.colors.primary})` }}
+                      title={preset.colors.primary}
                     />
                     <div 
-                      className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white shadow-sm"
+                      className="w-6 h-6 rounded-full border-2 border-white shadow-sm flex-shrink-0"
                       style={{ backgroundColor: `hsl(${preset.colors.secondary})` }}
+                      title={preset.colors.secondary}
                     />
                     <div 
-                      className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white shadow-sm"
+                      className="w-6 h-6 rounded-full border-2 border-white shadow-sm flex-shrink-0"
                       style={{ backgroundColor: `hsl(${preset.colors.sidebarBackground})` }}
+                      title={preset.colors.sidebarBackground}
                     />
                   </div>
                 </CardContent>
@@ -221,40 +224,40 @@ const ThemeCustomizer: React.FC = () => {
         </TabsContent>
 
         {/* Personalización */}
-        <TabsContent value="custom" className="space-y-4 sm:space-y-6">
+        <TabsContent value="custom" className="space-y-3 sm:space-y-6">
           {/* Colores Principales */}
           <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base sm:text-lg">Colores Principales</CardTitle>
-              <CardDescription className="text-sm sm:text-base">
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="text-sm sm:text-lg">Colores Principales</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
                 Personaliza los colores principales del tema
               </CardDescription>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {mainColors.map((color) => (
                 <div key={color.key} className="space-y-2">
-                  <Label htmlFor={color.key} className="text-sm sm:text-base">{color.label}</Label>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <Input
-                      id={color.key}
-                      type="color"
-                      value={hslToHex(getColorValue(color.key))}
-                      onChange={(e) => handleColorChange(color.key, e.target.value)}
-                      className="w-full sm:w-12 h-10 sm:h-12 p-1 border-0"
-                    />
-                    <div className="flex-1">
+                  <Label htmlFor={color.key} className="text-xs sm:text-sm font-medium">{color.label}</Label>
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-shrink-0">
                       <Input
-                        value={getColorValue(color.key)}
-                        placeholder="HSL (ej: 213 100% 45%)"
-                        onChange={(e) => setTempCustomColors(prev => ({
-                          ...prev,
-                          [color.key]: e.target.value
-                        }))}
-                        className="h-10 sm:h-12 text-xs sm:text-sm"
+                        id={color.key}
+                        type="color"
+                        value={hslToHex(getColorValue(color.key))}
+                        onChange={(e) => handleColorChange(color.key, e.target.value)}
+                        className="w-14 h-10 p-1 border-2 cursor-pointer"
                       />
                     </div>
+                    <Input
+                      value={getColorValue(color.key)}
+                      placeholder="HSL"
+                      onChange={(e) => setTempCustomColors(prev => ({
+                        ...prev,
+                        [color.key]: e.target.value
+                      }))}
+                      className="flex-1 h-10 text-xs p-2"
+                    />
                   </div>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground line-clamp-2">
                     {color.description}
                   </p>
                 </div>
@@ -264,37 +267,37 @@ const ThemeCustomizer: React.FC = () => {
 
           {/* Colores del Sidebar */}
           <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base sm:text-lg">Colores del Menú Lateral</CardTitle>
-              <CardDescription className="text-sm sm:text-base">
-                Personaliza la apariencia del menú de navegación
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="text-sm sm:text-lg">Colores del Menú</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                Personaliza el menú de navegación
               </CardDescription>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {sidebarColors.map((color) => (
                 <div key={color.key} className="space-y-2">
-                  <Label htmlFor={color.key} className="text-sm sm:text-base">{color.label}</Label>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <Input
-                      id={color.key}
-                      type="color"
-                      value={hslToHex(getColorValue(color.key))}
-                      onChange={(e) => handleColorChange(color.key, e.target.value)}
-                      className="w-full sm:w-12 h-10 sm:h-12 p-1 border-0"
-                    />
-                    <div className="flex-1">
+                  <Label htmlFor={color.key} className="text-xs sm:text-sm font-medium">{color.label}</Label>
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-shrink-0">
                       <Input
-                        value={getColorValue(color.key)}
-                        placeholder="HSL (ej: 213 94% 35%)"
-                        onChange={(e) => setTempCustomColors(prev => ({
-                          ...prev,
-                          [color.key]: e.target.value
-                        }))}
-                        className="h-10 sm:h-12 text-xs sm:text-sm"
+                        id={color.key}
+                        type="color"
+                        value={hslToHex(getColorValue(color.key))}
+                        onChange={(e) => handleColorChange(color.key, e.target.value)}
+                        className="w-14 h-10 p-1 border-2 cursor-pointer"
                       />
                     </div>
+                    <Input
+                      value={getColorValue(color.key)}
+                      placeholder="HSL"
+                      onChange={(e) => setTempCustomColors(prev => ({
+                        ...prev,
+                        [color.key]: e.target.value
+                      }))}
+                      className="flex-1 h-10 text-xs p-2"
+                    />
                   </div>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground line-clamp-2">
                     {color.description}
                   </p>
                 </div>
@@ -303,39 +306,39 @@ const ThemeCustomizer: React.FC = () => {
           </Card>
 
           {/* Acciones */}
-          <div className="flex flex-col sm:flex-row justify-end gap-2">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
             <Button
               variant="outline"
               onClick={resetColors}
-              className="flex items-center gap-2 w-full sm:w-auto"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm"
             >
               <RotateCcw className="h-4 w-4" />
-              <span className="text-sm sm:text-base">Restablecer</span>
+              <span>Restablecer</span>
             </Button>
             <Button
               onClick={applyTempColors}
-              className="flex items-center gap-2 w-full sm:w-auto"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm"
             >
               <Check className="h-4 w-4" />
-              <span className="text-sm sm:text-base">Aplicar Cambios</span>
+              <span>Aplicar</span>
             </Button>
           </div>
         </TabsContent>
 
         {/* Configuración Avanzada */}
-        <TabsContent value="advanced" className="space-y-4">
+        <TabsContent value="advanced" className="space-y-3 sm:space-y-4">
           <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base sm:text-lg">Configuración Avanzada</CardTitle>
-              <CardDescription className="text-sm sm:text-base">
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="text-sm sm:text-lg">Configuración Avanzada</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
                 Opciones adicionales de personalización
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 sm:space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="text-center sm:text-left">
-                  <Label htmlFor="dark-mode" className="text-sm sm:text-base">Modo Oscuro</Label>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
+              <div className="flex items-center justify-between gap-3 pb-3 sm:pb-4 border-b">
+                <div className="flex-1">
+                  <Label htmlFor="dark-mode" className="text-xs sm:text-sm font-medium cursor-pointer">Modo Oscuro</Label>
+                  <p className="text-xs text-muted-foreground mt-1">
                     Activa el tema oscuro para toda la aplicación
                   </p>
                 </div>
@@ -346,12 +349,12 @@ const ThemeCustomizer: React.FC = () => {
                 />
               </div>
               
-              <div className="border-t pt-4">
-                <h4 className="font-medium mb-2 text-sm sm:text-base text-center sm:text-left">Información del Tema Actual</h4>
-                <div className="space-y-2 text-xs sm:text-sm text-center sm:text-left">
-                  <p><strong>Tema:</strong> {currentPreset?.displayName}</p>
-                  <p><strong>Modo:</strong> {isDarkMode ? 'Oscuro' : 'Claro'}</p>
-                  <p><strong>Personalizaciones:</strong> {Object.keys(customColors).length} colores modificados</p>
+              <div className="pt-2 sm:pt-4">
+                <h4 className="font-medium mb-3 text-xs sm:text-base">Información del Tema</h4>
+                <div className="space-y-2 text-xs sm:text-sm bg-muted/50 p-2 sm:p-3 rounded-md">
+                  <p><strong>Tema:</strong> <span className="ml-2">{currentPreset?.displayName}</span></p>
+                  <p><strong>Modo:</strong> <span className="ml-2">{isDarkMode ? 'Oscuro' : 'Claro'}</span></p>
+                  <p><strong>Personalizaciones:</strong> <span className="ml-2">{Object.keys(customColors).length}</span></p>
                 </div>
               </div>
             </CardContent>
