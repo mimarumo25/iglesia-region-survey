@@ -198,7 +198,7 @@ const Login = () => {
           <div className="relative group">
             <div className="flex items-center justify-center">
               <img 
-                src="/logo_mia_oficial.svg" 
+                src="/logo_mia__oficial_2.svg" 
                 alt="MIA - Sistema de Gestión Integral" 
                 className="w-[600px] h-[600px] object-contain hover:scale-105 transition-transform duration-300"
               />

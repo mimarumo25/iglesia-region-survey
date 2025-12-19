@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Pagination, 
   PaginationContent, 
@@ -21,7 +22,7 @@ import {
   PaginationPrevious,
   PaginationEllipsis
 } from "@/components/ui/pagination";
-import { Loader2, Users, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, Users, CheckCircle2, XCircle, MapPin, Phone, Mail, Home, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PersonaConsolidada } from "@/types/personas";
 
@@ -181,150 +182,315 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Scroll horizontal en móvil */}
-        <div className="rounded-md border overflow-x-auto">
-          <div className="min-w-[800px]">
+        {/* VISTA MÓVIL - Tarjetas */}
+        <div className="block lg:hidden space-y-3">
+          <ScrollArea className="h-auto">
+            {personas.map((persona) => (
+              <div key={persona.id_personas} className="pr-4">
+                <Card className="border-l-4 border-l-primary hover:shadow-md transition-shadow">
+                  <CardContent className="p-4 space-y-3">
+                    {/* Header - Nombre y Documento */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-base truncate text-primary">
+                          {formatValue(persona.nombre_completo)}
+                        </h3>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                          <User className="h-3 w-3 flex-shrink-0" />
+                          Doc: {formatValue(persona.documento)} ({formatValue(persona.tipo_identificacion)})
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="flex-shrink-0">
+                        {formatValue(persona.edad)} años
+                      </Badge>
+                    </div>
+
+                    {/* Información Personal */}
+                    <div className="grid grid-cols-2 gap-2 text-xs border-t pt-2">
+                      <div>
+                        <p className="text-muted-foreground font-medium">Sexo</p>
+                        <p className="font-medium">{formatValue(persona.sexo)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground font-medium">Fecha Nac.</p>
+                        <p className="font-medium text-xs">{formatDate(persona.fecha_nacimiento)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground font-medium">Estado Civil</p>
+                        <p className="font-medium">{formatValue(persona.estado_civil)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground font-medium">Profesión</p>
+                        <p className="font-medium">{formatValue(persona.profesion)}</p>
+                      </div>
+                    </div>
+
+                    {/* Contacto */}
+                    {(persona.telefono || persona.correo_electronico) && (
+                      <div className="border-t pt-2 space-y-1 text-xs">
+                        <p className="text-muted-foreground font-medium">Contacto</p>
+                        {persona.telefono && (
+                          <p className="flex items-center gap-2">
+                            <Phone className="h-3 w-3 flex-shrink-0 text-primary" />
+                            <span className="font-medium">{formatValue(persona.telefono)}</span>
+                          </p>
+                        )}
+                        {persona.correo_electronico && (
+                          <p className="flex items-center gap-2">
+                            <Mail className="h-3 w-3 flex-shrink-0 text-primary" />
+                            <span className="font-medium truncate">{formatValue(persona.correo_electronico)}</span>
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Ubicación - Personal */}
+                    {persona.direccion_personal && (
+                      <div className="border-t pt-2 space-y-1 text-xs">
+                        <p className="text-muted-foreground font-medium flex items-center gap-1">
+                          <Home className="h-3 w-3" /> Dirección Personal
+                        </p>
+                        <p className="font-medium">{formatValue(persona.direccion_personal)}</p>
+                      </div>
+                    )}
+
+                    {/* Ubicación Geográfica */}
+                    <div className="border-t pt-2 space-y-1 text-xs">
+                      <p className="text-muted-foreground font-medium flex items-center gap-1">
+                        <MapPin className="h-3 w-3" /> Ubicación Geográfica
+                      </p>
+                      <div className="grid grid-cols-2 gap-1">
+                        <div>
+                          <span className="text-muted-foreground text-xs">Municipio</span>
+                          <p className="font-medium">{formatValue(persona.municipio)}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs">Parroquia</span>
+                          <p className="font-medium">{formatValue(persona.parroquia)}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs">Sector</span>
+                          <p className="font-medium">{formatValue(persona.sector)}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs">Vereda</span>
+                          <p className="font-medium">{formatValue(persona.vereda)}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Información Familiar */}
+                    {(persona.apellido_familiar || persona.direccion_familia || persona.parentesco) && (
+                      <div className="border-t pt-2 space-y-1 text-xs">
+                        <p className="text-muted-foreground font-medium">Familia</p>
+                        <div className="grid grid-cols-2 gap-1">
+                          {persona.apellido_familiar && (
+                            <div>
+                              <span className="text-muted-foreground text-xs">Apellido Familiar</span>
+                              <p className="font-medium">{formatValue(persona.apellido_familiar)}</p>
+                            </div>
+                          )}
+                          {persona.parentesco && (
+                            <div>
+                              <span className="text-muted-foreground text-xs">Parentesco</span>
+                              <p className="font-medium">{formatValue(persona.parentesco)}</p>
+                            </div>
+                          )}
+                        </div>
+                        {persona.direccion_familia && (
+                          <div className="col-span-2">
+                            <span className="text-muted-foreground text-xs">Dirección Familia</span>
+                            <p className="font-medium">{formatValue(persona.direccion_familia)}</p>
+                          </div>
+                        )}
+                        {persona.telefono_familia && (
+                          <p className="col-span-2 font-medium">Tel: {formatValue(persona.telefono_familia)}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Tallas */}
+                    {(persona.talla_camisa || persona.talla_pantalon || persona.talla_zapato) && (
+                      <div className="border-t pt-2 space-y-1 text-xs">
+                        <p className="text-muted-foreground font-medium">Tallas</p>
+                        <div className="flex gap-2 flex-wrap">
+                          {persona.talla_camisa && (
+                            <Badge variant="secondary" className="text-xs">
+                              Camisa: {formatValue(persona.talla_camisa)}
+                            </Badge>
+                          )}
+                          {persona.talla_pantalon && (
+                            <Badge variant="secondary" className="text-xs">
+                              Pantalón: {formatValue(persona.talla_pantalon)}
+                            </Badge>
+                          )}
+                          {persona.talla_zapato && (
+                            <Badge variant="secondary" className="text-xs">
+                              Zapato: {formatValue(persona.talla_zapato)}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Servicios Sanitarios */}
+                    {(persona.pozo_septico !== undefined || persona.letrina !== undefined || persona.campo_abierto !== undefined) && (
+                      <div className="border-t pt-2 space-y-2 text-xs">
+                        <p className="text-muted-foreground font-medium">Servicios Sanitarios</p>
+                        <div className="space-y-1">
+                          {persona.pozo_septico !== undefined && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Pozo Séptico:</span>
+                              {formatBoolean(persona.pozo_septico)}
+                            </div>
+                          )}
+                          {persona.letrina !== undefined && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Letrina:</span>
+                              {formatBoolean(persona.letrina)}
+                            </div>
+                          )}
+                          {persona.campo_abierto !== undefined && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Campo Abierto:</span>
+                              {formatBoolean(persona.campo_abierto)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Manejo de Basura */}
+                    {(persona.basura_recolector !== undefined || persona.basura_quemada !== undefined) && (
+                      <div className="border-t pt-2 space-y-2 text-xs">
+                        <p className="text-muted-foreground font-medium">Manejo de Basura</p>
+                        <div className="space-y-1">
+                          {persona.basura_recolector !== undefined && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Recolector:</span>
+                              {formatBoolean(persona.basura_recolector)}
+                            </div>
+                          )}
+                          {persona.basura_quemada !== undefined && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Quemada:</span>
+                              {formatBoolean(persona.basura_quemada)}
+                            </div>
+                          )}
+                          {persona.basura_enterrada !== undefined && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Enterrada:</span>
+                              {formatBoolean(persona.basura_enterrada)}
+                            </div>
+                          )}
+                          {persona.basura_recicla !== undefined && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Reciclaje:</span>
+                              {formatBoolean(persona.basura_recicla)}
+                            </div>
+                          )}
+                          {persona.basura_aire_libre !== undefined && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Aire Libre:</span>
+                              {formatBoolean(persona.basura_aire_libre)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Destrezas */}
+                    {persona.destrezas && persona.destrezas.length > 0 && (
+                      <div className="border-t pt-2 space-y-1 text-xs">
+                        <p className="text-muted-foreground font-medium">Destrezas</p>
+                        <div className="flex flex-wrap gap-1">
+                          {persona.destrezas.map((destreza, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {destreza}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
+          </ScrollArea>
+        </div>
+
+        {/* VISTA TABLET - Tabla Simplificada (solo lg+) */}
+        <div className="hidden lg:block rounded-md border overflow-x-auto">
+          <div className="min-w-full">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   {/* Información Personal */}
                   <TableHead className="font-semibold min-w-[200px] sticky left-0 bg-muted/50 z-10">Nombre Completo</TableHead>
-                <TableHead className="font-semibold min-w-[120px]">Documento</TableHead>
-                <TableHead className="font-semibold min-w-[150px]">Tipo Identificación</TableHead>
-                <TableHead className="font-semibold min-w-[80px]">Edad</TableHead>
-                <TableHead className="font-semibold min-w-[150px]">Fecha Nacimiento</TableHead>
-                <TableHead className="font-semibold min-w-[100px]">Sexo</TableHead>
-                
-                {/* Contacto */}
-                <TableHead className="font-semibold min-w-[130px]">Teléfono</TableHead>
-                <TableHead className="font-semibold min-w-[200px]">Correo Electrónico</TableHead>
-                <TableHead className="font-semibold min-w-[250px]">Dirección Personal</TableHead>
-                
-                {/* Ubicación Geográfica */}
-                <TableHead className="font-semibold min-w-[150px]">Municipio</TableHead>
-                <TableHead className="font-semibold min-w-[180px]">Parroquia</TableHead>
-                <TableHead className="font-semibold min-w-[150px]">Sector</TableHead>
-                <TableHead className="font-semibold min-w-[180px]">Vereda</TableHead>
-                
-                {/* Información Familiar */}
-                <TableHead className="font-semibold min-w-[250px]">Dirección Familia</TableHead>
-                <TableHead className="font-semibold min-w-[180px]">Apellido Familiar</TableHead>
-                <TableHead className="font-semibold min-w-[120px]">Parentesco</TableHead>
-                <TableHead className="font-semibold min-w-[130px]">Teléfono Familia</TableHead>
-                <TableHead className="font-semibold min-w-[140px]">Fecha Registro</TableHead>
-                
-                {/* Vivienda */}
-                <TableHead className="font-semibold min-w-[120px]">Tipo Vivienda</TableHead>
-                
-                {/* Servicios Sanitarios (Booleanos) */}
-                <TableHead className="font-semibold min-w-[120px]">Pozo Séptico</TableHead>
-                <TableHead className="font-semibold min-w-[100px]">Letrina</TableHead>
-                <TableHead className="font-semibold min-w-[130px]">Campo Abierto</TableHead>
-                
-                {/* Manejo de Basura (Booleanos) */}
-                <TableHead className="font-semibold min-w-[140px]">Recolector Basura</TableHead>
-                <TableHead className="font-semibold min-w-[130px]">Basura Quemada</TableHead>
-                <TableHead className="font-semibold min-w-[140px]">Basura Enterrada</TableHead>
-                <TableHead className="font-semibold min-w-[130px]">Basura Recicla</TableHead>
-                <TableHead className="font-semibold min-w-[140px]">Basura Aire Libre</TableHead>
-                
-                {/* Datos Personales */}
-                <TableHead className="font-semibold min-w-[130px]">Estado Civil</TableHead>
-                <TableHead className="font-semibold min-w-[150px]">Profesión</TableHead>
-                <TableHead className="font-semibold min-w-[150px]">Estudios</TableHead>
-                <TableHead className="font-semibold min-w-[180px]">Comunidad Cultural</TableHead>
-                <TableHead className="font-semibold min-w-[300px]">Liderazgo</TableHead>
-                
-                {/* Tallas */}
-                <TableHead className="font-semibold min-w-[110px]">Talla Camisa</TableHead>
-                <TableHead className="font-semibold min-w-[120px]">Talla Pantalón</TableHead>
-                <TableHead className="font-semibold min-w-[110px]">Talla Zapato</TableHead>
-                
-                {/* Salud */}
-                <TableHead className="font-semibold min-w-[200px]">Necesidad Enfermo</TableHead>
-                
-                {/* Celebraciones */}
-                <TableHead className="font-semibold min-w-[180px]">Motivo Celebrar</TableHead>
-                <TableHead className="font-semibold min-w-[100px]">Día Celebrar</TableHead>
-                <TableHead className="font-semibold min-w-[120px]">Mes Celebrar</TableHead>
-                
-                {/* Destrezas (Array) */}
-                <TableHead className="font-semibold min-w-[200px]">Destrezas</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {personas.map((persona) => (
-                <TableRow key={persona.id_personas} className="hover:bg-muted/30">
-                  {/* Información Personal */}
-                  <TableCell className="font-medium sticky left-0 bg-background z-10">
-                    {formatValue(persona.nombre_completo)}
-                  </TableCell>
-                  <TableCell>{formatValue(persona.documento)}</TableCell>
-                  <TableCell>{formatValue(persona.tipo_identificacion)}</TableCell>
-                  <TableCell className="text-center">{formatValue(persona.edad)}</TableCell>
-                  <TableCell>{formatDate(persona.fecha_nacimiento)}</TableCell>
-                  <TableCell>{formatValue(persona.sexo)}</TableCell>
+                  <TableHead className="font-semibold min-w-[120px]">Documento</TableHead>
+                  <TableHead className="font-semibold min-w-[100px]">Edad</TableHead>
+                  <TableHead className="font-semibold min-w-[100px]">Sexo</TableHead>
                   
                   {/* Contacto */}
-                  <TableCell>{formatValue(persona.telefono)}</TableCell>
-                  <TableCell className="text-xs">{formatValue(persona.correo_electronico)}</TableCell>
-                  <TableCell>{formatValue(persona.direccion_personal)}</TableCell>
+                  <TableHead className="font-semibold min-w-[130px]">Teléfono</TableHead>
+                  <TableHead className="font-semibold min-w-[180px]">Correo</TableHead>
                   
                   {/* Ubicación Geográfica */}
-                  <TableCell>{formatValue(persona.municipio)}</TableCell>
-                  <TableCell>{formatValue(persona.parroquia)}</TableCell>
-                  <TableCell>{formatValue(persona.sector)}</TableCell>
-                  <TableCell>{formatValue(persona.vereda)}</TableCell>
+                  <TableHead className="font-semibold min-w-[140px]">Municipio</TableHead>
+                  <TableHead className="font-semibold min-w-[150px]">Parroquia</TableHead>
+                  <TableHead className="font-semibold min-w-[120px]">Sector</TableHead>
                   
                   {/* Información Familiar */}
-                  <TableCell>{formatValue(persona.direccion_familia)}</TableCell>
-                  <TableCell>{formatValue(persona.apellido_familiar)}</TableCell>
-                  <TableCell>{formatValue(persona.parentesco)}</TableCell>
-                  <TableCell>{formatValue(persona.telefono_familia)}</TableCell>
-                  <TableCell>{formatDate(persona.fecha_registro)}</TableCell>
-                  
-                  {/* Vivienda */}
-                  <TableCell>{formatValue(persona.tipo_vivienda)}</TableCell>
-                  
-                  {/* Servicios Sanitarios */}
-                  <TableCell>{formatBoolean(persona.pozo_septico)}</TableCell>
-                  <TableCell>{formatBoolean(persona.letrina)}</TableCell>
-                  <TableCell>{formatBoolean(persona.campo_abierto)}</TableCell>
-                  
-                  {/* Manejo de Basura */}
-                  <TableCell>{formatBoolean(persona.basura_recolector)}</TableCell>
-                  <TableCell>{formatBoolean(persona.basura_quemada)}</TableCell>
-                  <TableCell>{formatBoolean(persona.basura_enterrada)}</TableCell>
-                  <TableCell>{formatBoolean(persona.basura_recicla)}</TableCell>
-                  <TableCell>{formatBoolean(persona.basura_aire_libre)}</TableCell>
+                  <TableHead className="font-semibold min-w-[130px]">Parentesco</TableHead>
+                  <TableHead className="font-semibold min-w-[160px]">Apellido Familiar</TableHead>
                   
                   {/* Datos Personales */}
-                  <TableCell>{formatValue(persona.estado_civil)}</TableCell>
-                  <TableCell>{formatValue(persona.profesion)}</TableCell>
-                  <TableCell>{formatValue(persona.estudios)}</TableCell>
-                  <TableCell>{formatValue(persona.comunidad_cultural)}</TableCell>
-                  <TableCell className="max-w-[300px] truncate" title={formatValue(persona.liderazgo)}>
-                    {formatValue(persona.liderazgo)}
-                  </TableCell>
+                  <TableHead className="font-semibold min-w-[120px]">Estado Civil</TableHead>
+                  <TableHead className="font-semibold min-w-[140px]">Profesión</TableHead>
                   
                   {/* Tallas */}
-                  <TableCell className="text-center">{formatValue(persona.talla_camisa)}</TableCell>
-                  <TableCell className="text-center">{formatValue(persona.talla_pantalon)}</TableCell>
-                  <TableCell className="text-center">{formatValue(persona.talla_zapato)}</TableCell>
-                  
-                  {/* Salud */}
-                  <TableCell>{formatValue(persona.necesidad_enfermo)}</TableCell>
-                  
-                  {/* Celebraciones */}
-                  <TableCell>{formatValue(persona.motivo_celebrar)}</TableCell>
-                  <TableCell className="text-center">{formatValue(persona.dia_celebrar)}</TableCell>
-                  <TableCell className="text-center">{formatValue(persona.mes_celebrar)}</TableCell>
-                  
-                  {/* Destrezas */}
-                  <TableCell>{formatArray(persona.destrezas)}</TableCell>
+                  <TableHead className="font-semibold min-w-[90px] text-center">Camisa</TableHead>
+                  <TableHead className="font-semibold min-w-[90px] text-center">Pantalón</TableHead>
+                  <TableHead className="font-semibold min-w-[90px] text-center">Zapato</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
+              </TableHeader>
+              <TableBody>
+                {personas.map((persona) => (
+                  <TableRow key={persona.id_personas} className="hover:bg-muted/30">
+                    {/* Información Personal */}
+                    <TableCell className="font-medium sticky left-0 bg-background z-10">
+                      {formatValue(persona.nombre_completo)}
+                    </TableCell>
+                    <TableCell className="text-sm">{formatValue(persona.documento)}</TableCell>
+                    <TableCell className="text-center text-sm">{formatValue(persona.edad)}</TableCell>
+                    <TableCell className="text-sm">{formatValue(persona.sexo)}</TableCell>
+                    
+                    {/* Contacto */}
+                    <TableCell className="text-sm">{formatValue(persona.telefono)}</TableCell>
+                    <TableCell className="text-xs truncate" title={formatValue(persona.correo_electronico)}>
+                      {formatValue(persona.correo_electronico)}
+                    </TableCell>
+                    
+                    {/* Ubicación Geográfica */}
+                    <TableCell className="text-sm">{formatValue(persona.municipio)}</TableCell>
+                    <TableCell className="text-sm">{formatValue(persona.parroquia)}</TableCell>
+                    <TableCell className="text-sm">{formatValue(persona.sector)}</TableCell>
+                    
+                    {/* Información Familiar */}
+                    <TableCell className="text-sm">{formatValue(persona.parentesco)}</TableCell>
+                    <TableCell className="text-sm">{formatValue(persona.apellido_familiar)}</TableCell>
+                    
+                    {/* Datos Personales */}
+                    <TableCell className="text-sm">{formatValue(persona.estado_civil)}</TableCell>
+                    <TableCell className="text-sm">{formatValue(persona.profesion)}</TableCell>
+                    
+                    {/* Tallas */}
+                    <TableCell className="text-center text-sm">{formatValue(persona.talla_camisa)}</TableCell>
+                    <TableCell className="text-center text-sm">{formatValue(persona.talla_pantalon)}</TableCell>
+                    <TableCell className="text-center text-sm">{formatValue(persona.talla_zapato)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
           </Table>
           </div>
         </div>
@@ -404,7 +570,7 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
         
         {/* Información de paginación */}
         <div className="text-xs sm:text-sm text-muted-foreground text-center pt-2">
-          💡 <strong>Tip:</strong> Desplázate horizontalmente para ver todos los campos
+          💡 <strong>Tip:</strong> En móvil ves tarjetas completas. En desktop, tabla con scroll horizontal. En tablet, tabla simplificada.
         </div>
       </CardContent>
     </Card>
