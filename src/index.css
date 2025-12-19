@@ -19,6 +19,9 @@
 /* Import form mobile optimizations */
 @import './styles/form-mobile-optimizations.css';
 
+/* Import theme enhanced styles - Mejoras de contraste y transiciones */
+@import './styles/theme-enhanced.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -32,52 +35,52 @@ All colors MUST be HSL - MIA Verde y Azul Temático
     /* Border radius */
     --radius: 0.75rem;
 
-    /* Base colors - High contrast for accessibility */
-    --background: 0 0% 96%; /* Fondo muy claro para contraste */
-    --foreground: 0 0% 3.9%;
+    /* Base colors - Ultra high contrast optimizado */
+    --background: 0 0% 98%; /* Blanco más puro */
+    --foreground: 0 0% 8%; /* Negro más profundo */
 
-    /* Card components */
-    --card: 0 0% 98%; /* Cards con fondo casi blanco */
-    --card-foreground: 0 0% 3.9%;
+    /* Card components - Mayor contraste */
+    --card: 0 0% 100%; /* Blanco puro para cards */
+    --card-foreground: 0 0% 8%;
 
     /* Popover elements */
-    --popover: 0 0% 98%;
-    --popover-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 8%;
 
-    /* Primary - Verde MIA (inspirado en el logo) */
-    --primary: 142 76% 36%; /* Verde MIA principal */
-    --primary-foreground: 0 0% 98%;
-    --primary-light: 142 76% 46%; /* Verde más claro */
-    --primary-dark: 142 76% 26%; /* Verde más oscuro */
-    --primary-hover: 142 76% 41%; /* Verde hover */
+    /* Primary - Verde MIA optimizado para contraste */
+    --primary: 142 71% 39%; /* Verde más balanceado */
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 142 65% 50%; /* Más claro y vibrante */
+    --primary-dark: 142 76% 28%; /* Más oscuro */
+    --primary-hover: 142 68% 42%; /* Hover suave */
 
-    /* Secondary - Azul complementario MIA */
-    --secondary: 197 71% 52%; /* Azul complementario */
-    --secondary-foreground: 0 0% 98%;
-    --secondary-light: 197 71% 62%; /* Azul más claro */
-    --secondary-hover: 197 71% 57%; /* Azul hover */
+    /* Secondary - Azul con mejor contraste */
+    --secondary: 197 71% 48%; /* Azul más profundo */
+    --secondary-foreground: 0 0% 100%;
+    --secondary-light: 197 65% 58%; /* Más claro */
+    --secondary-hover: 197 68% 52%; /* Hover equilibrado */
 
-    /* Muted backgrounds - tonos neutros */
-    --muted: 0 0% 92%;
-    --muted-foreground: 215.4 16.3% 35%; /* Texto más oscuro para mejor contraste */
+    /* Muted backgrounds - Mayor separación visual */
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 25%; /* Mucho más oscuro */
 
-    /* Accent colors - tonos neutros complementarios */
-    --accent: 0 0% 94%;
-    --accent-foreground: 0 0% 3.9%;
+    /* Accent colors - Contraste mejorado */
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 8%;
 
-    /* Status colors - usando verdes y azules de MIA */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --success: 142 76% 36%; /* Verde MIA para success */
-    --success-foreground: 0 0% 98%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 98%;
+    /* Status colors - Colores más vibrantes y visibles */
+    --destructive: 0 72% 51%; /* Rojo más equilibrado */
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 39%; /* Verde consistente */
+    --success-foreground: 0 0% 100%;
+    --warning: 38 96% 56%; /* Amarillo más visible */
+    --warning-foreground: 0 0% 8%; /* Negro para mejor contraste */
 
-    /* Form elements - tonos neutros claros */
-    --border: 214.3 31.8% 91.4%;
-    --input: 0 0% 96%; /* Input con fondo muy claro */
-    --input-border: 142 20% 85%; /* Borde sutil verde */
-    --ring: 142 76% 36%; /* Ring verde MIA */
+    /* Form elements - Bordes más definidos */
+    --border: 0 0% 88%; /* Borde más oscuro */
+    --input: 0 0% 100%; /* Blanco puro */
+    --input-border: 0 0% 82%; /* Borde visible */
+    --ring: 142 71% 39%; /* Ring consistente */
 
     /* Gradientes MIA - Verde y Azul temáticos */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-light)) 50%, hsl(var(--primary-hover)) 100%);
@@ -99,71 +102,84 @@ All colors MUST be HSL - MIA Verde y Azul Temático
     --shadow-hover: 0 4px 8px -2px hsl(var(--primary) / 0.05), 0 2px 4px -1px hsl(var(--primary) / 0.02); /* Más sutil */
     --shadow-active: 0 2px 4px -1px hsl(var(--primary) / 0.08), 0 1px 2px -1px hsl(var(--primary) / 0.04); /* Más sutil */
 
-  /* Transiciones optimizadas para mejor rendimiento */
-  --transition-smooth: all 0.2s ease-in-out;
-  --transition-fast: all 0.1s ease-in-out;
-  --transition-slow: all 0.3s ease-in-out;
-  --transition-bounce: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  --transition-elastic: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  --transition-spring: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);    /* Sidebar MIA - usando verde oscuro del tema */
-    --sidebar-background: 142 76% 26%; /* Verde MIA oscuro */
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 142 76% 20%; /* Verde MIA más oscuro */
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 142 76% 36%; /* Verde MIA principal */
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 142 76% 22%; /* Verde MIA borde */
-    --sidebar-ring: 142 76% 36%; /* Verde MIA ring */
+  /* Transiciones ultra suaves optimizadas para cambios de tema */
+  --transition-theme: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                      color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                      border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-elastic: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-spring: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  /* Sidebar MIA - Verde oscuro profesional */
+  --sidebar-background: 142 65% 32%; /* Verde MIA equilibrado */
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 142 70% 28%; /* Verde más oscuro */
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 142 60% 45%; /* Verde accent visible */
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 142 50% 24%; /* Borde sutil */
+  --sidebar-ring: 142 71% 39%; /* Ring consistente */
   }
 
   .dark {
-    /* Dark mode con contraste alto */
-    --background: 0 0% 8% !important;
-    --foreground: 0 0% 95% !important;
+    /* Dark mode ultra optimizado para el ojo humano */
+    --background: 222 14% 11% !important; /* Azul oscuro suave */
+    --foreground: 0 0% 96% !important; /* Blanco más puro */
 
-    --card: 0 0% 12% !important;
-    --card-foreground: 0 0% 95% !important;
+    /* Cards con contraste óptimo */
+    --card: 222 14% 14% !important; /* Ligeramente más claro que bg */
+    --card-foreground: 0 0% 96% !important;
 
-    --popover: 0 0% 12% !important;
-    --popover-foreground: 0 0% 95% !important;
+    --popover: 222 14% 14% !important;
+    --popover-foreground: 0 0% 96% !important;
 
-    --primary: 213 60% 55% !important; /* Ajustado para dark mode */
-    --primary-foreground: 0 0% 98% !important;
-    --primary-light: 213 60% 65% !important;
-    --primary-dark: 213 60% 45% !important;
-    --primary-hover: 213 60% 60% !important;
+    /* Primary verde MIA adaptado a dark */
+    --primary: 142 60% 50% !important; /* Verde más luminoso */
+    --primary-foreground: 222 14% 11% !important; /* Texto oscuro */
+    --primary-light: 142 55% 60% !important; /* Más brillante */
+    --primary-dark: 142 65% 40% !important; /* Más oscuro */
+    --primary-hover: 142 58% 54% !important; /* Hover vibrante */
 
-    --secondary: 32 60% 60% !important; /* Ajustado para dark mode */
-    --secondary-foreground: 0 0% 98% !important;
-    --secondary-light: 32 60% 70% !important;
-    --secondary-hover: 32 60% 65% !important;
+    /* Secondary azul optimizado */
+    --secondary: 197 65% 55% !important; /* Azul más luminoso */
+    --secondary-foreground: 222 14% 11% !important;
+    --secondary-light: 197 60% 65% !important;
+    --secondary-hover: 197 63% 58% !important;
 
-    --muted: 0 0% 15% !important;
-    --muted-foreground: 215 15% 60% !important;
+    /* Muted con mejor legibilidad */
+    --muted: 222 12% 18% !important; /* Más claro */
+    --muted-foreground: 0 0% 70% !important; /* Mucho más claro */
 
-    --accent: 0 0% 18% !important;
-    --accent-foreground: 0 0% 95% !important;
+    /* Accent mejorado */
+    --accent: 222 12% 20% !important; /* Más visible */
+    --accent-foreground: 0 0% 96% !important;
 
-    --destructive: 0 84.2% 60.2% !important;
-    --destructive-foreground: 0 0% 98% !important;
-    --success: 142 76% 36% !important;
-    --success-foreground: 0 0% 98% !important;
-    --warning: 38 92% 50% !important;
-    --warning-foreground: 0 0% 98% !important;
+    /* Status colors vibrantes para dark */
+    --destructive: 0 68% 58% !important; /* Rojo visible */
+    --destructive-foreground: 0 0% 100% !important;
+    --success: 142 60% 50% !important; /* Verde brillante */
+    --success-foreground: 222 14% 11% !important; /* Texto oscuro */
+    --warning: 38 88% 58% !important; /* Amarillo luminoso */
+    --warning-foreground: 222 14% 11% !important; /* Texto oscuro */
 
-    --border: 0 0% 25% !important;
-    --input: 0 0% 18% !important;
-    --input-border: 0 0% 30% !important;
-    --ring: 213 60% 55% !important;
+    /* Form elements con bordes visibles */
+    --border: 222 10% 28% !important; /* Borde más claro */
+    --input: 222 12% 16% !important; /* Input ligeramente más claro */
+    --input-border: 222 10% 32% !important; /* Borde bien visible */
+    --ring: 142 60% 50% !important;
 
-    --sidebar-background: 0 0% 10% !important;
-    --sidebar-foreground: 0 0% 90% !important;
-    --sidebar-primary: 213 60% 45% !important;
-    --sidebar-primary-foreground: 0 0% 98% !important;
-    --sidebar-accent: 213 60% 55% !important;
-    --sidebar-accent-foreground: 0 0% 90% !important;
-    --sidebar-border: 0 0% 25% !important;
-    --sidebar-ring: 213 60% 55% !important;
+    /* Sidebar con gradiente sutil */
+    --sidebar-background: 222 16% 12% !important; /* Ligeramente diferente */
+    --sidebar-foreground: 0 0% 94% !important;
+    --sidebar-primary: 222 14% 10% !important;
+    --sidebar-primary-foreground: 0 0% 96% !important;
+    --sidebar-accent: 142 60% 50% !important; /* Verde MIA */
+    --sidebar-accent-foreground: 222 14% 11% !important;
+    --sidebar-border: 222 10% 24% !important;
+    --sidebar-ring: 142 60% 50% !important;
 
     /* Actualizar gradientes para modo oscuro */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-light)) 50%, hsl(var(--primary-hover)) 100%) !important;
@@ -177,12 +193,16 @@ All colors MUST be HSL - MIA Verde y Azul Temático
 @layer base {
   * {
     @apply border-border;
+    /* Transiciones suaves para cambio de tema en todos los elementos */
+    transition: var(--transition-theme);
   }
 
   html {
     font-size: 16px; /* Base font size - 16px */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Scroll suave */
+    scroll-behavior: smooth;
   }
 
   body {
@@ -194,6 +214,9 @@ All colors MUST be HSL - MIA Verde y Azul Temático
     font-weight: 400;
     letter-spacing: -0.01em; /* Better letter spacing */
     text-rendering: optimizeLegibility;
+    /* Transición suave para background */
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Typography hierarchy with improved sizing */
@@ -286,43 +309,112 @@ All colors MUST be HSL - MIA Verde y Azul Temático
 }
 
 @layer components {
-  /* Componentes especializados para el sistema parroquial */
+  /* ===== TRANSICIONES SINCRONIZADAS PARA TODOS LOS COMPONENTES ===== */
+  
+  /* Aplicar transición consistente a todos los componentes shadcn/ui */
+  [class*="bg-"],
+  [class*="border-"],
+  [class*="text-"],
+  button,
+  input,
+  select,
+  textarea,
+  [role="button"],
+  [role="dialog"],
+  [role="menu"],
+  .card,
+  .button,
+  nav,
+  aside,
+  header,
+  main {
+    transition: background-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+                color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1),
+                fill 300ms cubic-bezier(0.4, 0, 0.2, 1),
+                stroke 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Componentes especializados con mejor contraste */
   .parish-card {
-    @apply bg-card rounded-xl border border-border p-6 shadow-card;
-    background: var(--gradient-card);
+    @apply bg-card rounded-xl border-2 border-border p-6;
+    box-shadow: 0 2px 8px hsl(var(--foreground) / 0.06);
+    transition: background-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s ease;
+  }
+
+  .parish-card:hover {
+    box-shadow: 0 4px 12px hsl(var(--foreground) / 0.10);
   }
 
   .parish-button-primary {
-    @apply bg-primary text-primary-foreground font-medium px-6 py-3 rounded-lg shadow-md;
-    background: hsl(var(--primary));
+    @apply bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-lg;
+    box-shadow: 0 2px 6px hsl(var(--primary) / 0.25);
+    transition: var(--transition-smooth);
+  }
+
+  .parish-button-primary:hover {
+    @apply brightness-110;
+    box-shadow: 0 4px 10px hsl(var(--primary) / 0.35);
   }
 
   .parish-button-secondary {
-    @apply bg-secondary text-secondary-foreground font-medium px-6 py-3 rounded-lg shadow-md;
-    background: hsl(var(--secondary));
+    @apply bg-secondary text-secondary-foreground font-semibold px-6 py-3 rounded-lg;
+    box-shadow: 0 2px 6px hsl(var(--secondary) / 0.25);
+    transition: var(--transition-smooth);
+  }
+
+  .parish-button-secondary:hover {
+    @apply brightness-110;
+    box-shadow: 0 4px 10px hsl(var(--secondary) / 0.35);
   }
 
   .parish-input {
-    @apply bg-input border border-input-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground;
+    @apply bg-input border-2 border-input-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground;
+    transition: var(--transition-fast);
   }
   
   .parish-input:focus {
-    @apply ring-2 ring-ring border-ring;
+    @apply ring-2 ring-ring border-primary;
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.10);
+  }
+
+  /* Estilos mejorados para componentes del sistema */
+  .card-enhanced {
+    @apply bg-card rounded-xl border-2 border-border;
+    box-shadow: 0 2px 8px hsl(var(--foreground) / 0.06);
+    transition: var(--transition-theme), 
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-enhanced:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px hsl(var(--foreground) / 0.12);
   }
 
   .parish-gradient-header {
-    background: hsl(var(--background));
-    @apply text-primary-foreground shadow-md;
+    @apply bg-background text-foreground shadow-lg;
+    border-bottom: 2px solid hsl(var(--border));
     position: relative;
     overflow: hidden;
+    transition: var(--transition-theme);
   }
 
   .parish-sidebar-item {
     @apply flex items-center gap-3 px-4 py-3 rounded-lg;
+    transition: var(--transition-fast);
+  }
+
+  .parish-sidebar-item:hover {
+    @apply bg-sidebar-accent/10;
   }
 
   .parish-sidebar-item.active {
-    @apply bg-sidebar-accent text-sidebar-accent-foreground font-medium;
+    @apply bg-sidebar-accent text-sidebar-accent-foreground font-semibold;
+    box-shadow: 0 2px 6px hsl(var(--sidebar-accent) / 0.25);
   }
 
   /* Mejoras específicas para sidebar más ancho */

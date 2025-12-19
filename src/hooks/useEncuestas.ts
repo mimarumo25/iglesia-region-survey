@@ -1,8 +1,22 @@
 /**
- * 🎣 Hook para gestión de encuestas
+ * @fileoverview Hook de Gestión de Encuestas - Sistema MIA
  * 
- * Hook personalizado que integra el servicio de encuestas con React Query
- * para manejo de estado, caché y sincronización con la API.
+ * Hook personalizado para manejo completo del ciclo de vida de encuestas:
+ * - Queries: Listado, detalle, estadísticas con caché de React Query
+ * - Mutations: Crear, actualizar, eliminar, validar encuestas
+ * - Invalidación y prefetch de caché para optimización
+ * - Notificaciones toast integradas
+ * - Estados de loading centralizados
+ * 
+ * Integra el servicio de encuestas con React Query para:
+ * - ⚡ Caché inteligente con staleTime y gcTime
+ * - 🔄 Invalidación automática de queries relacionadas
+ * - 📡 Sincronización con API
+ * - 🎯 Estados de loading por operación
+ * - ✅ Feedback visual con toasts
+ * 
+ * @module hooks/useEncuestas
+ * @version 2.0.0
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -13,6 +27,32 @@ import { useToast } from '@/hooks/use-toast';
 // QUERY KEYS
 // ============================================================================
 
+/**
+ * Constantes de Query Keys para React Query
+ * 
+ * Define las claves de caché para las diferentes queries de encuestas,
+ * permitiendo invalidación precisa y organización jerárquica del caché.
+ * 
+ * @constant {Object} ENCUESTAS_QUERY_KEYS
+ * @property {ReadonlyArray} all - Clave raíz para todas las encuestas
+ * @property {Function} lists - Claves para listados de encuestas
+ * @property {Function} list - Clave para listado con parámetros específicos
+ * @property {Function} details - Claves para detalles de encuestas
+ * @property {Function} detail - Clave para detalle de una encuesta específica
+ * @property {Function} stats - Clave para estadísticas agregadas
+ * 
+ * @example
+ * // Invalidar todas las encuestas
+ * queryClient.invalidateQueries({ queryKey: ENCUESTAS_QUERY_KEYS.all });
+ * 
+ * @example
+ * // Invalidar solo listados
+ * queryClient.invalidateQueries({ queryKey: ENCUESTAS_QUERY_KEYS.lists() });
+ * 
+ * @example
+ * // Invalidar detalle específico
+ * queryClient.invalidateQueries({ queryKey: ENCUESTAS_QUERY_KEYS.detail('123') });
+ */
 export const ENCUESTAS_QUERY_KEYS = {
   all: ['encuestas'] as const,
   lists: () => [...ENCUESTAS_QUERY_KEYS.all, 'list'] as const,
@@ -27,7 +67,60 @@ export const ENCUESTAS_QUERY_KEYS = {
 // ============================================================================
 
 /**
- * Hook principal para gestión de encuestas
+ * Hook principal para gestión completa de encuestas
+ * 
+ * Proporciona una API completa para trabajar con encuestas en el frontend:
+ * 
+ * **Queries (Lectura):**
+ * - `getEncuestas(params)` - Lista paginada con filtros y búsqueda
+ * - `getEncuestaById(id)` - Detalle completo de una encuesta
+ * - `getEncuestasStats()` - Estadísticas agregadas
+ * 
+ * **Mutations (Escritura):**
+ * - `createEncuesta` - Crear nueva encuesta
+ * - `updateEncuesta` - Actualizar encuesta existente
+ * - `deleteEncuesta` - Eliminar encuesta
+ * - `validarEncuesta` - Marcar encuesta como válida
+ * 
+ * **Utilidades:**
+ * - `invalidateEncuestas()` - Forzar recarga de caché
+ * - `prefetchEncuesta(id)` - Pre-cargar encuesta en segundo plano
+ * 
+ * **Estados de Loading:**
+ * - `isCreating`, `isUpdating`, `isDeleting`, `isValidating`
+ * 
+ * @function useEncuestas
+ * @returns {Object} API del hook
+ * 
+ * @example
+ * const {
+ *   getEncuestas,
+ *   getEncuestaById,
+ *   createEncuesta,
+ *   updateEncuesta,
+ *   deleteEncuesta,
+ *   isCreating,
+ *   isUpdating
+ * } = useEncuestas();
+ * 
+ * // Cargar lista de encuestas
+ * const { data: encuestas, isLoading } = getEncuestas({
+ *   page: 1,
+ *   limit: 10,
+ *   busqueda: 'García'
+ * });
+ * 
+ * // Crear nueva encuesta
+ * createEncuesta.mutate(nuevaEncuesta);
+ * 
+ * // Actualizar encuesta
+ * updateEncuesta.mutate({
+ *   id: '123',
+ *   data: { apellido_familiar: 'Nuevo Apellido' }
+ * });
+ * 
+ * // Eliminar encuesta
+ * deleteEncuesta.mutate('123');
  */
 export const useEncuestas = () => {
   const { toast } = useToast();

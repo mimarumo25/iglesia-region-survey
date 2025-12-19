@@ -315,15 +315,15 @@ const Surveys = () => {
   const getStatusBadge = (status?: string) => {
     switch (status) {
       case "completed":
-        return <Badge className="bg-green-100 text-green-700 hover:bg-green-200">Completada</Badge>;
+        return <Badge className="bg-success/10 text-success dark:bg-success/20 hover:bg-success/20 dark:hover:bg-success/30">Completada</Badge>;
       case "validated":
-        return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200">Validada</Badge>;
+        return <Badge className="bg-success/15 text-success dark:bg-success/25 hover:bg-success/25 dark:hover:bg-success/35">Validada</Badge>;
       case "in_progress":
-        return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200">En Progreso</Badge>;
+        return <Badge className="bg-primary/10 text-primary dark:bg-primary/20 hover:bg-primary/20 dark:hover:bg-primary/30">En Progreso</Badge>;
       case "cancelled":
-        return <Badge className="bg-red-100 text-red-700 hover:bg-red-200">Cancelada</Badge>;
+        return <Badge className="bg-destructive/10 text-destructive dark:bg-destructive/20 hover:bg-destructive/20 dark:hover:bg-destructive/30">Cancelada</Badge>;
       default:
-        return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200">Pendiente</Badge>;
+        return <Badge className="bg-warning/10 text-warning dark:bg-warning/20 hover:bg-warning/20 dark:hover:bg-warning/30">Pendiente</Badge>;
     }
   };
 
@@ -344,17 +344,17 @@ const Surveys = () => {
       )}>
         <div>
           <h1 className={cn(
-            "font-bold text-gray-900 flex items-center gap-3",
+            "font-bold text-foreground flex items-center gap-3",
             shouldUseMobileView ? "text-2xl" : "text-3xl"
           )}>
             <FileText className={cn(
-              "text-blue-600",
+              "text-primary",
               shouldUseMobileView ? "w-6 h-6" : "w-8 h-8"
             )} />
             Gestión de Encuestas
           </h1>
           <p className={cn(
-            "text-gray-600",
+            "text-muted-foreground",
             shouldUseMobileView ? "text-sm mt-1" : ""
           )}>
             Administra todas las encuestas de caracterización familiar
@@ -397,8 +397,8 @@ const Surveys = () => {
         <Card className="mb-6">
           <CardContent className="p-6">
             <div className="flex items-center justify-center gap-3">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <p className="text-gray-600">Cargando encuestas...</p>
+              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              <p className="text-muted-foreground">Cargando encuestas...</p>
             </div>
           </CardContent>
         </Card>
@@ -406,9 +406,9 @@ const Surveys = () => {
 
       {/* Error State */}
       {encuestasError && (
-        <Card className="mb-6 border-red-200 bg-red-50">
+        <Card className="mb-6 border-destructive/30 bg-destructive/10 dark:bg-destructive/20">
           <CardContent className="p-6">
-            <div className="flex items-center gap-3 text-red-600">
+            <div className="flex items-center gap-3 text-destructive">
               <AlertTriangle className="w-5 h-5" />
               <div>
                 <p className="font-medium">Error al cargar encuestas</p>
@@ -422,17 +422,17 @@ const Surveys = () => {
       {/* Stats Cards - Responsive: 1, 2, 3, 5 columnas */}
       <div className="grid gap-3 sm:gap-4 mb-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {/* Card 1: Total de Encuestas - siempre visible */}
-        <Card>
+        <Card className="card-enhanced hover:border-primary/40">
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-center gap-3">
-              <div className="bg-blue-100 rounded-lg flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
-                <FileText className="text-blue-600 w-6 h-6 sm:w-7 sm:h-7" />
+              <div className="bg-primary/10 rounded-lg flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
+                <FileText className="text-primary w-6 h-6 sm:w-7 sm:h-7" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-gray-600 text-xs sm:text-sm font-medium">
+                <p className="text-muted-foreground dark:text-muted-foreground text-xs sm:text-sm font-semibold">
                   Total Encuestas
                 </p>
-                <p className="font-bold text-gray-900 text-2xl sm:text-3xl">
+                <p className="font-bold text-foreground text-2xl sm:text-3xl">
                   {stats.total.toLocaleString()}
                 </p>
               </div>
@@ -441,17 +441,17 @@ const Surveys = () => {
         </Card>
 
         {/* Card 2: Familias Registradas - visible desde tablet */}
-        <Card className="hidden sm:block">
+        <Card className="hidden sm:block card-enhanced hover:border-secondary/40">
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-center gap-3">
-              <div className="bg-purple-100 rounded-lg flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
-                <User className="text-purple-600 w-6 h-6 sm:w-7 sm:h-7" />
+              <div className="bg-secondary/10 rounded-lg flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
+                <User className="text-secondary w-6 h-6 sm:w-7 sm:h-7" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-gray-600 text-xs sm:text-sm font-medium">
+                <p className="text-muted-foreground dark:text-muted-foreground text-xs sm:text-sm font-semibold">
                   Familias
                 </p>
-                <p className="font-bold text-gray-900 text-2xl sm:text-3xl">
+                <p className="font-bold text-foreground text-2xl sm:text-3xl">
                   {stats.familias.toLocaleString()}
                 </p>
               </div>
@@ -460,17 +460,17 @@ const Surveys = () => {
         </Card>
 
         {/* Card 3: Sectores - visible desde laptop */}
-        <Card className="hidden lg:block">
+        <Card className="hidden lg:block card-enhanced hover:border-success/40">
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-center gap-3">
-              <div className="bg-green-100 rounded-lg flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
-                <MapPin className="text-green-600 w-6 h-6 sm:w-7 sm:h-7" />
+              <div className="bg-success/10 rounded-lg flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
+                <MapPin className="text-success w-6 h-6 sm:w-7 sm:h-7" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-gray-600 text-xs sm:text-sm font-medium">
+                <p className="text-muted-foreground dark:text-muted-foreground text-xs sm:text-sm font-semibold">
                   Sectores
                 </p>
-                <p className="font-bold text-gray-900 text-2xl sm:text-3xl">
+                <p className="font-bold text-foreground text-2xl sm:text-3xl">
                   {stats.sectores.toLocaleString()}
                 </p>
               </div>
@@ -479,17 +479,17 @@ const Surveys = () => {
         </Card>
 
         {/* Card 4: Municipios - solo visible en desktop */}
-        <Card className="hidden xl:block">
+        <Card className="hidden xl:block card-enhanced hover:border-warning/40">
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-center gap-3">
-              <div className="bg-orange-100 rounded-lg flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
-                <MapPin className="text-orange-600 w-6 h-6 sm:w-7 sm:h-7" />
+              <div className="bg-warning/10 rounded-lg flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
+                <MapPin className="text-warning w-6 h-6 sm:w-7 sm:h-7" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-gray-600 text-xs sm:text-sm font-medium">
+                <p className="text-muted-foreground dark:text-muted-foreground text-xs sm:text-sm font-semibold">
                   Municipios
                 </p>
-                <p className="font-bold text-gray-900 text-2xl sm:text-3xl">
+                <p className="font-bold text-foreground text-2xl sm:text-3xl">
                   {stats.municipios.toLocaleString()}
                 </p>
               </div>
@@ -498,17 +498,17 @@ const Surveys = () => {
         </Card>
 
         {/* Card 5: En Página Actual - solo visible en desktop */}
-        <Card className="hidden xl:block">
+        <Card className="hidden xl:block card-enhanced hover:border-primary/40">
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-center gap-3">
-              <div className="bg-cyan-100 rounded-lg flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
-                <FileText className="text-cyan-600 w-6 h-6 sm:w-7 sm:h-7" />
+              <div className="bg-primary/10 rounded-lg flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
+                <FileText className="text-primary w-6 h-6 sm:w-7 sm:h-7" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-gray-600 text-xs sm:text-sm font-medium">
+                <p className="text-muted-foreground dark:text-muted-foreground text-xs sm:text-sm font-semibold">
                   En Página
                 </p>
-                <p className="font-bold text-gray-900 text-2xl sm:text-3xl">
+                <p className="font-bold text-foreground text-2xl sm:text-3xl">
                   {stats.enPagina.toLocaleString()}
                 </p>
               </div>
@@ -539,8 +539,8 @@ const Surveys = () => {
               : "flex flex-col w-full"
           )}>
             {!shouldUseMobileView && (
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <Filter className="w-4 h-4 text-blue-600" />
+              <div className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
+                <Filter className="w-4 h-4 text-primary" />
                 Filtros de Búsqueda
               </div>
             )}
@@ -549,11 +549,11 @@ const Surveys = () => {
             <div className="grid gap-3 sm:gap-4 items-end grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
               {/* Search Term - Full width on mobile/tablet, 2 cols on desktop */}
               <div className="space-y-1.5 col-span-full xl:col-span-2">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">
+                <label className="text-xs font-bold text-muted-foreground/80 dark:text-muted-foreground uppercase tracking-wider ml-1">
                   Búsqueda General
                 </label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground/60 w-4 h-4" />
                   <Input
                     placeholder="Buscar por apellido, parroquia, sector o municipio..."
                     value={searchTerm}
@@ -565,7 +565,7 @@ const Surveys = () => {
 
               {/* Filtro por Municipio - siempre visible */}
               <div className="space-y-1.5 min-w-0">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">
+                <label className="text-xs font-bold text-muted-foreground/80 dark:text-muted-foreground uppercase tracking-wider ml-1">
                   Municipio
                 </label>
                 <div className="h-10">
@@ -585,7 +585,7 @@ const Surveys = () => {
 
               {/* Filtro por Sector - siempre visible */}
               <div className="space-y-1.5 min-w-0">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">
+                <label className="text-xs font-bold text-muted-foreground/80 dark:text-muted-foreground uppercase tracking-wider ml-1">
                   Sector
                 </label>
                 <div className="h-10">
@@ -605,7 +605,7 @@ const Surveys = () => {
 
               {/* Filtro por Encuestador - siempre visible */}
               <div className="space-y-1.5 min-w-0">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">
+                <label className="text-xs font-bold text-muted-foreground/80 dark:text-muted-foreground uppercase tracking-wider ml-1">
                   Encuestador
                 </label>
                 <div className="h-10">
@@ -626,12 +626,12 @@ const Surveys = () => {
 
             {/* Botón de limpiar filtros */}
             {(sectorFilter || surveyorFilter || municipioFilter || searchTerm) && (
-              <div className="flex justify-end pt-2 border-t border-gray-100 mt-2">
+              <div className="flex justify-end pt-2 border-t border-border/50 mt-2">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleClearFilters}
-                  className="text-gray-500 hover:text-red-500 hover:bg-red-50"
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20"
                 >
                   <XCircle className="w-4 h-4 mr-2" />
                   {shouldUseMobileView ? "Limpiar Filtros" : "Limpiar todos los filtros"}
@@ -676,10 +676,10 @@ const Surveys = () => {
                 ))
               ) : filteredEncuestas.length === 0 ? (
                 // Estado vacío móvil
-                <div className="flex flex-col items-center gap-4 text-gray-500 py-12 px-4 empty-state-mobile">
+                <div className="flex flex-col items-center gap-4 text-muted-foreground py-12 px-4 empty-state-mobile">
                   <div className="text-6xl mb-2">📋</div>
-                  <p className="text-lg font-semibold text-gray-700">No hay encuestas disponibles</p>
-                  <p className="text-sm text-center text-gray-500">
+                  <p className="text-lg font-semibold text-foreground">No hay encuestas disponibles</p>
+                  <p className="text-sm text-center text-muted-foreground">
                     {searchTerm || sectorFilter || surveyorFilter || municipioFilter
                       ? "No se encontraron encuestas con los filtros aplicados"
                       : "Comienza creando tu primera encuesta familiar"
@@ -767,10 +767,10 @@ const Surveys = () => {
                     // Estado vacío
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-12">
-                        <div className="flex flex-col items-center gap-4 text-gray-500">
+                        <div className="flex flex-col items-center gap-4 text-muted-foreground">
                           <div className="text-6xl mb-2">📋</div>
-                          <p className="text-lg font-semibold text-gray-700">No hay encuestas disponibles</p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-lg font-semibold text-foreground">No hay encuestas disponibles</p>
+                          <p className="text-sm text-muted-foreground">
                             {searchTerm || sectorFilter || surveyorFilter
                               ? "No se encontraron encuestas con los filtros aplicados"
                               : "Comienza creando tu primera encuesta familiar"
@@ -793,7 +793,7 @@ const Surveys = () => {
                     filteredEncuestas.map((encuesta) => (
                       <TableRow 
                         key={`encuesta-${encuesta.id_encuesta}`} 
-                        className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                        className="hover:bg-muted/30 dark:hover:bg-muted/20 transition-colors cursor-pointer"
                         onDoubleClick={() => handleViewDetails(encuesta.id_encuesta)}
                         title="Doble clic para ver detalles"
                       >
@@ -801,8 +801,8 @@ const Surveys = () => {
                           <div className="space-y-2">
                             {/* Apellido y código */}
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium text-gray-500 min-w-[70px]">Familia:</span>
-                              <p className="font-semibold text-gray-900 text-base">{encuesta.apellido_familiar}</p>
+                              <span className="text-xs font-semibold text-muted-foreground min-w-[70px]">Familia:</span>
+                              <p className="font-bold text-foreground text-base">{encuesta.apellido_familiar}</p>
                               <Badge variant="outline" className="text-xs bg-primary/5 border-primary/20 text-primary font-medium">
                                 {encuesta.codigo_familia}
                               </Badge>
@@ -810,8 +810,8 @@ const Surveys = () => {
                             
                             {/* Dirección */}
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium text-gray-500 min-w-[70px]">Dirección:</span>
-                              <div className="flex items-center gap-1.5 text-sm text-gray-700">
+                              <span className="text-xs font-semibold text-muted-foreground min-w-[70px]">Dirección:</span>
+                              <div className="flex items-center gap-1.5 text-sm text-foreground/90">
                                 <MapPin className="w-3.5 h-3.5 text-primary/60" />
                                 <span>{encuesta.direccion_familia}</span>
                               </div>
@@ -820,20 +820,20 @@ const Surveys = () => {
                             {/* Teléfono */}
                             {encuesta.telefono && (
                               <div className="flex items-center gap-2">
-                                <span className="text-xs font-medium text-gray-500 min-w-[70px]">Teléfono:</span>
-                                <p className="text-sm text-gray-700 font-medium">📞 {encuesta.telefono}</p>
+                                <span className="text-xs font-semibold text-muted-foreground min-w-[70px]">Teléfono:</span>
+                                <p className="text-sm text-foreground/90 font-semibold">📞 {encuesta.telefono}</p>
                               </div>
                             )}
                             
                             {/* Estadísticas */}
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium text-gray-500 min-w-[70px]">Miembros:</span>
+                              <span className="text-xs font-semibold text-muted-foreground min-w-[70px]">Miembros:</span>
                               <div className="flex items-center gap-3 text-xs">
-                                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                                <Badge variant="secondary" className="bg-primary/10 text-primary dark:bg-primary/20 border-primary/30">
                                   👥 {encuesta.miembros_familia.total_miembros} Total
                                 </Badge>
                                 {encuesta.deceasedMembers && encuesta.deceasedMembers.length > 0 && (
-                                  <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">
+                                  <Badge variant="secondary" className="bg-secondary/10 text-secondary dark:bg-secondary/20 border-secondary/30">
                                     💀 {encuesta.deceasedMembers.length} Fallecidos
                                   </Badge>
                                 )}
@@ -842,8 +842,8 @@ const Surveys = () => {
                             
                             {/* Tipo de vivienda */}
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium text-gray-500 min-w-[70px]">Vivienda:</span>
-                              <Badge variant="outline" className="text-xs bg-gray-50">
+                              <span className="text-xs font-semibold text-muted-foreground min-w-[70px]">Vivienda:</span>
+                              <Badge variant="outline" className="text-xs bg-muted/30 dark:bg-muted/20">
                                 🏠 {encuesta.tipo_vivienda?.nombre || "-"}
                               </Badge>
                             </div>
@@ -853,26 +853,26 @@ const Surveys = () => {
                           <div className="space-y-2">
                             {/* Sector */}
                             <div className="flex items-start gap-2">
-                              <span className="text-xs font-medium text-gray-500 min-w-[65px] flex-shrink-0">Sector:</span>
-                              <span className="text-sm text-gray-700">{encuesta.sector?.nombre || "-"}</span>
+                              <span className="text-xs font-semibold text-muted-foreground min-w-[65px] flex-shrink-0">Sector:</span>
+                              <span className="text-sm text-foreground/90 font-medium">{encuesta.sector?.nombre || "-"}</span>
                             </div>
                             
                             {/* Municipio */}
                             <div className="flex items-start gap-2">
-                              <span className="text-xs font-medium text-gray-500 min-w-[65px] flex-shrink-0">Municipio:</span>
-                              <span className="text-sm text-gray-700">📍 {encuesta.municipio?.nombre}</span>
+                              <span className="text-xs font-semibold text-muted-foreground min-w-[65px] flex-shrink-0">Municipio:</span>
+                              <span className="text-sm text-foreground/90 font-medium">📍 {encuesta.municipio?.nombre}</span>
                             </div>
                             
                             {/* Parroquia */}
                             <div className="flex items-start gap-2">
-                              <span className="text-xs font-medium text-gray-500 min-w-[65px] flex-shrink-0">Parroquia:</span>
-                              <span className="text-sm text-gray-700">⛪ {encuesta.parroquia?.nombre}</span>
+                              <span className="text-xs font-semibold text-muted-foreground min-w-[65px] flex-shrink-0">Parroquia:</span>
+                              <span className="text-sm text-foreground/90 font-medium">⛪ {encuesta.parroquia?.nombre}</span>
                             </div>
                             
                             {/* Vereda */}
                             <div className="flex items-start gap-2">
-                              <span className="text-xs font-medium text-gray-500 min-w-[65px] flex-shrink-0">Vereda:</span>
-                              <span className="text-sm text-gray-700">🌾 {encuesta.vereda?.nombre}</span>
+                              <span className="text-xs font-semibold text-muted-foreground min-w-[65px] flex-shrink-0">Vereda:</span>
+                              <span className="text-sm text-foreground/90 font-medium">🌾 {encuesta.vereda?.nombre}</span>
                             </div>
                           </div>
                         </TableCell>
@@ -881,7 +881,7 @@ const Surveys = () => {
                             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                               <User className="w-4 h-4 text-primary" />
                             </div>
-                            <span className="text-sm font-medium text-gray-900">
+                            <span className="text-sm font-semibold text-foreground">
                               {encuesta.encuestador?.nombre || encuesta.usuario_creador || 'Sistema'}
                             </span>
                           </div>
@@ -890,27 +890,27 @@ const Surveys = () => {
                           <div className="flex flex-col gap-1.5">
                             <div className="flex items-center gap-1.5">
                               <Calendar className="w-3.5 h-3.5 text-primary/60" />
-                              <span className="text-sm font-medium text-gray-700">{formatDate(encuesta.metadatos.fecha_creacion)}</span>
+                              <span className="text-sm font-semibold text-foreground/90">{formatDate(encuesta.metadatos.fecha_creacion)}</span>
                             </div>
-                            <span className="text-xs text-gray-500 pl-5">Registro inicial</span>
+                            <span className="text-xs text-muted-foreground pl-5 font-medium">Registro inicial</span>
                           </div>
                         </TableCell>
                         <TableCell className="py-4">
                           {encuesta.estado_encuesta === 'completed' ? (
                             <div className="flex flex-col gap-1.5">
                               <div className="flex items-center gap-1.5">
-                                <CheckCircle className="w-3.5 h-3.5 text-green-600" />
-                                <span className="text-sm font-medium text-gray-700">{formatDate(encuesta.fecha_ultima_encuesta)}</span>
+                                <CheckCircle className="w-3.5 h-3.5 text-success" />
+                                <span className="text-sm font-semibold text-foreground/90">{formatDate(encuesta.fecha_ultima_encuesta)}</span>
                               </div>
-                              <span className="text-xs text-green-600 pl-5 font-medium">Finalizada</span>
+                              <span className="text-xs text-success pl-5 font-bold">Finalizada</span>
                             </div>
                           ) : (
                             <div className="flex flex-col gap-1.5">
                               <div className="flex items-center gap-1.5">
-                                <Clock className="w-3.5 h-3.5 text-orange-500" />
-                                <span className="text-gray-500">-</span>
+                                <Clock className="w-3.5 h-3.5 text-warning" />
+                                <span className="text-muted-foreground">-</span>
                               </div>
-                              <span className="text-xs text-orange-600 pl-5 font-medium">En proceso</span>
+                              <span className="text-xs text-warning pl-5 font-bold">En proceso</span>
                             </div>
                           )}
                         </TableCell>

@@ -196,11 +196,11 @@ const Login = () => {
         {/* Columna de imagen */}
         <div className="hidden lg:flex flex-col items-center justify-center space-y-6">
           <div className="relative group">
-            <div className="w-[500px] h-[500px] rounded-3xl overflow-hidden shadow-2xl border-4 border-border/50 dark:border-border/30 hover-lift bg-gradient-to-br from-card to-background dark:from-card dark:to-background flex items-center justify-center">
+            <div className="flex items-center justify-center">
               <img 
-                src="/logo_mia.png" 
+                src="/logo_mia_oficial.svg" 
                 alt="MIA - Sistema de Gestión Integral" 
-                className="w-[400px] h-[400px] object-contain"
+                className="w-[600px] h-[600px] object-contain hover:scale-105 transition-transform duration-300"
               />
             </div>
           </div>
@@ -214,8 +214,8 @@ const Login = () => {
         <div className="w-full max-w-md mx-auto space-y-8">
           {/* Logo y título para móviles */}
           <div className="lg:hidden text-center space-y-4">
-            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-card to-background dark:from-card dark:to-background rounded-2xl flex items-center justify-center shadow-lg border-2 border-border dark:border-border">
-              <Logo iconOnly size="lg" />
+            <div className="mx-auto flex items-center justify-center">
+              <Logo iconOnly size="xl" className="w-32 h-32" />
             </div>
             <div>
               <h1 className="text-4xl font-bold text-foreground dark:text-foreground mb-2">MIA</h1>

@@ -1,7 +1,37 @@
+/**
+ * @fileoverview Servicio de Catálogo de Municipios - Sistema MIA
+ * 
+ * Gestiona operaciones CRUD para municipios de Colombia:
+ * - Listado con paginación y filtros por departamento
+ * - Consulta por ID
+ * - Creación y actualización
+ * - Eliminación
+ * - Relación jerárquica con departamentos
+ * 
+ * Los municipios son división administrativa de segundo nivel
+ * y se filtran dinámicamente según el departamento seleccionado.
+ * 
+ * Endpoint: /api/catalog/municipios
+ * 
+ * @module services/municipios
+ * @version 2.0.0
+ */
+
 import { apiGet, apiPost, apiPut, apiDelete } from '@/interceptors/axios';
 import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
-// Interfaces para municipios
+/**
+ * Entidad de Municipio
+ * 
+ * @interface Municipio
+ * @property {string} id_municipio - ID único del municipio
+ * @property {string} nombre_municipio - Nombre del municipio
+ * @property {string} codigo_dane - Código DANE oficial
+ * @property {string} id_departamento - ID del departamento padre
+ * @property {string} created_at - Fecha de creación
+ * @property {string} updated_at - Fecha de última actualización
+ * @property {Object} [departamento] - Datos del departamento relacionado
+ */
 export interface Municipio {
   id_municipio: string;
   nombre_municipio: string;

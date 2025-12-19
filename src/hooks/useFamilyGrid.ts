@@ -1,3 +1,20 @@
+/**
+ * @fileoverview Hook personalizado para gestión de Grid de Familia
+ * 
+ * Maneja toda la lógica de negocio del componente FamilyGrid, incluyendo:
+ * - Validación de formularios con React Hook Form + Zod
+ * - Transformación de datos entre formato UI y modelo de datos
+ * - CRUD de miembros de familia (Crear, Leer, Actualizar, Eliminar)
+ * - Normalización de fechas y celebraciones
+ * - Manejo de errores y notificaciones
+ * 
+ * Este hook centraliza la lógica compleja de gestión de familia,
+ * siguiendo el principio de separación de responsabilidades (UI vs. lógica).
+ * 
+ * @module hooks/useFamilyGrid
+ * @version 2.0.0
+ */
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,7 +29,14 @@ import { phoneValidationSchema, emailValidationSchema } from "@/utils/validation
 import { extractConfigurationItemId, createConfigurationItemHandler } from "@/utils/autocomplete-utils";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
 
-// Esquema de validación con Zod - Organizado según secciones del formulario
+/**
+ * Esquema de validación Zod para FamilyMember
+ * 
+ * Define las reglas de validación para cada campo del formulario,
+ * organizado por secciones para mejor mantenibilidad.
+ * 
+ * @constant {z.ZodObject} familyMemberSchema
+ */
 const familyMemberSchema = z.object({
   // SECCIÓN 1: INFORMACIÓN BÁSICA PERSONAL
   nombres: z.string().min(1, "El nombre es obligatorio").min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -82,8 +106,28 @@ const familyMemberSchema = z.object({
   })).optional().default([]),
 });
 
+/**
+ * Tipo inferido desde el schema Zod para datos de formulario
+ * 
+ * Representa la estructura de datos utilizada internamente por React Hook Form.
+ * 
+ * @typedef {z.infer<typeof familyMemberSchema>} FamilyMemberFormData
+ */
 export type FamilyMemberFormData = z.infer<typeof familyMemberSchema>;
 
+/**
+ * Genera un ID único para celebraciones
+ * 
+ * Utiliza crypto.randomUUID() si está disponible, de lo contrario
+ * genera un ID basado en timestamp + random.
+ * 
+ * @returns {string} ID único para la celebración
+ * 
+ * @example
+ * const id = createCelebracionId();
+ * // => "550e8400-e29b-41d4-a716-446655440000" (UUID v4)
+ * // o "celebracion-1234567890-abc123" (fallback)
+ */
 const createCelebracionId = (): string => {
   const uuid = globalThis.crypto?.randomUUID?.();
   if (uuid) {
@@ -93,6 +137,36 @@ const createCelebracionId = (): string => {
   return `celebracion-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 };
 
+/**
+ * Normaliza el array de celebraciones desde el formato de FamilyMember
+ * 
+ * Maneja tanto el formato nuevo (array de celebraciones) como el formato
+ * legacy (objeto único con motivo/dia/mes), asegurando compatibilidad
+ * hacia atrás con datos antiguos.
+ * 
+ * @param {FamilyMember | null | undefined} member - Miembro de familia con celebraciones
+ * @returns {Array<{id: string, motivo: string, dia: string, mes: string}>} Array normalizado de celebraciones
+ * 
+ * @example
+ * // Formato nuevo
+ * const celebraciones = normalizeCelebraciones({
+ *   profesionMotivoFechaCelebrar: {
+ *     celebraciones: [
+ *       { id: "1", motivo: "Cumpleaños", dia: "15", mes: "3" }
+ *     ]
+ *   }
+ * });
+ * 
+ * @example
+ * // Formato legacy (se convierte automáticamente)
+ * const celebraciones = normalizeCelebraciones({
+ *   profesionMotivoFechaCelebrar: {
+ *     motivo: "Cumpleaños",
+ *     dia: "15",
+ *     mes: "3"
+ *   }
+ * });
+ */
 const normalizeCelebraciones = (member: FamilyMember | null | undefined) => {
   const celebracionesArray = Array.isArray(member?.profesionMotivoFechaCelebrar?.celebraciones)
     ? member?.profesionMotivoFechaCelebrar?.celebraciones ?? []
@@ -126,14 +200,36 @@ const normalizeCelebraciones = (member: FamilyMember | null | undefined) => {
   return normalized;
 };
 
+/**
+ * Props para el hook useFamilyGrid
+ * 
+ * @interface UseFamilyGridProps
+ * @property {FamilyMember[]} familyMembers - Array de miembros de familia actuales
+ * @property {React.Dispatch<React.SetStateAction<FamilyMember[]>>} setFamilyMembers - Setter para actualizar miembros
+ */
 interface UseFamilyGridProps {
   familyMembers: FamilyMember[];
   setFamilyMembers: React.Dispatch<React.SetStateAction<FamilyMember[]>>;
 }
 
 /**
- * Transforma un FamilyMember a FamilyMemberFormData para edición
- * Organizado según las secciones del formulario para mejor legibilidad
+ * Transforma FamilyMember a FamilyMemberFormData
+ * 
+ * Convierte un miembro de familia desde el formato de modelo de datos
+ * al formato requerido por React Hook Form para edición.
+ * 
+ * Maneja:
+ * - Conversión de fechas (Date → Date | null)
+ * - Extracción de IDs desde ConfigurationItem
+ * - Normalización de celebraciones
+ * - Manejo de errores con fallback seguro
+ * 
+ * @param {FamilyMember} member - Miembro de familia a transformar
+ * @returns {Partial<FamilyMemberFormData>} Datos listos para el formulario
+ * 
+ * @example
+ * const formData = familyMemberToFormData(miembro);
+ * form.reset(formData); // Cargar datos en el formulario
  */
 const familyMemberToFormData = (member: FamilyMember): Partial<FamilyMemberFormData> => {
   try {
@@ -255,11 +351,38 @@ const familyMemberToFormData = (member: FamilyMember): Partial<FamilyMemberFormD
 };
 
 /**
- * Transforma FamilyMemberFormData a FamilyMember para guardar
- * Organizado según las secciones del formulario
+ * Transforma FamilyMemberFormData a FamilyMember
+ * 
+ * Convierte datos del formulario React Hook Form al formato de modelo
+ * de datos FamilyMember para guardar en el estado.
+ * 
+ * Maneja:
+ * - Conversión de IDs string → ConfigurationItem con ID numérico
+ * - Mapeo de opciones desde configurationData
+ * - Normalización y filtrado de arrays (habilidades, destrezas, celebraciones)
+ * - Transformación de estructura de tallas
+ * 
+ * @param {FamilyMemberFormData} data - Datos del formulario validados
+ * @param {string} id - ID único del miembro (nuevo o existente)
+ * @param {any} configurationData - Datos de configuración con opciones de catálogos
+ * @returns {Partial<FamilyMember>} Miembro de familia listo para guardar
+ * 
+ * @example
+ * const miembro = formDataToFamilyMember(
+ *   formData,
+ *   "uuid-123",
+ *   configurationData
+ * );
+ * setFamilyMembers(prev => [...prev, miembro as FamilyMember]);
  */
 const formDataToFamilyMember = (data: FamilyMemberFormData, id: string, configurationData: any): Partial<FamilyMember> => {
-  // Función helper para convertir valor de autocomplete a ConfigurationItem con ID numérico
+  /**
+   * Helper: Convierte valor de autocomplete a ConfigurationItem con ID numérico
+   * 
+   * @param {string | undefined} value - Valor del campo autocomplete
+   * @param {string} optionsKey - Clave en configurationData para buscar opciones
+   * @returns {ConfigurationItem | null} Item de configuración o null
+   */
   const createConfigItemFromValue = (value: string | undefined, optionsKey: string): ConfigurationItem | null => {
     if (!value || !value.trim()) return null;
     
@@ -339,8 +462,55 @@ const formDataToFamilyMember = (data: FamilyMemberFormData, id: string, configur
 };
 
 /**
- * Hook personalizado que maneja toda la lógica de negocio para FamilyGrid
- * Separa la lógica de la presentación siguiendo el principio de separación de responsabilidades
+ * Hook personalizado para gestión del Grid de Familia
+ * 
+ * Centraliza toda la lógica de negocio del componente FamilyGrid:
+ * - Gestión de estado del diálogo modal
+ * - Configuración de formulario con React Hook Form
+ * - Operaciones CRUD (Crear, Leer, Actualizar, Eliminar)
+ * - Validación con Zod
+ * - Transformación bidireccional de datos
+ * - Notificaciones con toast
+ * - Manejo de errores robusto
+ * 
+ * @param {UseFamilyGridProps} props - Props del hook
+ * @param {FamilyMember[]} props.familyMembers - Array de miembros actuales
+ * @param {Function} props.setFamilyMembers - Setter para actualizar miembros
+ * 
+ * @returns {Object} API del hook con estados y funciones
+ * @returns {boolean} returns.showFamilyDialog - Si el diálogo está visible
+ * @returns {Function} returns.setShowFamilyDialog - Setter del diálogo
+ * @returns {FamilyMember | null} returns.editingFamilyMember - Miembro en edición o null
+ * @returns {UseFormReturn} returns.form - Instancia de React Hook Form
+ * @returns {Function} returns.resetForm - Resetea el formulario a valores por defecto
+ * @returns {Function} returns.closeDialog - Cierra el diálogo y limpia el estado
+ * @returns {Function} returns.openDialogForNew - Abre diálogo para nuevo miembro
+ * @returns {Function} returns.onSubmit - Handler del submit del formulario
+ * @returns {Function} returns.handleEdit - Carga miembro para edición
+ * @returns {Function} returns.handleDelete - Elimina un miembro por ID
+ * 
+ * @example
+ * const {
+ *   showFamilyDialog,
+ *   form,
+ *   openDialogForNew,
+ *   handleEdit,
+ *   handleDelete,
+ *   onSubmit,
+ *   closeDialog
+ * } = useFamilyGrid({
+ *   familyMembers,
+ *   setFamilyMembers
+ * });
+ * 
+ * // Abrir para agregar nuevo
+ * <Button onClick={openDialogForNew}>Agregar Miembro</Button>
+ * 
+ * // Editar existente
+ * <Button onClick={() => handleEdit(miembro)}>Editar</Button>
+ * 
+ * // Eliminar
+ * <Button onClick={() => handleDelete(miembro.id)}>Eliminar</Button>
  */
 export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGridProps) => {
   const [showFamilyDialog, setShowFamilyDialog] = useState(false);
@@ -350,7 +520,15 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
   // Obtener datos de configuración para mapear correctamente los IDs
   const configurationData = useConfigurationData();
 
-  // Función helper para migrar fechas del formato anterior
+  /**
+   * Migra formato legacy de fechas a Date
+   * 
+   * Convierte objetos de fecha en formato antiguo { dia, mes, año }
+   * al formato nuevo Date(), manteniendo compatibilidad hacia atrás.
+   * 
+   * @param {any} member - Miembro con posible fecha en formato legacy
+   * @returns {FamilyMember} Miembro con fecha normalizada
+   */
   const migrateDateFormat = (member: any): FamilyMember => {
     if (member.fechaNacimiento && typeof member.fechaNacimiento === 'object' && 'dia' in member.fechaNacimiento) {
       // Formato anterior: { dia: string, mes: string, año: string }
@@ -407,6 +585,13 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
     mode: 'onChange'
   });
 
+  /**
+   * Abre el diálogo para agregar un nuevo miembro
+   * 
+   * Resetea el formulario a valores por defecto y abre el modal.
+   * 
+   * @function openDialogForNew
+   */
   const openDialogForNew = () => {
     try {
       setEditingFamilyMember(null);
@@ -453,6 +638,13 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
     }
   };
 
+  /**
+   * Resetea el formulario a valores por defecto
+   * 
+   * Limpia todos los campos del formulario y el estado de edición.
+   * 
+   * @function resetForm
+   */
   const resetForm = () => {
     try {
       setEditingFamilyMember(null);
@@ -498,6 +690,13 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
     }
   };
 
+  /**
+   * Cierra el diálogo del formulario
+   * 
+   * Resetea el formulario y cierra el modal con manejo de errores robusto.
+   * 
+   * @function closeDialog
+   */
   const closeDialog = () => {
     try {
       resetForm();
@@ -509,6 +708,22 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
     }
   };
 
+  /**
+   * Handler del submit del formulario
+   * 
+   * Valida, transforma y guarda los datos del miembro de familia.
+   * Actualiza si está en modo edición, o agrega nuevo si es creación.
+   * 
+   * Realiza:
+   * - Validación de arrays (habilidades, destrezas, celebraciones)
+   * - Transformación a modelo de datos
+   * - Actualización del estado
+   * - Notificación de éxito/error
+   * - Cierre automático del diálogo
+   * 
+   * @function onSubmit
+   * @param {FamilyMemberFormData} data - Datos validados del formulario
+   */
   const onSubmit = (data: FamilyMemberFormData) => {
     try {
       // Validar que los arrays de habilidades y destrezas estén bien formados
@@ -582,6 +797,15 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
     }
   };
 
+  /**
+   * Carga un miembro para edición
+   * 
+   * Transforma el miembro a formato de formulario, maneja migración
+   * de fechas, genera ID temporal si falta, y abre el diálogo.
+   * 
+   * @function handleEdit
+   * @param {FamilyMember} member - Miembro a editar
+   */
   const handleEdit = (member: FamilyMember) => {
     try {
       if (!member) {
@@ -636,6 +860,14 @@ export const useFamilyGrid = ({ familyMembers, setFamilyMembers }: UseFamilyGrid
     }
   };
 
+  /**
+   * Elimina un miembro de familia
+   * 
+   * Remueve el miembro del array por su ID y muestra notificación.
+   * 
+   * @function handleDelete
+   * @param {string} id - ID del miembro a eliminar
+   */
   const handleDelete = (id: string) => {
     setFamilyMembers(prev => prev.filter(m => m.id !== id));
     toast({ 

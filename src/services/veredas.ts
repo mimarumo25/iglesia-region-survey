@@ -1,3 +1,25 @@
+/**
+ * @fileoverview Servicio de Catálogo de Veredas - Sistema MIA
+ * 
+ * Gestiona operaciones CRUD para veredas y su relación con municipios:
+ * - Listado de veredas con paginación
+ * - Consulta por ID
+ * - Creación y actualización
+ * - Eliminación
+ * - Filtrado dinámico por municipio
+ * - Gestión de municipios relacionados
+ * 
+ * Las veredas representan divisiones administrativas rurales dentro
+ * de los municipios, utilizadas para ubicación precisa en encuestas.
+ * 
+ * Endpoints:
+ * - /api/catalog/veredas
+ * - /api/catalog/municipios
+ * 
+ * @module services/veredas
+ * @version 1.0.0
+ */
+
 import { getApiClient } from '@/config/api';
 import { 
   Municipio,
@@ -10,6 +32,14 @@ import {
 } from '@/types/veredas';
 import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
+/**
+ * Servicio de gestión de veredas y municipios
+ * 
+ * Proporciona métodos para CRUD de veredas y consultas de municipios
+ * con filtrado jerárquico y manejo de paginación.
+ * 
+ * @class VeredasService
+ */
 class VeredasService {
   // ===== MÉTODOS PARA MUNICIPIOS =====
   

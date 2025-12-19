@@ -485,8 +485,8 @@ const AppSidebar = () => {
     
     return cn(
       baseClasses,
-      "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/20",
-      !isMobileDevice && "hover:shadow-md hover:border-l-4 hover:border-secondary"
+      "text-sidebar-foreground/90 hover:text-sidebar-foreground hover:bg-sidebar-accent/25 hover:shadow-sm",
+      !isMobileDevice && "hover:border-l-4 hover:border-secondary/80"
     );
   };
 
@@ -531,7 +531,7 @@ const AppSidebar = () => {
           <div className="text-center space-y-4 p-6">
             <div className="w-16 h-16 bg-white/95 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-md mx-auto border border-white/20">
               <img 
-                src="/mia-logo.svg" 
+                src="/logo_mia__oficial_2.svg" 
                 alt="MIA Logo" 
                 className="w-10 h-10 object-contain" 
               />
@@ -589,13 +589,13 @@ const AppSidebar = () => {
           
           {/* Logo adaptivo para móvil */}
           <div className={cn(
-            "bg-white/95 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-md hover:shadow-lg transition-shadow duration-300 border border-white/20",
-            isMobileDevice ? "w-16 h-16" : "w-20 h-20"
+            "flex items-center justify-center",
+            isMobileDevice ? "w-20 h-20" : "w-28 h-28"
           )}>
             <Logo 
-              size={isMobileDevice ? "md" : "lg"} 
-              showText={false} 
-              className={cn(isMobileDevice ? "w-12 h-12" : "w-16 h-16")} 
+              size={isMobileDevice ? "lg" : "xl"} 
+              iconOnly 
+              className={cn(isMobileDevice ? "w-20 h-20" : "w-28 h-28")} 
             />
           </div>
           {!isCollapsed && (

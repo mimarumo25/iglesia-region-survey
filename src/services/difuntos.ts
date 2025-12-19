@@ -1,9 +1,17 @@
 /**
- * Servicio API para Difuntos
- * Sistema MIA - Gestión Integral de Iglesias
+ * @fileoverview Servicio de Gestión de Difuntos - Sistema MIA
  * 
- * Este servicio maneja todas las operaciones relacionadas con la consulta
- * de difuntos a través del endpoint /api/difuntos
+ * Maneja todas las operaciones relacionadas con registros de difuntos:
+ * - Consulta con filtros avanzados (parentesco, fechas, ubicación)
+ * - Paginación y ordenamiento
+ * - Exportación de datos
+ * - Validación de respuestas
+ * - Manejo robusto de errores con notificaciones
+ * 
+ * Endpoint: /api/difuntos
+ * 
+ * @module services/difuntos
+ * @version 1.0.0
  */
 
 import { getApiClient, API_ENDPOINTS } from '@/config/api';

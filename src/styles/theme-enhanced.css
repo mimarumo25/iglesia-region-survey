@@ -1,0 +1,442 @@
+/**
+ * 🎨 Mejoras de Contraste y Transiciones para Temas Claro/Oscuro
+ * Optimizado para experiencia visual suave y agradable
+ */
+
+/* ===== TRANSICIONES GLOBALES SUAVES ===== */
+:root {
+  /* Variables de transición para cambios de tema */
+  --theme-transition-duration: 300ms;
+  --theme-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Configurar transiciones ANTES de aplicar estilos para sincronizar cambios */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, opacity, backdrop-filter;
+  transition-duration: var(--theme-transition-duration);
+  transition-timing-function: var(--theme-transition-easing);
+  /* Forzar que todos los elementos cambien juntos */
+  transition-delay: 0ms;
+}
+
+/* Optimizar rendering durante transición */
+html {
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+body {
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+              color var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+/* Excepciones: elementos que no necesitan transición de tema */
+*:where(.no-theme-transition, [data-no-transition]) {
+  transition-duration: 0ms !important;
+}
+
+/* Elementos interactivos mantienen transiciones rápidas para hover/active */
+button:hover,
+a:hover,
+input:focus,
+select:focus,
+textarea:focus {
+  transition-duration: 150ms;
+}
+
+/* ===== TRANSICIÓN ESPECÍFICA PARA DARK MODE ===== */
+
+/* Sincronizar transición al cambiar clase .dark en html */
+html.dark,
+html:not(.dark) {
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+/* Evitar flash de contenido sin estilo durante cambio de tema */
+.dark * {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, opacity;
+  transition-duration: var(--theme-transition-duration);
+  transition-timing-function: var(--theme-transition-easing);
+}
+
+/* ===== MEJORAS DE CONTRASTE PARA FORMULARIOS ===== */
+
+/* Labels más visibles */
+label {
+  @apply font-semibold text-foreground/90 dark:text-foreground;
+  transition: color var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+/* Select mejorado */
+select {
+  @apply bg-input border-2 border-input-border text-foreground font-medium;
+  @apply focus:border-primary focus:ring-2 focus:ring-primary/20;
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+              border-color var(--theme-transition-duration) var(--theme-transition-easing),
+              color var(--theme-transition-duration) var(--theme-transition-easing),
+              box-shadow 150ms ease;
+}
+
+/* Textarea mejorado */
+textarea {
+  @apply bg-input border-2 border-input-border text-foreground font-medium;
+  @apply focus:border-primary focus:ring-2 focus:ring-primary/20;
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+              border-color var(--theme-transition-duration) var(--theme-transition-easing),
+              color var(--theme-transition-duration) var(--theme-transition-easing),
+              box-shadow 150ms ease;
+}
+
+/* Input fields sincronizados */
+input:not([type="checkbox"]):not([type="radio"]) {
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+              border-color var(--theme-transition-duration) var(--theme-transition-easing),
+              color var(--theme-transition-duration) var(--theme-transition-easing),
+              box-shadow 150ms ease;
+}
+
+/* ===== MEJORAS PARA COMPONENTES DE ENCUESTA ===== */
+
+/* Card de formulario con mejor contraste */
+.survey-card {
+  @apply bg-card border-2 border-border rounded-xl;
+  @apply shadow-lg dark:shadow-2xl dark:shadow-foreground/5;
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+              border-color var(--theme-transition-duration) var(--theme-transition-easing),
+              box-shadow var(--theme-transition-duration) var(--theme-transition-easing),
+              transform 200ms ease;
+}
+
+.survey-card:hover {
+  @apply border-primary/30 shadow-xl;
+}
+
+/* Secciones de formulario */
+.survey-section {
+  @apply bg-muted/30 dark:bg-muted/20 rounded-lg p-6;
+  @apply border-2 border-border/50;
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+              border-color var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+/* Headers de sección mejorados */
+.survey-section-header {
+  @apply text-foreground font-bold text-lg mb-4;
+  @apply border-b-2 border-primary/20 pb-3;
+  transition: color var(--theme-transition-duration) var(--theme-transition-easing),
+              border-color var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+/* ===== MEJORAS PARA SIDEBAR ===== */
+
+/* Item del sidebar con mejor feedback */
+.sidebar-item {
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+              color var(--theme-transition-duration) var(--theme-transition-easing),
+              transform 150ms ease;
+  @apply hover:bg-sidebar-accent/15 active:bg-sidebar-accent/25;
+}
+
+.sidebar-item.active {
+  @apply bg-sidebar-accent text-sidebar-accent-foreground;
+  @apply shadow-md shadow-sidebar-accent/20;
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+              color var(--theme-transition-duration) var(--theme-transition-easing),
+              box-shadow var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+/* ===== MEJORAS PARA TABLAS ===== */
+
+/* Fila de tabla con mejor hover */
+tbody tr {
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+              box-shadow 150ms ease;
+}
+
+tbody tr:hover {
+  @apply bg-muted/60 dark:bg-muted/30;
+  @apply shadow-sm;
+}
+
+/* Separadores de tabla más visibles */
+thead {
+  @apply border-b-2 border-border;
+  @apply bg-muted/40 dark:bg-muted/20;
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+              border-color var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+/* ===== ESTADOS DE CARGA MEJORADOS ===== */
+
+/* Skeleton con animación suave */
+.skeleton {
+  @apply bg-muted/50 dark:bg-muted/30;
+  @apply animate-pulse;
+}
+
+/* ===== MEJORAS PARA DROPDOWNS Y POPOVERS ===== */
+
+/* Popover con mejor contraste */
+[role="dialog"],
+[role="menu"],
+.popover-content {
+  @apply bg-popover border-2 border-border;
+  @apply shadow-2xl dark:shadow-foreground/10;
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+              border-color var(--theme-transition-duration) var(--theme-transition-easing),
+              box-shadow var(--theme-transition-duration) var(--theme-transition-easing),
+              opacity 200ms ease,
+              transform 200ms ease;
+}
+
+/* ===== MEJORAS PARA NOTIFICACIONES (TOAST) ===== */
+
+/* Toast con mejor visibilidad */
+.toast {
+  @apply bg-card border-2 border-border;
+  @apply shadow-2xl dark:shadow-foreground/20;
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+              border-color var(--theme-transition-duration) var(--theme-transition-easing),
+              box-shadow var(--theme-transition-duration) var(--theme-transition-easing),
+              opacity 200ms ease,
+              transform 200ms ease;
+}
+
+.toast-success {
+  @apply border-success/40 bg-success/10 dark:bg-success/15;
+}
+
+.toast-error {
+  @apply border-destructive/40 bg-destructive/10 dark:bg-destructive/15;
+}
+
+.toast-warning {
+  @apply border-warning/40 bg-warning/10 dark:bg-warning/15;
+}
+
+/* ===== MEJORAS PARA MODALES ===== */
+
+/* Overlay del modal con transición suave */
+.modal-overlay {
+  @apply bg-background/80 dark:bg-background/90;
+  @apply backdrop-blur-sm;
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+              backdrop-filter var(--theme-transition-duration) var(--theme-transition-easing),
+              opacity 300ms ease;
+}
+
+/* Contenido del modal */
+.modal-content {
+  @apply bg-card border-2 border-border;
+  @apply shadow-2xl dark:shadow-foreground/20;
+  @apply rounded-2xl;
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+              border-color var(--theme-transition-duration) var(--theme-transition-easing),
+              box-shadow var(--theme-transition-duration) var(--theme-transition-easing),
+              opacity 250ms ease,
+              transform 250ms ease;
+}
+
+/* ===== MEJORAS PARA ICONOS ===== */
+
+/* Iconos con mejor visibilidad */
+.icon-primary {
+  @apply text-primary dark:text-primary;
+  transition: color var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+.icon-secondary {
+  @apply text-secondary dark:text-secondary;
+  transition: color var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+.icon-muted {
+  @apply text-muted-foreground/70 dark:text-muted-foreground;
+  transition: color var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+/* ===== SEPARADORES MEJORADOS ===== */
+
+hr,
+.separator {
+  @apply border-border/80 dark:border-border;
+  transition: border-color var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+/* ===== FOCUS STATES MEJORADOS ===== */
+
+/* Focus visible con mejor contraste */
+*:focus-visible {
+  @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  transition: box-shadow 150ms ease, 
+              background-color var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+/* ===== MEJORAS PARA SWITCH/TOGGLE ===== */
+
+/* Switch con mejor visibilidad en modo claro */
+button[role="switch"] {
+  /* Asegurar borde visible en modo claro */
+  @apply border-2;
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+              border-color var(--theme-transition-duration) var(--theme-transition-easing),
+              box-shadow 200ms ease;
+}
+
+/* Estado unchecked (desactivado) con máximo contraste en modo claro */
+button[role="switch"][data-state="unchecked"] {
+  @apply bg-muted border-border;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Estado checked (activado) */
+button[role="switch"][data-state="checked"] {
+  @apply bg-primary border-primary;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Hover states para mejor feedback */
+button[role="switch"][data-state="unchecked"]:hover {
+  @apply bg-muted/80 border-border;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+button[role="switch"][data-state="checked"]:hover {
+  @apply bg-primary/90;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Thumb del switch con contraste mejorado */
+button[role="switch"] span {
+  transition: transform var(--theme-transition-duration) var(--theme-transition-easing),
+              background-color var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+button[role="switch"][data-state="unchecked"] span {
+  @apply bg-foreground/80;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+button[role="switch"][data-state="checked"] span {
+  @apply bg-white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Modo oscuro - ajustes específicos */
+.dark button[role="switch"][data-state="unchecked"] {
+  @apply bg-muted/40 border-border;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.dark button[role="switch"][data-state="unchecked"] span {
+  @apply bg-background;
+}
+
+/* ===== SCROLLBARS PERSONALIZADOS ===== */
+
+/* Scrollbar para modo claro y oscuro */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/30 rounded-full;
+  @apply hover:bg-muted-foreground/50;
+  @apply transition-colors duration-200;
+}
+
+/* Scrollbar en modo oscuro con mejor visibilidad */
+.dark *::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/40;
+  @apply hover:bg-muted-foreground/60;
+}
+
+/* ===== ANIMACIONES DE ENTRADA SUAVES ===== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Aplicar animaciones a elementos cargados dinámicamente */
+.fade-in {
+  animation: fadeIn 0.4s var(--theme-transition-easing);
+}
+
+.slide-in {
+  animation: slideIn 0.3s var(--theme-transition-easing);
+}
+
+/* ===== MEJORAS DE ACCESIBILIDAD ===== */
+
+/* Reducir movimiento para usuarios con preferencias */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===== MEJORAS PARA ESTADOS DE HOVER EN DISPOSITIVOS TÁCTILES ===== */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Reducir efectos hover en dispositivos táctiles */
+  .hover\:scale-\[1\.02\]:hover {
+    transform: none;
+  }
+  
+  /* Estados activos más prominentes en touch */
+  *:active {
+    @apply opacity-80;
+  }
+}
+
+/* ===== OPTIMIZACIONES DE RENDIMIENTO ===== */
+
+/* Optimizar elementos que cambian frecuentemente */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+/* GPU acceleration para elementos animados */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}

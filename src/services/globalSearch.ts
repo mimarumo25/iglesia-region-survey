@@ -1,7 +1,42 @@
+/**
+ * @fileoverview Servicio de Búsqueda Global - Sistema MIA
+ * 
+ * Implementa un motor de búsqueda frontend para consultas en tiempo real
+ * sobre datos ya cargados en memoria:
+ * - Familias
+ * - Sectores
+ * - Usuarios
+ * - Encuestas
+ * - Configuración del sistema
+ * 
+ * Características:
+ * - ⚡ Búsqueda instantánea sin llamadas API
+ * - 🎯 Scoring inteligente con pesos por campo
+ * - 🔤 Normalización de texto (sin acentos, minúsculas)
+ * - 📊 Resultados ordenados por relevancia
+ * - 🔍 Búsqueda fuzzy en múltiples campos
+ * 
+ * @module services/globalSearch
+ * @version 1.0.0
+ */
+
 import { Sector } from '@/types/sectores';
 import { UserResponse } from '@/services/users';
 
-// Tipos para los resultados de búsqueda
+/**
+ * Item individual en resultados de búsqueda
+ * 
+ * @interface SearchResultItem
+ * @property {string} id - Identificador único del elemento
+ * @property {string} title - Título principal del resultado
+ * @property {string} subtitle - Subtítulo descriptivo
+ * @property {string} [description] - Descripción adicional opcional
+ * @property {'familia' | 'sector' | 'usuario' | 'encuesta' | 'configuracion'} type - Tipo de resultado
+ * @property {string} path - Ruta de navegación del resultado
+ * @property {string} icon - Nombre del ícono Lucide
+ * @property {number} matchScore - Puntuación de relevancia (0-1)
+ * @property {string[]} matchFields - Campos donde se encontró coincidencia
+ */
 export interface SearchResultItem {
   id: string;
   title: string;
@@ -14,6 +49,16 @@ export interface SearchResultItem {
   matchFields: string[]; // Campos donde se encontró la coincidencia
 }
 
+/**
+ * Resultados de búsqueda organizados por categoría
+ * 
+ * @interface SearchResults
+ * @property {SearchResultItem[]} familias - Resultados de familias
+ * @property {SearchResultItem[]} sectores - Resultados de sectores
+ * @property {SearchResultItem[]} usuarios - Resultados de usuarios
+ * @property {SearchResultItem[]} encuestas - Resultados de encuestas
+ * @property {SearchResultItem[]} configuracion - Resultados de configuración
+ */
 export interface SearchResults {
   familias: SearchResultItem[];
   sectores: SearchResultItem[];
@@ -22,6 +67,15 @@ export interface SearchResults {
   configuracion: SearchResultItem[];
 }
 
+/**
+ * Datos disponibles para búsqueda
+ * 
+ * @interface SearchableData
+ * @property {Sector[]} [sectores] - Lista de sectores
+ * @property {UserResponse[]} [usuarios] - Lista de usuarios
+ * @property {any[]} [familias] - Lista de familias
+ * @property {any[]} [encuestas] - Lista de encuestas
+ */
 export interface SearchableData {
   sectores?: Sector[];
   usuarios?: UserResponse[];
@@ -30,8 +84,22 @@ export interface SearchableData {
 }
 
 /**
- * Servicio para búsqueda global en el frontend
- * Busca en los datos ya cargados localmente
+ * Servicio de búsqueda global en memoria
+ * 
+ * Implementa algoritmo de búsqueda fuzzy con scoring ponderado
+ * para búsquedas instantáneas en datos del frontend.
+ * 
+ * @class GlobalSearchService
+ * @static
+ * 
+ * @example
+ * const data: SearchableData = {
+ *   sectores: [...],
+ *   usuarios: [...]
+ * };
+ * 
+ * const results = GlobalSearchService.search('garcía', data, 10);
+ * console.log(results.familias); // Familias que coinciden con 'garcía'
  */
 export class GlobalSearchService {
   /**

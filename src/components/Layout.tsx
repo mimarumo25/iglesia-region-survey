@@ -14,103 +14,96 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-// Componente para el menú hamburguesa proporcional en el header
-const CornerHamburgerMenu = () => {
-  const { isHidden, toggleHidden, isMobile } = useSidebar();
-  
-  // Solo mostrar en desktop cuando el sidebar esté oculto
-  // Agregamos hidden md:block para asegurar que se oculte en móvil
-  if (isMobile || !isHidden) {
-    return null;
-  }
-
-  return (
-    <div className="hidden md:block fixed top-2 left-4 z-50">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={toggleHidden}
-        className={cn(
-          "relative w-12 h-12 p-0 rounded-xl group",
-          // Efecto glassmorphism adaptativo para modo claro y oscuro
-          "bg-background/20 hover:bg-background/30 dark:bg-white/8 dark:hover:bg-white/15",
-          "backdrop-blur-md",
-          "border border-border/30 hover:border-border/50 dark:border-white/15 dark:hover:border-white/25",
-          "shadow-lg hover:shadow-xl",
-          "transition-all duration-300 ease-out",
-          "hover:scale-105 active:scale-95",
-          "flex flex-col items-center justify-center gap-1",
-        )}
-        aria-label="Mostrar sidebar"
-      >
-        {/* Icono hamburguesa adaptativo para modo claro/oscuro */}
-        <span className="block w-6 h-0.5 bg-foreground/70 group-hover:bg-foreground/90 dark:bg-white/70 dark:group-hover:bg-white/90 rounded-full transition-all duration-200" />
-        <span className="block w-6 h-0.5 bg-foreground/70 group-hover:bg-foreground/90 dark:bg-white/70 dark:group-hover:bg-white/90 rounded-full transition-all duration-200" />
-        <span className="block w-6 h-0.5 bg-foreground/70 group-hover:bg-foreground/90 dark:bg-white/70 dark:group-hover:bg-white/90 rounded-full transition-all duration-200" />
-        
-        {/* Sutil anillo de foco adaptativo */}
-        <div className="absolute inset-0 rounded-xl border border-border/20 dark:border-white/20 opacity-0 group-hover:opacity-100 transition-all duration-300" />
-      </Button>
-    </div>
-  );
-};
-
-// Componente para el botón hamburguesa optimizado (solo para header móvil)
-const AnimatedMenuButton = () => {
-  const { openMobile, toggleSidebar, isMobile, isHidden } = useSidebar();
-  const isMobileDevice = useIsMobile();
-  
-  // En móvil, usar la lógica original pero optimizada
-  if (isMobile) {
-    return (
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={toggleSidebar}
-        className={cn(
-          "relative rounded-xl hover:bg-primary/10 group",
-          "flex flex-col items-center justify-center gap-1 transition-colors duration-200",
-          isMobileDevice ? "w-10 h-10 p-0" : "w-12 h-12 p-0"
-        )}
-        aria-label={openMobile ? "Cerrar menú" : "Abrir menú"}
-      >
-        <span
-          className={cn(
-            "block bg-current rounded-full transition-all duration-300 ease-out",
-            isMobileDevice ? "w-5 h-0.5" : "w-6 h-0.5",
-            openMobile ? (isMobileDevice ? "rotate-45 translate-y-1.5" : "rotate-45 translate-y-2") : ""
-          )}
-        />
-        <span
-          className={cn(
-            "block bg-current rounded-full transition-all duration-300 ease-out",
-            isMobileDevice ? "w-5 h-0.5" : "w-6 h-0.5",
-            openMobile ? "opacity-0 scale-75" : ""
-          )}
-        />
-        <span
-          className={cn(
-            "block bg-current rounded-full transition-all duration-300 ease-out",
-            isMobileDevice ? "w-5 h-0.5" : "w-6 h-0.5",
-            openMobile ? (isMobileDevice ? "-rotate-45 -translate-y-1.5" : "-rotate-45 -translate-y-2") : ""
-          )}
-        />
-        
-        {/* Efecto de ripple en touch */}
-        <div className="absolute inset-0 rounded-xl bg-primary/20 scale-0 group-active:scale-100 transition-transform duration-150" />
-      </Button>
-    );
-  }
-
-  // En desktop, cuando el sidebar está oculto, no mostrar nada aquí
-  // porque usamos el CornerHamburgerMenu
-  return null;
-};
-
 // Componente interno que puede usar useSidebar
 const LayoutContent = ({ children }: { children: React.ReactNode }) => {
-  const { isHidden, isMobile } = useSidebar();
+  const { isHidden, isMobile, openMobile, toggleSidebar, toggleHidden } = useSidebar();
   const isMobileDevice = useIsMobile();
+
+  // Componente para el menú hamburguesa proporcional en el header (dentro del contexto)
+  const CornerHamburgerMenu = () => {
+    // Solo mostrar en desktop cuando el sidebar esté oculto
+    if (isMobile || !isHidden) {
+      return null;
+    }
+
+    return (
+      <div className="hidden md:block fixed top-2 left-4 z-50">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleHidden}
+          className={cn(
+            "relative w-12 h-12 p-0 rounded-xl group",
+            // Efecto glassmorphism adaptativo para modo claro y oscuro
+            "bg-background/20 hover:bg-background/30 dark:bg-white/8 dark:hover:bg-white/15",
+            "backdrop-blur-md",
+            "border border-border/30 hover:border-border/50 dark:border-white/15 dark:hover:border-white/25",
+            "shadow-lg hover:shadow-xl",
+            "transition-all duration-300 ease-out",
+            "hover:scale-105 active:scale-95",
+            "flex flex-col items-center justify-center gap-1",
+          )}
+          aria-label="Mostrar sidebar"
+        >
+          {/* Icono hamburguesa adaptativo para modo claro/oscuro */}
+          <span className="block w-6 h-0.5 bg-foreground/70 group-hover:bg-foreground/90 dark:bg-white/70 dark:group-hover:bg-white/90 rounded-full transition-all duration-200" />
+          <span className="block w-6 h-0.5 bg-foreground/70 group-hover:bg-foreground/90 dark:bg-white/70 dark:group-hover:bg-white/90 rounded-full transition-all duration-200" />
+          <span className="block w-6 h-0.5 bg-foreground/70 group-hover:bg-foreground/90 dark:bg-white/70 dark:group-hover:bg-white/90 rounded-full transition-all duration-200" />
+          
+          {/* Sutil anillo de foco adaptativo */}
+          <div className="absolute inset-0 rounded-xl border border-border/20 dark:border-white/20 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+        </Button>
+      </div>
+    );
+  };
+
+  // Componente para el botón hamburguesa optimizado (solo para header móvil - dentro del contexto)
+  const AnimatedMenuButton = () => {
+    // En móvil, usar la lógica original pero optimizada
+    if (isMobile) {
+      return (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleSidebar}
+          className={cn(
+            "relative rounded-xl hover:bg-primary/10 group",
+            "flex flex-col items-center justify-center gap-1 transition-colors duration-200",
+            isMobileDevice ? "w-10 h-10 p-0" : "w-12 h-12 p-0"
+          )}
+          aria-label={openMobile ? "Cerrar menú" : "Abrir menú"}
+        >
+          <span
+            className={cn(
+              "block bg-current rounded-full transition-all duration-300 ease-out",
+              isMobileDevice ? "w-5 h-0.5" : "w-6 h-0.5",
+              openMobile ? (isMobileDevice ? "rotate-45 translate-y-1.5" : "rotate-45 translate-y-2") : ""
+            )}
+          />
+          <span
+            className={cn(
+              "block bg-current rounded-full transition-all duration-300 ease-out",
+              isMobileDevice ? "w-5 h-0.5" : "w-6 h-0.5",
+              openMobile ? "opacity-0 scale-75" : ""
+            )}
+          />
+          <span
+            className={cn(
+              "block bg-current rounded-full transition-all duration-300 ease-out",
+              isMobileDevice ? "w-5 h-0.5" : "w-6 h-0.5",
+              openMobile ? (isMobileDevice ? "-rotate-45 -translate-y-1.5" : "-rotate-45 -translate-y-2") : ""
+            )}
+          />
+          
+          {/* Efecto de ripple en touch */}
+          <div className="absolute inset-0 rounded-xl bg-primary/20 scale-0 group-active:scale-100 transition-transform duration-150" />
+        </Button>
+      );
+    }
+
+    // En desktop, cuando el sidebar está oculto, no mostrar nada aquí
+    return null;
+  };
   
   return (
     <div className="h-screen flex w-full bg-gradient-subtle relative overflow-hidden">

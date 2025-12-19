@@ -1,0 +1,28 @@
+<svg width="800" height="800" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#D4AF37" />
+      <stop offset="20%" style="stop-color:#F9E29C" />
+      <stop offset="50%" style="stop-color:#B8860B" />
+      <stop offset="100%" style="stop-color:#D4AF37" />
+    </linearGradient>
+  </defs>
+
+  <circle cx="400" cy="400" r="380" fill="#1B7071" />
+
+  <g fill="none" stroke="#5D0E0E" stroke-width="25" stroke-linecap="round">
+    <circle cx="400" cy="400" r="320" />
+    <path d="M400 80 l-15 -40 l-15 40 M640 160 l40 -15 l-40 -15 M720 400 l40 15 l-40 15 M640 640 l15 40 l15 -40 M400 720 l-15 40 l-15 -40 M160 640 l-40 15 l40 15 M80 400 l-40 -15 l40 -15 M160 160 l-15 -40 l15 40" stroke-width="15" fill="#5D0E0E"/>
+  </g>
+
+  <g fill="url(#goldGrad)" font-family="serif" font-weight="bold">
+    <text x="180" y="480" font-size="280" letter-spacing="-10">M</text>
+    <text x="440" y="480" font-size="280">I</text>
+    <text x="560" y="480" font-size="190">a</text>
+  </g>
+
+  <line x1="505" y1="320" x2="505" y2="410" stroke="#FF0000" stroke-width="4" />
+  <line x1="490" y1="345" x2="520" y2="345" stroke="#FF0000" stroke-width="4" />
+
+  <text x="580" y="550" fill="url(#goldGrad)" font-family="serif" font-size="40" font-style="italic">Mt 16,18</text>
+</svg>

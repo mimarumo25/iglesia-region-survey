@@ -22,7 +22,9 @@
     "server:restart": "docker-compose restart",
     "server:stop": "docker-compose down",
     "server:start": "docker-compose up -d",
-    "server:clean": "docker-compose down && docker image prune -f && docker container prune -f"
+    "server:clean": "docker-compose down && docker image prune -f && docker container prune -f",
+    "docs:generate": "jsdoc -c jsdoc.json",
+    "docs:open": "start docs-generated/index.html"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

@@ -1,7 +1,37 @@
+/**
+ * @fileoverview Servicio de Catálogo de Departamentos - Sistema MIA
+ * 
+ * Gestiona operaciones CRUD para el catálogo de departamentos de Colombia:
+ * - Listado con paginación
+ * - Consulta por ID
+ * - Creación y actualización
+ * - Eliminación (soft delete)
+ * - Estadísticas de departamentos
+ * 
+ * Los departamentos son la división administrativa de primer nivel
+ * y se usan para filtrado jerárquico en formularios.
+ * 
+ * Endpoint: /api/catalog/departamentos
+ * 
+ * @module services/departamentos
+ * @version 2.0.0
+ */
+
 import { getApiClient } from '@/config/api';
 import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
-// Interfaces para Departamentos
+/**
+ * Entidad de Departamento
+ * 
+ * @interface Departamento
+ * @property {string} id_departamento - ID único del departamento
+ * @property {string} nombre - Nombre del departamento
+ * @property {string} codigo_dane - Código DANE oficial
+ * @property {string} [descripcion] - Descripción adicional
+ * @property {boolean} [activo] - Si el departamento está activo
+ * @property {string} [created_at] - Fecha de creación
+ * @property {string} [updated_at] - Fecha de última actualización
+ */
 export interface Departamento {
   id_departamento: string;
   nombre: string;

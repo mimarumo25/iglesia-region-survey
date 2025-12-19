@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/context/ThemeContext';
 import { AlertCircle, Home, Search, Sun, Moon } from 'lucide-react';
+import Logo from '@/components/ui/logo';
 
 const NotFound = () => {
   const location = useLocation();
@@ -53,7 +54,12 @@ const NotFound = () => {
           </div>
 
           <div className="flex items-center justify-center p-6">
-            <div className="text-center">
+            <div className="text-center space-y-6">
+              {/* Logo oficial del sistema */}
+              <div className="flex justify-center mb-6">
+                <Logo size="xl" iconOnly className="opacity-60" />
+              </div>
+              
               <div className="text-8xl font-extrabold tracking-tight">
                 <span className="text-foreground">4</span>
                 <span className="text-muted-foreground/60">0</span>

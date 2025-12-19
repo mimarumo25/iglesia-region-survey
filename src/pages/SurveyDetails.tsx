@@ -71,33 +71,33 @@ const SurveyDetails = () => {
     }
   }, [error, toast]);
 
-  // Funciones auxiliares
+  // Funciones auxiliares con badges optimizados para ambos temas
   const getStatusBadge = (status?: string) => {
     switch (status) {
       case "completed":
         return (
-          <Badge className="bg-green-100 text-green-700 hover:bg-green-200">
+          <Badge className="bg-success/15 text-success border-2 border-success/30 hover:bg-success/25 dark:bg-success/20 dark:border-success/40 font-semibold transition-all">
             <CheckCircle className="w-3 h-3 mr-1" />
             Completada
           </Badge>
         );
       case "in_progress":
         return (
-          <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200">
+          <Badge className="bg-secondary/15 text-secondary border-2 border-secondary/30 hover:bg-secondary/25 dark:bg-secondary/20 dark:border-secondary/40 font-semibold transition-all">
             <Clock className="w-3 h-3 mr-1" />
             En Progreso
           </Badge>
         );
       case "cancelled":
         return (
-          <Badge className="bg-red-100 text-red-700 hover:bg-red-200">
+          <Badge className="bg-destructive/15 text-destructive border-2 border-destructive/30 hover:bg-destructive/25 dark:bg-destructive/20 dark:border-destructive/40 font-semibold transition-all">
             <XCircle className="w-3 h-3 mr-1" />
             Cancelada
           </Badge>
         );
       default:
         return (
-          <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200">
+          <Badge className="bg-warning/15 text-warning border-2 border-warning/30 hover:bg-warning/25 dark:bg-warning/20 dark:border-warning/40 font-semibold transition-all">
             <Clock className="w-3 h-3 mr-1" />
             Pendiente
           </Badge>
@@ -163,7 +163,7 @@ const SurveyDetails = () => {
           <CardContent className="p-6 text-center">
             <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Error al cargar encuesta</h3>
-            <p className="text-gray-600 mb-4">{error?.message || 'Error desconocido'}</p>
+            <p className="text-muted-foreground mb-4">{error?.message || 'Error desconocido'}</p>
             <div className="flex gap-2">
               <Button onClick={() => navigate("/surveys")} variant="outline">
                 Volver a Encuestas
@@ -193,11 +193,11 @@ const SurveyDetails = () => {
             Volver
           </Button>
           <div className={isMobile ? "hidden" : "block"}>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <FileText className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+              <FileText className="w-8 h-8 text-primary" />
               Detalles de Encuesta
             </h1>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Familia {encuesta.apellido_familiar} - {encuesta.codigo_familia}
             </p>
           </div>
@@ -206,14 +206,14 @@ const SurveyDetails = () => {
         {/* Título móvil */}
         {isMobile && (
           <div className="text-center">
-            <h1 className="text-xl font-bold text-gray-900 flex items-center justify-center gap-2">
-              <FileText className="w-6 h-6 text-blue-600" />
+            <h1 className="text-xl font-bold text-foreground flex items-center justify-center gap-2">
+              <FileText className="w-6 h-6 text-primary" />
               Detalles de Encuesta
             </h1>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Familia {encuesta.apellido_familiar}
             </p>
-            <p className="text-xs text-gray-500">{encuesta.codigo_familia}</p>
+            <p className="text-xs text-muted-foreground/80">{encuesta.codigo_familia}</p>
           </div>
         )}
         
@@ -241,36 +241,36 @@ const SurveyDetails = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm text-gray-500">Familia</p>
-              <p className="font-medium">{encuesta.apellido_familiar}</p>
+              <p className="text-sm text-muted-foreground font-semibold">Familia</p>
+              <p className="font-bold text-foreground">{encuesta.apellido_familiar}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Código de Familia</p>
-              <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+              <p className="text-sm text-muted-foreground font-semibold">Código de Familia</p>
+              <code className="text-sm bg-muted/30 dark:bg-muted/20 px-2 py-1 rounded font-mono text-foreground">
                 {encuesta.codigo_familia}
               </code>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Estado</p>
+              <p className="text-sm text-muted-foreground font-semibold">Estado</p>
               {getStatusBadge(encuesta.estado_encuesta)}
             </div>
             <div>
-              <p className="text-sm text-gray-500">Tipo de Vivienda</p>
-              <p className="font-medium">{encuesta.tipo_vivienda.nombre}</p>
+              <p className="text-sm text-muted-foreground font-semibold">Tipo de Vivienda</p>
+              <p className="font-semibold text-foreground/90">{encuesta.tipo_vivienda.nombre}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Dirección</p>
+              <p className="text-sm text-muted-foreground font-semibold">Dirección</p>
               <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-                <p className="text-sm">{encuesta.direccion_familia}</p>
+                <MapPin className="w-4 h-4 text-muted-foreground/60 mt-0.5" />
+                <p className="text-sm text-foreground/90">{encuesta.direccion_familia}</p>
               </div>
             </div>
             {encuesta.telefono && (
               <div>
-                <p className="text-sm text-gray-500">Teléfono</p>
+                <p className="text-sm text-muted-foreground font-semibold">Teléfono</p>
                 <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-gray-400" />
-                  <p className="text-sm font-mono">{encuesta.telefono}</p>
+                  <Phone className="w-4 h-4 text-muted-foreground/60" />
+                  <p className="text-sm font-mono text-foreground/90">{encuesta.telefono}</p>
                 </div>
               </div>
             )}
@@ -287,31 +287,31 @@ const SurveyDetails = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm text-gray-500">Municipio</p>
-              <p className="font-medium">{encuesta.municipio.nombre}</p>
+              <p className="text-sm text-muted-foreground font-semibold">Municipio</p>
+              <p className="font-semibold text-foreground/90">{encuesta.municipio.nombre}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Parroquia</p>
-              <p className="font-medium">{encuesta.parroquia.nombre}</p>
+              <p className="text-sm text-muted-foreground font-semibold">Parroquia</p>
+              <p className="font-semibold text-foreground/90">{encuesta.parroquia.nombre}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Sector</p>
+              <p className="text-sm text-muted-foreground font-semibold">Sector</p>
               <Badge variant="outline">{encuesta.sector.nombre}</Badge>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Vereda</p>
-              <p className="font-medium">{encuesta.vereda.nombre}</p>
+              <p className="text-sm text-muted-foreground font-semibold">Vereda</p>
+              <p className="font-semibold text-foreground/90">{encuesta.vereda.nombre}</p>
             </div>
             {(encuesta as any).corregimiento && (
               <div>
-                <p className="text-sm text-gray-500">Corregimiento</p>
-                <p className="font-medium">{(encuesta as any).corregimiento.nombre}</p>
+                <p className="text-sm text-muted-foreground font-semibold">Corregimiento</p>
+                <p className="font-semibold text-foreground/90">{(encuesta as any).corregimiento.nombre}</p>
               </div>
             )}
             {(encuesta as any).centro_poblado && (
               <div>
-                <p className="text-sm text-gray-500">Centro Poblado</p>
-                <p className="font-medium">{(encuesta as any).centro_poblado.nombre}</p>
+                <p className="text-sm text-muted-foreground font-semibold">Centro Poblado</p>
+                <p className="font-semibold text-foreground/90">{(encuesta as any).centro_poblado.nombre}</p>
               </div>
             )}
           </CardContent>
@@ -327,30 +327,30 @@ const SurveyDetails = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Total Miembros</span>
-              <Badge variant="outline">{encuesta.miembros_familia?.total_miembros || 0}</Badge>
+              <span className="text-sm text-muted-foreground font-semibold">Total Miembros</span>
+              <Badge variant="outline" className="font-semibold">{encuesta.miembros_familia?.total_miembros || 0}</Badge>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Personas Fallecidas</span>
-              <Badge variant="outline">{encuesta.deceasedMembers?.length || 0}</Badge>
+              <span className="text-sm text-muted-foreground font-semibold">Personas Fallecidas</span>
+              <Badge variant="outline" className="font-semibold">{encuesta.deceasedMembers?.length || 0}</Badge>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Tamaño Familia</span>
-              <Badge variant="outline">{encuesta.tamaño_familia || 0}</Badge>
+              <span className="text-sm text-muted-foreground font-semibold">Tamaño Familia</span>
+              <Badge variant="outline" className="font-semibold">{encuesta.tamaño_familia || 0}</Badge>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Fecha Creación</p>
+              <p className="text-sm text-muted-foreground font-semibold">Fecha Creación</p>
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-gray-400" />
-                <p className="text-sm">{formatDate(encuesta.metadatos.fecha_creacion)}</p>
+                <Calendar className="w-4 h-4 text-muted-foreground/60" />
+                <p className="text-sm text-foreground/90">{formatDate(encuesta.metadatos.fecha_creacion)}</p>
               </div>
             </div>
             {encuesta.estado_encuesta === 'completed' && (
               <div>
-                <p className="text-sm text-gray-500">Última Actualización</p>
+                <p className="text-sm text-muted-foreground font-semibold">Última Actualización</p>
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-gray-400" />
-                  <p className="text-sm">{formatDate(encuesta.fecha_ultima_encuesta)}</p>
+                  <Calendar className="w-4 h-4 text-muted-foreground/60" />
+                  <p className="text-sm text-foreground/90">{formatDate(encuesta.fecha_ultima_encuesta)}</p>
                 </div>
               </div>
             )}
@@ -372,25 +372,25 @@ const SurveyDetails = () => {
               
               return encuestadorNombre ? (
                 <div>
-                  <p className="text-sm text-gray-500">Encuestador</p>
+                  <p className="text-sm text-muted-foreground font-semibold">Encuestador</p>
                   <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-gray-400" />
-                    <Badge variant="secondary">{encuestadorNombre}</Badge>
+                    <User className="w-4 h-4 text-muted-foreground/60" />
+                    <Badge variant="secondary" className="font-semibold">{encuestadorNombre}</Badge>
                   </div>
                 </div>
               ) : null;
             })()}
             {(encuesta as any).numero_contrato_epm && (
               <div>
-                <p className="text-sm text-gray-500">Contrato EPM</p>
-                <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+                <p className="text-sm text-muted-foreground font-semibold">Contrato EPM</p>
+                <code className="text-sm bg-muted/30 dark:bg-muted/20 px-2 py-1 rounded font-mono text-foreground">
                   {(encuesta as any).numero_contrato_epm}
                 </code>
               </div>
             )}
             {(encuesta as any).comunion_en_casa !== undefined && (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Comunión en Casa</span>
+                <span className="text-sm text-muted-foreground font-semibold">Comunión en Casa</span>
                 <Badge variant={(encuesta as any).comunion_en_casa ? "default" : "outline"}>
                   {(encuesta as any).comunion_en_casa ? "Sí" : "No"}
                 </Badge>
@@ -412,7 +412,7 @@ const SurveyDetails = () => {
           <div className={`grid gap-6 ${shouldUseMobileView ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
             {/* Acueducto */}
             <div>
-              <p className="text-sm text-gray-500 mb-2">Sistema de Acueducto</p>
+              <p className="text-sm text-muted-foreground font-semibold mb-2">Sistema de Acueducto</p>
               {Array.isArray(encuesta.acueducto) ? (
                 <div className="space-y-1">
                   {encuesta.acueducto.map((ac: any) => (
@@ -426,7 +426,7 @@ const SurveyDetails = () => {
             
             {/* Aguas Residuales */}
             <div>
-              <p className="text-sm text-gray-500 mb-2">Aguas Residuales</p>
+              <p className="text-sm text-muted-foreground font-semibold mb-2">Aguas Residuales</p>
               {Array.isArray(encuesta.aguas_residuales) ? (
                 <div className="space-y-1">
                   {encuesta.aguas_residuales.map((ar: any) => (
@@ -436,23 +436,23 @@ const SurveyDetails = () => {
               ) : encuesta.aguas_residuales ? (
                 <Badge variant="outline">{encuesta.aguas_residuales.nombre}</Badge>
               ) : (
-                <span className="text-gray-400">No especificado</span>
+                <span className="text-muted-foreground/70 italic">No especificado</span>
               )}
             </div>
             
             {/* Disposición de Basuras */}
             <div>
-              <p className="text-sm text-gray-500 mb-2">Disposición de Basuras</p>
+              <p className="text-sm text-muted-foreground font-semibold mb-2">Disposición de Basuras</p>
               {encuesta.basuras && encuesta.basuras.length > 0 ? (
                 <div className="flex flex-wrap gap-1">
                   {encuesta.basuras.map((b: any) => (
-                    <Badge key={b.id} variant="secondary" className="text-xs">
+                    <Badge key={b.id} variant="secondary" className="text-xs font-semibold">
                       {b.nombre}
                     </Badge>
                   ))}
                 </div>
               ) : (
-                <span className="text-gray-400">No especificado</span>
+                <span className="text-muted-foreground/70 italic">No especificado</span>
               )}
             </div>
           </div>
@@ -492,7 +492,7 @@ const SurveyDetails = () => {
                       </div>
                       <div className="text-right">
                         <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-primary`}>{miembro.edad || calculateAge(miembro.fecha_nacimiento)}</p>
-                        <p className="text-xs text-gray-500">años</p>
+                        <p className="text-xs text-muted-foreground font-semibold">años</p>
                       </div>
                     </div>
                   </CardHeader>
@@ -500,22 +500,22 @@ const SurveyDetails = () => {
                   <CardContent className={`space-y-${isMobile ? '3' : '4'} ${isMobile ? 'px-3 pb-3' : ''}`}>
                     {/* Información Personal */}
                     <div>
-                      <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
-                        <User className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} /> Información Personal
+                      <h4 className={`font-bold ${isMobile ? 'text-xs' : 'text-sm'} text-foreground mb-2 flex items-center gap-1`}>
+                        <User className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-primary`} /> Información Personal
                       </h4>
                       <div className={`grid grid-cols-1 ${isMobile ? 'gap-2' : 'md:grid-cols-2 lg:grid-cols-3 gap-3'} text-sm`}>
                         <div>
-                          <p className="text-gray-500">Identificación</p>
-                          <p className="font-medium">{miembro.identificacion.numero}</p>
-                          <p className="text-xs text-gray-400">{miembro.identificacion.tipo?.nombre}</p>
+                          <p className="text-muted-foreground font-semibold">Identificación</p>
+                          <p className="font-semibold text-foreground/90">{miembro.identificacion.numero}</p>
+                          <p className="text-xs text-muted-foreground/70">{miembro.identificacion.tipo?.nombre}</p>
                         </div>
                         <div>
-                          <p className="text-gray-500">Fecha de Nacimiento</p>
-                          <p className="font-medium">{formatDate(miembro.fecha_nacimiento)}</p>
+                          <p className="text-muted-foreground font-semibold">Fecha de Nacimiento</p>
+                          <p className="font-semibold text-foreground/90">{formatDate(miembro.fecha_nacimiento)}</p>
                         </div>
                         <div>
-                          <p className="text-gray-500">Estado Civil</p>
-                          <p className="font-medium">{miembro.estado_civil.nombre}</p>
+                          <p className="text-muted-foreground font-semibold">Estado Civil</p>
+                          <p className="font-semibold text-foreground/90">{miembro.estado_civil.nombre}</p>
                         </div>
                       </div>
                     </div>
@@ -524,26 +524,26 @@ const SurveyDetails = () => {
 
                     {/* Contacto */}
                     <div>
-                      <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
-                        <Phone className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} /> Contacto
+                      <h4 className={`font-bold ${isMobile ? 'text-xs' : 'text-sm'} text-foreground mb-2 flex items-center gap-1`}>
+                        <Phone className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-primary`} /> Contacto
                       </h4>
                       <div className={`grid grid-cols-1 ${isMobile ? 'gap-2' : 'md:grid-cols-2 gap-3'} text-sm`}>
                         {miembro.telefono && (
                           <div className="flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-gray-400" />
-                            <span>{miembro.telefono}</span>
+                            <Phone className="w-4 h-4 text-muted-foreground/60" />
+                            <span className="text-foreground/90">{miembro.telefono}</span>
                           </div>
                         )}
                         {miembro.email && !miembro.email.includes('@temp.com') && (
                           <div className="flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-gray-400" />
-                            <span className="text-xs break-all">{miembro.email}</span>
+                            <Mail className="w-4 h-4 text-muted-foreground/60" />
+                            <span className="text-xs break-all text-foreground/90">{miembro.email}</span>
                           </div>
                         )}
                         {miembro.direccion && (
                           <div className="flex items-center gap-2 col-span-full">
-                            <MapPin className="w-4 h-4 text-gray-400" />
-                            <span>{miembro.direccion}</span>
+                            <MapPin className="w-4 h-4 text-muted-foreground/60" />
+                            <span className="text-foreground/90">{miembro.direccion}</span>
                           </div>
                         )}
                       </div>
@@ -553,24 +553,24 @@ const SurveyDetails = () => {
 
                     {/* Educación y Profesión */}
                     <div>
-                      <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
-                        <GraduationCap className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} /> Educación y Profesión
+                      <h4 className={`font-bold ${isMobile ? 'text-xs' : 'text-sm'} text-foreground mb-2 flex items-center gap-1`}>
+                        <GraduationCap className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-primary`} /> Educación y Profesión
                       </h4>
                       <div className={`grid grid-cols-1 ${isMobile ? 'gap-2' : 'md:grid-cols-2 gap-3'} text-sm`}>
                         <div>
-                          <p className="text-gray-500">Nivel de Estudios</p>
-                          <p className="font-medium">{miembro.estudios.nombre}</p>
+                          <p className="text-muted-foreground font-semibold">Nivel de Estudios</p>
+                          <p className="font-semibold text-foreground/90">{miembro.estudios.nombre}</p>
                         </div>
                         {miembro.profesion && (
                           <div>
-                            <p className="text-gray-500">Profesión/Oficio</p>
-                            <p className="font-medium">{miembro.profesion.nombre}</p>
+                            <p className="text-muted-foreground font-semibold">Profesión/Oficio</p>
+                            <p className="font-semibold text-foreground/90">{miembro.profesion.nombre}</p>
                           </div>
                         )}
                         {miembro.comunidad_cultural && (
                           <div>
-                            <p className="text-gray-500">Comunidad Cultural</p>
-                            <p className="font-medium">{miembro.comunidad_cultural.nombre}</p>
+                            <p className="text-muted-foreground font-semibold">Comunidad Cultural</p>
+                            <p className="font-semibold text-foreground/90">{miembro.comunidad_cultural.nombre}</p>
                           </div>
                         )}
                       </div>
@@ -580,21 +580,21 @@ const SurveyDetails = () => {
 
                     {/* Tallas */}
                     <div>
-                      <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
-                        <Shirt className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} /> Tallas
+                      <h4 className={`font-bold ${isMobile ? 'text-xs' : 'text-sm'} text-foreground mb-2 flex items-center gap-1`}>
+                        <Shirt className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-primary`} /> Tallas
                       </h4>
                       <div className={`flex ${isMobile ? 'flex-col gap-2' : 'gap-4'} text-sm`}>
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-500">👕 Camisa:</span>
-                          <Badge variant="outline">{miembro.tallas.camisa}</Badge>
+                          <span className="text-muted-foreground font-semibold">👕 Camisa:</span>
+                          <Badge variant="outline" className="font-semibold">{miembro.tallas.camisa}</Badge>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-500">👖 Pantalón:</span>
-                          <Badge variant="outline">{miembro.tallas.pantalon}</Badge>
+                          <span className="text-muted-foreground font-semibold">👖 Pantalón:</span>
+                          <Badge variant="outline" className="font-semibold">{miembro.tallas.pantalon}</Badge>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-500">👟 Zapato:</span>
-                          <Badge variant="outline">{miembro.tallas.zapato}</Badge>
+                          <span className="text-muted-foreground font-semibold">👟 Zapato:</span>
+                          <Badge variant="outline" className="font-semibold">{miembro.tallas.zapato}</Badge>
                         </div>
                       </div>
                     </div>
@@ -604,10 +604,10 @@ const SurveyDetails = () => {
                       <>
                         <Separator />
                         <div>
-                          <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                          <h4 className="font-bold text-sm text-foreground mb-2">
                             👑 Áreas de Liderazgo
                           </h4>
-                          <p className="text-sm">{miembro.en_que_eres_lider}</p>
+                          <p className="text-sm text-foreground/90">{miembro.en_que_eres_lider}</p>
                         </div>
                       </>
                     )}
@@ -617,12 +617,12 @@ const SurveyDetails = () => {
                       <>
                         <Separator />
                         <div>
-                          <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                          <h4 className="font-bold text-sm text-foreground mb-2">
                             ⭐ Habilidades
                           </h4>
                           <div className="flex flex-wrap gap-2">
                             {miembro.habilidades.map((h: any) => (
-                              <Badge key={h.id} variant="secondary" className="text-xs">
+                              <Badge key={h.id} variant="secondary" className="text-xs font-semibold">
                                 {h.nombre} {h.nivel && `(${h.nivel})`}
                               </Badge>
                             ))}
@@ -633,10 +633,10 @@ const SurveyDetails = () => {
                       <>
                         <Separator />
                         <div>
-                          <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                          <h4 className="font-bold text-sm text-foreground mb-2">
                             ⭐ Habilidades
                           </h4>
-                          <p className="text-xs text-gray-400 italic">Sin habilidades registradas</p>
+                          <p className="text-xs text-muted-foreground/70 italic">Sin habilidades registradas</p>
                         </div>
                       </>
                     )}
@@ -646,12 +646,12 @@ const SurveyDetails = () => {
                       <>
                         <Separator />
                         <div>
-                          <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                          <h4 className="font-bold text-sm text-foreground mb-2">
                             🛠️ Destrezas
                           </h4>
                           <div className="flex flex-wrap gap-2">
                             {miembro.destrezas.map((d: any) => (
-                              <Badge key={d.id} variant="outline" className="text-xs">
+                              <Badge key={d.id} variant="outline" className="text-xs font-semibold">
                                 {d.nombre}
                               </Badge>
                             ))}
@@ -662,10 +662,10 @@ const SurveyDetails = () => {
                       <>
                         <Separator />
                         <div>
-                          <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                          <h4 className="font-bold text-sm text-foreground mb-2">
                             🛠️ Destrezas
                           </h4>
-                          <p className="text-xs text-gray-400 italic">Sin destrezas registradas</p>
+                          <p className="text-xs text-muted-foreground/70 italic">Sin destrezas registradas</p>
                         </div>
                       </>
                     )}
@@ -675,8 +675,8 @@ const SurveyDetails = () => {
                       <>
                         <Separator />
                         <div>
-                          <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
-                            <Calendar className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} /> Fechas para Celebrar
+                          <h4 className={`font-bold ${isMobile ? 'text-xs' : 'text-sm'} text-foreground mb-2 flex items-center gap-1`}>
+                            <Calendar className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-primary`} /> Fechas para Celebrar
                           </h4>
                           <div className={`${isMobile ? 'space-y-1.5' : 'space-y-2'}`}>
                             {miembro.celebraciones.map((c: any, idx: number) => (
@@ -695,12 +695,12 @@ const SurveyDetails = () => {
                       <>
                         <Separator />
                         <div>
-                          <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
-                            <Heart className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-red-500`} /> Enfermedades
+                          <h4 className={`font-bold ${isMobile ? 'text-xs' : 'text-sm'} text-foreground mb-2 flex items-center gap-1`}>
+                            <Heart className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-destructive`} /> Enfermedades
                           </h4>
                           <div className="flex flex-wrap gap-2">
                             {miembro.enfermedades.map((e: any) => (
-                              <Badge key={e.id} variant="destructive" className="text-xs">
+                              <Badge key={e.id} variant="destructive" className="text-xs font-semibold">
                                 {e.nombre}
                               </Badge>
                             ))}
@@ -711,10 +711,10 @@ const SurveyDetails = () => {
                       <>
                         <Separator />
                         <div>
-                          <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
-                            <Heart className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-400`} /> Enfermedades
+                          <h4 className={`font-bold ${isMobile ? 'text-xs' : 'text-sm'} text-foreground mb-2 flex items-center gap-1`}>
+                            <Heart className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-muted-foreground/60`} /> Enfermedades
                           </h4>
-                          <p className="text-xs text-gray-400 italic">Sin enfermedades registradas</p>
+                          <p className="text-xs text-muted-foreground/70 italic">Sin enfermedades registradas</p>
                         </div>
                       </>
                     )}

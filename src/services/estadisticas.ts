@@ -1,5 +1,21 @@
 /**
- * Servicio para obtener estadísticas de encuestas
+ * @fileoverview Servicio de Estadísticas de Encuestas - Sistema MIA
+ * 
+ * Proporciona funcionalidades para obtener y procesar estadísticas
+ * agregadas del sistema de encuestas, incluyendo:
+ * - Total de encuestas, familias y personas
+ * - Indicadores de completitud
+ * - Promedios y métricas calculadas
+ * - Cobertura geográfica
+ * 
+ * Todas las funciones realizan:
+ * - Validación de respuestas del API
+ * - Conversión de tipos (strings → números)
+ * - Manejo de errores robusto
+ * - Transformación a tipos TypeScript tipados
+ * 
+ * @module services/estadisticas
+ * @version 1.0.0
  */
 
 import apiClient from "@/interceptors/axios";
@@ -9,7 +25,48 @@ import type {
 } from "@/types/estadisticas";
 
 /**
- * Obtiene las estadísticas generales de encuestas desde el API
+ * Obtiene estadísticas generales de encuestas
+ * 
+ * Consulta el endpoint de estadísticas del API y procesa los datos
+ * para presentación en el dashboard. Realiza conversiones de tipo
+ * y cálculos derivados (familias pendientes).
+ * 
+ * @async
+ * @function obtenerEstadisticasEncuesta
+ * @returns {Promise<EstadisticasDashboard>} Estadísticas procesadas para dashboard
+ * @throws {Error} Si la petición falla, el status no es "success", o faltan datos
+ * 
+ * @example
+ * ```typescript
+ * try {
+ *   const stats = await obtenerEstadisticasEncuesta();
+ *   console.log(`Total encuestas: ${stats.totalEncuestas}`);
+ *   console.log(`Familias completadas: ${stats.familiasCompletadas}`);
+ *   console.log(`Promedio tamaño: ${stats.promedioTamañoFamilia}`);
+ * } catch (error) {
+ *   console.error('Error cargando estadísticas:', error);
+ * }
+ * ```
+ * 
+ * @description
+ * Endpoint: GET /api/encuesta/estadisticas
+ * 
+ * Respuesta esperada del API:
+ * ```json
+ * {
+ *   "status": "success",
+ *   "data": {
+ *     "total_encuestas": "125",
+ *     "total_familias": "120",
+ *     "familias_completadas": "100",
+ *     "total_personas": "450",
+ *     "total_difuntos": "15",
+ *     "promedio_tamaño_familia": "3.75",
+ *     "municipios_cubiertos": "5",
+ *     "ultima_encuesta_fecha": "2024-01-15"
+ *   }
+ * }
+ * ```
  * 
  * Endpoint: GET /api/encuesta/estadisticas
  * 

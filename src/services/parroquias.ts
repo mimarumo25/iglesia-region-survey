@@ -1,3 +1,23 @@
+/**
+ * @fileoverview Servicio de Catálogo de Parroquias - Sistema MIA
+ * 
+ * Gestiona operaciones CRUD para parroquias católicas:
+ * - Listado con paginación y ordenamiento
+ * - Consulta por ID
+ * - Creación y actualización
+ * - Eliminación
+ * - Filtrado por municipio y departamento
+ * - Manejo de múltiples formatos de respuesta API
+ * 
+ * Las parroquias son las unidades eclesiásticas base del sistema
+ * y se relacionan jerárquicamente con municipios y departamentos.
+ * 
+ * Endpoint: /api/catalog/parroquias
+ * 
+ * @module services/parroquias
+ * @version 1.0.0
+ */
+
 import { getApiClient } from '@/config/api';
 import { 
   Parroquia, 
@@ -8,6 +28,14 @@ import {
   ApiParroquiasResponse
 } from '@/types/parroquias';
 
+/**
+ * Servicio de gestión de parroquias
+ * 
+ * Maneja todas las operaciones relacionadas con el catálogo de parroquias,
+ * incluyendo normalización de respuestas del backend que pueden variar.
+ * 
+ * @class ParroquiasService
+ */
 class ParroquiasService {
   // Obtener todas las parroquias con paginación
   async getParroquias(
