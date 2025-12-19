@@ -48,6 +48,48 @@ export interface ThemePreset {
 // Temas predefinidos
 export const themePresets: ThemePreset[] = [
   {
+    name: 'mia',
+    displayName: 'MIA Oficial',
+    description: 'Tema oficial MIA con verde y azul del logo',
+    colors: {
+      primary: '142 76% 36%', // Verde MIA principal
+      primaryForeground: '0 0% 98%',
+      primaryLight: '142 76% 46%', // Verde más claro
+      primaryDark: '142 76% 26%', // Verde más oscuro
+      primaryHover: '142 76% 41%', // Verde hover
+      secondary: '197 71% 52%', // Azul complementario
+      secondaryForeground: '0 0% 98%',
+      secondaryLight: '197 71% 62%', // Azul más claro
+      secondaryHover: '197 71% 57%', // Azul hover
+      background: '0 0% 96%', // Fondo muy claro para contraste
+      foreground: '0 0% 3.9%',
+      card: '0 0% 98%', // Cards casi blancos
+      cardForeground: '0 0% 3.9%',
+      muted: '0 0% 92%',
+      mutedForeground: '215.4 16.3% 35%',
+      accent: '0 0% 94%',
+      accentForeground: '0 0% 3.9%',
+      border: '214.3 31.8% 91.4%',
+      input: '0 0% 96%', // Input con fondo muy claro
+      inputBorder: '142 20% 85%', // Borde sutil verde
+      ring: '142 76% 36%', // Ring verde MIA
+      destructive: '0 84.2% 60.2%',
+      destructiveForeground: '0 0% 98%',
+      success: '142 76% 36%', // Verde MIA para success
+      successForeground: '0 0% 98%',
+      warning: '38 92% 50%',
+      warningForeground: '0 0% 98%',
+      sidebarBackground: '142 76% 26%', // Verde MIA oscuro
+      sidebarForeground: '0 0% 98%',
+      sidebarPrimary: '142 76% 20%', // Verde MIA más oscuro
+      sidebarPrimaryForeground: '0 0% 98%',
+      sidebarAccent: '142 76% 36%', // Verde MIA principal
+      sidebarAccentForeground: '0 0% 98%',
+      sidebarBorder: '142 76% 22%', // Verde MIA borde
+      sidebarRing: '142 76% 36%', // Verde MIA ring
+    }
+  },
+  {
     name: 'default',
     displayName: 'Azul Católico',
     description: 'Tema tradicional con azul católico y dorado litúrgico',
@@ -286,7 +328,7 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [currentTheme, setCurrentTheme] = useState('default');
+  const [currentTheme, setCurrentTheme] = useState('mia'); // Tema MIA como predeterminado
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [customColors, setCustomColors] = useState<Partial<ThemeColors>>({});
 
@@ -298,6 +340,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
     if (savedTheme && themePresets.find(preset => preset.name === savedTheme)) {
       setCurrentTheme(savedTheme);
+    } else {
+      // Si no hay tema guardado, usar MIA como predeterminado
+      setCurrentTheme('mia');
+      localStorage.setItem('parish-theme', 'mia');
     }
     setIsDarkMode(savedDarkMode);
     if (savedCustomColors) {
