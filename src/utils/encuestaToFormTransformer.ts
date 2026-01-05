@@ -46,8 +46,10 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
     id: encuesta.id_encuesta,
     apellido: encuesta.apellido_familiar,
     corregimiento: encuesta.corregimiento,
+    centro_poblado: (encuesta as any).centro_poblado,
     numero_contrato_epm: encuesta.numero_contrato_epm,
     basuras: encuesta.basuras,
+    basuras_ids: encuesta.basuras?.map(b => ({ id: b.id, nombre: b.nombre })),
     aguas_residuales: encuesta.aguas_residuales,
     sustento_familia: (encuesta as any).sustento_familia
   });
@@ -55,6 +57,7 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
   // ⚠️ Advertencias para campos no disponibles
   const camposNoDisponibles = [];
   if (!encuesta.numero_contrato_epm) camposNoDisponibles.push('numero_contrato_epm');
+  if (!encuesta.centro_poblado) camposNoDisponibles.push('centro_poblado');
   if (!(encuesta as any).sustento_familia) camposNoDisponibles.push('sustento_familia');
   if (!encuesta.corregimiento) camposNoDisponibles.push('corregimiento');
   if (!encuesta.aguas_residuales || (Array.isArray(encuesta.aguas_residuales) && encuesta.aguas_residuales.length === 0)) {
@@ -84,54 +87,39 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
     apellido_familiar: encuesta.apellido_familiar || '',
     direccion: encuesta.direccion_familia || '',
     telefono: encuesta.telefono || '',
-    numero_contrato_epm: '', // No disponible en la respuesta actual
+    numero_contrato_epm: encuesta.numero_contrato_epm || '', // Capturar del API si está disponible
     
     // Información de vivienda
     tipo_vivienda: encuesta.tipo_vivienda?.id || '',
     
-    // Disposición de basuras - transformar array a booleans individuales
-    basuras_recolector: encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('recolector')) || false,
-    basuras_quemada: encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('quemada')) || false,
-    basuras_enterrada: encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('enterrada')) || false,
-    basuras_recicla: encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('recicla')) || false,
-    basuras_aire_libre: encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('aire libre')) || false,
-    basuras_no_aplica: encuesta.basuras?.length === 0 || false,
+    // Disposición de basuras - transformar array de objetos {id, nombre} a array de IDs
+    // ✅ Los IDs vienen directamente del backend, no necesita búsqueda de texto
+    disposicion_basura: encuesta.basuras && Array.isArray(encuesta.basuras) 
+      ? encuesta.basuras.map(b => String(b.id)) 
+      : [],
     
-    // Reconstruir el array disposicion_basura a partir de los booleanos
-    disposicion_basura: (() => {
-      const basuraArray: string[] = [];
-      if (encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('recolector'))) {
-        basuraArray.push('1'); // Recolección municipal
-      }
-      if (encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('quemada'))) {
-        basuraArray.push('3'); // Incineración
-      }
-      if (encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('enterrada'))) {
-        basuraArray.push('4'); // Enterrado
-      }
-      if (encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('recicla'))) {
-        basuraArray.push('6'); // Reciclaje
-      }
-      if (encuesta.basuras?.some(b => b.nombre.toLowerCase().includes('aire libre'))) {
-        basuraArray.push('5'); // Botadero
-      }
-      return basuraArray;
-    })(),
+    // Booleanos individuales para compatibilidad (si se necesitan en el formulario)
+    basuras_recolector: encuesta.basuras?.some(b => String(b.id) === '1') || false,
+    basuras_quemada: encuesta.basuras?.some(b => String(b.id) === '3') || false,
+    basuras_enterrada: encuesta.basuras?.some(b => String(b.id) === '4') || false,
+    basuras_recicla: encuesta.basuras?.some(b => String(b.id) === '6') || false,
+    basuras_aire_libre: encuesta.basuras?.some(b => String(b.id) === '5') || false,
+    basuras_no_aplica: !encuesta.basuras || encuesta.basuras.length === 0,
     
     // Servicios de agua - ⚠️ Backend devuelve ARRAYS, tomamos primer elemento
     sistema_acueducto: Array.isArray(encuesta.acueducto) && encuesta.acueducto.length > 0 
       ? encuesta.acueducto[0].id 
       : (encuesta.acueducto as any)?.id || '',
     
-    // 🔄 aguas_residuales: Backend devuelve array, extraemos IDs
+    // 🔄 aguas_residuales: Backend devuelve array, extraemos IDs como strings
     aguas_residuales: Array.isArray(encuesta.aguas_residuales) 
-      ? encuesta.aguas_residuales.map(ar => ar.id)
-      : (encuesta.aguas_residuales as any)?.id ? [(encuesta.aguas_residuales as any).id] : [],
+      ? encuesta.aguas_residuales.map(ar => String(ar.id))
+      : (encuesta.aguas_residuales as any)?.id ? [String((encuesta.aguas_residuales as any).id)] : [],
     
     // Observaciones y consentimiento
-    sustento_familia: '', // No disponible en respuesta actual
-    observaciones_encuestador: encuesta.metadatos?.estado || '',
-    autorizacion_datos: true, // Asumido si la encuesta existe
+    sustento_familia: encuesta.observaciones?.sustento_familia || '', // Capturar del objeto observaciones
+    observaciones_encuestador: encuesta.observaciones?.observaciones_encuestador || encuesta.metadatos?.estado || '',
+    autorizacion_datos: encuesta.observaciones?.autorizacion_datos !== undefined ? encuesta.observaciones.autorizacion_datos : true, // Capturar correctamente
   };
 
   // 2. Transformar miembros de familia
@@ -253,11 +241,28 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
 
   console.log('📤 Resultado de la transformación:', {
     formData: {
+      // Etapa 1: Información General
+      municipio: formData.municipio,
+      parroquia: formData.parroquia,
+      fecha: formData.fecha,
+      apellido_familiar: formData.apellido_familiar,
       corregimiento: formData.corregimiento,
+      centro_poblado: formData.centro_poblado,
+      vereda: formData.vereda,
+      sector: formData.sector,
+      direccion: formData.direccion,
+      telefono: formData.telefono,
       numero_contrato_epm: formData.numero_contrato_epm,
+      // Etapa 2: Vivienda
+      tipo_vivienda: formData.tipo_vivienda,
       disposicion_basura: formData.disposicion_basura,
+      // Etapa 3: Agua
+      sistema_acueducto: formData.sistema_acueducto,
       aguas_residuales: formData.aguas_residuales,
-      sustento_familia: formData.sustento_familia
+      // Etapa 6: Observaciones
+      sustento_familia: formData.sustento_familia,
+      observaciones_encuestador: formData.observaciones_encuestador,
+      autorizacion_datos: formData.autorizacion_datos,
     },
     familyMembers: familyMembers.length,
     deceasedMembers: deceasedMembers.length
@@ -275,8 +280,12 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
  * Transforma EncuestaCompleta (de endpoint individual) a FormData
  */
 const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDataFromEncuesta => {
-  // ⚠️ Advertencia: El campo numero_contrato_epm no está disponible en la API
-  console.warn('⚠️ Campo "numero_contrato_epm" no disponible en respuesta de API. El usuario deberá volver a ingresarlo si desea modificarlo.');
+  // 💡 Campo numero_contrato_epm: Si está disponible en la API, se capturará
+  console.log('📥 Transformando EncuestaCompleta:', {
+    numero_contrato_epm: (encuesta as any).numero_contrato_epm,
+    centro_poblado: (encuesta as any).centro_poblado,
+    sustento_familia: (encuesta as any).sustento_familia
+  });
   
   // 1. Transformar información general del formulario
   const formData: Record<string, any> = {
@@ -296,7 +305,7 @@ const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDa
     apellido_familiar: encuesta.apellido_familiar || '',
     direccion: encuesta.direccion || '',
     telefono: '', // No disponible directamente
-    numero_contrato_epm: '', // No disponible
+    numero_contrato_epm: (encuesta as any).numero_contrato_epm || '', // Capturar si está disponible
     
     // Información de vivienda
     tipo_vivienda: encuesta.vivienda?.tipo_vivienda || '',

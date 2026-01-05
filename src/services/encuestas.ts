@@ -74,6 +74,7 @@ export interface EncuestaListItem {
     id: string;
     nombre: string;
   } | null;
+  numero_contrato_epm?: string; // Número de contrato EPM (opcional)
   basuras: Array<{
     id: string;
     nombre: string;

@@ -368,14 +368,29 @@ const SurveyForm = () => {
     loadEncuestaForEdit();
   }, [surveyId]); // Solo ejecutar cuando cambia surveyId
 
-  // Asegurar que el campo 'fecha' siempre tenga la fecha actual si no hay una
+  // Asegurar que campos críticos tengan valores por defecto correctos
   useEffect(() => {
     setFormData(prev => {
-      if (prev.fecha) return prev;
-      return {
-        ...prev,
-        fecha: new Date()
-      };
+      let updated = false;
+      const newData = { ...prev };
+      
+      // Fecha: asegurar que siempre sea un Date
+      if (!newData.fecha) {
+        newData.fecha = new Date();
+        updated = true;
+      }
+      
+      // Arreglos de selección múltiple: asegurar que sean arrays
+      if (!Array.isArray(newData.disposicion_basura)) {
+        newData.disposicion_basura = [];
+        updated = true;
+      }
+      if (!Array.isArray(newData.aguas_residuales)) {
+        newData.aguas_residuales = [];
+        updated = true;
+      }
+      
+      return updated ? newData : prev;
     });
   }, []);
 

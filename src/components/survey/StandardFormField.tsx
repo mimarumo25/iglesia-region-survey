@@ -226,6 +226,17 @@ const StandardFormField = ({
        */
       const selectedAutoValues = Array.isArray(value) ? value : [];
       
+      // 🔍 DEBUG: Log para monitorear valores de multiple-checkbox
+      if (field.id === 'disposicion_basura') {
+        console.log(`🗑️ [${field.id}]`, {
+          value: value,
+          selectedValues: selectedAutoValues,
+          availableOptions: autocompleteOptions?.length,
+          firstOption: autocompleteOptions?.[0],
+          matchingOptions: autocompleteOptions?.filter(opt => selectedAutoValues.includes(opt.value))
+        });
+      }
+      
       if (isLoading) {
         return (
           <div className={STANDARD_STYLES.fieldContainer} data-testid={`field-group-${field.id}`}>

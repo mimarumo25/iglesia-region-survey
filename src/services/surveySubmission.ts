@@ -28,7 +28,6 @@
 import { apiPost, apiPatch } from '@/interceptors/axios';
 import { SurveySessionData } from '@/types/survey';
 import { transformSurveyDataForAPI, validateAPIFormat, logDataDifferences } from '@/utils/surveyAPITransformer';
-import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 /**
  * Nueva estructura de errores del API de encuestas
@@ -139,9 +138,7 @@ export class SurveySubmissionService {
       
       const response = await apiPost('/api/encuesta', apiData);
       
-      // Mostrar toast de éxito
-      showSuccessToast('Encuesta enviada', 'La encuesta se ha guardado correctamente');
-      
+      // Toast se mostrará desde el componente (SurveyForm)
       return {
         success: true,
         message: 'Encuesta enviada correctamente',
@@ -153,9 +150,7 @@ export class SurveySubmissionService {
       console.error('❌ Error al enviar encuesta:', error);
       console.error('📋 Datos que causaron el error:', surveyData);
       
-      // Mostrar toast de error
-      showErrorToast(error, 'enviar encuesta');
-      
+      // Toast se mostrará desde el componente (SurveyForm)
       // Extraer información detallada del error
       const errorResponse = error.response?.data;
       const statusCode = error.response?.status || 500;
@@ -227,9 +222,7 @@ export class SurveySubmissionService {
       // Usar PATCH para actualizar solo campos específicos
       const response = await apiPatch(`/api/encuesta/${surveyId}`, apiData);
       
-      // Mostrar toast de éxito
-      showSuccessToast('Encuesta actualizada', 'Los cambios se han guardado correctamente');
-      
+      // Toast se mostrará desde el componente (SurveyForm)
       return {
         success: true,
         message: 'Encuesta actualizada correctamente',
@@ -241,9 +234,7 @@ export class SurveySubmissionService {
       console.error('❌ Error al actualizar encuesta:', error);
       console.error('📋 Datos que causaron el error:', surveyData);
       
-      // Mostrar toast de error
-      showErrorToast(error, 'actualizar encuesta');
-      
+      // Toast se mostrará desde el componente (SurveyForm)
       // Extraer información detallada del error
       const errorResponse = error.response?.data;
       const statusCode = error.response?.status || 500;

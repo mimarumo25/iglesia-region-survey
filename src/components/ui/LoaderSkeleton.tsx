@@ -1,7 +1,6 @@
 import React from 'react';
 import { Loader2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import Logo from '@/components/ui/logo';
 
 interface LoaderSkeletonProps {
   /** Tipo de carga para mostrar skeleton específico */
@@ -145,17 +144,19 @@ const LoaderSkeleton: React.FC<LoaderSkeletonProps> = ({
         return <SettingsSkeleton reduceAnimation={reduceAnimation} />;
       default:
         return (
-          <div className="flex flex-col items-center justify-center min-h-[400px] space-y-6">
+          <div className="flex flex-col items-center justify-center min-h-[400px] space-y-8">
             {showLogo && (
-              <div className="mb-4">
-                <Logo 
-                  size="lg" 
-                  showText={false} 
-                  className={cn(
-                    "w-16 h-16",
-                    !reduceAnimation && "animate-pulse"
-                  )} 
-                />
+              <div className="flex items-center justify-center w-full">
+                <div className={cn(
+                  "w-32 h-32 flex items-center justify-center flex-shrink-0",
+                  !reduceAnimation && "animate-bounce"
+                )}>
+                  <img
+                    src="/logo_mia__oficial_2.svg"
+                    alt="MIA Logo"
+                    className="w-full h-full object-contain drop-shadow-lg"
+                  />
+                </div>
               </div>
             )}
             <div className="flex items-center space-x-3">
