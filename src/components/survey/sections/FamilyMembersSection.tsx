@@ -16,6 +16,33 @@ import {
 } from '@/components/ui/collapsible'
 import type { SurveyResponseData, SurveyPerson } from '@/types/survey-responses'
 
+/**
+ * Helper function to parse JSON array strings or comma-separated strings into array
+ */
+const parseArrayField = (field: string | null | undefined): string[] => {
+  if (!field) return [];
+  
+  try {
+    const parsed = JSON.parse(field);
+    if (Array.isArray(parsed)) {
+      // Flatten array and split each element by comma
+      return parsed
+        .flatMap(item => 
+          typeof item === 'string' && item.includes(',') 
+            ? item.split(',').map(s => s.trim())
+            : [item]
+        )
+        .filter(item => item && String(item).trim())
+        .map(item => String(item).trim());
+    }
+  } catch {
+    // Not valid JSON, continue
+  }
+  
+  // Split by comma and filter empty items
+  return field.split(',').map(item => item.trim()).filter(item => item);
+};
+
 interface FamilyMembersSectionProps {
   survey: SurveyResponseData
 }
@@ -147,9 +174,17 @@ const PersonDetailCard: React.FC<{ person: SurveyPerson }> = ({ person }) => {
             </div>
             <div>
               <p className="text-gray-600 text-xs">Liderazgo</p>
-              <Badge variant={person.en_que_eres_lider ? 'default' : 'secondary'}>
-                {person.en_que_eres_lider || 'No especificado'}
-              </Badge>
+              <div className="flex flex-wrap gap-1">
+                {person.en_que_eres_lider ? (
+                  parseArrayField(person.en_que_eres_lider).map((area, idx) => (
+                    <Badge key={idx} variant="default" className="text-xs">
+                      {area}
+                    </Badge>
+                  ))
+                ) : (
+                  <Badge variant="secondary" className="text-xs">No especificado</Badge>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -246,9 +281,13 @@ const PersonDetailCard: React.FC<{ person: SurveyPerson }> = ({ person }) => {
             <h5 className="text-xs font-bold text-orange-700 uppercase tracking-wide flex items-center gap-1">
               <AlertTriangle className="w-3 h-3" /> Necesidades del Enfermo
             </h5>
-            <p className="text-sm bg-orange-50 p-2 rounded border border-orange-200 text-orange-800 italic">
-              {person.necesidad_enfermo}
-            </p>
+            <div className="flex flex-wrap gap-2">
+              {parseArrayField(person.necesidad_enfermo).map((necesidad, idx) => (
+                <Badge key={idx} variant="outline" className="bg-orange-50 text-orange-800 border-orange-300 text-xs">
+                  {necesidad}
+                </Badge>
+              ))}
+            </div>
           </div>
         )}
 

@@ -46,6 +46,35 @@ import { MemberMobileCard } from "@/components/ui/MemberMobileCard";
 // Importar estilos para animaciones móviles
 import "@/styles/mobile-animations.css";
 
+/**
+ * Helper function to parse JSON array strings or comma-separated strings into array
+ * Handles: ["item1", "item2"], ["item1, item2"], "item1, item2", or simple strings
+ */
+const parseArrayField = (field: string | null | undefined): string[] => {
+  if (!field) return [];
+  
+  try {
+    // Try to parse as JSON array first
+    const parsed = JSON.parse(field);
+    if (Array.isArray(parsed)) {
+      // Flatten array and split each element by comma
+      return parsed
+        .flatMap(item => 
+          typeof item === 'string' && item.includes(',') 
+            ? item.split(',').map(s => s.trim())
+            : [item]
+        )
+        .filter(item => item && String(item).trim())
+        .map(item => String(item).trim());
+    }
+  } catch {
+    // Not valid JSON, continue to comma splitting
+  }
+  
+  // Split by comma and filter empty items
+  return field.split(',').map(item => item.trim()).filter(item => item);
+};
+
 const SurveyDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -607,7 +636,13 @@ const SurveyDetails = () => {
                           <h4 className="font-bold text-sm text-foreground mb-2">
                             👑 Áreas de Liderazgo
                           </h4>
-                          <p className="text-sm text-foreground/90">{miembro.en_que_eres_lider}</p>
+                          <div className="flex flex-wrap gap-2">
+                            {parseArrayField(miembro.en_que_eres_lider).map((area, idx) => (
+                              <Badge key={idx} variant="default" className="bg-purple-100 text-purple-800 border-purple-300">
+                                {area}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
                       </>
                     )}
@@ -727,9 +762,13 @@ const SurveyDetails = () => {
                           <h4 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 mb-2 flex items-center gap-1`}>
                             <AlertTriangle className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-orange-500`} /> Necesidades del Enfermo
                           </h4>
-                          <p className={`text-sm bg-orange-50 ${isMobile ? 'p-2' : 'p-3'} rounded border border-orange-200`}>
-                            {miembro.necesidad_enfermo}
-                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {parseArrayField(miembro.necesidad_enfermo).map((necesidad, idx) => (
+                              <Badge key={idx} variant="outline" className="bg-orange-50 text-orange-800 border-orange-300">
+                                {necesidad}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
                       </>
                     )}

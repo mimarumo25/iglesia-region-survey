@@ -57,19 +57,7 @@ export const transformEncuestaToFormData = (encuesta: EncuestaListItem | Encuest
  * Transforma EncuestaListItem (del listado) a FormData
  */
 const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDataFromEncuesta => {
-  // 📊 Logging detallado para debugging
-  console.group('🔄 Transformando encuesta a formulario');
-  console.log('📥 Datos de entrada:', {
-    id: encuesta.id_encuesta,
-    apellido: encuesta.apellido_familiar,
-    corregimiento: encuesta.corregimiento,
-    centro_poblado: (encuesta as any).centro_poblado,
-    numero_contrato_epm: encuesta.numero_contrato_epm,
-    basuras: encuesta.basuras,
-    basuras_ids: encuesta.basuras?.map(b => ({ id: b.id, nombre: b.nombre })),
-    aguas_residuales: encuesta.aguas_residuales,
-    sustento_familia: (encuesta as any).sustento_familia
-  });
+  // Transformar datos de la encuesta
   
   // ⚠️ Advertencias para campos no disponibles
   const camposNoDisponibles = [];
@@ -81,10 +69,6 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
     camposNoDisponibles.push('aguas_residuales');
   }
   if (!encuesta.basuras || encuesta.basuras.length === 0) camposNoDisponibles.push('disposicion_basura');
-  
-  if (camposNoDisponibles.length > 0) {
-    console.warn('⚠️ Campos sin datos en la base de datos:', camposNoDisponibles.join(', '));
-  }
   
   // 1. Transformar información general del formulario
   const formData: Record<string, any> = {
@@ -140,14 +124,7 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
   };
 
   // 2. Transformar miembros de familia
-  console.log(`👥 Transformando ${encuesta.miembros_familia?.personas?.length || 0} miembros de familia`);
-  
   const familyMembers: FamilyMember[] = (encuesta.miembros_familia?.personas || []).map((persona, index) => {
-    console.log(`  Miembro ${index + 1}: ${persona.nombre_completo}`, {
-      profesion: (persona as any).profesion,
-      habilidades: (persona as any).habilidades,
-      destrezas: (persona as any).destrezas
-    });
     
     // Crear objetos ConfigurationItem para campos complejos
     const tipoIdentificacion: ConfigurationItem | null = persona.identificacion?.tipo ? {
@@ -256,36 +233,6 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
     };
   });
 
-  console.log('📤 Resultado de la transformación:', {
-    formData: {
-      // Etapa 1: Información General
-      municipio: formData.municipio,
-      parroquia: formData.parroquia,
-      fecha: formData.fecha,
-      apellido_familiar: formData.apellido_familiar,
-      corregimiento: formData.corregimiento,
-      centro_poblado: formData.centro_poblado,
-      vereda: formData.vereda,
-      sector: formData.sector,
-      direccion: formData.direccion,
-      telefono: formData.telefono,
-      numero_contrato_epm: formData.numero_contrato_epm,
-      // Etapa 2: Vivienda
-      tipo_vivienda: formData.tipo_vivienda,
-      disposicion_basura: formData.disposicion_basura,
-      // Etapa 3: Agua
-      sistema_acueducto: formData.sistema_acueducto,
-      aguas_residuales: formData.aguas_residuales,
-      // Etapa 6: Observaciones
-      sustento_familia: formData.sustento_familia,
-      observaciones_encuestador: formData.observaciones_encuestador,
-      autorizacion_datos: formData.autorizacion_datos,
-    },
-    familyMembers: familyMembers.length,
-    deceasedMembers: deceasedMembers.length
-  });
-  console.groupEnd();
-
   // Determinar metadata basado en el estado de la encuesta
   // Normalizar estado (COMPLETADA -> completed)
   const estadoNormalizado = encuesta.metadatos?.estado?.toLowerCase();
@@ -312,13 +259,6 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
  * Transforma EncuestaCompleta (de endpoint individual) a FormData
  */
 const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDataFromEncuesta => {
-  // 💡 Campo numero_contrato_epm: Si está disponible en la API, se capturará
-  console.log('📥 Transformando EncuestaCompleta:', {
-    numero_contrato_epm: (encuesta as any).numero_contrato_epm,
-    centro_poblado: (encuesta as any).centro_poblado,
-    sustento_familia: (encuesta as any).sustento_familia
-  });
-  
   // 1. Transformar información general del formulario
   const formData: Record<string, any> = {
     // Información general - solo IDs
