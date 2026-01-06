@@ -1,6 +1,6 @@
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import AppSidebar from "./AppSidebar";
-import { Bell, Search, Star, Menu, PanelLeft } from "lucide-react";
+import { Search, Star, Menu, PanelLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -163,32 +163,6 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
               "flex items-center flex-shrink-0",
               isMobileDevice ? "gap-1" : "gap-2 lg:gap-3"
             )} style={{ pointerEvents: 'auto' }}>
-              {/* Notifications - Más compacto en móvil */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "relative text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-300 hover-scale click-effect rounded-xl group",
-                  isMobileDevice ? "p-2 w-9 h-9" : "p-3"
-                )}
-                style={{ pointerEvents: 'auto' }}
-              >
-                <Bell className={cn(
-                  isMobileDevice ? "w-4 h-4" : "w-5 h-5 lg:w-5 lg:h-5"
-                )} />
-                <span className={cn(
-                  "absolute bg-gradient-to-r from-destructive to-destructive/80 rounded-full flex items-center justify-center",
-                  isMobileDevice 
-                    ? "-top-1 -right-1 w-2.5 h-2.5" 
-                    : "-top-1 -right-1 w-3 h-3 lg:w-3.5 lg:h-3.5"
-                )}>
-                  <span className={cn(
-                    "bg-white rounded-full",
-                    isMobileDevice ? "w-1 h-1" : "w-1.5 h-1.5 lg:w-2 lg:h-2"
-                  )} />
-                </span>
-              </Button>
-
               {/* User Menu - Más compacto en móvil */}
               <div className={cn(
                 "flex items-center",
