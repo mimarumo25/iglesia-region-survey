@@ -9,8 +9,20 @@ import { EncuestaListItem, EncuestaCompleta } from '@/services/encuestas';
 import { FamilyMember, DeceasedFamilyMember, ConfigurationItem } from '@/types/survey';
 
 const createCelebracionId = (): string => {
-  const uuid = globalThis.crypto?.randomUUID?.();
-  return uuid ?? `celebracion-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return `celebracion-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+};
+
+/**
+ * Genera un UUID compatible con navegadores antiguos
+ */
+const generateUUID = (): string => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 };
 
 /**
@@ -230,7 +242,7 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
     } : null;
 
     return {
-      id: crypto.randomUUID(), // Generar ID temporal si no existe
+      id: generateUUID(), // Generar ID temporal si no existe
       nombres: difunto.nombres || '',
       fechaFallecimiento: difunto.fechaFallecimiento ? new Date(difunto.fechaFallecimiento) : null,
       sexo,
@@ -354,7 +366,7 @@ const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDa
   // 2. Transformar miembros de familia
   const familyMembers: FamilyMember[] = (encuesta.miembros_familia || []).map((miembro) => {
     return {
-      id: miembro.id || crypto.randomUUID(),
+      id: miembro.id || generateUUID(),
       nombres: `${miembro.nombres} ${miembro.apellidos || ''}`.trim(),
       fechaNacimiento: miembro.fecha_nacimiento ? new Date(miembro.fecha_nacimiento) : null,
       tipoIdentificacion: miembro.tipo_identificacion ? {
