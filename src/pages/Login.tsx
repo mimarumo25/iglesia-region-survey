@@ -191,7 +191,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-300 via-gray-200 to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-background flex items-center justify-center p-4">
+    <div className="relative min-h-screen bg-gradient-to-br from-gray-300 via-gray-200 to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-background flex items-center justify-center p-4">
       <div className="relative w-full max-w-[98%] 2xl:max-w-[96%] grid lg:grid-cols-2 gap-8 items-center">
         {/* Columna de imagen */}
         <div className="hidden lg:flex flex-col items-center justify-center space-y-6">
@@ -421,6 +421,11 @@ const Login = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Footer Copyright */}
+      <div className="absolute bottom-4 left-0 w-full text-center text-sm text-muted-foreground/60 dark:text-muted-foreground/60">
+        <p>&copy; Copyright 2025. Todos los derechos reservados MIA.</p>
       </div>
     </div>
   );
