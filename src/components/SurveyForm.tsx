@@ -343,6 +343,13 @@ const SurveyForm = () => {
         setFormData(transformedData.formData);
         setFamilyMembers(transformedData.familyMembers);
         setDeceasedMembers(transformedData.deceasedMembers);
+        
+        // 🔄 Configurar la etapa actual basada en el metadata
+        if (transformedData.metadata?.completed) {
+          setCurrentStage(6); // Última etapa si está completada
+        } else if (transformedData.metadata?.currentStage) {
+          setCurrentStage(transformedData.metadata.currentStage);
+        }
 
         toast({
           title: "✅ Encuesta cargada",

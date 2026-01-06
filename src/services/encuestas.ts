@@ -15,6 +15,32 @@
 import { apiClient } from '@/interceptors/axios';
 import { showErrorToast } from '@/utils/toastErrorHandler';
 
+/**
+ * Normaliza el estado de encuesta del backend a formato estándar
+ * Maneja tanto formatos en español (COMPLETADA) como inglés (completed)
+ */
+function normalizeEstadoEncuesta(estado?: string): 'pending' | 'in_progress' | 'completed' | 'validated' {
+  if (!estado) return 'pending';
+  
+  const estadoLower = estado.toLowerCase();
+  
+  // Mapeo de estados en español a inglés
+  const estadosMap: Record<string, 'pending' | 'in_progress' | 'completed' | 'validated'> = {
+    'completada': 'completed',
+    'completed': 'completed',
+    'validada': 'validated',
+    'validated': 'validated',
+    'en_progreso': 'in_progress',
+    'in_progress': 'in_progress',
+    'pendiente': 'pending',
+    'pending': 'pending',
+    'cancelada': 'pending', // Fallback
+    'cancelled': 'pending'
+  };
+  
+  return estadosMap[estadoLower] || 'pending';
+}
+
 // ============================================================================
 // INTERFACES Y TIPOS
 // ============================================================================
@@ -41,7 +67,7 @@ export interface EncuestaListItem {
   numero_encuestas: number;
   fecha_ultima_encuesta: string;
   usuario_creador?: string; // Usuario que creó la encuesta
-  encuestador?: { // Información del encuestador
+  encuestador?: string | { // Información del encuestador (puede ser string directo o objeto)
     id: string;
     nombre: string;
   };
@@ -311,6 +337,14 @@ class EncuestasService {
         params: queryParams
       });
 
+      // Normalizar estados de encuestas (COMPLETADA -> completed)
+      if (response.data?.data) {
+        response.data.data = response.data.data.map((encuesta: EncuestaListItem) => ({
+          ...encuesta,
+          estado_encuesta: normalizeEstadoEncuesta(encuesta.estado_encuesta)
+        }));
+      }
+
       // La API devuelve directamente el formato esperado
       return response.data;
 
@@ -327,6 +361,11 @@ class EncuestasService {
   async getEncuestaById(id: string): Promise<EncuestaResponse> {
     try {
       const response = await apiClient.get(`/api/encuesta/${id}`);
+
+      // Normalizar estado de la encuesta (COMPLETADA -> completed)
+      if (response.data?.data?.estado_encuesta) {
+        response.data.data.estado_encuesta = normalizeEstadoEncuesta(response.data.data.estado_encuesta);
+      }
 
       // La API devuelve { status, message, data }, necesitamos extraer solo data
       return {

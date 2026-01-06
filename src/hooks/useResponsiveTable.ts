@@ -20,7 +20,7 @@ export const useResponsiveTable = () => {
       const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       setIsTouchDevice(touchDevice);
       
-      // Breakpoints de Tailwind: sm: 640px, md: 768px, lg: 1024px
+      // Breakpoints ajustados: sm: 640px, md: 768px, lg: 1024px, xl: 1280px
       if (width < 480) {
         // Pantallas muy pequeñas
         setIsMobile(true);
@@ -35,15 +35,15 @@ export const useResponsiveTable = () => {
         setIsDesktop(false);
         setIsVerySmall(false);
         setScreenSize('mobile');
-      } else if (width < 1024) {
-        // Tablets
+      } else if (width < 1280) {
+        // Tablets y pantallas medianas (aumentado a 1280px para evitar scroll horizontal)
         setIsMobile(false);
         setIsTablet(true);
         setIsDesktop(false);
         setIsVerySmall(false);
         setScreenSize('tablet');
       } else {
-        // Desktop
+        // Desktop grande (≥1280px)
         setIsMobile(false);
         setIsTablet(false);
         setIsDesktop(true);

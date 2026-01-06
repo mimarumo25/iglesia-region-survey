@@ -119,9 +119,6 @@ export const SurveyMobileCard = ({
               </h3>
             </div>
             <div className="flex items-center gap-2 flex-wrap mt-1">
-              <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600 border-gray-200">
-                {encuesta.codigo_familia}
-              </Badge>
               <Badge
                 variant={getStatusBadgeVariant(encuesta.estado_encuesta)}
                 className="text-xs font-medium"

@@ -32,6 +32,11 @@ export interface FormDataFromEncuesta {
   formData: Record<string, any>;
   familyMembers: FamilyMember[];
   deceasedMembers: DeceasedFamilyMember[];
+  metadata?: {
+    completed: boolean;
+    currentStage: number;
+    estado?: string;
+  };
 }
 
 /**
@@ -281,10 +286,25 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
   });
   console.groupEnd();
 
+  // Determinar metadata basado en el estado de la encuesta
+  // Normalizar estado (COMPLETADA -> completed)
+  const estadoNormalizado = encuesta.metadatos?.estado?.toLowerCase();
+  const isCompleted = estadoNormalizado === 'completed' || 
+                      estadoNormalizado === 'completada' || 
+                      estadoNormalizado === 'validated' ||
+                      estadoNormalizado === 'validada';
+  
+  const metadata = {
+    completed: isCompleted,
+    currentStage: isCompleted ? 6 : 1,
+    estado: encuesta.metadatos?.estado
+  };
+
   return {
     formData,
     familyMembers,
-    deceasedMembers
+    deceasedMembers,
+    metadata
   };
 };
 

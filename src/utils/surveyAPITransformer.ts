@@ -139,6 +139,7 @@ export interface APIEncuestaFormat {
     completed: boolean;
     currentStage: number;
   };
+  estado_encuesta?: 'pending' | 'in_progress' | 'completed' | 'validated';
   version: string;
 }
 
@@ -274,6 +275,9 @@ export function transformSurveyDataForAPI(data: SurveySessionData): APIEncuestaF
   // Transformar miembros fallecidos
   const deceasedMembers = data.deceasedMembers.map(transformDeceasedMember);
 
+  // Determinar estado_encuesta basado en metadata.completed
+  const estado_encuesta = data.metadata?.completed ? 'completed' : 'in_progress';
+
   const transformedData: APIEncuestaFormat = {
     informacionGeneral,
     vivienda,
@@ -282,6 +286,7 @@ export function transformSurveyDataForAPI(data: SurveySessionData): APIEncuestaF
     familyMembers,
     deceasedMembers,
     metadata: data.metadata,
+    estado_encuesta, // ⭐ Agregar estado basado en metadata
     version: '2.0'
   };
 

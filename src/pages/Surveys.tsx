@@ -717,37 +717,37 @@ const Surveys = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gradient-to-r from-primary/5 to-primary/10">
-                    <TableHead className="w-[320px] font-semibold text-primary">
+                    <TableHead className="min-w-[280px] font-semibold text-primary">
                       <div className="flex items-center gap-2">
                         <span>👨‍👩‍👧‍👦</span>
                         <span>Información Familiar</span>
                       </div>
                     </TableHead>
-                    <TableHead className="w-[220px] font-semibold text-primary">
+                    <TableHead className="min-w-[180px] font-semibold text-primary">
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
-                        <span>Ubicación Geográfica</span>
+                        <span>Ubicación</span>
                       </div>
                     </TableHead>
-                    <TableHead className="w-[160px] font-semibold text-primary">
+                    <TableHead className="min-w-[140px] font-semibold text-primary">
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4" />
                         <span>Encuestador</span>
                       </div>
                     </TableHead>
-                    <TableHead className="w-[130px] font-semibold text-primary">
+                    <TableHead className="min-w-[110px] font-semibold text-primary">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
                         <span>Creación</span>
                       </div>
                     </TableHead>
-                    <TableHead className="w-[130px] font-semibold text-primary">
+                    <TableHead className="min-w-[110px] font-semibold text-primary">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
                         <span>Completada</span>
                       </div>
                     </TableHead>
-                    <TableHead className="text-right w-[100px] font-semibold text-primary">Acciones</TableHead>
+                    <TableHead className="text-right min-w-[90px] font-semibold text-primary">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -799,13 +799,10 @@ const Surveys = () => {
                       >
                         <TableCell className="py-4">
                           <div className="space-y-2">
-                            {/* Apellido y código */}
+                            {/* Apellido familiar */}
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-semibold text-muted-foreground min-w-[70px]">Familia:</span>
                               <p className="font-bold text-foreground text-base">{encuesta.apellido_familiar}</p>
-                              <Badge variant="outline" className="text-xs bg-primary/5 border-primary/20 text-primary font-medium">
-                                {encuesta.codigo_familia}
-                              </Badge>
                             </div>
                             
                             {/* Dirección */}
@@ -882,7 +879,9 @@ const Surveys = () => {
                               <User className="w-4 h-4 text-primary" />
                             </div>
                             <span className="text-sm font-semibold text-foreground">
-                              {encuesta.encuestador?.nombre || encuesta.usuario_creador || 'Sistema'}
+                              {typeof encuesta.encuestador === 'string' 
+                                ? encuesta.encuestador 
+                                : encuesta.encuestador?.nombre || encuesta.usuario_creador || 'Sistema'}
                             </span>
                           </div>
                         </TableCell>
