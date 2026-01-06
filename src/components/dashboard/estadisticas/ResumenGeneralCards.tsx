@@ -93,7 +93,7 @@ const ResumenGeneralCards = ({ resumen, className }: ResumenGeneralCardsProps) =
   ]
 
   return (
-    <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 lg:gap-6", className)}>
+    <div className={cn("grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-3 sm:gap-4", className)}>
       {cards.map((card, index) => {
         const Icon = card.icon
         return (
@@ -120,47 +120,47 @@ const ResumenGeneralCards = ({ resumen, className }: ResumenGeneralCardsProps) =
               "blur-3xl -z-10 scale-150"
             )} />
             
-            <CardContent className="p-4 lg:p-6 relative">
-              <div className="flex flex-col gap-4">
+            <CardContent className="p-3 sm:p-4 xl:p-5 relative">
+              <div className="flex flex-col gap-2.5 sm:gap-3">
                 {/* Header con icono y badge */}
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-2">
                   <div className={cn(
-                    "p-3 rounded-2xl transition-all duration-300",
+                    "p-2 sm:p-2.5 xl:p-3 rounded-xl xl:rounded-2xl transition-all duration-300",
                     "group-hover:scale-110 group-hover:rotate-6",
                     "shadow-lg group-hover:shadow-xl",
                     card.iconBg
                   )}>
-                    <Icon className={cn("w-6 h-6", card.iconColor)} />
+                    <Icon className={cn("w-4 h-4 sm:w-5 sm:h-5 xl:w-6 xl:h-6", card.iconColor)} />
                   </div>
                   
                   {/* Badge de tendencia */}
                   <Badge 
                     variant={card.trendUp ? "default" : "secondary"}
                     className={cn(
-                      "text-xs px-2 py-0.5 flex items-center gap-1",
+                      "text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 flex items-center gap-0.5 sm:gap-1",
                       "transition-all duration-300 group-hover:scale-110",
                       card.trendUp && "bg-green-500/10 text-green-700 hover:bg-green-500/20"
                     )}
                   >
-                    {card.trendUp && <TrendingUp className="w-3 h-3" />}
+                    {card.trendUp && <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
                     {card.trend}
                   </Badge>
                 </div>
                 
                 {/* Valor principal con animación */}
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   <p className={cn(
-                    "text-3xl lg:text-4xl font-bold",
+                    "text-xl sm:text-2xl xl:text-3xl 2xl:text-4xl font-bold",
                     "bg-gradient-to-br bg-clip-text text-transparent",
                     card.gradient,
                     "transition-all duration-300 group-hover:scale-105"
                   )}>
                     {card.value.toLocaleString('es-CO')}
                   </p>
-                  <p className="text-xs lg:text-sm font-semibold text-foreground">
+                  <p className="text-[11px] sm:text-xs xl:text-sm font-semibold text-foreground line-clamp-1">
                     {card.title}
                   </p>
-                  <p className="text-xs text-muted-foreground/80">
+                  <p className="text-[9px] sm:text-[10px] xl:text-xs text-muted-foreground/80 line-clamp-1">
                     {card.description}
                   </p>
                 </div>

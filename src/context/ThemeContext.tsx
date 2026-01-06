@@ -412,7 +412,7 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [currentTheme, setCurrentTheme] = useState('mia'); // Tema MIA como predeterminado
+  const [currentTheme, setCurrentTheme] = useState('teal-mia'); // Tema Teal MIA como predeterminado
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [customColors, setCustomColors] = useState<Partial<ThemeColors>>({});
 
@@ -425,9 +425,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     if (savedTheme && themePresets.find(preset => preset.name === savedTheme)) {
       setCurrentTheme(savedTheme);
     } else {
-      // Si no hay tema guardado, usar MIA como predeterminado
-      setCurrentTheme('mia');
-      localStorage.setItem('parish-theme', 'mia');
+      // Si no hay tema guardado, usar Teal MIA como predeterminado
+      setCurrentTheme('teal-mia');
+      localStorage.setItem('parish-theme', 'teal-mia');
     }
     setIsDarkMode(savedDarkMode);
     if (savedCustomColors) {
