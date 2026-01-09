@@ -19,7 +19,8 @@ import {
   Eye,
   Edit3,
   Trash2,
-  Loader2
+  Loader2,
+  Clock
 } from "lucide-react";
 import { EncuestaListItem } from "@/services/encuestas";
 import { cn } from "@/lib/utils";
@@ -213,13 +214,22 @@ export const SurveyMobileCard = ({
             )}
           </div>
 
-          {/* Fecha de última encuesta */}
-          {encuesta.fecha_ultima_encuesta && (
-            <div className="flex items-center gap-1 text-xs text-gray-500">
-              <Calendar className="w-3 h-3" />
-              <span>{formatDate(encuesta.fecha_ultima_encuesta)}</span>
-            </div>
-          )}
+          {/* Fechas */}
+          <div className="flex flex-col items-end gap-1">
+            {encuesta.metadatos?.fecha_creacion && (
+              <div className="flex items-center gap-1 text-xs text-gray-500" title="Fecha Creación">
+                <Calendar className="w-3 h-3" />
+                <span>{formatDate(encuesta.metadatos.fecha_creacion)}</span>
+              </div>
+            )}
+            
+            {(encuesta.metadatos?.fecha_actualizacion || encuesta.fecha_ultima_encuesta) && (
+              <div className="flex items-center gap-1 text-xs text-gray-500" title="Última Actualización">
+                <Clock className="w-3 h-3" />
+                <span>{formatDate(encuesta.metadatos?.fecha_actualizacion || encuesta.fecha_ultima_encuesta)}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Botón de acción rápida para móviles muy pequeños */}

@@ -15,7 +15,8 @@ import {
   Info,
   Clock,
   CheckCircle,
-  AlertTriangle
+  AlertTriangle,
+  RefreshCw
 } from "lucide-react";
 
 import { EncuestaListItem } from "@/services/encuestas";
@@ -188,9 +189,17 @@ export const MetadataSection = ({ data }: MetadataSectionProps) => {
               )}
             </div>
 
+            <div>
+              <p className="text-sm font-medium text-gray-500 mb-1">Fecha de Actualización</p>
+              <div className="flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-gray-400" />
+                <p className="text-sm">{formatDate(data.metadatos?.fecha_actualizacion || data.metadatos?.fecha_creacion)}</p>
+              </div>
+            </div>
+
             {data.fecha_ultima_encuesta && (
               <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">Última Actualización</p>
+                <p className="text-sm font-medium text-gray-500 mb-1">Última Encuesta</p>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-gray-400" />
                   <p className="text-sm">{formatDate(data.fecha_ultima_encuesta)}</p>

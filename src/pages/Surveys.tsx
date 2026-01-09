@@ -743,8 +743,8 @@ const Surveys = () => {
                     </TableHead>
                     <TableHead className="min-w-[110px] font-semibold text-primary">
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        <span>Completada</span>
+                        <RefreshCw className="w-4 h-4" />
+                        <span>Actualización</span>
                       </div>
                     </TableHead>
                     <TableHead className="text-right min-w-[90px] font-semibold text-primary">Acciones</TableHead>
@@ -766,7 +766,7 @@ const Surveys = () => {
                   ) : filteredEncuestas.length === 0 ? (
                     // Estado vacío
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-12">
+                      <TableCell colSpan={6} className="text-center py-12">
                         <div className="flex flex-col items-center gap-4 text-muted-foreground">
                           <div className="text-6xl mb-2">📋</div>
                           <p className="text-lg font-semibold text-foreground">No hay encuestas disponibles</p>
@@ -895,23 +895,13 @@ const Surveys = () => {
                           </div>
                         </TableCell>
                         <TableCell className="py-4">
-                          {encuesta.estado_encuesta === 'completed' ? (
-                            <div className="flex flex-col gap-1.5">
-                              <div className="flex items-center gap-1.5">
-                                <CheckCircle className="w-3.5 h-3.5 text-success" />
-                                <span className="text-sm font-semibold text-foreground/90">{formatDate(encuesta.fecha_ultima_encuesta)}</span>
-                              </div>
-                              <span className="text-xs text-success pl-5 font-bold">Finalizada</span>
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <RefreshCw className="w-3.5 h-3.5 text-primary/60" />
+                              <span className="text-sm font-semibold text-foreground/90">{formatDate(encuesta.metadatos?.fecha_actualizacion || encuesta.metadatos?.fecha_creacion)}</span>
                             </div>
-                          ) : (
-                            <div className="flex flex-col gap-1.5">
-                              <div className="flex items-center gap-1.5">
-                                <Clock className="w-3.5 h-3.5 text-warning" />
-                                <span className="text-muted-foreground">-</span>
-                              </div>
-                              <span className="text-xs text-warning pl-5 font-bold">En proceso</span>
-                            </div>
-                          )}
+                            <span className="text-xs text-muted-foreground pl-5 font-medium">Última edición</span>
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
