@@ -128,7 +128,7 @@ const EnhancedBirthDatePicker = ({
             {/* Navegación rápida por año y mes */}
             <div className="quick-nav-selects flex gap-2 px-4 pb-4">
               <div className="flex-1">
-                <select
+                <select data-id='ano-nacimiento'
                   value={selectedYear.toString()}
                   onChange={(e) => handleYearChange(e.target.value)}
                   className="h-9 w-full bg-white border border-gray-300 rounded-md text-xs px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
@@ -142,7 +142,7 @@ const EnhancedBirthDatePicker = ({
               </div>
 
               <div className="flex-1">
-                <select
+                <select data-id='mes-nacimiento'
                   value={selectedMonth.toString()}
                   onChange={(e) => handleMonthChange(e.target.value)}
                   className="h-9 w-full bg-white border border-gray-300 rounded-md text-xs px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
