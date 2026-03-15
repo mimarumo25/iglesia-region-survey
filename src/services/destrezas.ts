@@ -7,10 +7,6 @@ import type {
   ServerResponse,
   DestrezasStatsResponse
 } from '@/types/destrezas';
-import { DESTREZAS_MOCK } from '@/data/destrezas-mock';
-
-// Flag para usar datos mockeados (cambiar a false cuando el backend esté listo)
-const USE_MOCK_DATA = true;
 
 /**
  * Servicios CRUD completos para Destrezas
@@ -26,30 +22,10 @@ export const destrezasService = {
     sortBy: string = 'id_destreza',
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ): Promise<DestrezasApiResponse> => {
-    // Si usamos datos mock, retornarlos directamente
-    if (USE_MOCK_DATA) {
-      return {
-        status: 'success',
-        data: DESTREZAS_MOCK,
-        total: DESTREZAS_MOCK.length,
-        message: 'Destrezas mockeadas cargadas (desarrollo)'
-      };
-    }
-    
-    try {
-      const response = await apiClient.get('/api/catalog/destrezas', {
-        params: { page, limit, sortBy, sortOrder }
-      });
-      return response.data;
-    } catch (error: any) {
-      // Fallback a datos mock en caso de error
-      return {
-        status: 'success',
-        data: DESTREZAS_MOCK,
-        total: DESTREZAS_MOCK.length,
-        message: 'Destrezas mockeadas (fallback por error de API)'
-      };
-    }
+    const response = await apiClient.get('/api/catalog/destrezas', {
+      params: { page, limit, sortBy, sortOrder }
+    });
+    return response.data;
   },
 
   /**
@@ -102,31 +78,8 @@ export const destrezasService = {
    * Obtener destrezas activas (para selectores/autocomplete)
    */
   getActiveDestrezas: async (): Promise<ServerResponse<Destreza[]>> => {
-    // Silenciar logs en modo normal, solo mostrar en modo debug
-    if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_MOCK === 'true') {
-      console.log('🔍 [destrezasService.getActiveDestrezas] Solicitando destrezas activas');
-    }
-    
-    // Si usamos datos mock, retornarlos directamente
-    if (USE_MOCK_DATA) {
-      return {
-        success: true,
-        timestamp: new Date().toISOString(),
-        data: DESTREZAS_MOCK
-      };
-    }
-    
-    try {
-      const response = await apiClient.get('/api/catalog/destrezas');
-      return response.data;
-    } catch (error: any) {
-      // Fallback a datos mock en caso de error
-      return {
-        success: true,
-        timestamp: new Date().toISOString(),
-        data: DESTREZAS_MOCK
-      };
-    }
+    const response = await apiClient.get('/api/catalog/destrezas');
+    return response.data;
   },
 
   /**

@@ -183,8 +183,11 @@ const SurveyForm = () => {
 
   // Auto-guardado cuando cambia la etapa (solo nueva estructura)
   useEffect(() => {
-    // ✅ No guardar borrador si la encuesta ya fue enviada exitosamente o si no se ha cargado el borrador inicial
-    if (isSubmittedSuccessfully || !isDraftLoaded) {
+    // ✅ No guardar borrador si:
+    // - La encuesta ya fue enviada exitosamente
+    // - No se ha cargado el borrador inicial
+    // - Estamos en modo edición: evita contaminar el borrador de nuevas encuestas con datos de una edición
+    if (isSubmittedSuccessfully || !isDraftLoaded || isEditMode) {
       return;
     }
     
@@ -376,12 +379,15 @@ const SurveyForm = () => {
   }, [surveyId]); // Solo ejecutar cuando cambia surveyId
 
   // Asegurar que campos críticos tengan valores por defecto correctos
+  // Solo aplica en modo CREACIÓN: en edición, los datos vienen de la API
   useEffect(() => {
+    if (surveyId) return; // Modo edición: no inyectar defaults, la API traerá los datos reales
+
     setFormData(prev => {
       let updated = false;
       const newData = { ...prev };
       
-      // Fecha: asegurar que siempre sea un Date
+      // Fecha: asegurar que siempre sea un Date (solo en creación)
       if (!newData.fecha) {
         newData.fecha = new Date();
         updated = true;

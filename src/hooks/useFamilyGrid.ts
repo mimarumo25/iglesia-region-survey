@@ -50,7 +50,7 @@ const familyMemberSchema = z.object({
   
   // SECCIÓN 3: INFORMACIÓN DEMOGRÁFICA
   sexo: z.string().optional(),
-  parentesco: z.string().optional(),
+  parentesco: z.string().min(1, "El parentesco es obligatorio"),
   situacionCivil: z.string().optional(),
   
   // SECCIÓN 4: INFORMACIÓN EDUCATIVA Y PROFESIONAL

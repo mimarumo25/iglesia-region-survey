@@ -93,7 +93,7 @@ export const transformFormDataToSurveySession = (
       vereda: normalizeConfigurationItem(formData.vereda_data || null),
       corregimiento: normalizeConfigurationItem(formData.corregimiento_data || null),
       centro_poblado: normalizeConfigurationItem(formData.centro_poblado_data || null),
-      fecha: formData.fecha || new Date().toISOString().split('T')[0],
+      fecha: formData.fecha || '', // Sin default: si el usuario no ingresó fecha, enviar vacío
       apellido_familiar: formData.apellido_familiar || '',
       direccion: formData.direccion || '',
       telefono: formData.telefono || '',

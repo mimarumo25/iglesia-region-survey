@@ -7,10 +7,6 @@ import type {
   ServerResponse,
   HabilidadesStatsResponse
 } from '@/types/habilidades';
-import { HABILIDADES_MOCK } from '@/data/habilidades-mock';
-
-// Flag para usar datos mockeados (cambiar a false cuando el backend esté listo)
-const USE_MOCK_DATA = true;
 
 /**
  * Servicios CRUD completos para Habilidades
@@ -26,30 +22,10 @@ export const habilidadesService = {
     sortBy: string = 'id_habilidad',
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ): Promise<HabilidadesApiResponse> => {
-    // Si usamos datos mock, retornarlos directamente
-    if (USE_MOCK_DATA) {
-      return {
-        status: 'success',
-        data: HABILIDADES_MOCK,
-        total: HABILIDADES_MOCK.length,
-        message: 'Habilidades mockeadas cargadas (desarrollo)'
-      };
-    }
-    
-    try {
-      const response = await apiClient.get('/api/catalog/habilidades', {
-        params: { page, limit, sortBy, sortOrder }
-      });
-      return response.data;
-    } catch (error) {
-      console.error('❌ [habilidadesService.getHabilidades] Error - usando fallback MOCK');
-      return {
-        status: 'success',
-        data: HABILIDADES_MOCK,
-        total: HABILIDADES_MOCK.length,
-        message: 'Habilidades mockeadas (fallback por error de API)'
-      };
-    }
+    const response = await apiClient.get('/api/catalog/habilidades', {
+      params: { page, limit, sortBy, sortOrder }
+    });
+    return response.data;
   },
 
   /**
@@ -102,25 +78,8 @@ export const habilidadesService = {
    * Obtener habilidades activas (para selectores/autocomplete)
    */
   getActiveHabilidades: async (): Promise<ServerResponse<Habilidad[]>> => {
-    // Si usamos datos mock, retornarlos directamente
-    if (USE_MOCK_DATA) {
-      return {
-        success: true,
-        timestamp: new Date().toISOString(),
-        data: HABILIDADES_MOCK
-      };
-    }
-    
-    try {
-      const response = await apiClient.get('/api/catalog/habilidades');
-      return response.data;
-    } catch (error) {
-      return {
-        success: true,
-        timestamp: new Date().toISOString(),
-        data: HABILIDADES_MOCK
-      };
-    }
+    const response = await apiClient.get('/api/catalog/habilidades');
+    return response.data;
   },
 
   /**

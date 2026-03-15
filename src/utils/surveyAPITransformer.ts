@@ -152,28 +152,44 @@ function transformConfigurationItem(item: ConfigurationItem | null): { id: numbe
   // Convertir ID a número si es string
   const id = typeof item.id === 'string' ? parseInt(item.id, 10) : item.id;
   
+  // Si el ID no es válido, no enviar datos inventados
+  if (isNaN(id) || id <= 0) return null;
+
   return {
-    id: isNaN(id) ? 1 : id, // Fallback a 1 si no se puede convertir
+    id,
     nombre: item.nombre || ''
   };
 }
 
 /**
- * Convierte fecha de Date o string a formato ISO date (solo fecha, sin tiempo)
+ * Convierte fecha de Date o string a formato ISO date (solo fecha, sin tiempo).
+ * Retorna string vacío si no hay fecha — nunca envía la fecha de hoy como default.
  */
-function transformDate(date: Date | string | null): string {
-  if (!date) return new Date().toISOString().split('T')[0];
+function transformDate(date: Date | string | null | undefined): string {
+  if (!date) return '';
   
   if (date instanceof Date) {
-    return date.toISOString().split('T')[0];
+    if (isNaN(date.getTime())) return '';
+    // Usar componentes locales para evitar desfase de zona horaria
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
   
-  // Si es string, intentar parsear y convertir
+  // Si es string en formato ISO o similar, retornar solo la parte de fecha
   try {
+    const parts = date.split('T')[0];
+    // Validar que tenga formato YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(parts)) return parts;
     const parsedDate = new Date(date);
-    return parsedDate.toISOString().split('T')[0];
-  } catch (error) {
-    return new Date().toISOString().split('T')[0];
+    if (isNaN(parsedDate.getTime())) return '';
+    const y = parsedDate.getFullYear();
+    const mo = String(parsedDate.getMonth() + 1).padStart(2, '0');
+    const d = String(parsedDate.getDate()).padStart(2, '0');
+    return `${y}-${mo}-${d}`;
+  } catch {
+    return '';
   }
 }
 
@@ -199,17 +215,18 @@ function transformFamilyMember(member: FamilyMember): APIFamilyMember {
   return {
     nombres: member.nombres || '',
     numeroIdentificacion: member.numeroIdentificacion || '',
-    tipoIdentificacion: transformConfigurationItem(member.tipoIdentificacion) || { id: 1, nombre: 'CC' },
+    tipoIdentificacion: transformConfigurationItem(member.tipoIdentificacion) ?? { id: 0, nombre: '' },
     fechaNacimiento: transformDate(member.fechaNacimiento),
-    sexo: transformConfigurationItem(member.sexo) || { id: 1, nombre: 'Masculino' },
+    sexo: transformConfigurationItem(member.sexo) ?? { id: 0, nombre: '' },
     telefono: member.telefono || '',
-    situacionCivil: transformConfigurationItem(member.situacionCivil) || { id: 1, nombre: 'Soltero' },
-    estudio: transformConfigurationItem(member.estudio) || { id: 1, nombre: 'Primaria' },
-    parentesco: transformConfigurationItem(member.parentesco) || { id: 1, nombre: 'Jefe de Hogar' },
-    comunidadCultural: transformConfigurationItem(member.comunidadCultural) || { id: 1, nombre: 'Ninguna' },
-    talla_camisa: member.talla_camisa || 'M',
-    talla_pantalon: member.talla_pantalon || '32',
-    talla_zapato: member.talla_zapato || '38',
+    situacionCivil: transformConfigurationItem(member.situacionCivil) ?? { id: 0, nombre: '' },
+    estudio: transformConfigurationItem(member.estudio) ?? { id: 0, nombre: '' },
+    parentesco: transformConfigurationItem(member.parentesco) ?? { id: 0, nombre: '' },
+    comunidadCultural: transformConfigurationItem(member.comunidadCultural) ?? { id: 0, nombre: '' },
+    talla_camisa: member.talla_camisa || '',
+    talla_pantalon: member.talla_pantalon || '',
+    talla_zapato: member.talla_zapato || '',
+    // ↑ Tallas vacías si el usuario no las ingresó — sin defaults inventados
     // Campos opcionales - mantener como arrays/objetos según schema
     enQueEresLider: Array.isArray(member.enQueEresLider) ? member.enQueEresLider : [],
     correo_electronico: member.correoElectronico || '',
@@ -232,8 +249,8 @@ function transformDeceasedMember(member: DeceasedFamilyMember): APIDeceasedMembe
   return {
     nombres: member.nombres || '',
     fechaFallecimiento: transformDate(member.fechaFallecimiento),
-    sexo: transformConfigurationItem(member.sexo) || { id: 1, nombre: 'Masculino' },
-    parentesco: transformConfigurationItem(member.parentesco) || { id: 1, nombre: 'Padre' },
+    sexo: transformConfigurationItem(member.sexo) ?? { id: 0, nombre: '' },
+    parentesco: transformConfigurationItem(member.parentesco) ?? { id: 0, nombre: '' },
     causaFallecimiento: member.causaFallecimiento || ''
   };
 }
@@ -242,12 +259,12 @@ function transformDeceasedMember(member: DeceasedFamilyMember): APIDeceasedMembe
  * Función principal para transformar SurveySessionData al formato API
  */
 export function transformSurveyDataForAPI(data: SurveySessionData): APIEncuestaFormat {
-  // Transformar información general
+  // Transformar información general — sin fallbacks inventados
   const informacionGeneral = {
-    municipio: transformConfigurationItem(data.informacionGeneral.municipio) || { id: 1, nombre: 'Medellín' },
-    parroquia: transformConfigurationItem(data.informacionGeneral.parroquia) || { id: 1, nombre: 'San José' },
-    sector: transformConfigurationItem(data.informacionGeneral.sector) || { id: 1, nombre: 'Centro' },
-    vereda: transformConfigurationItem(data.informacionGeneral.vereda) || { id: 1, nombre: 'Centro' },
+    municipio: transformConfigurationItem(data.informacionGeneral.municipio) ?? { id: 0, nombre: '' },
+    parroquia: transformConfigurationItem(data.informacionGeneral.parroquia) ?? { id: 0, nombre: '' },
+    sector: transformConfigurationItem(data.informacionGeneral.sector) ?? { id: 0, nombre: '' },
+    vereda: transformConfigurationItem(data.informacionGeneral.vereda) ?? { id: 0, nombre: '' },
     corregimiento: transformConfigurationItem(data.informacionGeneral.corregimiento),
     centro_poblado: transformConfigurationItem(data.informacionGeneral.centro_poblado),
     fecha: transformDate(data.informacionGeneral.fecha),
@@ -257,15 +274,15 @@ export function transformSurveyDataForAPI(data: SurveySessionData): APIEncuestaF
     numero_contrato_epm: data.informacionGeneral.numero_contrato_epm || ''
   };
 
-  // Transformar vivienda
+  // Transformar vivienda — sin fallbacks inventados
   const vivienda = {
-    tipo_vivienda: transformConfigurationItem(data.vivienda.tipo_vivienda) || { id: 1, nombre: 'Casa' },
+    tipo_vivienda: transformConfigurationItem(data.vivienda.tipo_vivienda) ?? { id: 0, nombre: '' },
     disposicion_basuras: data.vivienda.disposicion_basuras
   };
 
-  // Transformar servicios de agua
+  // Transformar servicios de agua — sin fallbacks inventados
   const servicios_agua = {
-    sistema_acueducto: transformConfigurationItem(data.servicios_agua.sistema_acueducto) || { id: 1, nombre: 'Acueducto Público' },
+    sistema_acueducto: transformConfigurationItem(data.servicios_agua.sistema_acueducto) ?? { id: 0, nombre: '' },
     aguas_residuales: data.servicios_agua.aguas_residuales,
   };
 
@@ -306,19 +323,6 @@ export function validateAPIFormat(data: APIEncuestaFormat): { isValid: boolean; 
   if (!data.informacionGeneral.apellido_familiar) {
     errors.push('informacionGeneral.apellido_familiar es requerido');
   }
-  if (!data.informacionGeneral.direccion) {
-    errors.push('informacionGeneral.direccion es requerido');
-  }
-
-  // Validar vivienda
-  if (!data.vivienda.tipo_vivienda?.id) {
-    errors.push('vivienda.tipo_vivienda.id es requerido');
-  }
-
-  // Validar servicios de agua
-  if (!data.servicios_agua.sistema_acueducto?.id) {
-    errors.push('servicios_agua.sistema_acueducto.id es requerido');
-  }
 
   // Validar miembros de familia - Validación mejorada
   if (!data.familyMembers || data.familyMembers.length === 0) {
@@ -333,6 +337,9 @@ export function validateAPIFormat(data: APIEncuestaFormat): { isValid: boolean; 
       }
       if (!member.tipoIdentificacion?.id) {
         errors.push(`familyMembers[${index}].tipoIdentificacion es requerido`);
+      }
+      if (!member.parentesco?.id) {
+        errors.push(`familyMembers[${index}].parentesco es requerido`);
       }
       // Validaciones adicionales que podrían ser útiles
       if (member.numeroIdentificacion && member.numeroIdentificacion.length < 5) {

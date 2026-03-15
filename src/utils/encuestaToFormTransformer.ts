@@ -84,7 +84,7 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
     vereda_data: encuesta.vereda || null,
     corregimiento_data: (encuesta as any)?.corregimiento || null,
     centro_poblado_data: (encuesta as any)?.centro_poblado || null,
-    fecha: encuesta.fecha_ultima_encuesta ? new Date(encuesta.fecha_ultima_encuesta) : new Date(),
+    fecha: encuesta.fecha_ultima_encuesta ? new Date(encuesta.fecha_ultima_encuesta) : null,
     apellido_familiar: encuesta.apellido_familiar || '',
     direccion: encuesta.direccion_familia || '',
     telefono: encuesta.telefono || '',
@@ -120,7 +120,7 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
     // Observaciones y consentimiento
     sustento_familia: encuesta.observaciones?.sustento_familia || '', // Capturar del objeto observaciones
     observaciones_encuestador: encuesta.observaciones?.observaciones_encuestador || encuesta.metadatos?.estado || '',
-    autorizacion_datos: encuesta.observaciones?.autorizacion_datos !== undefined ? encuesta.observaciones.autorizacion_datos : true, // Capturar correctamente
+    autorizacion_datos: encuesta.observaciones?.autorizacion_datos ?? false, // Solo true si el backend lo confirma
   };
 
   // 2. Transformar miembros de familia
@@ -273,7 +273,7 @@ const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDa
     vereda_data: (encuesta as any)?.vereda || null,
     corregimiento_data: (encuesta as any)?.corregimiento || null,
     centro_poblado_data: (encuesta as any)?.centro_poblado || null,
-    fecha: encuesta.fecha_creacion ? new Date(encuesta.fecha_creacion) : new Date(),
+    fecha: encuesta.fecha_creacion ? new Date(encuesta.fecha_creacion) : null,
     apellido_familiar: encuesta.apellido_familiar || '',
     direccion: encuesta.direccion || '',
     telefono: '', // No disponible directamente
@@ -320,7 +320,7 @@ const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDa
     // Observaciones y consentimiento
     sustento_familia: encuesta.socioeconomica?.fuente_ingresos || '',
     observaciones_encuestador: encuesta.observaciones_generales || '',
-    autorizacion_datos: true, // Asumido si la encuesta existe
+    autorizacion_datos: (encuesta as any).autorizacion_datos ?? false, // Solo true si el backend lo confirma
   };
 
   // 2. Transformar miembros de familia
