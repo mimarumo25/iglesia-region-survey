@@ -9,40 +9,40 @@ import { SurveySessionData, FamilyMember, DeceasedFamilyMember, ConfigurationIte
  * Tipo para el formato API de FamilyMember según documentación Swagger
  */
 interface APIFamilyMember {
-  nombres: string;
-  numeroIdentificacion: string;
+  nombres: string | null;
+  numeroIdentificacion: string | null;
   tipoIdentificacion: {
     id: number | string;
     nombre: string;
-  };
-  fechaNacimiento: string; // Formato ISO date string
+  } | null;
+  fechaNacimiento: string | null; // Formato ISO date string
   sexo: {
     id: number | string;
     nombre: string;
-  };
-  telefono: string;
+  } | null;
+  telefono: string | null;
   situacionCivil: {
     id: number | string;
     nombre: string;
-  };
+  } | null;
   estudio: {
     id: number | string;
     nombre: string;
-  };
+  } | null;
   parentesco: {
     id: number | string;
     nombre: string;
-  };
+  } | null;
   comunidadCultural: {
     id: number | string;
     nombre: string;
-  };
-  talla_camisa: string;
-  talla_pantalon: string;
-  talla_zapato: string;
+  } | null;
+  talla_camisa: string | null;
+  talla_pantalon: string | null;
+  talla_zapato: string | null;
   // Campos adicionales que pueden estar presentes
   enQueEresLider?: string[];
-  correo_electronico?: string;
+  correo_electronico?: string | null;
   enfermedades?: Array<{ id: number; nombre: string }>;
   necesidadesEnfermo?: string[];
   solicitudComunionCasa?: boolean;
@@ -52,9 +52,9 @@ interface APIFamilyMember {
       nombre: string;
     } | null;
     celebraciones: Array<{
-      motivo: string;
-      dia: string;
-      mes: string;
+      motivo: string | null;
+      dia: string | null;
+      mes: string | null;
     }>;
   };
   habilidades?: Array<{ id: number; nombre: string; nivel?: string }>;
@@ -65,17 +65,17 @@ interface APIFamilyMember {
  * Tipo para el formato API de DeceasedMember según documentación Swagger
  */
 interface APIDeceasedMember {
-  nombres: string;
-  fechaFallecimiento: string; // Formato ISO date string
+  nombres: string | null;
+  fechaFallecimiento: string | null; // Formato ISO date string
   sexo: {
     id: number | string;
     nombre: string;
-  };
+  } | null;
   parentesco: {
     id: string | number;
     nombre: string;
-  };
-  causaFallecimiento: string;
+  } | null;
+  causaFallecimiento: string | null;
 }
 
 /**
@@ -86,19 +86,19 @@ export interface APIEncuestaFormat {
     municipio: {
       id: number;
       nombre: string;
-    };
+    } | null;
     parroquia: {
       id: number;
       nombre: string;
-    };
+    } | null;
     sector: {
       id: number;
       nombre: string;
-    };
+    } | null;
     vereda: {
       id: number;
       nombre: string;
-    };
+    } | null;
     corregimiento: {
       id: number;
       nombre: string;
@@ -107,29 +107,29 @@ export interface APIEncuestaFormat {
       id: number;
       nombre: string;
     } | null;
-    fecha: string; // Formato ISO date string (sin tiempo)
-    apellido_familiar: string;
-    direccion: string;
-    telefono: string;
-    numero_contrato_epm: string;
+    fecha: string | null; // Formato ISO date string (sin tiempo)
+    apellido_familiar: string | null;
+    direccion: string | null;
+    telefono: string | null;
+    numero_contrato_epm: string | null;
   };
   vivienda: {
     tipo_vivienda: {
       id: number;
       nombre: string;
-    };
-    disposicion_basuras: DynamicSelectionMap;
+    } | null;
+    disposicion_basuras: DynamicSelectionMap | null;
   };
   servicios_agua: {
     sistema_acueducto: {
       id: number;
       nombre: string;
-    };
-    aguas_residuales: DynamicSelectionMap;
+    } | null;
+    aguas_residuales: DynamicSelectionMap | null;
   };
   observaciones: {
-    sustento_familia: string;
-    observaciones_encuestador: string;
+    sustento_familia: string | null;
+    observaciones_encuestador: string | null;
     autorizacion_datos: boolean;
   };
   familyMembers: APIFamilyMember[];
@@ -157,19 +157,38 @@ function transformConfigurationItem(item: ConfigurationItem | null): { id: numbe
 
   return {
     id,
-    nombre: item.nombre || ''
+    nombre: item.nombre
   };
+}
+
+/**
+ * Convierte textos vacíos a null para no enviar defaults inventados.
+ */
+function toNullableString(value: string | null | undefined): string | null {
+  if (typeof value !== 'string') return null;
+  return value.trim() === '' ? null : value;
+}
+
+/**
+ * Obtiene la fecha local actual en formato YYYY-MM-DD.
+ */
+function getCurrentLocalDateString(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 /**
  * Convierte fecha de Date o string a formato ISO date (solo fecha, sin tiempo).
  * Retorna string vacío si no hay fecha — nunca envía la fecha de hoy como default.
  */
-function transformDate(date: Date | string | null | undefined): string {
-  if (!date) return '';
+function transformDate(date: Date | string | null | undefined): string | null {
+  if (!date) return null;
   
   if (date instanceof Date) {
-    if (isNaN(date.getTime())) return '';
+    if (isNaN(date.getTime())) return null;
     // Usar componentes locales para evitar desfase de zona horaria
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -183,13 +202,13 @@ function transformDate(date: Date | string | null | undefined): string {
     // Validar que tenga formato YYYY-MM-DD
     if (/^\d{4}-\d{2}-\d{2}$/.test(parts)) return parts;
     const parsedDate = new Date(date);
-    if (isNaN(parsedDate.getTime())) return '';
+    if (isNaN(parsedDate.getTime())) return null;
     const y = parsedDate.getFullYear();
     const mo = String(parsedDate.getMonth() + 1).padStart(2, '0');
     const d = String(parsedDate.getDate()).padStart(2, '0');
     return `${y}-${mo}-${d}`;
   } catch {
-    return '';
+    return null;
   }
 }
 
@@ -207,29 +226,32 @@ function transformFamilyMember(member: FamilyMember): APIFamilyMember {
 
   // Mapear celebraciones sin el campo 'id'
   const celebracionesMapeadas = celebraciones.map(c => ({
-    motivo: c.motivo || '',
-    dia: c.dia || '',
-    mes: c.mes || ''
+    motivo: toNullableString(c.motivo),
+    dia: toNullableString(c.dia),
+    mes: toNullableString(c.mes)
   }));
 
   return {
-    nombres: member.nombres || '',
-    numeroIdentificacion: member.numeroIdentificacion || '',
-    tipoIdentificacion: transformConfigurationItem(member.tipoIdentificacion) ?? { id: 0, nombre: '' },
+    nombres: toNullableString(member.nombres),
+    numeroIdentificacion: toNullableString(member.numeroIdentificacion),
+    tipoIdentificacion: transformConfigurationItem(member.tipoIdentificacion),
     fechaNacimiento: transformDate(member.fechaNacimiento),
-    sexo: transformConfigurationItem(member.sexo) ?? { id: 0, nombre: '' },
-    telefono: member.telefono || '',
-    situacionCivil: transformConfigurationItem(member.situacionCivil) ?? { id: 0, nombre: '' },
-    estudio: transformConfigurationItem(member.estudio) ?? { id: 0, nombre: '' },
-    parentesco: transformConfigurationItem(member.parentesco) ?? { id: 0, nombre: '' },
-    comunidadCultural: transformConfigurationItem(member.comunidadCultural) ?? { id: 0, nombre: '' },
-    talla_camisa: member.talla_camisa || '',
-    talla_pantalon: member.talla_pantalon || '',
-    talla_zapato: member.talla_zapato || '',
+    sexo: transformConfigurationItem(member.sexo),
+    telefono: toNullableString(member.telefono),
+    situacionCivil: transformConfigurationItem(member.situacionCivil),
+    estudio: transformConfigurationItem(member.estudio),
+    parentesco: transformConfigurationItem(member.parentesco),
+    comunidadCultural: transformConfigurationItem(member.comunidadCultural),
+    talla_camisa: toNullableString(member.talla_camisa),
+    talla_pantalon: toNullableString(member.talla_pantalon),
+    talla_zapato: toNullableString(member.talla_zapato),
     // ↑ Tallas vacías si el usuario no las ingresó — sin defaults inventados
     // Campos opcionales - mantener como arrays/objetos según schema
     enQueEresLider: Array.isArray(member.enQueEresLider) ? member.enQueEresLider : [],
-    correo_electronico: member.correoElectronico || '',
+    // Enviar null si no hay correo o es temporal, nunca cadena vacía
+    correo_electronico: (member.correoElectronico && !member.correoElectronico.includes('@temp.com') && !member.correoElectronico.includes('temp.'))
+      ? member.correoElectronico
+      : null,
     enfermedades: member.enfermedades || [],
     necesidadesEnfermo: Array.isArray(member.necesidadesEnfermo) ? member.necesidadesEnfermo : [],
     solicitudComunionCasa: member.solicitudComunionCasa || false,
@@ -247,11 +269,11 @@ function transformFamilyMember(member: FamilyMember): APIFamilyMember {
  */
 function transformDeceasedMember(member: DeceasedFamilyMember): APIDeceasedMember {
   return {
-    nombres: member.nombres || '',
+    nombres: toNullableString(member.nombres),
     fechaFallecimiento: transformDate(member.fechaFallecimiento),
-    sexo: transformConfigurationItem(member.sexo) ?? { id: 0, nombre: '' },
-    parentesco: transformConfigurationItem(member.parentesco) ?? { id: 0, nombre: '' },
-    causaFallecimiento: member.causaFallecimiento || ''
+    sexo: transformConfigurationItem(member.sexo),
+    parentesco: transformConfigurationItem(member.parentesco),
+    causaFallecimiento: toNullableString(member.causaFallecimiento)
   };
 }
 
@@ -261,29 +283,29 @@ function transformDeceasedMember(member: DeceasedFamilyMember): APIDeceasedMembe
 export function transformSurveyDataForAPI(data: SurveySessionData): APIEncuestaFormat {
   // Transformar información general — sin fallbacks inventados
   const informacionGeneral = {
-    municipio: transformConfigurationItem(data.informacionGeneral.municipio) ?? { id: 0, nombre: '' },
-    parroquia: transformConfigurationItem(data.informacionGeneral.parroquia) ?? { id: 0, nombre: '' },
-    sector: transformConfigurationItem(data.informacionGeneral.sector) ?? { id: 0, nombre: '' },
-    vereda: transformConfigurationItem(data.informacionGeneral.vereda) ?? { id: 0, nombre: '' },
+    municipio: transformConfigurationItem(data.informacionGeneral.municipio),
+    parroquia: transformConfigurationItem(data.informacionGeneral.parroquia),
+    sector: transformConfigurationItem(data.informacionGeneral.sector),
+    vereda: transformConfigurationItem(data.informacionGeneral.vereda),
     corregimiento: transformConfigurationItem(data.informacionGeneral.corregimiento),
     centro_poblado: transformConfigurationItem(data.informacionGeneral.centro_poblado),
-    fecha: transformDate(data.informacionGeneral.fecha),
-    apellido_familiar: data.informacionGeneral.apellido_familiar || '',
-    direccion: data.informacionGeneral.direccion || '',
-    telefono: data.informacionGeneral.telefono || '',
-    numero_contrato_epm: data.informacionGeneral.numero_contrato_epm || ''
+    fecha: transformDate(data.informacionGeneral.fecha) ?? getCurrentLocalDateString(),
+    apellido_familiar: toNullableString(data.informacionGeneral.apellido_familiar),
+    direccion: toNullableString(data.informacionGeneral.direccion),
+    telefono: toNullableString(data.informacionGeneral.telefono),
+    numero_contrato_epm: toNullableString(data.informacionGeneral.numero_contrato_epm)
   };
 
   // Transformar vivienda — sin fallbacks inventados
   const vivienda = {
-    tipo_vivienda: transformConfigurationItem(data.vivienda.tipo_vivienda) ?? { id: 0, nombre: '' },
-    disposicion_basuras: data.vivienda.disposicion_basuras
+    tipo_vivienda: transformConfigurationItem(data.vivienda.tipo_vivienda),
+    disposicion_basuras: data.vivienda.disposicion_basuras.length > 0 ? data.vivienda.disposicion_basuras : null
   };
 
   // Transformar servicios de agua — sin fallbacks inventados
   const servicios_agua = {
-    sistema_acueducto: transformConfigurationItem(data.servicios_agua.sistema_acueducto) ?? { id: 0, nombre: '' },
-    aguas_residuales: data.servicios_agua.aguas_residuales,
+    sistema_acueducto: transformConfigurationItem(data.servicios_agua.sistema_acueducto),
+    aguas_residuales: data.servicios_agua.aguas_residuales.length > 0 ? data.servicios_agua.aguas_residuales : null,
   };
 
   // Transformar miembros de familia
@@ -299,7 +321,11 @@ export function transformSurveyDataForAPI(data: SurveySessionData): APIEncuestaF
     informacionGeneral,
     vivienda,
     servicios_agua,
-    observaciones: data.observaciones,
+    observaciones: {
+      sustento_familia: toNullableString(data.observaciones.sustento_familia),
+      observaciones_encuestador: toNullableString(data.observaciones.observaciones_encuestador),
+      autorizacion_datos: Boolean(data.observaciones.autorizacion_datos)
+    },
     familyMembers,
     deceasedMembers,
     metadata: data.metadata,
@@ -320,7 +346,7 @@ export function validateAPIFormat(data: APIEncuestaFormat): { isValid: boolean; 
   if (!data.informacionGeneral.municipio?.id) {
     errors.push('informacionGeneral.municipio.id es requerido');
   }
-  if (!data.informacionGeneral.apellido_familiar) {
+  if (!data.informacionGeneral.apellido_familiar?.trim()) {
     errors.push('informacionGeneral.apellido_familiar es requerido');
   }
 
@@ -329,10 +355,10 @@ export function validateAPIFormat(data: APIEncuestaFormat): { isValid: boolean; 
     errors.push('Debe incluir al menos un miembro de la familia');
   } else {
     data.familyMembers.forEach((member, index) => {
-      if (!member.nombres || member.nombres.trim() === '') {
+      if (!member.nombres?.trim()) {
         errors.push(`familyMembers[${index}].nombres es requerido`);
       }
-      if (!member.numeroIdentificacion || member.numeroIdentificacion.trim() === '') {
+      if (!member.numeroIdentificacion?.trim()) {
         errors.push(`familyMembers[${index}].numeroIdentificacion es requerido`);
       }
       if (!member.tipoIdentificacion?.id) {

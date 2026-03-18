@@ -174,7 +174,8 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
       enQueEresLider: (persona as any).en_que_eres_lider 
         ? [(persona as any).en_que_eres_lider] 
         : [],
-      correoElectronico: persona.email || '',
+      // No cargar correos temporales generados por el backend (@temp.com)
+      correoElectronico: (persona.email && !persona.email.includes('@temp.com') && !persona.email.includes('temp.')) ? persona.email : '',
       // 🔄 enfermedades: Array con {id_persona, id, nombre}
       enfermedades: ((persona as any).enfermedades || []).map((e: any) => ({
         id: e.id || 0,
@@ -359,7 +360,10 @@ const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDa
       } : null,
       telefono: (miembro as any).telefono || '',
       enQueEresLider: (miembro as any).enQueEresLider || [],
-      correoElectronico: (miembro as any).correo_electronico || (miembro as any).email || '',
+      correoElectronico: (() => {
+        const rawEmail = (miembro as any).correo_electronico || (miembro as any).email || '';
+        return rawEmail && !rawEmail.includes('@temp.com') && !rawEmail.includes('temp.') ? rawEmail : '';
+      })(),
       enfermedades: (miembro as any).enfermedades || [],
       necesidadesEnfermo: (miembro as any).necesidadesEnfermo || [],
       solicitudComunionCasa: (miembro as any).solicitudComunionCasa || false,

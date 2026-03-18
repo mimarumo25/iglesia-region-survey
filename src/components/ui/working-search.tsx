@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useSectores } from '@/hooks/useSectores';
 import { useUsers } from '@/hooks/useUsers';
+import { useAuthContext } from '@/context/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
@@ -67,6 +68,8 @@ export const WorkingSearch: React.FC<WorkingSearchProps> = ({
   className = '',
   placeholder = 'Buscar funcionalidades, usuarios, sectores...'
 }) => {
+  const { user } = useAuthContext();
+  const canReadUsers = user?.role === 'admin';
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [query, setQuery] = useState('');
@@ -77,7 +80,7 @@ export const WorkingSearch: React.FC<WorkingSearchProps> = ({
   const { useUsersQuery } = useUsers();
   
   const { data: sectoresData, isLoading: sectoresLoading } = useActiveSectoresQuery();
-  const { data: usersData, isLoading: usersLoading } = useUsersQuery();
+  const { data: usersData, isLoading: usersLoading } = useUsersQuery(canReadUsers);
 
   // Procesar datos de sectores
   const sectores = useMemo(() => {
@@ -92,8 +95,8 @@ export const WorkingSearch: React.FC<WorkingSearchProps> = ({
 
   // Procesar datos de usuarios
   const usuarios = useMemo(() => {
-    return (usersData as any) || [];
-  }, [usersData]);
+    return canReadUsers ? (usersData as any) || [] : [];
+  }, [usersData, canReadUsers]);
 
   // Función de búsqueda optimizada con caché y mejor performance
   const searchResults = useMemo(() => {

@@ -14,10 +14,11 @@ export const useUsers = () => {
   /**
    * Query para cargar la lista de usuarios
    */
-  const useUsersQuery = () => {
+  const useUsersQuery = (enabled: boolean = true) => {
     return useQuery<UserResponse[], Error>({
       queryKey: ['users'],
       queryFn: UsersService.getUsers,
+      enabled,
       onError: (error: any) => {
         console.error('Error loading users:', error);
         // Manejar error específico de permisos del backend

@@ -857,7 +857,7 @@ export const useConfigurationData = (): ConfigurationData => {
 
   // Estados de carga y error generales
   const isAnyLoading = useMemo(() => {
-    return sectoresLoading || usersLoading || sexosLoading || 
+    return sectoresLoading || sexosLoading || 
            situacionesCivilesLoading || tiposViviendaLoading || 
            disposicionBasuraLoading || aguasResidualesLoading || 
            tiposIdentificacionLoading || parentescosLoading ||
@@ -867,7 +867,7 @@ export const useConfigurationData = (): ConfigurationData => {
            municipiosLoading || veredasLoading ||
            departamentosLoading || sistemasAcueductoLoading;
   }, [
-    sectoresLoading, usersLoading, sexosLoading,
+    sectoresLoading, sexosLoading,
     situacionesCivilesLoading, tiposViviendaLoading,
     disposicionBasuraLoading, aguasResidualesLoading,
     tiposIdentificacionLoading, parentescosLoading,
@@ -879,7 +879,7 @@ export const useConfigurationData = (): ConfigurationData => {
   ]);
 
   const hasAnyError = useMemo(() => {
-    return !!(sectoresError || usersError || sexosError ||
+    return !!(sectoresError || sexosError ||
               situacionesCivilesError || tiposViviendaError ||
               disposicionBasuraError || aguasResidualesError ||
               tiposIdentificacionError || parentescosError ||
@@ -889,7 +889,7 @@ export const useConfigurationData = (): ConfigurationData => {
               municipiosError || veredasError ||
               departamentosError || sistemasAcueductoError);
   }, [
-    sectoresError, usersError, sexosError,
+    sectoresError, sexosError,
     situacionesCivilesError, tiposViviendaError,
     disposicionBasuraError, aguasResidualesError,
     tiposIdentificacionError, parentescosError,

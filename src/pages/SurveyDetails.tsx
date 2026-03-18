@@ -285,7 +285,7 @@ const SurveyDetails = () => {
             </div>
             <div>
               <p className="text-sm text-muted-foreground font-semibold">Tipo de Vivienda</p>
-              <p className="font-semibold text-foreground/90">{encuesta.tipo_vivienda.nombre}</p>
+              <p className="font-semibold text-foreground/90">{encuesta.tipo_vivienda?.nombre || 'No especificado'}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground font-semibold">Dirección</p>
@@ -317,30 +317,30 @@ const SurveyDetails = () => {
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm text-muted-foreground font-semibold">Municipio</p>
-              <p className="font-semibold text-foreground/90">{encuesta.municipio.nombre}</p>
+              <p className="font-semibold text-foreground/90">{encuesta.municipio?.nombre || 'No especificado'}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground font-semibold">Parroquia</p>
-              <p className="font-semibold text-foreground/90">{encuesta.parroquia.nombre}</p>
+              <p className="font-semibold text-foreground/90">{encuesta.parroquia?.nombre || 'No especificado'}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground font-semibold">Sector</p>
-              <Badge variant="outline">{encuesta.sector.nombre}</Badge>
+              <Badge variant="outline">{encuesta.sector?.nombre || 'No especificado'}</Badge>
             </div>
             <div>
               <p className="text-sm text-muted-foreground font-semibold">Vereda</p>
-              <p className="font-semibold text-foreground/90">{encuesta.vereda.nombre}</p>
+              <p className="font-semibold text-foreground/90">{encuesta.vereda?.nombre || 'No especificado'}</p>
             </div>
-            {(encuesta as any).corregimiento && (
+            {(encuesta as any).corregimiento?.nombre && (
               <div>
                 <p className="text-sm text-muted-foreground font-semibold">Corregimiento</p>
-                <p className="font-semibold text-foreground/90">{(encuesta as any).corregimiento.nombre}</p>
+                <p className="font-semibold text-foreground/90">{(encuesta as any).corregimiento?.nombre || 'No especificado'}</p>
               </div>
             )}
-            {(encuesta as any).centro_poblado && (
+            {(encuesta as any).centro_poblado?.nombre && (
               <div>
                 <p className="text-sm text-muted-foreground font-semibold">Centro Poblado</p>
-                <p className="font-semibold text-foreground/90">{(encuesta as any).centro_poblado.nombre}</p>
+                <p className="font-semibold text-foreground/90">{(encuesta as any).centro_poblado?.nombre || 'No especificado'}</p>
               </div>
             )}
           </CardContent>
@@ -463,7 +463,7 @@ const SurveyDetails = () => {
                   ))}
                 </div>
               ) : encuesta.aguas_residuales ? (
-                <Badge variant="outline">{encuesta.aguas_residuales.nombre}</Badge>
+                <Badge variant="outline">{encuesta.aguas_residuales?.nombre || 'No especificado'}</Badge>
               ) : (
                 <span className="text-muted-foreground/70 italic">No especificado</span>
               )}
@@ -493,14 +493,14 @@ const SurveyDetails = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="w-5 h-5" />
-            Miembros de Familia ({encuesta.miembros_familia.total_miembros})
+            Miembros de Familia ({encuesta.miembros_familia?.total_miembros || 0})
           </CardTitle>
           <CardDescription>
             Información completa de todos los miembros activos de la familia
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {encuesta.miembros_familia.personas.length > 0 ? (
+          {encuesta.miembros_familia?.personas?.length > 0 ? (
             <div className="space-y-6">
               {encuesta.miembros_familia.personas.map((miembro: any, index: number) => {
                 return (
@@ -514,7 +514,7 @@ const SurveyDetails = () => {
                         </CardTitle>
                         <div className="flex gap-2 mt-2">
                           {miembro.parentesco && (
-                            <Badge variant="secondary" className={isMobile ? "text-xs" : ""}>{miembro.parentesco.nombre}</Badge>
+                            <Badge variant="secondary" className={isMobile ? "text-xs" : ""}>{miembro.parentesco?.nombre || 'No especificado'}</Badge>
                           )}
                           <Badge variant="outline" className={isMobile ? "text-xs" : ""}>{miembro.sexo?.descripcion || miembro.sexo?.nombre}</Badge>
                         </div>
@@ -535,8 +535,8 @@ const SurveyDetails = () => {
                       <div className={`grid grid-cols-1 ${isMobile ? 'gap-2' : 'md:grid-cols-2 lg:grid-cols-3 gap-3'} text-sm`}>
                         <div>
                           <p className="text-muted-foreground font-semibold">Identificación</p>
-                          <p className="font-semibold text-foreground/90">{miembro.identificacion.numero}</p>
-                          <p className="text-xs text-muted-foreground/70">{miembro.identificacion.tipo?.nombre}</p>
+                          <p className="font-semibold text-foreground/90">{miembro.identificacion?.numero || 'No especificado'}</p>
+                          <p className="text-xs text-muted-foreground/70">{miembro.identificacion?.tipo?.nombre || 'No especificado'}</p>
                         </div>
                         <div>
                           <p className="text-muted-foreground font-semibold">Fecha de Nacimiento</p>
@@ -544,7 +544,7 @@ const SurveyDetails = () => {
                         </div>
                         <div>
                           <p className="text-muted-foreground font-semibold">Estado Civil</p>
-                          <p className="font-semibold text-foreground/90">{miembro.estado_civil.nombre}</p>
+                          <p className="font-semibold text-foreground/90">{miembro.estado_civil?.nombre || 'No especificado'}</p>
                         </div>
                       </div>
                     </div>
@@ -588,18 +588,18 @@ const SurveyDetails = () => {
                       <div className={`grid grid-cols-1 ${isMobile ? 'gap-2' : 'md:grid-cols-2 gap-3'} text-sm`}>
                         <div>
                           <p className="text-muted-foreground font-semibold">Nivel de Estudios</p>
-                          <p className="font-semibold text-foreground/90">{miembro.estudios.nombre}</p>
+                          <p className="font-semibold text-foreground/90">{miembro.estudios?.nombre || 'No especificado'}</p>
                         </div>
                         {miembro.profesion && (
                           <div>
                             <p className="text-muted-foreground font-semibold">Profesión/Oficio</p>
-                            <p className="font-semibold text-foreground/90">{miembro.profesion.nombre}</p>
+                            <p className="font-semibold text-foreground/90">{miembro.profesion?.nombre || 'No especificado'}</p>
                           </div>
                         )}
                         {miembro.comunidad_cultural && (
                           <div>
                             <p className="text-muted-foreground font-semibold">Comunidad Cultural</p>
-                            <p className="font-semibold text-foreground/90">{miembro.comunidad_cultural.nombre}</p>
+                            <p className="font-semibold text-foreground/90">{miembro.comunidad_cultural?.nombre || 'No especificado'}</p>
                           </div>
                         )}
                       </div>
@@ -615,15 +615,15 @@ const SurveyDetails = () => {
                       <div className={`flex ${isMobile ? 'flex-col gap-2' : 'gap-4'} text-sm`}>
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground font-semibold">👕 Camisa:</span>
-                          <Badge variant="outline" className="font-semibold">{miembro.tallas.camisa}</Badge>
+                          <Badge variant="outline" className="font-semibold">{miembro.tallas?.camisa || 'No especificado'}</Badge>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground font-semibold">👖 Pantalón:</span>
-                          <Badge variant="outline" className="font-semibold">{miembro.tallas.pantalon}</Badge>
+                          <Badge variant="outline" className="font-semibold">{miembro.tallas?.pantalon || 'No especificado'}</Badge>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground font-semibold">👟 Zapato:</span>
-                          <Badge variant="outline" className="font-semibold">{miembro.tallas.zapato}</Badge>
+                          <Badge variant="outline" className="font-semibold">{miembro.tallas?.zapato || 'No especificado'}</Badge>
                         </div>
                       </div>
                     </div>
@@ -831,11 +831,11 @@ const SurveyDetails = () => {
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">Sexo</p>
-                        <Badge variant="outline">{fallecido.sexo.nombre}</Badge>
+                        <Badge variant="outline">{fallecido.sexo?.nombre || 'No especificado'}</Badge>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">Parentesco</p>
-                        <Badge variant="secondary">{fallecido.parentesco.nombre}</Badge>
+                        <Badge variant="secondary">{fallecido.parentesco?.nombre || 'No especificado'}</Badge>
                       </div>
                       {fallecido.causaFallecimiento && (
                         <div className="col-span-full">

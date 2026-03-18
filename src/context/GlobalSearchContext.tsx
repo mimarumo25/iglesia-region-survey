@@ -3,6 +3,7 @@ import { useGlobalSearch, UseGlobalSearchReturn, UseGlobalSearchOptions } from '
 import { SearchableData } from '@/services/globalSearch';
 import { useSectores } from '@/hooks/useSectores';
 import { useUsers } from '@/hooks/useUsers';
+import { useAuthContext } from '@/context/AuthContext';
 import { Sector } from '@/types/sectores';
 import { UserResponse } from '@/services/users';
 
@@ -27,13 +28,16 @@ export const GlobalSearchProvider: React.FC<GlobalSearchProviderProps> = ({
   children, 
   options = {} 
 }) => {
+  const { user } = useAuthContext();
+  const canReadUsers = user?.role === 'admin';
+
   // Hooks de datos
   const { useActiveSectoresQuery } = useSectores();
   const { useUsersQuery } = useUsers();
   
   // Queries para obtener datos
   const { data: sectoresResponse, isLoading: sectoresLoading } = useActiveSectoresQuery();
-  const { data: usuariosData, isLoading: usersLoading } = useUsersQuery();
+  const { data: usuariosData, isLoading: usersLoading } = useUsersQuery(canReadUsers);
 
   // Extraer sectores del response con type assertion
   let sectores: Sector[] = [];
@@ -45,7 +49,7 @@ export const GlobalSearchProvider: React.FC<GlobalSearchProviderProps> = ({
   }
 
   // Usuarios con type assertion
-  const usuarios: UserResponse[] = (usuariosData as UserResponse[]) || [];
+  const usuarios: UserResponse[] = canReadUsers ? (usuariosData as UserResponse[]) || [] : [];
 
   // Preparar datos para búsqueda
   const searchableData: SearchableData = {
@@ -62,7 +66,7 @@ export const GlobalSearchProvider: React.FC<GlobalSearchProviderProps> = ({
   const contextValue: GlobalSearchContextType = {
     ...searchHook,
     searchableData,
-    isDataLoading: sectoresLoading || usersLoading
+    isDataLoading: sectoresLoading || (canReadUsers && usersLoading)
   };
 
   return (

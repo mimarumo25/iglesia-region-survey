@@ -42,12 +42,13 @@ const findConfigurationItem = (id: string | number, items: ConfigurationItem[]):
  */
 const normalizeConfigurationItem = (item: ConfigurationItem | null): ConfigurationItem | null => {
   if (!item) return null;
+  if ((item as any).id === null || (item as any).id === undefined || (item as any).id === '') return null;
   
   // Convertir el ID a número
   const numericId = typeof item.id === 'string' ? parseInt(item.id, 10) : item.id;
   
-  // Si la conversión falla, devolver null
-  if (isNaN(numericId)) return null;
+  // Si la conversión falla o el ID no es positivo, devolver null
+  if (!Number.isFinite(numericId) || numericId <= 0) return null;
   
   return {
     id: numericId,

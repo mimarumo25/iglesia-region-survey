@@ -50,14 +50,15 @@ import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 const normalizeConfigurationItem = (item: any): any => {
   if (!item) return null;
   
-  // Si no tiene estructura de ConfigurationItem, retornar tal cual
-  if (typeof item !== 'object' || !item.id) return item;
+  // Si no tiene estructura válida, no propagar valores ambiguos
+  if (typeof item !== 'object') return null;
+  if (item.id === null || item.id === undefined || item.id === '') return null;
   
   // Convertir el ID a número
   const numericId = typeof item.id === 'string' ? parseInt(item.id, 10) : item.id;
   
-  // Si la conversión falla, devolver el item original
-  if (isNaN(numericId)) return item;
+  // Si la conversión falla o el ID no es positivo, devolver null
+  if (!Number.isFinite(numericId) || numericId <= 0) return null;
   
   return {
     ...item,
@@ -140,6 +141,7 @@ const SurveyForm = () => {
   const [isSubmittedSuccessfully, setIsSubmittedSuccessfully] = useState(false); // Indica si la encuesta fue enviada exitosamente
   const [isEditMode, setIsEditMode] = useState(false); // Indica si estamos editando
   const [isLoadingEncuesta, setIsLoadingEncuesta] = useState(false); // Loading de carga de encuesta
+  const [isLoadingStuck, setIsLoadingStuck] = useState(false); // Detecta carga atascada
   const [showDataProtectionModal, setShowDataProtectionModal] = useState(false); // NO mostrar automáticamente
   const [hasAcceptedDataProtection, setHasAcceptedDataProtection] = useState(false); // Inicia sin aceptar
   const [isDraftLoaded, setIsDraftLoaded] = useState(false); // Indica si el borrador ya fue cargado
@@ -180,6 +182,24 @@ const SurveyForm = () => {
 
   const currentStageData = formStages.find(stage => stage.id === currentStage);
   const progress = (currentStage / formStages.length) * 100;
+
+  // Fallback defensivo para evitar bloqueos en loading infinito
+  useEffect(() => {
+    const isLoadingForm = configurationData.isAnyLoading || isLoadingEncuesta;
+
+    if (!isLoadingForm) {
+      setIsLoadingStuck(false);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setIsLoadingStuck(true);
+    }, 12000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [configurationData.isAnyLoading, isLoadingEncuesta]);
 
   // Auto-guardado cuando cambia la etapa (solo nueva estructura)
   useEffect(() => {
@@ -378,21 +398,20 @@ const SurveyForm = () => {
     loadEncuestaForEdit();
   }, [surveyId]); // Solo ejecutar cuando cambia surveyId
 
-  // Asegurar que campos críticos tengan valores por defecto correctos
-  // Solo aplica en modo CREACIÓN: en edición, los datos vienen de la API
+  // Normalizar estructuras en modo creación y asegurar fecha actual de encuesta
   useEffect(() => {
     if (surveyId) return; // Modo edición: no inyectar defaults, la API traerá los datos reales
 
     setFormData(prev => {
       let updated = false;
       const newData = { ...prev };
-      
-      // Fecha: asegurar que siempre sea un Date (solo en creación)
+
+      // Fecha de encuesta: usar fecha actual en creación
       if (!newData.fecha) {
         newData.fecha = new Date();
         updated = true;
       }
-      
+
       // Arreglos de selección múltiple: asegurar que sean arrays
       if (!Array.isArray(newData.disposicion_basura)) {
         newData.disposicion_basura = [];
@@ -497,8 +516,8 @@ const SurveyForm = () => {
       setFamilyMembers([]);
       setDeceasedMembers([]);
       setCurrentStage(1);
-      
-      // Establecer fecha actual nuevamente
+
+      // Establecer fecha actual al iniciar una encuesta nueva
       setTimeout(() => {
         setFormData(prev => ({
           ...prev,
@@ -784,6 +803,37 @@ const SurveyForm = () => {
     // Para otros campos, usar la configuración normal
     return getErrorState(field, configurationData);
   };
+
+  // Mostrar fallback con acciones cuando la carga se atasca
+  if (isLoadingStuck) {
+    return (
+      <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-3 lg:px-6 py-6 lg:py-8 bg-background min-h-screen">
+        <Card className="border-amber-200 bg-amber-50">
+          <CardHeader>
+            <CardTitle className="text-amber-800">Carga demorada del formulario</CardTitle>
+            <CardDescription className="text-amber-700">
+              La carga tardó más de lo esperado. Puedes reintentar o volver sin perder control de la pantalla.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col sm:flex-row gap-3">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/surveys')}
+              className="border-amber-300 text-amber-800 hover:bg-amber-100"
+            >
+              Volver a Encuestas
+            </Button>
+            <Button
+              onClick={() => window.location.reload()}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              Reintentar Carga
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Mostrar skeleton completo mientras cargan los datos de configuración o la encuesta para editar
   if (configurationData.isAnyLoading || isLoadingEncuesta) {
