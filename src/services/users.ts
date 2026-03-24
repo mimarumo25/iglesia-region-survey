@@ -52,6 +52,18 @@ export interface ApiResponse<T = any> {
   data: T;
 }
 
+export class UsersServiceError extends Error {
+  status?: number;
+  code?: string;
+
+  constructor(message: string, status?: number, code?: string) {
+    super(message);
+    this.name = 'UsersServiceError';
+    this.status = status;
+    this.code = code;
+  }
+}
+
 // Interfaz específica para la respuesta de usuarios
 export interface UsersApiResponse {
   users: UserResponse[];
@@ -94,19 +106,36 @@ export class UsersService {
       }
     } catch (error: any) {
       console.error('Error getting users:', error);
-      
-      // Manejar específicamente errores de permisos
-      if (error.response?.data?.code === 'INSUFFICIENT_PERMISSIONS') {
-        throw new Error('No tiene permisos para ver la lista de usuarios. Esta funcionalidad requiere permisos de administrador.');
+
+      const status = error.response?.status as number | undefined;
+      const code = error.response?.data?.code as string | undefined;
+      const backendMessage = error.response?.data?.message as string | undefined;
+
+      // Sesión inválida o vencida
+      if (status === 401) {
+        throw new UsersServiceError(
+          backendMessage || 'Tu sesión expiró. Inicia sesión nuevamente.',
+          status,
+          code
+        );
       }
-      
+
+      // Falta de permisos en el backend
+      if (status === 403 || code === 'INSUFFICIENT_PERMISSIONS') {
+        throw new UsersServiceError(
+          backendMessage || 'No tiene permisos para ver la lista de usuarios. Esta funcionalidad requiere permisos de administrador.',
+          status,
+          code || 'INSUFFICIENT_PERMISSIONS'
+        );
+      }
+
       // Otros errores de respuesta del servidor
-      if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
+      if (backendMessage) {
+        throw new UsersServiceError(backendMessage, status, code);
       }
-      
+
       // Error genérico
-      throw new Error('Error al conectar con el servidor. Verifique su conexión.');
+      throw new UsersServiceError('Error al conectar con el servidor. Verifique su conexión.', status, code);
     }
   }
 

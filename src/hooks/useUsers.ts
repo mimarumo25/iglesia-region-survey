@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { UsersService, UserResponse, CreateUserRequest, UpdateUserRequest } from '@/services/users';
+import { UsersService, UserResponse, CreateUserRequest, UpdateUserRequest, UsersServiceError } from '@/services/users';
 import { useToast } from '@/hooks/use-toast';
 
 /**
@@ -19,11 +19,22 @@ export const useUsers = () => {
       queryKey: ['users'],
       queryFn: UsersService.getUsers,
       enabled,
-      onError: (error: any) => {
+      // Evita ruido de reintentos cuando el backend ya negó acceso
+      retry: (failureCount, error: Error) => {
+        const usersError = error as UsersServiceError;
+        if (usersError.status === 401 || usersError.status === 403) {
+          return false;
+        }
+        return failureCount < 2;
+      },
+      onError: (error: Error) => {
         console.error('Error loading users:', error);
+
+        const usersError = error as UsersServiceError;
+
         // Manejar error específico de permisos del backend
-        if (error.response?.data?.code === 'INSUFFICIENT_PERMISSIONS') {
-          const errorMessage = error.response.data.message || 'No tienes permisos para acceder a los usuarios';
+        if (usersError.status === 403 || usersError.code === 'INSUFFICIENT_PERMISSIONS') {
+          const errorMessage = usersError.message || 'No tienes permisos para acceder a los usuarios';
           toast({
             title: "Permisos insuficientes",
             description: errorMessage,
@@ -31,7 +42,7 @@ export const useUsers = () => {
             duration: 5000,
           });
         } else {
-          const errorMessage = error instanceof Error ? error.message : 'Error al cargar usuarios';
+          const errorMessage = error.message || 'Error al cargar usuarios';
           toast({
             title: "Error",
             description: errorMessage,

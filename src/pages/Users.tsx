@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ResponsiveTable, ResponsiveTableColumn } from '@/components/ui/responsive-table';
 import { useConfigModal } from "@/components/ui/config-modal";
 import { useUsers } from "@/hooks/useUsers";
+import { usePermissions } from "@/hooks/usePermissions";
 import { UserResponse, CreateUserRequest, UpdateUserRequest } from "@/services/users";
 
 // Importar modales refactorizados
@@ -24,9 +25,10 @@ import {
 
 const UsersPage = () => {
   const usersHook = useUsers();
+  const { canManageUsers } = usePermissions();
 
   // Queries
-  const { data: usersData, isLoading: usersLoading, refetch: refetchUsers } = usersHook.useUsersQuery();
+  const { data: usersData, isLoading: usersLoading, refetch: refetchUsers } = usersHook.useUsersQuery(canManageUsers);
   const users = usersData as UserResponse[] | undefined;
 
   // Mutations

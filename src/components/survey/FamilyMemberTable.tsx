@@ -22,8 +22,16 @@ interface FamilyMemberTableProps {
 const FamilyMemberTable = ({ familyMembers, onEdit, onDelete, onAddFirst }: FamilyMemberTableProps) => {
   // Helper para obtener el texto de display de ConfigurationItem
   const getDisplayText = (item: any, fallback = 'No especificado'): string => {
-    if (typeof item === 'object' && item && item.nombre) {
-      return item.nombre;
+    if (typeof item === 'object' && item) {
+      if (typeof item.nombre === 'string' && item.nombre.trim()) {
+        return item.nombre;
+      }
+      if (typeof item.descripcion === 'string' && item.descripcion.trim()) {
+        return item.descripcion;
+      }
+      if (typeof item.label === 'string' && item.label.trim()) {
+        return item.label;
+      }
     }
     return typeof item === 'string' && item ? item : fallback;
   };

@@ -357,9 +357,15 @@ const SurveyForm = () => {
         // 🔄 Transformar datos de la API al formato del formulario
         const transformedData = transformEncuestaToFormData(encuesta);
         
-        // Validar que los datos transformados sean válidos
-        if (!validateTransformedData(transformedData)) {
-          throw new Error('Los datos de la encuesta están incompletos o son inválidos');
+        // Si faltan campos en datos históricos, cargar en modo tolerante
+        const hasValidShape = validateTransformedData(transformedData);
+        if (!hasValidShape) {
+          console.warn('⚠️ Encuesta cargada con datos parciales. Se permite edición para completar información faltante.', {
+            surveyId,
+            apellido_familiar: transformedData.formData?.apellido_familiar,
+            direccion: transformedData.formData?.direccion,
+            familyMembers: transformedData.familyMembers?.length ?? 0,
+          });
         }
 
         // ✅ Cargar datos transformados al estado del formulario
@@ -367,18 +373,22 @@ const SurveyForm = () => {
         setFamilyMembers(transformedData.familyMembers);
         setDeceasedMembers(transformedData.deceasedMembers);
         
-        // 🔄 Configurar la etapa actual basada en el metadata
-        if (transformedData.metadata?.completed) {
-          setCurrentStage(6); // Última etapa si está completada
-        } else if (transformedData.metadata?.currentStage) {
-          setCurrentStage(transformedData.metadata.currentStage);
-        }
+        // En modo edición siempre iniciar en el primer paso
+        setCurrentStage(1);
 
         toast({
           title: "✅ Encuesta cargada",
           description: `Encuesta "${encuesta.apellido_familiar}" lista para editar. ${transformedData.familyMembers.length} miembros de familia, ${transformedData.deceasedMembers.length} difuntos.`,
           variant: "default"
         });
+
+        if (!hasValidShape) {
+          toast({
+            title: "Datos incompletos detectados",
+            description: "La encuesta se cargó en modo recuperación. Complete y guarde los campos faltantes.",
+            variant: "warning"
+          });
+        }
 
       } catch (error: any) {
         console.error('❌ Error al cargar encuesta para editar:', error);

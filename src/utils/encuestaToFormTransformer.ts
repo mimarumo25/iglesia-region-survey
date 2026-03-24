@@ -134,7 +134,11 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
 
     const sexo: ConfigurationItem | null = persona.sexo ? {
       id: String(persona.sexo.id),
-      nombre: persona.sexo.descripcion
+      nombre:
+        (persona.sexo as any).descripcion ||
+        (persona.sexo as any).nombre ||
+        (persona.sexo as any).label ||
+        ''
     } : null;
 
     const situacionCivil: ConfigurationItem | null = persona.estado_civil ? {
