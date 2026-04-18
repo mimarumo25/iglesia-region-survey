@@ -35,6 +35,8 @@ env:
   REGISTRY: ghcr.io
   # Nombre de imagen: ghcr.io/owner/repo (en minúsculas, requerido por GHCR)
   IMAGE_NAME: ${{ github.repository }}
+  # Usar Node.js 24 en todas las actions (Node.js 20 se elimina en sep 2026)
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   # ---------------------------------------------------------------------------
