@@ -70,7 +70,7 @@ jobs:
       # de compilación (no en runtime). Deben pasarse aquí como env vars.
       # Configurar en GitHub → Settings → Secrets and variables → Actions:
       #   Variables (no Secrets, ya que no son sensibles):
-      #     VITE_BASE_URL_SERVICES → URL del backend, ej: http://206.62.139.100:3001
+      #     VITE_BASE_URL_SERVICES → URL del backend, ej: http://TU_SERVIDOR:PUERTO
       #   Secrets:
       #     (ninguna variable VITE_ es secreta en este proyecto)
       - name: 🔨 Build de producción (Vite)
