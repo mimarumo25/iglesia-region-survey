@@ -8,7 +8,9 @@
 # ETAPA 1: Build — Node.js 20 LTS Alpine
 # Solo se usa cuando se construye localmente (sin CI pre-compilado).
 # -----------------------------------------------------------------------------
-FROM node:20-alpine AS builder
+# Build-only stage: vulnerabilities here do NOT reach the final production image.
+# hadolint ignore=DL3007
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
@@ -30,7 +32,7 @@ RUN npm run build
 # Solo contiene los archivos estáticos del dist + Nginx configurado.
 # Imagen resultante: ~25 MB vs ~350 MB con Node.
 # -----------------------------------------------------------------------------
-FROM nginx:1.27-alpine AS production
+FROM cgr.dev/chainguard/nginx:latest AS production
 
 # Remover la configuración por defecto de Nginx
 RUN rm -rf /usr/share/nginx/html/*
