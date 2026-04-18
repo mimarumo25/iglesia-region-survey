@@ -34,23 +34,13 @@ RUN npm run build
 # -----------------------------------------------------------------------------
 FROM cgr.dev/chainguard/nginx:latest AS production
 
-# Remover la configuración por defecto de Nginx
-RUN rm -rf /usr/share/nginx/html/*
-
-# Copiar únicamente los artefactos del build desde la etapa anterior
-COPY --from=builder /app/dist /usr/share/nginx/html
+# COPY sobreescribe el contenido por defecto — no necesita RUN rm -rf
+# --chown evita RUN chown (Chainguard es distroless, sin shell)
+COPY --chown=nginx:nginx --from=builder /app/dist /usr/share/nginx/html
 
 # Copiar configuración personalizada de Nginx (SPA routing + gzip + seguridad)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Nginx corre como root por defecto; lo bloqueamos al usuario nginx
-RUN chown -R nginx:nginx /usr/share/nginx/html \
-    && chmod -R 755 /usr/share/nginx/html
+COPY --chown=nginx:nginx nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 8080
-
-# Healthcheck integrado en la imagen
-HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080 || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]
