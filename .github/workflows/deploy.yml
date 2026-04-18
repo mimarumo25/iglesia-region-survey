@@ -189,6 +189,7 @@ jobs:
       - name: 🔔 Activar webhook de Dockploy
         run: |
           echo "📡 Enviando solicitud de deploy a Dockploy..."
+          # Dokploy solo necesita un POST vacío — no acepta body JSON
           HTTP_STATUS=$(curl \
             --silent \
             --output /tmp/dockploy-response.json \
@@ -196,13 +197,7 @@ jobs:
             --max-time 30 \
             --retry 3 \
             --retry-delay 5 \
-            -X POST "${{ secrets.DOCKPLOY_WEBHOOK_URL }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "image": "${{ needs.docker.outputs.image-tags }}",
-              "sha": "${{ github.sha }}",
-              "actor": "${{ github.actor }}"
-            }')
+            -X POST "${{ secrets.DOCKPLOY_WEBHOOK_URL }}")
 
           echo "HTTP Status: $HTTP_STATUS"
           cat /tmp/dockploy-response.json || true
