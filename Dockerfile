@@ -1,33 +1,54 @@
-# Dockerfile multietapa para aplicación React con Vite
-# Etapa 1: Build de la aplicación
-FROM node:18-alpine AS builder
+# =============================================================================
+# Dockerfile Multi-stage — MIA System (React + Vite → Nginx)
+# Uso local:  docker build -t mia-system .
+# Uso en CI:  ver Dockerfile.ci (build hecho por GitHub Actions)
+# =============================================================================
 
-# Establecer directorio de trabajo
+# -----------------------------------------------------------------------------
+# ETAPA 1: Build — Node.js 20 LTS Alpine
+# Solo se usa cuando se construye localmente (sin CI pre-compilado).
+# -----------------------------------------------------------------------------
+FROM node:20-alpine AS builder
+
 WORKDIR /app
 
-# Copiar archivos de configuración de dependencias
-COPY package*.json ./
+# Copiar manifests primero para aprovechar el cache de capas de Docker:
+# Si package*.json no cambia, npm ci se saltea en builds subsiguientes.
+COPY package.json package-lock.json ./
 
-# Instalar dependencias (usar npm install para mayor compatibilidad)
-RUN npm install
+# npm ci: instalación determinista basada en package-lock.json
+RUN npm ci --frozen-lockfile
 
 # Copiar el resto del código fuente
 COPY . .
 
-# Construir la aplicación para producción
+# Build de producción (genera /app/dist)
 RUN npm run build
 
-# Etapa 2: Servidor web con Nginx
-FROM nginx:alpine
+# -----------------------------------------------------------------------------
+# ETAPA 2: Producción — Nginx Alpine (imagen final, sin Node.js)
+# Solo contiene los archivos estáticos del dist + Nginx configurado.
+# Imagen resultante: ~25 MB vs ~350 MB con Node.
+# -----------------------------------------------------------------------------
+FROM nginx:1.27-alpine AS production
 
-# Copiar archivos de build desde la etapa anterior
+# Remover la configuración por defecto de Nginx
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copiar únicamente los artefactos del build desde la etapa anterior
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copiar configuración personalizada de Nginx
+# Copiar configuración personalizada de Nginx (SPA routing + gzip + seguridad)
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Exponer el puerto 8080
+# Nginx corre como root por defecto; lo bloqueamos al usuario nginx
+RUN chown -R nginx:nginx /usr/share/nginx/html \
+    && chmod -R 755 /usr/share/nginx/html
+
 EXPOSE 8080
 
-# Comando para iniciar Nginx
+# Healthcheck integrado en la imagen
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080 || exit 1
+
 CMD ["nginx", "-g", "daemon off;"]

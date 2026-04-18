@@ -1,0 +1,218 @@
+# =============================================================================
+# .github/workflows/deploy.yml — MIA System CI/CD Pipeline
+#
+# FLUJO:
+#   1. Push a 'main' → dispara el workflow
+#   2. GitHub Actions instala deps (cacheadas), compila React/Vite
+#   3. Construye imagen Docker mínima (solo Nginx + dist/) con Dockerfile.ci
+#   4. Publica la imagen en GitHub Container Registry (GHCR)
+#   5. Notifica a Dockploy vía webhook para que actualice el servicio
+#
+# SECRETS REQUERIDOS (Settings → Secrets and variables → Actions):
+#   DOCKPLOY_WEBHOOK_URL  → URL del webhook de Dockploy para re-deploy
+#                           Ejemplo: https://dockploy.tudominio.com/api/deploy/xxxx
+#
+# NOTA: GITHUB_TOKEN se genera automáticamente por GitHub Actions (no hay
+#       que configurarlo manualmente).
+# =============================================================================
+
+name: 🚀 Build & Deploy — MIA System
+
+on:
+  push:
+    branches:
+      - main
+  # Permite ejecutar el workflow manualmente desde la UI de GitHub
+  workflow_dispatch:
+
+# Evita deploys en paralelo si se hacen varios pushes rápidos
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+env:
+  # GitHub Container Registry
+  REGISTRY: ghcr.io
+  # Nombre de imagen: ghcr.io/owner/repo (en minúsculas, requerido por GHCR)
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # JOB 1: Build de la aplicación React + Vite
+  # Responsabilidad: instalar deps, compilar, subir artefacto dist/
+  # ---------------------------------------------------------------------------
+  build:
+    name: 🔨 Build React App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout del repositorio
+        uses: actions/checkout@v4
+
+      # Setup Node.js con cache integrado de npm
+      # El cache se basa en package-lock.json → invalida si cambian las deps
+      - name: 🟢 Setup Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # npm ci es más rápido y determinista que npm install en CI:
+      # - usa package-lock.json exacto
+      # - falla si hay discrepancias (seguridad)
+      - name: 📦 Instalar dependencias (npm ci)
+        run: npm ci --frozen-lockfile
+
+      # Build de producción → genera dist/
+      - name: 🔨 Build de producción (Vite)
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      # Subir dist/ como artefacto para que el siguiente job lo use
+      # Retención de 1 día (solo necesario durante el pipeline)
+      - name: 📤 Subir artefacto dist/
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-production
+          path: dist/
+          retention-days: 1
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # JOB 2: Build y Push de la imagen Docker a GHCR
+  # Responsabilidad: crear la imagen mínima (nginx + dist) y publicarla
+  # ---------------------------------------------------------------------------
+  docker:
+    name: 🐳 Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: build  # Espera que el build de React termine correctamente
+
+    # Permisos necesarios para escribir en GHCR
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      # Expone el digest de la imagen para trazabilidad
+      image-digest: ${{ steps.build-push.outputs.digest }}
+      image-tags: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      - name: 📥 Checkout del repositorio
+        uses: actions/checkout@v4
+
+      # Descargar el dist/ compilado por el job anterior
+      - name: 📥 Descargar artefacto dist/
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-production
+          path: dist/
+
+      # Habilita buildx para builds multi-plataforma y cache avanzado
+      - name: 🛠️ Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Login a GHCR usando el token automático de GitHub
+      - name: 🔑 Login a GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Genera tags y labels automáticos:
+      #   - latest          → siempre en la rama main
+      #   - main            → tag por rama
+      #   - sha-abc1234     → tag por commit (para rollback)
+      - name: 🏷️ Extraer metadatos Docker (tags y labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
+            type=sha,prefix=sha-,format=short
+          labels: |
+            org.opencontainers.image.title=MIA System
+            org.opencontainers.image.description=Sistema de Gestión Integral para Iglesias Católicas
+            org.opencontainers.image.vendor=Parroquia
+
+      # Build y push usando Dockerfile.ci (solo nginx + dist, sin Node.js):
+      #   - cache-from/to: usa el cache de GitHub Actions (GHA cache)
+      #     → builds posteriores son ~3x más rápidos
+      - name: 🏗️ Build y Push imagen Docker
+        id: build-push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.ci          # ← imagen ligera, ya tiene el dist pre-compilado
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64       # Agregar linux/arm64 si el servidor es ARM
+          # Cache entre runs para acelerar builds del layer de nginx
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # Provenance falso para compatibilidad con algunos registries
+          provenance: false
+
+  # ---------------------------------------------------------------------------
+  # JOB 3: Deploy — Notificación a Dockploy
+  # Responsabilidad: activar el re-deploy del servicio con la nueva imagen
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: 🚀 Deploy en Dockploy
+    runs-on: ubuntu-latest
+    needs: docker    # Espera que la imagen esté publicada en GHCR
+    environment: production  # Requiere aprobación manual si se configura
+
+    steps:
+      # Dockploy ofrece un endpoint webhook que al recibir un POST:
+      #   1. Detecta la nueva imagen en el registry
+      #   2. Para el contenedor actual
+      #   3. Hace pull de la nueva imagen
+      #   4. Levanta el nuevo contenedor
+      #
+      # El DOCKPLOY_WEBHOOK_URL se obtiene en:
+      #   Dockploy → tu aplicación → Settings → Webhooks → Deploy Webhook
+      - name: 🔔 Activar webhook de Dockploy
+        run: |
+          echo "📡 Enviando solicitud de deploy a Dockploy..."
+          HTTP_STATUS=$(curl \
+            --silent \
+            --output /tmp/dockploy-response.json \
+            --write-out "%{http_code}" \
+            --max-time 30 \
+            --retry 3 \
+            --retry-delay 5 \
+            -X POST "${{ secrets.DOCKPLOY_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "image": "${{ needs.docker.outputs.image-tags }}",
+              "sha": "${{ github.sha }}",
+              "actor": "${{ github.actor }}"
+            }')
+
+          echo "HTTP Status: $HTTP_STATUS"
+          cat /tmp/dockploy-response.json || true
+
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            echo "✅ Deploy activado exitosamente (HTTP $HTTP_STATUS)"
+          else
+            echo "❌ Error al activar deploy (HTTP $HTTP_STATUS)"
+            exit 1
+          fi
+
+      - name: 📋 Resumen del deploy
+        run: |
+          echo "### 🚀 Deploy Completado" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Campo | Valor |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Imagen | \`${{ needs.docker.outputs.image-tags }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Digest | \`${{ needs.docker.outputs.image-digest }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Actor | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Fecha | $(date -u +'%Y-%m-%d %H:%M UTC') |" >> $GITHUB_STEP_SUMMARY
