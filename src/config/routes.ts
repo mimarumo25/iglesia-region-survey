@@ -31,9 +31,6 @@ export const lazyRoutes = {
   '/survey': () => import('@/components/SurveyForm'),
   '/survey/new-hierarchy': () => import('@/pages/NewSurveyWithHierarchy'),
   
-  // Rutas de testing y desarrollo
-  '/test-observations': () => import('@/test/observation-data-test'),
-  
   // Rutas de autenticación (por si se necesitan)
   '/login': () => import('@/pages/Login'),
   '/reset-password': () => import('@/pages/ResetPassword'),
@@ -99,11 +96,6 @@ export const routeMetadata: Record<string, {
   '/survey/new-hierarchy': {
     skeletonType: 'form',
     priority: 'medium',
-    preloadTrigger: 'hover'
-  },
-  '/test-observations': {
-    skeletonType: 'generic',
-    priority: 'low',
     preloadTrigger: 'hover'
   }
 };
