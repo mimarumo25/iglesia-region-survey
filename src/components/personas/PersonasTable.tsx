@@ -185,23 +185,23 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
         {/* VISTA MÓVIL - Tarjetas */}
         <div className="block lg:hidden space-y-3">
           <ScrollArea className="h-auto">
-            {personas.map((persona) => (
-              <div key={persona.id_personas} className="pr-4">
+            {personas.map((persona, idx) => (
+              <div key={`${persona.identificacion}-${idx}`} className="pr-4">
                 <Card className="border-l-4 border-l-primary hover:shadow-md transition-shadow">
                   <CardContent className="p-4 space-y-3">
                     {/* Header - Nombre y Documento */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-base truncate text-primary">
-                          {formatValue(persona.nombre_completo)}
+                          {formatValue(persona.nombres)}
                         </h3>
                         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                           <User className="h-3 w-3 flex-shrink-0" />
-                          Doc: {formatValue(persona.documento)} ({formatValue(persona.tipo_identificacion)})
+                          Doc: {formatValue(persona.identificacion)} ({formatValue(persona.tipo_identificacion)})
                         </p>
                       </div>
                       <Badge variant="outline" className="flex-shrink-0">
-                        {formatValue(persona.edad)} años
+                        {formatDate(persona.fecha_nacimiento)}
                       </Badge>
                     </div>
 
@@ -212,8 +212,8 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
                         <p className="font-medium">{formatValue(persona.sexo)}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground font-medium">Fecha Nac.</p>
-                        <p className="font-medium text-xs">{formatDate(persona.fecha_nacimiento)}</p>
+                        <p className="text-muted-foreground font-medium">Nivel Educativo</p>
+                        <p className="font-medium text-xs">{formatValue(persona.nivel_educativo)}</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground font-medium">Estado Civil</p>
@@ -244,13 +244,13 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
                       </div>
                     )}
 
-                    {/* Ubicación - Personal */}
-                    {persona.direccion_personal && (
+                    {/* Dirección Personal */}
+                    {persona.direccion && (
                       <div className="border-t pt-2 space-y-1 text-xs">
                         <p className="text-muted-foreground font-medium flex items-center gap-1">
-                          <Home className="h-3 w-3" /> Dirección Personal
+                          <Home className="h-3 w-3" /> Dirección
                         </p>
-                        <p className="font-medium">{formatValue(persona.direccion_personal)}</p>
+                        <p className="font-medium">{formatValue(persona.direccion)}</p>
                       </div>
                     )}
 
@@ -262,32 +262,44 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
                       <div className="grid grid-cols-2 gap-1">
                         <div>
                           <span className="text-muted-foreground text-xs">Municipio</span>
-                          <p className="font-medium">{formatValue(persona.municipio)}</p>
+                          <p className="font-medium">{formatValue(persona.ubicacion?.municipio?.nombre)}</p>
                         </div>
                         <div>
                           <span className="text-muted-foreground text-xs">Parroquia</span>
-                          <p className="font-medium">{formatValue(persona.parroquia)}</p>
+                          <p className="font-medium">{formatValue(persona.ubicacion?.parroquia?.nombre)}</p>
                         </div>
                         <div>
                           <span className="text-muted-foreground text-xs">Sector</span>
-                          <p className="font-medium">{formatValue(persona.sector)}</p>
+                          <p className="font-medium">{formatValue(persona.ubicacion?.sector?.nombre)}</p>
                         </div>
                         <div>
                           <span className="text-muted-foreground text-xs">Vereda</span>
-                          <p className="font-medium">{formatValue(persona.vereda)}</p>
+                          <p className="font-medium">{formatValue(persona.ubicacion?.vereda?.nombre)}</p>
                         </div>
+                        {persona.ubicacion?.corregimiento && (
+                          <div className="col-span-2">
+                            <span className="text-muted-foreground text-xs">Corregimiento</span>
+                            <p className="font-medium">{persona.ubicacion.corregimiento.nombre}</p>
+                          </div>
+                        )}
+                        {persona.ubicacion?.centro_poblado && (
+                          <div className="col-span-2">
+                            <span className="text-muted-foreground text-xs">Centro Poblado</span>
+                            <p className="font-medium">{persona.ubicacion.centro_poblado.nombre}</p>
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     {/* Información Familiar */}
-                    {(persona.apellido_familiar || persona.direccion_familia || persona.parentesco) && (
+                    {(persona.familia?.apellido_familiar || persona.parentesco) && (
                       <div className="border-t pt-2 space-y-1 text-xs">
                         <p className="text-muted-foreground font-medium">Familia</p>
                         <div className="grid grid-cols-2 gap-1">
-                          {persona.apellido_familiar && (
+                          {persona.familia?.apellido_familiar && (
                             <div>
                               <span className="text-muted-foreground text-xs">Apellido Familiar</span>
-                              <p className="font-medium">{formatValue(persona.apellido_familiar)}</p>
+                              <p className="font-medium">{formatValue(persona.familia.apellido_familiar)}</p>
                             </div>
                           )}
                           {persona.parentesco && (
@@ -296,106 +308,79 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
                               <p className="font-medium">{formatValue(persona.parentesco)}</p>
                             </div>
                           )}
+                          {persona.familia?.tipo_vivienda && (
+                            <div>
+                              <span className="text-muted-foreground text-xs">Tipo Vivienda</span>
+                              <p className="font-medium">{formatValue(persona.familia.tipo_vivienda)}</p>
+                            </div>
+                          )}
                         </div>
-                        {persona.direccion_familia && (
-                          <div className="col-span-2">
-                            <span className="text-muted-foreground text-xs">Dirección Familia</span>
-                            <p className="font-medium">{formatValue(persona.direccion_familia)}</p>
-                          </div>
-                        )}
-                        {persona.telefono_familia && (
-                          <p className="col-span-2 font-medium">Tel: {formatValue(persona.telefono_familia)}</p>
-                        )}
                       </div>
                     )}
 
                     {/* Tallas */}
-                    {(persona.talla_camisa || persona.talla_pantalon || persona.talla_zapato) && (
+                    {(persona.tallas?.camisa || persona.tallas?.pantalon || persona.tallas?.zapato) && (
                       <div className="border-t pt-2 space-y-1 text-xs">
                         <p className="text-muted-foreground font-medium">Tallas</p>
                         <div className="flex gap-2 flex-wrap">
-                          {persona.talla_camisa && (
+                          {persona.tallas?.camisa && (
                             <Badge variant="secondary" className="text-xs">
-                              Camisa: {formatValue(persona.talla_camisa)}
+                              Camisa: {formatValue(persona.tallas.camisa)}
                             </Badge>
                           )}
-                          {persona.talla_pantalon && (
+                          {persona.tallas?.pantalon && (
                             <Badge variant="secondary" className="text-xs">
-                              Pantalón: {formatValue(persona.talla_pantalon)}
+                              Pantalón: {formatValue(persona.tallas.pantalon)}
                             </Badge>
                           )}
-                          {persona.talla_zapato && (
+                          {persona.tallas?.zapato && (
                             <Badge variant="secondary" className="text-xs">
-                              Zapato: {formatValue(persona.talla_zapato)}
+                              Zapato: {formatValue(persona.tallas.zapato)}
                             </Badge>
                           )}
                         </div>
                       </div>
                     )}
 
-                    {/* Servicios Sanitarios */}
-                    {(persona.pozo_septico !== undefined || persona.letrina !== undefined || persona.campo_abierto !== undefined) && (
-                      <div className="border-t pt-2 space-y-2 text-xs">
-                        <p className="text-muted-foreground font-medium">Servicios Sanitarios</p>
-                        <div className="space-y-1">
-                          {persona.pozo_septico !== undefined && (
-                            <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">Pozo Séptico:</span>
-                              {formatBoolean(persona.pozo_septico)}
-                            </div>
-                          )}
-                          {persona.letrina !== undefined && (
-                            <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">Letrina:</span>
-                              {formatBoolean(persona.letrina)}
-                            </div>
-                          )}
-                          {persona.campo_abierto !== undefined && (
-                            <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">Campo Abierto:</span>
-                              {formatBoolean(persona.campo_abierto)}
-                            </div>
-                          )}
+                    {/* Aguas Residuales */}
+                    {persona.familia?.aguas_residuales && persona.familia.aguas_residuales.length > 0 && (
+                      <div className="border-t pt-2 space-y-1 text-xs">
+                        <p className="text-muted-foreground font-medium">Aguas Residuales</p>
+                        <div className="flex flex-wrap gap-1">
+                          {persona.familia.aguas_residuales.map((item) => (
+                            <Badge key={item.id} variant="outline" className="text-xs">{item.nombre}</Badge>
+                          ))}
                         </div>
                       </div>
                     )}
 
-                    {/* Manejo de Basura */}
-                    {(persona.basura_recolector !== undefined || persona.basura_quemada !== undefined) && (
-                      <div className="border-t pt-2 space-y-2 text-xs">
-                        <p className="text-muted-foreground font-medium">Manejo de Basura</p>
-                        <div className="space-y-1">
-                          {persona.basura_recolector !== undefined && (
-                            <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">Recolector:</span>
-                              {formatBoolean(persona.basura_recolector)}
-                            </div>
-                          )}
-                          {persona.basura_quemada !== undefined && (
-                            <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">Quemada:</span>
-                              {formatBoolean(persona.basura_quemada)}
-                            </div>
-                          )}
-                          {persona.basura_enterrada !== undefined && (
-                            <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">Enterrada:</span>
-                              {formatBoolean(persona.basura_enterrada)}
-                            </div>
-                          )}
-                          {persona.basura_recicla !== undefined && (
-                            <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">Reciclaje:</span>
-                              {formatBoolean(persona.basura_recicla)}
-                            </div>
-                          )}
-                          {persona.basura_aire_libre !== undefined && (
-                            <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">Aire Libre:</span>
-                              {formatBoolean(persona.basura_aire_libre)}
-                            </div>
-                          )}
+                    {/* Disposición de Basura */}
+                    {persona.familia?.disposicion_basura && persona.familia.disposicion_basura.length > 0 && (
+                      <div className="border-t pt-2 space-y-1 text-xs">
+                        <p className="text-muted-foreground font-medium">Disposición de Basura</p>
+                        <div className="flex flex-wrap gap-1">
+                          {persona.familia.disposicion_basura.map((item) => (
+                            <Badge key={item.id} variant="outline" className="text-xs">{item.nombre}</Badge>
+                          ))}
                         </div>
+                      </div>
+                    )}
+
+                    {/* Sistema de Acueducto */}
+                    {persona.familia?.sistema_acueducto && (
+                      <div className="border-t pt-2 space-y-1 text-xs">
+                        <p className="text-muted-foreground font-medium">Sistema Acueducto</p>
+                        <Badge variant="outline" className="text-xs">{persona.familia.sistema_acueducto.nombre}</Badge>
+                      </div>
+                    )}
+
+                    {/* Celebraciones */}
+                    {persona.celebraciones && persona.celebraciones.length > 0 && (
+                      <div className="border-t pt-2 space-y-1 text-xs">
+                        <p className="text-muted-foreground font-medium">Celebraciones</p>
+                        {persona.celebraciones.map((cel, i) => (
+                          <p key={i} className="font-medium">{cel.motivo}: día {cel.dia}, mes {cel.mes}</p>
+                        ))}
                       </div>
                     )}
 
@@ -404,10 +389,32 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
                       <div className="border-t pt-2 space-y-1 text-xs">
                         <p className="text-muted-foreground font-medium">Destrezas</p>
                         <div className="flex flex-wrap gap-1">
-                          {persona.destrezas.map((destreza, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs">
-                              {destreza}
-                            </Badge>
+                          {persona.destrezas.map((destreza, i) => (
+                            <Badge key={i} variant="outline" className="text-xs">{destreza}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Liderazgo */}
+                    {persona.liderazgo && persona.liderazgo.length > 0 && (
+                      <div className="border-t pt-2 space-y-1 text-xs">
+                        <p className="text-muted-foreground font-medium">Liderazgo</p>
+                        <div className="flex flex-wrap gap-1">
+                          {persona.liderazgo.map((item, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs">{item}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Necesidades Especiales */}
+                    {persona.necesidad_enfermo && persona.necesidad_enfermo.length > 0 && (
+                      <div className="border-t pt-2 space-y-1 text-xs">
+                        <p className="text-muted-foreground font-medium">Necesidades Especiales</p>
+                        <div className="flex flex-wrap gap-1">
+                          {persona.necesidad_enfermo.map((item, i) => (
+                            <Badge key={i} variant="outline" className="text-xs">{item}</Badge>
                           ))}
                         </div>
                       </div>
@@ -419,7 +426,7 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
           </ScrollArea>
         </div>
 
-        {/* VISTA TABLET - Tabla Simplificada (solo lg+) */}
+        {/* VISTA DESKTOP - Tabla Completa (solo lg+) */}
         <div className="hidden lg:block rounded-md border overflow-x-auto">
           <div className="min-w-full">
             <Table>
@@ -427,71 +434,113 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
                 <TableRow className="bg-muted/50">
                   {/* Información Personal */}
                   <TableHead className="font-semibold min-w-[200px] sticky left-0 bg-muted/50 z-10">Nombre Completo</TableHead>
-                  <TableHead className="font-semibold min-w-[120px]">Documento</TableHead>
-                  <TableHead className="font-semibold min-w-[100px]">Edad</TableHead>
+                  <TableHead className="font-semibold min-w-[130px]">Identificación</TableHead>
+                  <TableHead className="font-semibold min-w-[120px]">Fecha Nac.</TableHead>
                   <TableHead className="font-semibold min-w-[100px]">Sexo</TableHead>
-                  
+
                   {/* Contacto */}
                   <TableHead className="font-semibold min-w-[130px]">Teléfono</TableHead>
                   <TableHead className="font-semibold min-w-[180px]">Correo</TableHead>
-                  
+
                   {/* Ubicación Geográfica */}
                   <TableHead className="font-semibold min-w-[140px]">Municipio</TableHead>
                   <TableHead className="font-semibold min-w-[150px]">Parroquia</TableHead>
                   <TableHead className="font-semibold min-w-[120px]">Sector</TableHead>
-                  
+                  <TableHead className="font-semibold min-w-[120px]">Vereda</TableHead>
+
                   {/* Información Familiar */}
                   <TableHead className="font-semibold min-w-[130px]">Parentesco</TableHead>
                   <TableHead className="font-semibold min-w-[160px]">Apellido Familiar</TableHead>
-                  
+                  <TableHead className="font-semibold min-w-[120px]">Tipo Vivienda</TableHead>
+
                   {/* Datos Personales */}
                   <TableHead className="font-semibold min-w-[120px]">Estado Civil</TableHead>
                   <TableHead className="font-semibold min-w-[140px]">Profesión</TableHead>
-                  
+                  <TableHead className="font-semibold min-w-[150px]">Nivel Educativo</TableHead>
+                  <TableHead className="font-semibold min-w-[140px]">Comunidad Cultural</TableHead>
+
                   {/* Tallas */}
                   <TableHead className="font-semibold min-w-[90px] text-center">Camisa</TableHead>
                   <TableHead className="font-semibold min-w-[90px] text-center">Pantalón</TableHead>
                   <TableHead className="font-semibold min-w-[90px] text-center">Zapato</TableHead>
+
+                  {/* Servicios */}
+                  <TableHead className="font-semibold min-w-[160px]">Acueducto</TableHead>
+                  <TableHead className="font-semibold min-w-[160px]">Aguas Residuales</TableHead>
+                  <TableHead className="font-semibold min-w-[160px]">Disposición Basura</TableHead>
+
+                  {/* Arrays */}
+                  <TableHead className="font-semibold min-w-[140px]">Destrezas</TableHead>
+                  <TableHead className="font-semibold min-w-[140px]">Liderazgo</TableHead>
+                  <TableHead className="font-semibold min-w-[160px]">Necesidades Especiales</TableHead>
+                  <TableHead className="font-semibold min-w-[160px]">Celebraciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {personas.map((persona) => (
-                  <TableRow key={persona.id_personas} className="hover:bg-muted/30">
+                {personas.map((persona, idx) => (
+                  <TableRow key={`${persona.identificacion}-${idx}`} className="hover:bg-muted/30">
                     {/* Información Personal */}
                     <TableCell className="font-medium sticky left-0 bg-background z-10">
-                      {formatValue(persona.nombre_completo)}
+                      {formatValue(persona.nombres)}
                     </TableCell>
-                    <TableCell className="text-sm">{formatValue(persona.documento)}</TableCell>
-                    <TableCell className="text-center text-sm">{formatValue(persona.edad)}</TableCell>
+                    <TableCell className="text-sm">{formatValue(persona.identificacion)}</TableCell>
+                    <TableCell className="text-sm">{formatDate(persona.fecha_nacimiento)}</TableCell>
                     <TableCell className="text-sm">{formatValue(persona.sexo)}</TableCell>
-                    
+
                     {/* Contacto */}
                     <TableCell className="text-sm">{formatValue(persona.telefono)}</TableCell>
                     <TableCell className="text-xs truncate" title={formatValue(persona.correo_electronico)}>
                       {formatValue(persona.correo_electronico)}
                     </TableCell>
-                    
+
                     {/* Ubicación Geográfica */}
-                    <TableCell className="text-sm">{formatValue(persona.municipio)}</TableCell>
-                    <TableCell className="text-sm">{formatValue(persona.parroquia)}</TableCell>
-                    <TableCell className="text-sm">{formatValue(persona.sector)}</TableCell>
-                    
+                    <TableCell className="text-sm">{formatValue(persona.ubicacion?.municipio?.nombre)}</TableCell>
+                    <TableCell className="text-sm">{formatValue(persona.ubicacion?.parroquia?.nombre)}</TableCell>
+                    <TableCell className="text-sm">{formatValue(persona.ubicacion?.sector?.nombre)}</TableCell>
+                    <TableCell className="text-sm">{formatValue(persona.ubicacion?.vereda?.nombre)}</TableCell>
+
                     {/* Información Familiar */}
                     <TableCell className="text-sm">{formatValue(persona.parentesco)}</TableCell>
-                    <TableCell className="text-sm">{formatValue(persona.apellido_familiar)}</TableCell>
-                    
+                    <TableCell className="text-sm">{formatValue(persona.familia?.apellido_familiar)}</TableCell>
+                    <TableCell className="text-sm">{formatValue(persona.familia?.tipo_vivienda)}</TableCell>
+
                     {/* Datos Personales */}
                     <TableCell className="text-sm">{formatValue(persona.estado_civil)}</TableCell>
                     <TableCell className="text-sm">{formatValue(persona.profesion)}</TableCell>
-                    
+                    <TableCell className="text-sm">{formatValue(persona.nivel_educativo)}</TableCell>
+                    <TableCell className="text-sm">{formatValue(persona.comunidad_cultural)}</TableCell>
+
                     {/* Tallas */}
-                    <TableCell className="text-center text-sm">{formatValue(persona.talla_camisa)}</TableCell>
-                    <TableCell className="text-center text-sm">{formatValue(persona.talla_pantalon)}</TableCell>
-                    <TableCell className="text-center text-sm">{formatValue(persona.talla_zapato)}</TableCell>
+                    <TableCell className="text-center text-sm">{formatValue(persona.tallas?.camisa)}</TableCell>
+                    <TableCell className="text-center text-sm">{formatValue(persona.tallas?.pantalon)}</TableCell>
+                    <TableCell className="text-center text-sm">{formatValue(persona.tallas?.zapato)}</TableCell>
+
+                    {/* Servicios */}
+                    <TableCell className="text-sm">{formatValue(persona.familia?.sistema_acueducto?.nombre)}</TableCell>
+                    <TableCell className="text-sm">
+                      {persona.familia?.aguas_residuales?.length
+                        ? persona.familia.aguas_residuales.map(a => a.nombre).join(', ')
+                        : '-'}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {persona.familia?.disposicion_basura?.length
+                        ? persona.familia.disposicion_basura.map(b => b.nombre).join(', ')
+                        : '-'}
+                    </TableCell>
+
+                    {/* Arrays */}
+                    <TableCell className="text-sm">{formatArray(persona.destrezas)}</TableCell>
+                    <TableCell className="text-sm">{formatArray(persona.liderazgo)}</TableCell>
+                    <TableCell className="text-sm">{formatArray(persona.necesidad_enfermo)}</TableCell>
+                    <TableCell className="text-sm">
+                      {persona.celebraciones?.length
+                        ? persona.celebraciones.map(c => `${c.motivo} (${c.dia}/${c.mes})`).join(', ')
+                        : '-'}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
-          </Table>
+            </Table>
           </div>
         </div>
         

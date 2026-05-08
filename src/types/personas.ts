@@ -4,76 +4,77 @@
  */
 
 /**
+ * Objeto de ubicación geográfica anidado
+ */
+export interface UbicacionItem {
+  id: number;
+  nombre: string;
+}
+
+/**
  * Interfaz para una persona consolidada
- * ✅ ACTUALIZADA con todos los campos que retorna la API
+ * ✅ ACTUALIZADA con estructura anidada que retorna la API v2
  */
 export interface PersonaConsolidada {
-  // Identificación
-  id_personas: string;
-  nombre_completo: string;
-  documento: string;
+  // Identificación y datos básicos
+  nombres: string;
+  identificacion: string;
   tipo_identificacion: string;
-  
-  // Datos Personales
-  edad: string;
   fecha_nacimiento: string;
   sexo: string;
-  
+
   // Contacto
   telefono: string;
   correo_electronico: string;
-  direccion_personal: string; // ⚠️ AGREGADO
-  
-  // Ubicación Geográfica
-  municipio: string;
-  parroquia: string;
-  sector: string;
-  vereda: string;
-  
-  // Información Familiar
-  direccion_familia: string; // ⚠️ AGREGADO
-  apellido_familiar: string;
+  direccion: string;
+
+  // Parentesco y estado personal
   parentesco: string;
-  telefono_familia: string; // ⚠️ AGREGADO
-  fecha_registro: string;
-  
-  // Vivienda
-  tipo_vivienda: string;
-  
-  // Servicios Sanitarios (Booleanos)
-  pozo_septico: boolean; // ⚠️ AGREGADO
-  letrina: boolean; // ⚠️ AGREGADO
-  campo_abierto: boolean; // ⚠️ AGREGADO
-  
-  // Manejo de Basura (Booleanos)
-  basura_recolector: boolean; // ⚠️ AGREGADO
-  basura_quemada: boolean; // ⚠️ AGREGADO
-  basura_enterrada: boolean; // ⚠️ AGREGADO
-  basura_recicla: boolean; // ⚠️ AGREGADO
-  basura_aire_libre: boolean; // ⚠️ AGREGADO
-  
-  // Datos Socioeconómicos
   estado_civil: string;
-  profesion: string;
-  estudios: string;
+  profesion: string | null;
+  nivel_educativo: string;
   comunidad_cultural: string;
-  liderazgo: string;
-  
-  // Tallas
-  talla_camisa: string;
-  talla_pantalon: string;
-  talla_zapato: string;
-  
-  // Salud
-  necesidad_enfermo: string; // ⚠️ AGREGADO
-  
-  // Celebraciones
-  motivo_celebrar: string; // ⚠️ AGREGADO
-  dia_celebrar: number; // ⚠️ AGREGADO
-  mes_celebrar: number; // ⚠️ AGREGADO
-  
-  // Destrezas (Array)
+
+  // Tallas (objeto anidado)
+  tallas: {
+    camisa: string;
+    pantalon: string;
+    zapato: string;
+  };
+
+  // Arrays de textos
+  liderazgo: string[];
+  necesidad_enfermo: string[];
   destrezas: string[];
+
+  // Celebraciones
+  celebraciones: Array<{
+    motivo: string;
+    dia: number;
+    mes: number;
+  }>;
+
+  // Información familiar (objeto anidado)
+  familia: {
+    apellido_familiar: string;
+    sustento_familia: string | null;
+    observaciones_encuestador: string | null;
+    autorizacion_datos: boolean;
+    tipo_vivienda: string;
+    disposicion_basura: UbicacionItem[];
+    sistema_acueducto: UbicacionItem | null;
+    aguas_residuales: UbicacionItem[];
+  };
+
+  // Ubicación geográfica (objeto anidado)
+  ubicacion: {
+    municipio: UbicacionItem | null;
+    parroquia: UbicacionItem | null;
+    sector: UbicacionItem | null;
+    vereda: UbicacionItem | null;
+    corregimiento: UbicacionItem | null;
+    centro_poblado: UbicacionItem | null;
+  };
 }
 
 /**
@@ -108,6 +109,12 @@ export interface FiltrosFamilia {
   apellido_familiar?: string;
   id_tipo_vivienda?: number;
   id_parentesco?: number;
+  id_municipio?: number;
+  id_parroquia?: number;
+  id_sector?: number;
+  id_vereda?: number;
+  id_corregimiento?: number;
+  id_centro_poblado?: number;
   page?: number;
   limit?: number;
   format?: 'json' | 'excel';
@@ -124,6 +131,12 @@ export interface FiltrosPersonales {
   id_comunidad_cultural?: number;
   liderazgo?: boolean | string; // ⚠️ Acepta 'all', 'true', 'false', o boolean para UI
   id_destreza?: number; // ⚠️ AGREGADO: faltaba en implementación original
+  id_municipio?: number;
+  id_parroquia?: number;
+  id_sector?: number;
+  id_vereda?: number;
+  id_corregimiento?: number;
+  id_centro_poblado?: number;
   page?: number;
   limit?: number;
   format?: 'json' | 'excel';
@@ -142,6 +155,12 @@ export interface FiltrosTallas {
   sexo?: string; // ⚠️ NUEVO: Nombre del sexo (ej: "Masculino", "Femenino")
   edad_min?: number; // ⚠️ NUEVO: Edad mínima para filtrar
   edad_max?: number; // ⚠️ NUEVO: Edad máxima para filtrar
+  id_municipio?: number;
+  id_parroquia?: number;
+  id_sector?: number;
+  id_vereda?: number;
+  id_corregimiento?: number;
+  id_centro_poblado?: number;
   page?: number;
   limit?: number;
   format?: 'json' | 'excel';
@@ -154,17 +173,28 @@ export interface FiltrosTallas {
 export interface FiltrosEdad {
   edad_min?: number;
   edad_max?: number;
+  id_municipio?: number;
+  id_parroquia?: number;
+  id_sector?: number;
+  id_vereda?: number;
+  id_corregimiento?: number;
+  id_centro_poblado?: number;
   page?: number;
   limit?: number;
   format?: 'json' | 'excel';
 }
+
+type GeoKeys = 'id_municipio' | 'id_parroquia' | 'id_sector' | 'id_vereda' | 'id_corregimiento' | 'id_centro_poblado';
 
 /**
  * Filtros para reporte general (combina todos los filtros)
  */
 export interface FiltrosReporteGeneral extends
   FiltrosGeograficos,
-  Omit<FiltrosFamilia, 'page' | 'limit' | 'format'>,
-  Omit<FiltrosPersonales, 'page' | 'limit' | 'format'>,
-  Omit<FiltrosTallas, 'page' | 'limit' | 'format'>,
-  Omit<FiltrosEdad, 'page' | 'limit' | 'format'> {}
+  Omit<FiltrosFamilia, 'page' | 'limit' | 'format' | GeoKeys>,
+  Omit<FiltrosPersonales, 'page' | 'limit' | 'format' | GeoKeys>,
+  Omit<FiltrosTallas, 'page' | 'limit' | 'format' | GeoKeys>,
+  Omit<FiltrosEdad, 'page' | 'limit' | 'format' | GeoKeys> {
+  fecha_registro_desde?: string;
+  fecha_registro_hasta?: string;
+}

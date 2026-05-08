@@ -38,6 +38,7 @@ import {
 import { Autocomplete } from "@/components/ui/autocomplete";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
 import { useGeographicFilters } from "@/hooks/useGeographicFilters";
+import { useDestrezasFormulario } from "@/hooks/useDestrezasFormulario";
 import { useToast } from "@/hooks/use-toast";
 import PersonasTable from "@/components/personas/PersonasTable";
 import type { 
@@ -58,6 +59,7 @@ import { apiClient } from "@/interceptors/axios";
 const PersonasReport = () => {
   const [activeTab, setActiveTab] = useState("geografico");
   const configData = useConfigurationData();
+  const { destrezas: destrezasCatalogo } = useDestrezasFormulario();
   const { toast } = useToast();
 
   // Estados compartidos para resultados
@@ -87,10 +89,28 @@ const PersonasReport = () => {
     limit: 100
   });
 
+  const geoFiltersFamilia = useGeographicFilters({
+    id_municipio: filtrosFamilia.id_municipio,
+    id_parroquia: filtrosFamilia.id_parroquia,
+    id_sector: filtrosFamilia.id_sector,
+    id_vereda: filtrosFamilia.id_vereda,
+    id_corregimiento: filtrosFamilia.id_corregimiento,
+    id_centro_poblado: filtrosFamilia.id_centro_poblado
+  });
+
   const [filtrosPersonales, setFiltrosPersonales] = useState<FiltrosPersonales>({
     liderazgo: 'all' as any,
     page: 1,
     limit: 100
+  });
+
+  const geoFiltersPersonal = useGeographicFilters({
+    id_municipio: filtrosPersonales.id_municipio,
+    id_parroquia: filtrosPersonales.id_parroquia,
+    id_sector: filtrosPersonales.id_sector,
+    id_vereda: filtrosPersonales.id_vereda,
+    id_corregimiento: filtrosPersonales.id_corregimiento,
+    id_centro_poblado: filtrosPersonales.id_centro_poblado
   });
 
   const [filtrosTallas, setFiltrosTallas] = useState<FiltrosTallas>({
@@ -102,9 +122,27 @@ const PersonasReport = () => {
     edad_max: undefined
   });
 
+  const geoFiltersTallas = useGeographicFilters({
+    id_municipio: filtrosTallas.id_municipio,
+    id_parroquia: filtrosTallas.id_parroquia,
+    id_sector: filtrosTallas.id_sector,
+    id_vereda: filtrosTallas.id_vereda,
+    id_corregimiento: filtrosTallas.id_corregimiento,
+    id_centro_poblado: filtrosTallas.id_centro_poblado
+  });
+
   const [filtrosEdad, setFiltrosEdad] = useState<FiltrosEdad>({
     page: 1,
     limit: 100
+  });
+
+  const geoFiltersEdad = useGeographicFilters({
+    id_municipio: filtrosEdad.id_municipio,
+    id_parroquia: filtrosEdad.id_parroquia,
+    id_sector: filtrosEdad.id_sector,
+    id_vereda: filtrosEdad.id_vereda,
+    id_corregimiento: filtrosEdad.id_corregimiento,
+    id_centro_poblado: filtrosEdad.id_centro_poblado
   });
 
   const [filtrosReporte, setFiltrosReporte] = useState<FiltrosReporteGeneral>({
@@ -724,7 +762,7 @@ const PersonasReport = () => {
 
                   {/* Tipo de Vivienda */}
                   <div className="space-y-2">
-                    <Label>Tipo de Vivienda</Label>
+                    <Label className={filtrosFamilia.apellido_familiar ? "text-muted-foreground" : ""}>Tipo de Vivienda</Label>
                     <Autocomplete
                       options={configData.tipoViviendaOptions}
                       value={filtrosFamilia.id_tipo_vivienda?.toString() || ""}
@@ -735,12 +773,13 @@ const PersonasReport = () => {
                       placeholder="Seleccionar tipo..."
                       loading={configData.tiposViviendaLoading}
                       emptyText="No se encontraron tipos"
+                      disabled={!!filtrosFamilia.apellido_familiar}
                     />
                   </div>
 
                   {/* Parentesco */}
                   <div className="space-y-2">
-                    <Label>Parentesco</Label>
+                    <Label className={filtrosFamilia.apellido_familiar ? "text-muted-foreground" : ""}>Parentesco</Label>
                     <Autocomplete
                       options={configData.parentescosOptions}
                       value={filtrosFamilia.id_parentesco?.toString() || ""}
@@ -751,6 +790,122 @@ const PersonasReport = () => {
                       placeholder="Seleccionar parentesco..."
                       loading={configData.parentescosLoading}
                       emptyText="No se encontraron parentescos"
+                      disabled={!!filtrosFamilia.apellido_familiar}
+                    />
+                  </div>
+                </div>
+
+                {/* Filtros Geográficos */}
+                <Separator className="my-6" />
+                <div className="mb-4 flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-muted-foreground">Filtros Geográficos</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {/* Municipio */}
+                  <div className="space-y-2">
+                    <Label>Municipio</Label>
+                    <Autocomplete
+                      options={configData.municipioOptions}
+                      value={filtrosFamilia.id_municipio?.toString() || ""}
+                      onValueChange={(value) => setFiltrosFamilia(prev => ({
+                        ...prev,
+                        id_municipio: value ? Number(value) : undefined,
+                        id_parroquia: undefined,
+                        id_sector: undefined,
+                        id_vereda: undefined,
+                        id_corregimiento: undefined,
+                        id_centro_poblado: undefined
+                      }))}
+                      placeholder="Seleccionar municipio..."
+                      loading={configData.municipiosLoading}
+                      emptyText="No se encontraron municipios"
+                    />
+                  </div>
+
+                  {/* Parroquia */}
+                  <div className="space-y-2">
+                    <Label>Parroquia</Label>
+                    <Autocomplete
+                      options={geoFiltersFamilia.parroquiaOptions}
+                      value={filtrosFamilia.id_parroquia?.toString() || ""}
+                      onValueChange={(value) => setFiltrosFamilia(prev => ({
+                        ...prev,
+                        id_parroquia: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar parroquia..."
+                      loading={geoFiltersFamilia.isLoadingParroquias}
+                      emptyText={filtrosFamilia.id_municipio ? "No se encontraron parroquias" : "Selecciona un municipio primero"}
+                      disabled={!filtrosFamilia.id_municipio}
+                    />
+                  </div>
+
+                  {/* Sector */}
+                  <div className="space-y-2">
+                    <Label>Sector</Label>
+                    <Autocomplete
+                      options={geoFiltersFamilia.sectorOptions}
+                      value={filtrosFamilia.id_sector?.toString() || ""}
+                      onValueChange={(value) => setFiltrosFamilia(prev => ({
+                        ...prev,
+                        id_sector: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar sector..."
+                      loading={geoFiltersFamilia.isLoadingSectores}
+                      emptyText={filtrosFamilia.id_municipio ? "No se encontraron sectores" : "Selecciona un municipio primero"}
+                      disabled={!filtrosFamilia.id_municipio}
+                    />
+                  </div>
+
+                  {/* Vereda */}
+                  <div className="space-y-2">
+                    <Label>Vereda</Label>
+                    <Autocomplete
+                      options={geoFiltersFamilia.veredaOptions}
+                      value={filtrosFamilia.id_vereda?.toString() || ""}
+                      onValueChange={(value) => setFiltrosFamilia(prev => ({
+                        ...prev,
+                        id_vereda: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar vereda..."
+                      loading={geoFiltersFamilia.isLoadingVeredas}
+                      emptyText={filtrosFamilia.id_municipio ? "No se encontraron veredas" : "Selecciona un municipio primero"}
+                      disabled={!filtrosFamilia.id_municipio}
+                    />
+                  </div>
+
+                  {/* Corregimiento */}
+                  <div className="space-y-2">
+                    <Label>Corregimiento</Label>
+                    <Autocomplete
+                      options={geoFiltersFamilia.corregimientoOptions}
+                      value={filtrosFamilia.id_corregimiento?.toString() || ""}
+                      onValueChange={(value) => setFiltrosFamilia(prev => ({
+                        ...prev,
+                        id_corregimiento: value ? Number(value) : undefined,
+                        id_centro_poblado: undefined
+                      }))}
+                      placeholder="Seleccionar corregimiento..."
+                      loading={geoFiltersFamilia.isLoadingCorregimientos}
+                      emptyText={filtrosFamilia.id_municipio ? "No se encontraron corregimientos" : "Selecciona un municipio primero"}
+                      disabled={!filtrosFamilia.id_municipio}
+                    />
+                  </div>
+
+                  {/* Centro Poblado */}
+                  <div className="space-y-2">
+                    <Label>Centro Poblado</Label>
+                    <Autocomplete
+                      options={geoFiltersFamilia.centroPobladoOptions}
+                      value={filtrosFamilia.id_centro_poblado?.toString() || ""}
+                      onValueChange={(value) => setFiltrosFamilia(prev => ({
+                        ...prev,
+                        id_centro_poblado: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar centro poblado..."
+                      loading={geoFiltersFamilia.isLoadingCentrosPoblados}
+                      emptyText={filtrosFamilia.id_municipio ? "No se encontraron centros poblados" : "Selecciona un municipio primero"}
+                      disabled={!filtrosFamilia.id_municipio}
                     />
                   </div>
                 </div>
@@ -903,14 +1058,139 @@ const PersonasReport = () => {
                   {/* Destrezas */}
                   <div className="space-y-2">
                     <Label>Destrezas</Label>
-                    <Input
-                      type="number"
-                      value={filtrosPersonales.id_destreza || ""}
-                      onChange={(e) => setFiltrosPersonales(prev => ({ 
-                        ...prev, 
-                        id_destreza: e.target.value ? Number(e.target.value) : undefined 
+                    <Select
+                      value={filtrosPersonales.id_destreza?.toString() || "all"}
+                      onValueChange={(val) => setFiltrosPersonales(prev => ({
+                        ...prev,
+                        id_destreza: val !== "all" ? Number(val) : undefined
                       }))}
-                      placeholder="ID de destreza"
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Todas las destrezas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas las destrezas</SelectItem>
+                        {destrezasCatalogo.map((d) => (
+                          <SelectItem key={d.id} value={d.id.toString()}>
+                            {d.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Filtros Geográficos */}
+                <Separator className="my-6" />
+                <div className="mb-4 flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-muted-foreground">Filtros Geográficos</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {/* Municipio */}
+                  <div className="space-y-2">
+                    <Label>Municipio</Label>
+                    <Autocomplete
+                      options={configData.municipioOptions}
+                      value={filtrosPersonales.id_municipio?.toString() || ""}
+                      onValueChange={(value) => setFiltrosPersonales(prev => ({
+                        ...prev,
+                        id_municipio: value ? Number(value) : undefined,
+                        id_parroquia: undefined,
+                        id_sector: undefined,
+                        id_vereda: undefined,
+                        id_corregimiento: undefined,
+                        id_centro_poblado: undefined
+                      }))}
+                      placeholder="Seleccionar municipio..."
+                      loading={configData.municipiosLoading}
+                      emptyText="No se encontraron municipios"
+                    />
+                  </div>
+
+                  {/* Parroquia */}
+                  <div className="space-y-2">
+                    <Label>Parroquia</Label>
+                    <Autocomplete
+                      options={geoFiltersPersonal.parroquiaOptions}
+                      value={filtrosPersonales.id_parroquia?.toString() || ""}
+                      onValueChange={(value) => setFiltrosPersonales(prev => ({
+                        ...prev,
+                        id_parroquia: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar parroquia..."
+                      loading={geoFiltersPersonal.isLoadingParroquias}
+                      emptyText={filtrosPersonales.id_municipio ? "No se encontraron parroquias" : "Selecciona un municipio primero"}
+                      disabled={!filtrosPersonales.id_municipio}
+                    />
+                  </div>
+
+                  {/* Sector */}
+                  <div className="space-y-2">
+                    <Label>Sector</Label>
+                    <Autocomplete
+                      options={geoFiltersPersonal.sectorOptions}
+                      value={filtrosPersonales.id_sector?.toString() || ""}
+                      onValueChange={(value) => setFiltrosPersonales(prev => ({
+                        ...prev,
+                        id_sector: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar sector..."
+                      loading={geoFiltersPersonal.isLoadingSectores}
+                      emptyText={filtrosPersonales.id_municipio ? "No se encontraron sectores" : "Selecciona un municipio primero"}
+                      disabled={!filtrosPersonales.id_municipio}
+                    />
+                  </div>
+
+                  {/* Vereda */}
+                  <div className="space-y-2">
+                    <Label>Vereda</Label>
+                    <Autocomplete
+                      options={geoFiltersPersonal.veredaOptions}
+                      value={filtrosPersonales.id_vereda?.toString() || ""}
+                      onValueChange={(value) => setFiltrosPersonales(prev => ({
+                        ...prev,
+                        id_vereda: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar vereda..."
+                      loading={geoFiltersPersonal.isLoadingVeredas}
+                      emptyText={filtrosPersonales.id_municipio ? "No se encontraron veredas" : "Selecciona un municipio primero"}
+                      disabled={!filtrosPersonales.id_municipio}
+                    />
+                  </div>
+
+                  {/* Corregimiento */}
+                  <div className="space-y-2">
+                    <Label>Corregimiento</Label>
+                    <Autocomplete
+                      options={geoFiltersPersonal.corregimientoOptions}
+                      value={filtrosPersonales.id_corregimiento?.toString() || ""}
+                      onValueChange={(value) => setFiltrosPersonales(prev => ({
+                        ...prev,
+                        id_corregimiento: value ? Number(value) : undefined,
+                        id_centro_poblado: undefined
+                      }))}
+                      placeholder="Seleccionar corregimiento..."
+                      loading={geoFiltersPersonal.isLoadingCorregimientos}
+                      emptyText={filtrosPersonales.id_municipio ? "No se encontraron corregimientos" : "Selecciona un municipio primero"}
+                      disabled={!filtrosPersonales.id_municipio}
+                    />
+                  </div>
+
+                  {/* Centro Poblado */}
+                  <div className="space-y-2">
+                    <Label>Centro Poblado</Label>
+                    <Autocomplete
+                      options={geoFiltersPersonal.centroPobladoOptions}
+                      value={filtrosPersonales.id_centro_poblado?.toString() || ""}
+                      onValueChange={(value) => setFiltrosPersonales(prev => ({
+                        ...prev,
+                        id_centro_poblado: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar centro poblado..."
+                      loading={geoFiltersPersonal.isLoadingCentrosPoblados}
+                      emptyText={filtrosPersonales.id_municipio ? "No se encontraron centros poblados" : "Selecciona un municipio primero"}
+                      disabled={!filtrosPersonales.id_municipio}
                     />
                   </div>
                 </div>
@@ -1065,6 +1345,121 @@ const PersonasReport = () => {
                     />
                   </div>
                 </div>
+
+                {/* Filtros Geográficos */}
+                <Separator className="my-6" />
+                <div className="mb-4 flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-muted-foreground">Filtros Geográficos</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {/* Municipio */}
+                  <div className="space-y-2">
+                    <Label>Municipio</Label>
+                    <Autocomplete
+                      options={configData.municipioOptions}
+                      value={filtrosTallas.id_municipio?.toString() || ""}
+                      onValueChange={(value) => setFiltrosTallas(prev => ({
+                        ...prev,
+                        id_municipio: value ? Number(value) : undefined,
+                        id_parroquia: undefined,
+                        id_sector: undefined,
+                        id_vereda: undefined,
+                        id_corregimiento: undefined,
+                        id_centro_poblado: undefined
+                      }))}
+                      placeholder="Seleccionar municipio..."
+                      loading={configData.municipiosLoading}
+                      emptyText="No se encontraron municipios"
+                    />
+                  </div>
+
+                  {/* Parroquia */}
+                  <div className="space-y-2">
+                    <Label>Parroquia</Label>
+                    <Autocomplete
+                      options={geoFiltersTallas.parroquiaOptions}
+                      value={filtrosTallas.id_parroquia?.toString() || ""}
+                      onValueChange={(value) => setFiltrosTallas(prev => ({
+                        ...prev,
+                        id_parroquia: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar parroquia..."
+                      loading={geoFiltersTallas.isLoadingParroquias}
+                      emptyText={filtrosTallas.id_municipio ? "No se encontraron parroquias" : "Selecciona un municipio primero"}
+                      disabled={!filtrosTallas.id_municipio}
+                    />
+                  </div>
+
+                  {/* Sector */}
+                  <div className="space-y-2">
+                    <Label>Sector</Label>
+                    <Autocomplete
+                      options={geoFiltersTallas.sectorOptions}
+                      value={filtrosTallas.id_sector?.toString() || ""}
+                      onValueChange={(value) => setFiltrosTallas(prev => ({
+                        ...prev,
+                        id_sector: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar sector..."
+                      loading={geoFiltersTallas.isLoadingSectores}
+                      emptyText={filtrosTallas.id_municipio ? "No se encontraron sectores" : "Selecciona un municipio primero"}
+                      disabled={!filtrosTallas.id_municipio}
+                    />
+                  </div>
+
+                  {/* Vereda */}
+                  <div className="space-y-2">
+                    <Label>Vereda</Label>
+                    <Autocomplete
+                      options={geoFiltersTallas.veredaOptions}
+                      value={filtrosTallas.id_vereda?.toString() || ""}
+                      onValueChange={(value) => setFiltrosTallas(prev => ({
+                        ...prev,
+                        id_vereda: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar vereda..."
+                      loading={geoFiltersTallas.isLoadingVeredas}
+                      emptyText={filtrosTallas.id_municipio ? "No se encontraron veredas" : "Selecciona un municipio primero"}
+                      disabled={!filtrosTallas.id_municipio}
+                    />
+                  </div>
+
+                  {/* Corregimiento */}
+                  <div className="space-y-2">
+                    <Label>Corregimiento</Label>
+                    <Autocomplete
+                      options={geoFiltersTallas.corregimientoOptions}
+                      value={filtrosTallas.id_corregimiento?.toString() || ""}
+                      onValueChange={(value) => setFiltrosTallas(prev => ({
+                        ...prev,
+                        id_corregimiento: value ? Number(value) : undefined,
+                        id_centro_poblado: undefined
+                      }))}
+                      placeholder="Seleccionar corregimiento..."
+                      loading={geoFiltersTallas.isLoadingCorregimientos}
+                      emptyText={filtrosTallas.id_municipio ? "No se encontraron corregimientos" : "Selecciona un municipio primero"}
+                      disabled={!filtrosTallas.id_municipio}
+                    />
+                  </div>
+
+                  {/* Centro Poblado */}
+                  <div className="space-y-2">
+                    <Label>Centro Poblado</Label>
+                    <Autocomplete
+                      options={geoFiltersTallas.centroPobladoOptions}
+                      value={filtrosTallas.id_centro_poblado?.toString() || ""}
+                      onValueChange={(value) => setFiltrosTallas(prev => ({
+                        ...prev,
+                        id_centro_poblado: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar centro poblado..."
+                      loading={geoFiltersTallas.isLoadingCentrosPoblados}
+                      emptyText={filtrosTallas.id_municipio ? "No se encontraron centros poblados" : "Selecciona un municipio primero"}
+                      disabled={!filtrosTallas.id_municipio}
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -1155,6 +1550,121 @@ const PersonasReport = () => {
                         edad_max: e.target.value ? Number(e.target.value) : undefined 
                       }))}
                       placeholder="Ej: 65"
+                    />
+                  </div>
+                </div>
+
+                {/* Filtros Geográficos */}
+                <Separator className="my-6" />
+                <div className="mb-4 flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-muted-foreground">Filtros Geográficos</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {/* Municipio */}
+                  <div className="space-y-2">
+                    <Label>Municipio</Label>
+                    <Autocomplete
+                      options={configData.municipioOptions}
+                      value={filtrosEdad.id_municipio?.toString() || ""}
+                      onValueChange={(value) => setFiltrosEdad(prev => ({
+                        ...prev,
+                        id_municipio: value ? Number(value) : undefined,
+                        id_parroquia: undefined,
+                        id_sector: undefined,
+                        id_vereda: undefined,
+                        id_corregimiento: undefined,
+                        id_centro_poblado: undefined
+                      }))}
+                      placeholder="Seleccionar municipio..."
+                      loading={configData.municipiosLoading}
+                      emptyText="No se encontraron municipios"
+                    />
+                  </div>
+
+                  {/* Parroquia */}
+                  <div className="space-y-2">
+                    <Label>Parroquia</Label>
+                    <Autocomplete
+                      options={geoFiltersEdad.parroquiaOptions}
+                      value={filtrosEdad.id_parroquia?.toString() || ""}
+                      onValueChange={(value) => setFiltrosEdad(prev => ({
+                        ...prev,
+                        id_parroquia: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar parroquia..."
+                      loading={geoFiltersEdad.isLoadingParroquias}
+                      emptyText={filtrosEdad.id_municipio ? "No se encontraron parroquias" : "Selecciona un municipio primero"}
+                      disabled={!filtrosEdad.id_municipio}
+                    />
+                  </div>
+
+                  {/* Sector */}
+                  <div className="space-y-2">
+                    <Label>Sector</Label>
+                    <Autocomplete
+                      options={geoFiltersEdad.sectorOptions}
+                      value={filtrosEdad.id_sector?.toString() || ""}
+                      onValueChange={(value) => setFiltrosEdad(prev => ({
+                        ...prev,
+                        id_sector: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar sector..."
+                      loading={geoFiltersEdad.isLoadingSectores}
+                      emptyText={filtrosEdad.id_municipio ? "No se encontraron sectores" : "Selecciona un municipio primero"}
+                      disabled={!filtrosEdad.id_municipio}
+                    />
+                  </div>
+
+                  {/* Vereda */}
+                  <div className="space-y-2">
+                    <Label>Vereda</Label>
+                    <Autocomplete
+                      options={geoFiltersEdad.veredaOptions}
+                      value={filtrosEdad.id_vereda?.toString() || ""}
+                      onValueChange={(value) => setFiltrosEdad(prev => ({
+                        ...prev,
+                        id_vereda: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar vereda..."
+                      loading={geoFiltersEdad.isLoadingVeredas}
+                      emptyText={filtrosEdad.id_municipio ? "No se encontraron veredas" : "Selecciona un municipio primero"}
+                      disabled={!filtrosEdad.id_municipio}
+                    />
+                  </div>
+
+                  {/* Corregimiento */}
+                  <div className="space-y-2">
+                    <Label>Corregimiento</Label>
+                    <Autocomplete
+                      options={geoFiltersEdad.corregimientoOptions}
+                      value={filtrosEdad.id_corregimiento?.toString() || ""}
+                      onValueChange={(value) => setFiltrosEdad(prev => ({
+                        ...prev,
+                        id_corregimiento: value ? Number(value) : undefined,
+                        id_centro_poblado: undefined
+                      }))}
+                      placeholder="Seleccionar corregimiento..."
+                      loading={geoFiltersEdad.isLoadingCorregimientos}
+                      emptyText={filtrosEdad.id_municipio ? "No se encontraron corregimientos" : "Selecciona un municipio primero"}
+                      disabled={!filtrosEdad.id_municipio}
+                    />
+                  </div>
+
+                  {/* Centro Poblado */}
+                  <div className="space-y-2">
+                    <Label>Centro Poblado</Label>
+                    <Autocomplete
+                      options={geoFiltersEdad.centroPobladoOptions}
+                      value={filtrosEdad.id_centro_poblado?.toString() || ""}
+                      onValueChange={(value) => setFiltrosEdad(prev => ({
+                        ...prev,
+                        id_centro_poblado: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar centro poblado..."
+                      loading={geoFiltersEdad.isLoadingCentrosPoblados}
+                      emptyText={filtrosEdad.id_municipio ? "No se encontraron centros poblados" : "Selecciona un municipio primero"}
+                      disabled={!filtrosEdad.id_municipio}
                     />
                   </div>
                 </div>
@@ -1328,6 +1838,49 @@ const PersonasReport = () => {
                     />
                   </div>
 
+                  {/* Apellido Familiar */}
+                  <div className="space-y-2">
+                    <Label>Apellido Familiar</Label>
+                    <Input
+                      value={filtrosReporte.apellido_familiar || ""}
+                      onChange={(e) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        apellido_familiar: e.target.value
+                      }))}
+                      placeholder="Ej: García Rodríguez"
+                    />
+                  </div>
+
+                  {/* Tipo de Vivienda */}
+                  <div className="space-y-2">
+                    <Label>Tipo de Vivienda</Label>
+                    <Autocomplete
+                      options={configData.tipoViviendaOptions}
+                      value={filtrosReporte.id_tipo_vivienda?.toString() || ""}
+                      onValueChange={(value) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        id_tipo_vivienda: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar tipo..."
+                      loading={configData.tiposViviendaLoading}
+                    />
+                  </div>
+
+                  {/* Parentesco */}
+                  <div className="space-y-2">
+                    <Label>Parentesco</Label>
+                    <Autocomplete
+                      options={configData.parentescosOptions}
+                      value={filtrosReporte.id_parentesco?.toString() || ""}
+                      onValueChange={(value) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        id_parentesco: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar parentesco..."
+                      loading={configData.parentescosLoading}
+                    />
+                  </div>
+
                   {/* Estado Civil */}
                   <div className="space-y-2">
                     <Label>Estado Civil</Label>
@@ -1340,6 +1893,51 @@ const PersonasReport = () => {
                       }))}
                       placeholder="Seleccionar estado civil..."
                       loading={configData.situacionesCivilesLoading}
+                    />
+                  </div>
+
+                  {/* Profesión */}
+                  <div className="space-y-2">
+                    <Label>Profesión</Label>
+                    <Autocomplete
+                      options={configData.profesionesOptions}
+                      value={filtrosReporte.id_profesion?.toString() || ""}
+                      onValueChange={(value) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        id_profesion: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar profesión..."
+                      loading={configData.profesionesLoading}
+                    />
+                  </div>
+
+                  {/* Nivel Educativo */}
+                  <div className="space-y-2">
+                    <Label>Nivel Educativo</Label>
+                    <Autocomplete
+                      options={configData.estudiosOptions}
+                      value={filtrosReporte.id_nivel_educativo?.toString() || ""}
+                      onValueChange={(value) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        id_nivel_educativo: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar nivel..."
+                      loading={configData.estudiosLoading}
+                    />
+                  </div>
+
+                  {/* Comunidad Cultural */}
+                  <div className="space-y-2">
+                    <Label>Comunidad Cultural</Label>
+                    <Autocomplete
+                      options={configData.comunidadesCulturalesOptions}
+                      value={filtrosReporte.id_comunidad_cultural?.toString() || ""}
+                      onValueChange={(value) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        id_comunidad_cultural: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar comunidad..."
+                      loading={configData.comunidadesCulturalesLoading}
                     />
                   </div>
 
@@ -1362,6 +1960,69 @@ const PersonasReport = () => {
                         <SelectItem value="false">Sin liderazgo</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  {/* Destreza */}
+                  <div className="space-y-2">
+                    <Label>Destreza</Label>
+                    <Select
+                      value={filtrosReporte.id_destreza?.toString() || "all"}
+                      onValueChange={(val) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        id_destreza: val !== "all" ? Number(val) : undefined
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Todas las destrezas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas las destrezas</SelectItem>
+                        {destrezasCatalogo.map((d) => (
+                          <SelectItem key={d.id} value={d.id.toString()}>
+                            {d.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Talla Camisa */}
+                  <div className="space-y-2">
+                    <Label>Talla Camisa</Label>
+                    <Input
+                      value={filtrosReporte.talla_camisa || ""}
+                      onChange={(e) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        talla_camisa: e.target.value
+                      }))}
+                      placeholder="Ej: M, L, XL"
+                    />
+                  </div>
+
+                  {/* Talla Pantalón */}
+                  <div className="space-y-2">
+                    <Label>Talla Pantalón</Label>
+                    <Input
+                      value={filtrosReporte.talla_pantalon || ""}
+                      onChange={(e) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        talla_pantalon: e.target.value
+                      }))}
+                      placeholder="Ej: 32, 34, 36"
+                    />
+                  </div>
+
+                  {/* Talla Zapato */}
+                  <div className="space-y-2">
+                    <Label>Talla Zapato</Label>
+                    <Input
+                      value={filtrosReporte.talla_zapato || ""}
+                      onChange={(e) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        talla_zapato: e.target.value
+                      }))}
+                      placeholder="Ej: 38, 40, 42"
+                    />
                   </div>
 
                   {/* Edad Mínima */}
@@ -1389,6 +2050,32 @@ const PersonasReport = () => {
                         edad_max: e.target.value ? Number(e.target.value) : undefined 
                       }))}
                       placeholder="Ej: 65"
+                    />
+                  </div>
+
+                  {/* Fecha Registro Desde */}
+                  <div className="space-y-2">
+                    <Label>Fecha Registro Desde</Label>
+                    <Input
+                      type="date"
+                      value={filtrosReporte.fecha_registro_desde || ""}
+                      onChange={(e) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        fecha_registro_desde: e.target.value || undefined
+                      }))}
+                    />
+                  </div>
+
+                  {/* Fecha Registro Hasta */}
+                  <div className="space-y-2">
+                    <Label>Fecha Registro Hasta</Label>
+                    <Input
+                      type="date"
+                      value={filtrosReporte.fecha_registro_hasta || ""}
+                      onChange={(e) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        fecha_registro_hasta: e.target.value || undefined
+                      }))}
                     />
                   </div>
                 </div>
