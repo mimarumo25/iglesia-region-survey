@@ -32,14 +32,13 @@ RUN npm run build
 # Solo contiene los archivos estáticos del dist + Nginx configurado.
 # Imagen resultante: ~25 MB vs ~350 MB con Node.
 # -----------------------------------------------------------------------------
-FROM cgr.dev/chainguard/nginx:latest AS production
+FROM nginx:1.27-alpine AS production
 
 # COPY sobreescribe el contenido por defecto — no necesita RUN rm -rf
-# --chown evita RUN chown (Chainguard es distroless, sin shell)
-COPY --chown=nginx:nginx --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copiar configuración personalizada de Nginx (SPA routing + gzip + seguridad)
-COPY --chown=nginx:nginx nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 8080
 
