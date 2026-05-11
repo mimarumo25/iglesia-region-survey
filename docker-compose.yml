@@ -5,6 +5,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_BASE_URL_SERVICES: ${VITE_BASE_URL_SERVICES:-http://206.62.139.100:3001}
+        VITE_SKIP_AUTH: ${VITE_SKIP_AUTH:-false}
     container_name: iglesia-survey
     ports:
       - "8080:8080"
