@@ -51,14 +51,12 @@ fi
 log "📋 Commit actual: $(git rev-parse --short HEAD)"
 log "📋 Último commit: $(git log -1 --pretty=format:'%h - %s (%an, %ar)')"
 
-# Crear .env si no existe (necesario para que docker-compose pase los build-args)
-if [ ! -f ".env" ]; then
-    log "📝 Creando .env con valores por defecto..."
-    cat > .env << 'EOF'
+# Siempre forzar el valor correcto de VITE_BASE_URL_SERVICES en .env
+log "📝 Actualizando .env con valores de producción..."
+cat > .env << 'EOF'
 VITE_BASE_URL_SERVICES=http://206.62.139.100:3001
 VITE_SKIP_AUTH=false
 EOF
-fi
 log "🔑 VITE_BASE_URL_SERVICES=$(grep VITE_BASE_URL_SERVICES .env | cut -d= -f2)"
 
 # Detener contenedores existentes
