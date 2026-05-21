@@ -92,7 +92,7 @@ export interface SurveyPerson {
   tallas: PersonSize;
   destrezas: LocationItem[];
   habilidades: PersonSkill[];
-  en_que_eres_lider: string | null;
+  en_que_eres_lider: string | Array<{ id: string; nombre: string }> | null;
   profesion: LocationItem | null;
   parentesco: LocationItem;
   comunidad_cultural: LocationItem;

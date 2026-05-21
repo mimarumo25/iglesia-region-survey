@@ -19,11 +19,18 @@ import type { SurveyResponseData, SurveyPerson } from '@/types/survey-responses'
 /**
  * Helper function to parse JSON array strings or comma-separated strings into array
  */
-const parseArrayField = (field: string | null | undefined): string[] => {
+const parseArrayField = (field: string | Array<any> | null | undefined): string[] => {
   if (!field) return [];
-  
+
+  // Handle actual array (backend returns array directly)
+  if (Array.isArray(field)) {
+    return field
+      .map((item: any) => (typeof item === 'object' && item !== null ? item.nombre || '' : String(item)))
+      .filter(Boolean);
+  }
+
   try {
-    const parsed = JSON.parse(field);
+    const parsed = JSON.parse(field as string);
     if (Array.isArray(parsed)) {
       // Flatten array and split each element by comma
       return parsed

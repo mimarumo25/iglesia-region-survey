@@ -50,12 +50,19 @@ import "@/styles/mobile-animations.css";
  * Helper function to parse JSON array strings or comma-separated strings into array
  * Handles: ["item1", "item2"], ["item1, item2"], "item1, item2", or simple strings
  */
-const parseArrayField = (field: string | null | undefined): string[] => {
+const parseArrayField = (field: string | Array<any> | null | undefined): string[] => {
   if (!field) return [];
-  
+
+  // Handle actual array (backend returns array directly)
+  if (Array.isArray(field)) {
+    return field
+      .map((item: any) => (typeof item === 'object' && item !== null ? item.nombre || '' : String(item)))
+      .filter(Boolean);
+  }
+
   try {
     // Try to parse as JSON array first
-    const parsed = JSON.parse(field);
+    const parsed = JSON.parse(field as string);
     if (Array.isArray(parsed)) {
       // Flatten array and split each element by comma
       return parsed
@@ -632,13 +639,13 @@ const SurveyDetails = () => {
                     </div>
 
                     {/* Liderazgo */}
-                    {miembro.en_que_eres_lider && (
-                      <>
-                        <Separator />
-                        <div>
-                          <h4 className="font-bold text-sm text-foreground mb-2">
-                            👑 Áreas de Liderazgo
-                          </h4>
+                    <>
+                      <Separator />
+                      <div>
+                        <h4 className="font-bold text-sm text-foreground mb-2">
+                          👑 Áreas de Liderazgo
+                        </h4>
+                        {parseArrayField(miembro.en_que_eres_lider).length > 0 ? (
                           <div className="flex flex-wrap gap-2">
                             {parseArrayField(miembro.en_que_eres_lider).map((area, idx) => (
                               <Badge key={idx} variant="default" className="bg-purple-100 text-purple-800 border-purple-300">
@@ -646,9 +653,11 @@ const SurveyDetails = () => {
                               </Badge>
                             ))}
                           </div>
-                        </div>
-                      </>
-                    )}
+                        ) : (
+                          <p className="text-xs text-muted-foreground/70 italic">Sin liderazgo registrado</p>
+                        )}
+                      </div>
+                    </>
 
                     {/* Habilidades */}
                     {miembro.habilidades && miembro.habilidades.length > 0 ? (
