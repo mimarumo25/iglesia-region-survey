@@ -27,13 +27,16 @@ const parseArrayField = (field: string | null | undefined): string[] => {
     if (Array.isArray(parsed)) {
       // Flatten array and split each element by comma
       return parsed
-        .flatMap(item => 
-          typeof item === 'string' && item.includes(',') 
-            ? item.split(',').map(s => s.trim())
-            : [item]
-        )
-        .filter(item => item && String(item).trim())
-        .map(item => String(item).trim());
+        .flatMap((item: any) => {
+          if (typeof item === 'object' && item !== null) {
+            return item.nombre ? [String(item.nombre).trim()] : [];
+          }
+          return typeof item === 'string' && item.includes(',')
+            ? item.split(',').map((s: string) => s.trim())
+            : [item];
+        })
+        .filter((item: any) => item && String(item).trim())
+        .map((item: any) => String(item).trim());
     }
   } catch {
     // Not valid JSON, continue
