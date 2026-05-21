@@ -174,10 +174,12 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
         nombre: (persona as any).comunidad_cultural.nombre
       } : null,
       telefono: persona.telefono || '',
-      // 🔄 en_que_eres_lider: Backend devuelve STRING o null — se mapea a objeto { id, nombre }
-      enQueEresLider: (persona as any).en_que_eres_lider
-        ? [{ id: '', nombre: (persona as any).en_que_eres_lider }]
-        : [],
+      // 🔄 enQueEresLider: preferir liderazgos (Array<{id,nombre}>) sobre en_que_eres_lider (legacy string)
+      enQueEresLider: (persona as any).liderazgos && (persona as any).liderazgos.length > 0
+        ? (persona as any).liderazgos.map((l: any) => ({ id: l.id || '', nombre: l.nombre || '' }))
+        : (persona as any).en_que_eres_lider
+          ? [{ id: '', nombre: (persona as any).en_que_eres_lider }]
+          : [],
       // No cargar correos temporales generados por el backend (@temp.com)
       correoElectronico: (persona.email && !persona.email.includes('@temp.com') && !persona.email.includes('temp.')) ? persona.email : '',
       // 🔄 enfermedades: Array con {id_persona, id, nombre}
