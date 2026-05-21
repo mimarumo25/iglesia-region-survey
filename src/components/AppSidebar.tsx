@@ -42,7 +42,8 @@ import {
   ChevronLeft,
   PanelLeftClose,
   PanelLeftOpen,
-  CreditCard
+  CreditCard,
+  Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -226,6 +227,13 @@ const navigationItems = [
         url: "/settings/profesiones",
         icon: Users,
         description: "Catálogo de profesiones",
+        requiredRoles: ["admin"]
+      },
+      {
+        title: "Liderazgo",
+        url: "/settings/liderazgo",
+        icon: Star,
+        description: "Catálogo de tipos de liderazgo",
         requiredRoles: ["admin"]
       },
       {

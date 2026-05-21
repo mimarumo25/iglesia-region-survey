@@ -19,6 +19,7 @@ export const lazyRoutes = {
   '/settings/tipos-vivienda': () => import('@/pages/SettingsWrapper'),
   '/settings/parentescos': () => import('@/pages/SettingsWrapper'),
   '/settings/estados-civiles': () => import('@/pages/SettingsWrapper'),
+  '/settings/liderazgo': () => import('@/pages/SettingsWrapper'),
   '/settings/sexos': () => import('@/pages/SettingsWrapper'),
   '/settings/comunidades-culturales': () => import('@/pages/SettingsWrapper'),
   '/settings/estudios': () => import('@/pages/SettingsWrapper'),
