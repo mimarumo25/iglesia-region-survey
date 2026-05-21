@@ -9,7 +9,7 @@ import EnhancedBirthDatePicker from "@/components/ui/enhanced-birth-date-picker"
 import AutocompleteWithLoading from "@/components/ui/autocomplete-with-loading";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { EmailInput } from "@/components/ui/email-input";
-import { Plus, AlertCircle, Shirt, Lightbulb, Wrench, Trash2 } from "lucide-react";
+import { Plus, AlertCircle, Shirt, Lightbulb, Wrench, Trash2, Star } from "lucide-react";
 import { FamilyMemberFormData } from "@/hooks/useFamilyGrid";
 import { FamilyMember } from "@/types/survey";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
