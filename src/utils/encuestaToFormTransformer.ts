@@ -174,9 +174,9 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
         nombre: (persona as any).comunidad_cultural.nombre
       } : null,
       telefono: persona.telefono || '',
-      // 🔄 en_que_eres_lider: Backend devuelve STRING o null
-      enQueEresLider: (persona as any).en_que_eres_lider 
-        ? [(persona as any).en_que_eres_lider] 
+      // 🔄 en_que_eres_lider: Backend devuelve STRING o null — se mapea a objeto { id, nombre }
+      enQueEresLider: (persona as any).en_que_eres_lider
+        ? [{ id: '', nombre: (persona as any).en_que_eres_lider }]
         : [],
       // No cargar correos temporales generados por el backend (@temp.com)
       correoElectronico: (persona.email && !persona.email.includes('@temp.com') && !persona.email.includes('temp.')) ? persona.email : '',
@@ -363,7 +363,10 @@ const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDa
         nombre: miembro.comunidad_cultural
       } : null,
       telefono: (miembro as any).telefono || '',
-      enQueEresLider: (miembro as any).enQueEresLider || [],
+      enQueEresLider: ((miembro as any).enQueEresLider || []).map((item: any) => {
+        if (typeof item === 'string') return { id: '', nombre: item };
+        return { id: item.id || '', nombre: item.nombre || '' };
+      }),
       correoElectronico: (() => {
         const rawEmail = (miembro as any).correo_electronico || (miembro as any).email || '';
         return rawEmail && !rawEmail.includes('@temp.com') && !rawEmail.includes('temp.') ? rawEmail : '';

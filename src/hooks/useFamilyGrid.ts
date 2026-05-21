@@ -84,7 +84,10 @@ const familyMemberSchema = z.object({
     calzado: tallasValidationSchemas.strict.talla_zapato,
   }),
 
-  enQueEresLider: z.array(z.string().min(1, "El liderazgo no puede estar vacío")).optional().default([]),
+  enQueEresLider: z.array(z.object({
+    id: z.string(),
+    nombre: z.string(),
+  })).optional().default([]),
   
   // SECCIÓN 9: HABILIDADES Y DESTREZAS
   // Hacer el schema más permisivo para evitar errores de validación silenciosos
@@ -292,8 +295,11 @@ const familyMemberToFormData = (member: FamilyMember): Partial<FamilyMemberFormD
       // SECCIÓN 7: FECHAS A CELEBRAR (incluido en profesionMotivoFechaCelebrar)
       
       // SECCIÓN 8: INFORMACIÓN DE SERVICIOS Y LIDERAZGO
-      enQueEresLider: member?.enQueEresLider || [],
-      
+      enQueEresLider: (member?.enQueEresLider || []).map((item: any) => {
+        if (typeof item === 'string') return { id: '', nombre: item };
+        return { id: item.id || '', nombre: item.nombre || '' };
+      }),
+
       // SECCIÓN 9: HABILIDADES Y DESTREZAS
       habilidades: member?.habilidades || [],
       destrezas: member?.destrezas || [],
@@ -341,8 +347,11 @@ const familyMemberToFormData = (member: FamilyMember): Partial<FamilyMemberFormD
       },
       
       // SECCIÓN 8: INFORMACIÓN DE SERVICIOS Y LIDERAZGO
-      enQueEresLider: Array.isArray(member?.enQueEresLider) ? member?.enQueEresLider : [],
-      
+      enQueEresLider: (Array.isArray(member?.enQueEresLider) ? member.enQueEresLider : []).map((item: any) => {
+        if (typeof item === 'string') return { id: '', nombre: item };
+        return { id: item.id || '', nombre: item.nombre || '' };
+      }),
+
       // SECCIÓN 9: HABILIDADES Y DESTREZAS
       habilidades: member?.habilidades || [],
       destrezas: member?.destrezas || [],

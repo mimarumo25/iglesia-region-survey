@@ -59,7 +59,7 @@ export interface ConfigurationItem {
  * @property {ConfigurationItem | null} estudio - Nivel educativo alcanzado
  * @property {ConfigurationItem | null} comunidadCultural - Comunidad cultural de pertenencia
  * @property {string} telefono - Número de teléfono de contacto
- * @property {string[]} enQueEresLider - Áreas donde ejerce liderazgo comunitario
+ * @property {Array<{id: string; nombre: string}>} enQueEresLider - Tipos de liderazgo del catálogo
  * @property {string} correoElectronico - Email de contacto
  * @property {Array<{id: number; nombre: string}>} enfermedades - Enfermedades o condiciones de salud
  * @property {string[]} necesidadesEnfermo - Necesidades específicas por enfermedad
@@ -86,7 +86,7 @@ export interface ConfigurationItem {
  *   estudio: { id: 3, nombre: "Técnico" },
  *   comunidadCultural: null,
  *   telefono: "3001234567",
- *   enQueEresLider: ["Acción Católica"],
+ *   enQueEresLider: [{ id: "1", nombre: "Acción Católica" }],
  *   correoElectronico: "juan@example.com",
  *   enfermedades: [{ id: 5, nombre: "Diabetes" }],
  *   necesidadesEnfermo: [],
@@ -115,7 +115,7 @@ export interface FamilyMember {
   estudio: ConfigurationItem | null;
   comunidadCultural: ConfigurationItem | null;
   telefono: string;
-  enQueEresLider: string[];
+  enQueEresLider: Array<{ id: string; nombre: string }>;
   correoElectronico: string;
   enfermedades: Array<{ id: number; nombre: string }>;
   necesidadesEnfermo: string[];

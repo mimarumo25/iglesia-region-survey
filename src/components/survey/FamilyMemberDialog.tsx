@@ -24,9 +24,10 @@ import { useEffect, useRef } from "react";
 import { trimString } from "@/utils/stringTrimHelpers";
 // Importar componentes de tallas
 import { TallaSelect } from "@/components/tallas";
-// Importar hooks simplificados de habilidades y destrezas
+// Importar hooks simplificados de habilidades, destrezas y liderazgo
 import { useHabilidadesFormulario } from "@/hooks/useHabilidadesFormulario";
 import { useDestrezasFormulario } from "@/hooks/useDestrezasFormulario";
+import { useLiderazgoFormulario } from "@/hooks/useLiderazgoFormulario";
 // Importar componente de selección múltiple
 import { MultiSelectWithChips } from "@/components/ui/multi-select-chips";
 // Importar componente de chip input
@@ -80,6 +81,7 @@ const FamilyMemberDialog = ({
   // Cargar habilidades y destrezas activas desde la API usando hooks simplificados
   const { habilidades, isLoading: habilidadesLoading, error: habilidadesError } = useHabilidadesFormulario();
   const { destrezas, isLoading: destrezasLoading, error: destrezasError } = useDestrezasFormulario();
+  const { liderazgos, isLoading: liderazgosLoading, error: liderazgosError } = useLiderazgoFormulario();
   const {
     fields: celebracionFields,
     append: appendCelebracion,
@@ -857,13 +859,22 @@ const FamilyMemberDialog = ({
                   name="enQueEresLider"
                   render={({ field }) => (
                     <FormItem className="space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
-                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">¿En qué eres líder?</FormLabel>
+                      <FormLabel className="text-foreground dark:text-foreground font-bold text-sm flex items-center gap-2">
+                        <Star className="w-4 h-4 text-teal-500" />
+                        ¿En qué eres líder?
+                      </FormLabel>
                       <FormControl>
-                        <ChipInput
-                          value={Array.isArray(field.value) ? field.value : []}
-                          onChange={field.onChange}
-                          placeholder="Escribe un área de liderazgo y presiona Enter..."
-                          className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus-within:bg-accent focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
+                        <MultiSelectWithChips
+                          options={liderazgos}
+                          value={(field.value || []) as Array<{ id: string; nombre: string }>}
+                          onChange={(selected) => {
+                            field.onChange(selected);
+                          }}
+                          placeholder="Seleccionar tipo de liderazgo..."
+                          searchPlaceholder="Buscar liderazgo..."
+                          emptyText="No se encontraron tipos de liderazgo"
+                          isLoading={liderazgosLoading}
+                          error={liderazgosError}
                         />
                       </FormControl>
                       <FormMessage />

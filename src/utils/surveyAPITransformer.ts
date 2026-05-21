@@ -41,7 +41,7 @@ interface APIFamilyMember {
   talla_pantalon: string | null;
   talla_zapato: string | null;
   // Campos adicionales que pueden estar presentes
-  enQueEresLider?: string[];
+  enQueEresLider?: Array<{ id: string; nombre: string }>;
   correo_electronico?: string | null;
   enfermedades?: Array<{ id: number; nombre: string }>;
   necesidadesEnfermo?: string[];
