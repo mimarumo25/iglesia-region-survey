@@ -42,8 +42,8 @@ export interface PersonaConsolidada {
     zapato: string;
   };
 
-  // Arrays de textos
-  liderazgo: string[];
+  // Arrays de textos (liderazgo puede venir como objetos {id,nombre} desde la API)
+  liderazgo: Array<string | { id?: string | number; nombre: string }>;
   necesidad_enfermo: string[];
   destrezas: string[];
 

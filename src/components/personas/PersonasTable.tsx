@@ -115,6 +115,28 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
   };
 
   /**
+   * Renderiza el array de liderazgo extrayendo .nombre de objetos si los hay
+   */
+  const formatLiderazgoArray = (arr: Array<string | { id?: string | number; nombre: string }> | null | undefined): JSX.Element => {
+    if (!arr || arr.length === 0) {
+      return <span className="text-muted-foreground">-</span>;
+    }
+    const names = arr.map((item) =>
+      typeof item === 'object' && item !== null ? item.nombre : String(item)
+    ).filter(Boolean);
+    if (names.length === 0) return <span className="text-muted-foreground">-</span>;
+    return (
+      <div className="flex flex-wrap gap-1">
+        {names.map((name, index) => (
+          <Badge key={index} variant="secondary" className="text-xs bg-purple-100 text-purple-800 border-purple-300">
+            {name}
+          </Badge>
+        ))}
+      </div>
+    );
+  };
+
+  /**
    * Formatea arrays (como destrezas) en badges
    */
   const formatArray = (arr: string[] | null | undefined): JSX.Element => {
@@ -400,11 +422,7 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
                     {persona.liderazgo && persona.liderazgo.length > 0 && (
                       <div className="border-t pt-2 space-y-1 text-xs">
                         <p className="text-muted-foreground font-medium">Liderazgo</p>
-                        <div className="flex flex-wrap gap-1">
-                          {persona.liderazgo.map((item, i) => (
-                            <Badge key={i} variant="secondary" className="text-xs">{item}</Badge>
-                          ))}
-                        </div>
+                        {formatLiderazgoArray(persona.liderazgo)}
                       </div>
                     )}
 
@@ -530,7 +548,7 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
 
                     {/* Arrays */}
                     <TableCell className="text-sm">{formatArray(persona.destrezas)}</TableCell>
-                    <TableCell className="text-sm">{formatArray(persona.liderazgo)}</TableCell>
+                    <TableCell className="text-sm">{formatLiderazgoArray(persona.liderazgo)}</TableCell>
                     <TableCell className="text-sm">{formatArray(persona.necesidad_enfermo)}</TableCell>
                     <TableCell className="text-sm">
                       {persona.celebraciones?.length
