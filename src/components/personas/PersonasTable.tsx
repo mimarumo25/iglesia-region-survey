@@ -122,7 +122,7 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
       return <span className="text-muted-foreground">-</span>;
     }
     const names = arr.map((item) =>
-      typeof item === 'object' && item !== null ? item.nombre : String(item)
+      typeof item === 'object' && item !== null ? (item.nombre ?? '') : String(item)
     ).filter(Boolean);
     if (names.length === 0) return <span className="text-muted-foreground">-</span>;
     return (
@@ -139,18 +139,21 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
   /**
    * Formatea arrays (como destrezas) en badges
    */
-  const formatArray = (arr: string[] | null | undefined): JSX.Element => {
+  const formatArray = (arr: Array<string | { id?: string | number; nombre?: string }> | null | undefined): JSX.Element => {
     if (!arr || arr.length === 0) {
       return <span className="text-muted-foreground">-</span>;
     }
 
     return (
       <div className="flex flex-wrap gap-1">
-        {arr.map((item, index) => (
-          <Badge key={index} variant="outline" className="text-xs">
-            {item}
-          </Badge>
-        ))}
+        {arr.map((item, index) => {
+          const label = typeof item === 'object' && item !== null ? (item.nombre ?? '-') : String(item);
+          return (
+            <Badge key={index} variant="outline" className="text-xs">
+              {label}
+            </Badge>
+          );
+        })}
       </div>
     );
   };
@@ -410,11 +413,7 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
                     {persona.destrezas && persona.destrezas.length > 0 && (
                       <div className="border-t pt-2 space-y-1 text-xs">
                         <p className="text-muted-foreground font-medium">Destrezas</p>
-                        <div className="flex flex-wrap gap-1">
-                          {persona.destrezas.map((destreza, i) => (
-                            <Badge key={i} variant="outline" className="text-xs">{destreza}</Badge>
-                          ))}
-                        </div>
+                        {formatArray(persona.destrezas)}
                       </div>
                     )}
 
@@ -430,11 +429,7 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
                     {persona.necesidad_enfermo && persona.necesidad_enfermo.length > 0 && (
                       <div className="border-t pt-2 space-y-1 text-xs">
                         <p className="text-muted-foreground font-medium">Necesidades Especiales</p>
-                        <div className="flex flex-wrap gap-1">
-                          {persona.necesidad_enfermo.map((item, i) => (
-                            <Badge key={i} variant="outline" className="text-xs">{item}</Badge>
-                          ))}
-                        </div>
+                        {formatArray(persona.necesidad_enfermo)}
                       </div>
                     )}
                   </CardContent>

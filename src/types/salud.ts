@@ -8,7 +8,7 @@
  * Nota: enfermedades puede ser array, string o null dependiendo de la API
  */
 export interface SaludInfo {
-  enfermedades: string[] | string | null;
+  enfermedades: Array<string | { id?: string | number; nombre: string }> | string | null;
   necesidades_medicas: string | null;
   tiene_enfermedades: boolean;
 }

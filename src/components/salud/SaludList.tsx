@@ -15,7 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, User, MapPin, Calendar, Activity, ChevronLeft, ChevronRight } from "lucide-react";
-import type { PersonaSalud } from "@/types/salud";
+import type { PersonaSalud, SaludInfo } from "@/types/salud";
 
 interface SaludListProps {
   personas: PersonaSalud[];
@@ -62,13 +62,27 @@ const SaludList = ({
   /**
    * Formatea la fecha de nacimiento
    */
-  const formatearFecha = (fechaStr: string): string => {
+  const formatearFecha = (fechaStr: string | null | undefined): string => {
+    if (!fechaStr) return '-';
     try {
       const fecha = new Date(fechaStr);
       return fecha.toLocaleDateString('es-ES');
     } catch {
       return fechaStr;
     }
+  };
+
+  const resolverEnfermedades = (raw: SaludInfo['enfermedades']): string[] => {
+    if (!raw) return [];
+    if (typeof raw === 'string') {
+      return raw.trim() ? raw.split(',').map(e => e.trim()).filter(Boolean) : [];
+    }
+    if (Array.isArray(raw)) {
+      return raw.map(item =>
+        typeof item === 'object' && item !== null ? (item.nombre ?? '') : String(item)
+      ).filter(Boolean);
+    }
+    return [];
   };
 
   // Estado de carga
@@ -191,29 +205,14 @@ const SaludList = ({
                     <div className="flex items-start gap-2">
                       <Activity className="h-4 w-4 text-red-600 mt-1 flex-shrink-0" />
                       <div className="text-sm">
-                        {persona.salud.tiene_enfermedades ? (
+                        {persona.salud?.tiene_enfermedades ? (
                           <div className="space-y-1">
                             <div className="flex flex-wrap gap-1">
-                              {(() => {
-                                // Validación defensiva: convertir string separado por comas a array
-                                let enfermedades: string[] = [];
-                                
-                                if (Array.isArray(persona.salud.enfermedades)) {
-                                  enfermedades = persona.salud.enfermedades;
-                                } else if (typeof persona.salud.enfermedades === 'string' && persona.salud.enfermedades.trim()) {
-                                  // Separar por comas y limpiar espacios
-                                  enfermedades = persona.salud.enfermedades
-                                    .split(',')
-                                    .map(e => e.trim())
-                                    .filter(e => e.length > 0);
-                                }
-                                
-                                return enfermedades.map((enfermedad, idx) => (
-                                  <Badge key={idx} variant="destructive" className="text-xs">
-                                    {enfermedad}
-                                  </Badge>
-                                ));
-                              })()}
+                              {resolverEnfermedades(persona.salud.enfermedades).map((enfermedad, idx) => (
+                                <Badge key={idx} variant="destructive" className="text-xs">
+                                  {enfermedad}
+                                </Badge>
+                              ))}
                             </div>
                             {persona.salud.necesidades_medicas && (
                               <p className="text-xs text-muted-foreground">
@@ -366,32 +365,17 @@ const SaludList = ({
                 </div>
 
                 {/* Condiciones de Salud */}
-                {persona.salud.tiene_enfermedades && (
+                {persona.salud?.tiene_enfermedades && (
                   <div className="flex items-start gap-2 p-2 bg-red-50 rounded-lg border border-red-200">
                     <Activity className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-red-900 mb-1">Condiciones de Salud:</p>
                       <div className="flex flex-wrap gap-1">
-                        {(() => {
-                          // Validación defensiva: convertir string separado por comas a array
-                          let enfermedades: string[] = [];
-                          
-                          if (Array.isArray(persona.salud.enfermedades)) {
-                            enfermedades = persona.salud.enfermedades;
-                          } else if (typeof persona.salud.enfermedades === 'string' && persona.salud.enfermedades.trim()) {
-                            // Separar por comas y limpiar espacios
-                            enfermedades = persona.salud.enfermedades
-                              .split(',')
-                              .map(e => e.trim())
-                              .filter(e => e.length > 0);
-                          }
-                          
-                          return enfermedades.map((enfermedad, idx) => (
-                            <Badge key={idx} variant="destructive" className="text-xs">
-                              {enfermedad}
-                            </Badge>
-                          ));
-                        })()}
+                        {resolverEnfermedades(persona.salud.enfermedades).map((enfermedad, idx) => (
+                          <Badge key={idx} variant="destructive" className="text-xs">
+                            {enfermedad}
+                          </Badge>
+                        ))}
                       </div>
                       {persona.salud.necesidades_medicas && (
                         <p className="text-xs text-red-700 mt-1">

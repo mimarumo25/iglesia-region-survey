@@ -16,9 +16,6 @@
  * @author Sistema MIA
  */
 
-import { useMemo } from "react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import {
   Table,
   TableBody,
@@ -49,18 +46,6 @@ import { cn } from "@/lib/utils";
  * Componente DifuntosTable - Tabla de resultados de difuntos con vista responsive
  */
 export const DifuntosTable = ({ data, isLoading, total = 0 }: DifuntosTableProps) => {
-
-  /**
-   * Formatea una fecha en formato legible
-   */
-  const formatDate = (dateString: string): string => {
-    try {
-      const date = new Date(dateString);
-      return format(date, "dd 'de' MMMM 'de' yyyy", { locale: es });
-    } catch (error) {
-      return dateString; // Devolver el string original si no se puede parsear
-    }
-  };
 
   /**
    * Obtiene el color del badge según la fuente de datos
@@ -232,7 +217,7 @@ export const DifuntosTable = ({ data, isLoading, total = 0 }: DifuntosTableProps
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                               <span className="font-medium">Fecha:</span>
-                              <span>{formatDate(difunto.fecha_aniversario)}</span>
+                              <span>{difunto.fecha_aniversario ?? '-'}</span>
                             </div>
                             
                             {difunto.parentesco_real && (
@@ -357,7 +342,7 @@ export const DifuntosTable = ({ data, isLoading, total = 0 }: DifuntosTableProps
                           <TableCell>
                             <div className="flex items-center gap-1 text-sm">
                               <Calendar className="h-3 w-3 text-muted-foreground" />
-                              {formatDate(difunto.fecha_aniversario)}
+                              {difunto.fecha_aniversario ?? '-'}
                             </div>
                           </TableCell>
 
