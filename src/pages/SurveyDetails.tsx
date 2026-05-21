@@ -645,11 +645,11 @@ const SurveyDetails = () => {
                         <h4 className="font-bold text-sm text-foreground mb-2">
                           👑 Áreas de Liderazgo
                         </h4>
-                        {parseArrayField(miembro.en_que_eres_lider).length > 0 ? (
+                        {miembro.liderazgos && miembro.liderazgos.length > 0 ? (
                           <div className="flex flex-wrap gap-2">
-                            {parseArrayField(miembro.en_que_eres_lider).map((area, idx) => (
-                              <Badge key={idx} variant="default" className="bg-purple-100 text-purple-800 border-purple-300">
-                                {area}
+                            {miembro.liderazgos.map((liderazgo) => (
+                              <Badge key={liderazgo.id} variant="default" className="bg-purple-100 text-purple-800 border-purple-300">
+                                {liderazgo.nombre}
                               </Badge>
                             ))}
                           </div>

@@ -185,7 +185,13 @@ const PersonDetailCard: React.FC<{ person: SurveyPerson }> = ({ person }) => {
             <div>
               <p className="text-gray-600 text-xs">Liderazgo</p>
               <div className="flex flex-wrap gap-1">
-                {person.en_que_eres_lider ? (
+                {(person as any).liderazgos && (person as any).liderazgos.length > 0 ? (
+                  (person as any).liderazgos.map((l: { id: string; nombre: string }) => (
+                    <Badge key={l.id} variant="default" className="text-xs">
+                      {l.nombre}
+                    </Badge>
+                  ))
+                ) : person.en_que_eres_lider ? (
                   parseArrayField(person.en_que_eres_lider).map((area, idx) => (
                     <Badge key={idx} variant="default" className="text-xs">
                       {area}
