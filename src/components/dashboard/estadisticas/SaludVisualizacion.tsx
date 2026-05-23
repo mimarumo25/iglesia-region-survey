@@ -1,19 +1,13 @@
-/**
- * Componente para visualizar estadísticas de salud con gráficos interactivos
- * Versión mejorada con animaciones y diseño moderno
- */
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  Legend,
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
   Cell
 } from "recharts"
 import type { Salud } from "@/types/estadisticas-completas"
@@ -25,162 +19,183 @@ interface SaludVisualizacionProps {
   className?: string
 }
 
+// Paleta suave con tonos health-friendly
+const SOFT_COLORS = [
+  { bar: '#60a5fa', gradient: ['#93c5fd', '#3b82f6'] }, // sky blue
+  { bar: '#34d399', gradient: ['#6ee7b7', '#10b981'] }, // emerald
+  { bar: '#f87171', gradient: ['#fca5a5', '#ef4444'] }, // rose soft
+  { bar: '#fbbf24', gradient: ['#fde68a', '#f59e0b'] }, // amber warm
+  { bar: '#a78bfa', gradient: ['#c4b5fd', '#7c3aed'] }, // violet soft
+  { bar: '#f472b6', gradient: ['#f9a8d4', '#db2777'] }, // pink soft
+]
+
+const STAT_CONFIGS = [
+  {
+    gradient: 'from-sky-400/20 to-blue-400/10',
+    iconBg: 'bg-sky-100',
+    iconColor: 'text-sky-600',
+    numColor: 'text-sky-700',
+    border: 'border-sky-200/60',
+  },
+  {
+    gradient: 'from-rose-400/20 to-red-300/10',
+    iconBg: 'bg-rose-100',
+    iconColor: 'text-rose-500',
+    numColor: 'text-rose-600',
+    border: 'border-rose-200/60',
+  },
+  {
+    gradient: 'from-emerald-400/20 to-green-300/10',
+    iconBg: 'bg-emerald-100',
+    iconColor: 'text-emerald-600',
+    numColor: 'text-emerald-700',
+    border: 'border-emerald-200/60',
+  },
+  {
+    gradient: 'from-amber-400/20 to-orange-300/10',
+    iconBg: 'bg-amber-100',
+    iconColor: 'text-amber-600',
+    numColor: 'text-amber-700',
+    border: 'border-amber-200/60',
+  },
+]
+
+const DIST_BORDER_COLORS = [
+  'border-l-sky-400',
+  'border-l-emerald-400',
+  'border-l-rose-400',
+  'border-l-amber-400',
+  'border-l-violet-400',
+]
+
 const SaludVisualizacion = ({ salud, className }: SaludVisualizacionProps) => {
-  // Preparar datos para el gráfico de barras con colores
   const dataEnfermedades = salud.top10EnfermedadesMasComunes
     .filter(e => e.enfermedad !== "Ninguna")
     .slice(0, 6)
-    .map((enfermedad, index) => ({
-      nombre: enfermedad.enfermedad.length > 20 
-        ? enfermedad.enfermedad.substring(0, 20) + '...' 
+    .map((enfermedad) => ({
+      nombre: enfermedad.enfermedad.length > 18
+        ? enfermedad.enfermedad.substring(0, 18) + '…'
         : enfermedad.enfermedad,
       nombreCompleto: enfermedad.enfermedad,
       casos: enfermedad.casos,
       porcentaje: enfermedad.porcentajeDelTotal
     }))
 
-  // Colores altamente contrastantes y diferentes para las barras
-  const COLORS = [
-    '#ef4444', // rojo brillante
-    '#3b82f6', // azul 
-    '#10b981', // verde esmeralda
-    '#f59e0b', // ámbar/naranja
-    '#8b5cf6', // violeta
-    '#ec4899'  // rosa/magenta
-  ]
-
-  // Estadísticas principales mejoradas
   const estadisticasPrincipales = [
     {
       label: "Total Personas",
       value: salud.totalPersonas,
       icon: Users,
-      gradient: "from-blue-500 to-blue-600",
-      iconBg: "bg-blue-500/10",
-      iconColor: "text-blue-600",
-      change: "100%"
+      badge: "100%",
+      ...STAT_CONFIGS[0],
     },
     {
       label: "Con Enfermedades",
       value: salud.personasConEnfermedades,
       icon: AlertCircle,
-      gradient: "from-red-500 to-red-600",
-      iconBg: "bg-red-500/10",
-      iconColor: "text-red-600",
-      change: `${((salud.personasConEnfermedades / salud.totalPersonas) * 100).toFixed(1)}%`
+      badge: `${((salud.personasConEnfermedades / salud.totalPersonas) * 100).toFixed(1)}%`,
+      ...STAT_CONFIGS[1],
     },
     {
       label: "Personas Sanas",
       value: salud.personasSanas,
       icon: Shield,
-      gradient: "from-green-500 to-emerald-600",
-      iconBg: "bg-green-500/10",
-      iconColor: "text-green-600",
-      change: `${((salud.personasSanas / salud.totalPersonas) * 100).toFixed(1)}%`
+      badge: `${((salud.personasSanas / salud.totalPersonas) * 100).toFixed(1)}%`,
+      ...STAT_CONFIGS[2],
     },
     {
       label: "Familias Afectadas",
       value: salud.familiasConPersonasEnfermas,
       icon: Heart,
-      gradient: "from-orange-500 to-orange-600",
-      iconBg: "bg-orange-500/10",
-      iconColor: "text-orange-600",
-      change: "Monitoreo"
-    }
+      badge: "Seguimiento",
+      ...STAT_CONFIGS[3],
+    },
   ]
 
-  // Custom tooltip para los gráficos
   const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-card/95 backdrop-blur-sm border-2 border-primary/20 rounded-lg sm:rounded-xl p-2.5 sm:p-4 shadow-xl max-w-[200px] sm:max-w-none">
-          <p className="font-semibold text-[10px] sm:text-sm mb-1.5 sm:mb-2 leading-tight break-words">{payload[0].payload.nombreCompleto}</p>
-          <div className="space-y-0.5 sm:space-y-1">
-            <p className="text-[9px] sm:text-xs text-muted-foreground flex items-center justify-between gap-2 sm:gap-4">
-              <span>Casos:</span>
-              <span className="font-bold text-primary">{payload[0].value}</span>
-            </p>
-            {payload[1] && (
-              <p className="text-[9px] sm:text-xs text-muted-foreground flex items-center justify-between gap-2 sm:gap-4">
-                <span>Porcentaje:</span>
-                <span className="font-bold text-secondary">{payload[1].value}%</span>
-              </p>
-            )}
-          </div>
+    if (!active || !payload?.length) return null
+    return (
+      <div className="bg-white/95 dark:bg-card/95 backdrop-blur-sm border border-slate-200 dark:border-border rounded-xl p-3 shadow-lg min-w-[160px]">
+        <p className="font-semibold text-xs text-slate-700 dark:text-foreground mb-2 leading-snug">
+          {payload[0].payload.nombreCompleto}
+        </p>
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-[11px] text-slate-500 dark:text-muted-foreground">Casos</span>
+          <span className="text-[11px] font-bold" style={{ color: payload[0].fill || SOFT_COLORS[0].bar }}>
+            {payload[0].value}
+          </span>
         </div>
-      )
-    }
-    return null
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-[11px] text-slate-500 dark:text-muted-foreground">Del total</span>
+          <span className="text-[11px] font-semibold text-slate-600 dark:text-muted-foreground">
+            {payload[0].payload.porcentaje}%
+          </span>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="bg-gradient-to-r from-red-500/10 via-orange-500/10 to-amber-500/10 border-b p-4 sm:p-6">
+    <Card className={cn("overflow-hidden border border-slate-200/80 dark:border-border shadow-sm", className)}>
+      {/* Header suave — teal/azul en lugar de rojo */}
+      <CardHeader className="bg-gradient-to-r from-teal-50 via-sky-50 to-blue-50 dark:from-teal-500/8 dark:via-sky-500/6 dark:to-blue-500/8 border-b border-slate-200/60 dark:border-border p-4 sm:p-6">
         <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2 sm:gap-3 flex-1">
-            <div className="p-1.5 sm:p-2 bg-red-500/10 rounded-lg sm:rounded-xl flex-shrink-0">
-              <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-red-600" />
+            <div className="p-1.5 sm:p-2 bg-teal-100 dark:bg-teal-500/15 rounded-lg sm:rounded-xl flex-shrink-0">
+              <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-teal-600 dark:text-teal-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base sm:text-xl font-bold leading-tight">Estadísticas de Salud</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground font-normal leading-tight">
+              <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-foreground leading-tight">
+                Estadísticas de Salud
+              </h3>
+              <p className="text-[11px] sm:text-sm text-slate-500 dark:text-muted-foreground font-normal leading-tight mt-0.5">
                 Análisis completo del estado de salud poblacional
               </p>
             </div>
           </div>
-          <Badge variant="outline" className="text-[10px] sm:text-xs self-start sm:self-auto whitespace-nowrap">
+          <Badge
+            variant="outline"
+            className="text-[10px] sm:text-xs self-start sm:self-auto whitespace-nowrap border-teal-300 text-teal-700 dark:border-teal-500/40 dark:text-teal-400 bg-teal-50 dark:bg-teal-500/10"
+          >
             {salud.top10EnfermedadesMasComunes.length} enfermedades
           </Badge>
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="p-3 sm:p-6 space-y-6 sm:space-y-8">
-        {/* Tarjetas de resumen mejoradas */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-          {estadisticasPrincipales.map((stat, index) => {
+
+        {/* Tarjetas resumen — fondo suave sin gradientes agresivos */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+          {estadisticasPrincipales.map((stat, i) => {
             const Icon = stat.icon
             return (
-              <div 
-                key={index} 
+              <div
+                key={i}
                 className={cn(
-                  "group relative p-3 sm:p-5 rounded-xl sm:rounded-2xl overflow-hidden",
-                  "hover:shadow-xl hover:-translate-y-1",
-                  "transition-all duration-500 cursor-pointer",
-                  "border-2 border-transparent hover:border-primary/20",
-                  "bg-gradient-to-br from-background to-muted/30"
+                  "relative p-3 sm:p-4 rounded-xl overflow-hidden",
+                  "border",
+                  "transition-shadow duration-300 hover:shadow-md",
+                  `bg-gradient-to-br ${stat.gradient}`,
+                  stat.border,
                 )}
-                style={{
-                  animationDelay: `${index * 100}ms`
-                }}
               >
-                {/* Gradiente de fondo */}
-                <div className={cn(
-                  "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
-                  "bg-gradient-to-br blur-2xl -z-10",
-                  stat.gradient
-                )} />
-                
-                <div className="relative space-y-2 sm:space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className={cn(
-                      "p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition-transform group-hover:scale-110 group-hover:rotate-6",
-                      stat.iconBg
-                    )}>
-                      <Icon className={cn("w-3.5 h-3.5 sm:w-5 sm:h-5", stat.iconColor)} />
+                    <div className={cn("p-1.5 rounded-lg", stat.iconBg)}>
+                      <Icon className={cn("w-3.5 h-3.5 sm:w-4 sm:h-4", stat.iconColor)} />
                     </div>
-                    <Badge variant="secondary" className="text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 leading-tight">
-                      {stat.change}
+                    <Badge
+                      variant="secondary"
+                      className="text-[9px] sm:text-[10px] px-1.5 py-0.5 leading-tight font-medium bg-white/60 dark:bg-background/40 text-slate-600 dark:text-muted-foreground border-0"
+                    >
+                      {stat.badge}
                     </Badge>
                   </div>
-                  
                   <div>
-                    <p className={cn(
-                      "text-xl sm:text-3xl font-bold bg-gradient-to-br bg-clip-text text-transparent leading-tight",
-                      stat.gradient
-                    )}>
+                    <p className={cn("text-xl sm:text-2xl font-bold leading-tight", stat.numColor)}>
                       {stat.value.toLocaleString('es-CO')}
                     </p>
-                    <p className="text-[10px] sm:text-sm font-medium text-muted-foreground mt-0.5 sm:mt-1 leading-tight">
+                    <p className="text-[10px] sm:text-xs font-medium text-slate-500 dark:text-muted-foreground mt-0.5 leading-tight">
                       {stat.label}
                     </p>
                   </div>
@@ -190,140 +205,156 @@ const SaludVisualizacion = ({ salud, className }: SaludVisualizacionProps) => {
           })}
         </div>
 
-        {/* Gráfico de enfermedades más comunes mejorado */}
-        <div className="space-y-3 sm:space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-1.5 sm:p-2 bg-red-500/10 rounded-lg flex-shrink-0">
-                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+        {/* Distribución + Gráfica lado a lado */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 items-start">
+
+          {/* Distribución detallada — columna izquierda */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-amber-100 dark:bg-amber-500/15 rounded-lg flex-shrink-0">
+                <TrendingDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <h3 className="text-sm sm:text-lg font-bold leading-tight">Enfermedades Más Comunes</h3>
-                <p className="text-[10px] sm:text-sm text-muted-foreground leading-tight">
-                  Top 6 condiciones de salud registradas
+                <h3 className="text-sm sm:text-base font-semibold text-slate-700 dark:text-foreground leading-tight">
+                  Distribución Detallada
+                </h3>
+                <p className="text-[10px] sm:text-xs text-slate-400 dark:text-muted-foreground leading-tight">
+                  Por sexo y grupo etario
                 </p>
               </div>
             </div>
-            <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white text-[9px] sm:text-xs self-start sm:self-auto whitespace-nowrap">
-              Análisis Principal
-            </Badge>
-          </div>
-          
-          <div className="bg-muted/30 rounded-xl sm:rounded-2xl p-3 sm:p-6 border-2 border-muted">
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart 
-                data={dataEnfermedades}
-                margin={{ 
-                  top: 10, 
-                  right: window.innerWidth < 640 ? 5 : 30, 
-                  left: window.innerWidth < 640 ? -10 : 20, 
-                  bottom: window.innerWidth < 640 ? 70 : 80 
-                }}
-              >
-                <defs>
-                  {COLORS.map((color, index) => (
-                    <linearGradient key={index} id={`gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={color} stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor={color} stopOpacity={0.3}/>
-                    </linearGradient>
-                  ))}
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                <XAxis 
-                  dataKey="nombre" 
-                  angle={-45}
-                  textAnchor="end"
-                  height={window.innerWidth < 640 ? 80 : 100}
-                  tick={{ fontSize: window.innerWidth < 640 ? 9 : 11, fill: 'hsl(var(--muted-foreground))' }}
-                  stroke="hsl(var(--border))"
-                />
-                <YAxis 
-                  stroke="hsl(var(--border))"
-                  tick={{ fontSize: window.innerWidth < 640 ? 10 : 12, fill: 'hsl(var(--muted-foreground))' }}
-                  width={window.innerWidth < 640 ? 30 : 60}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend 
-                  wrapperStyle={{ paddingTop: window.innerWidth < 640 ? '10px' : '20px' }}
-                  iconType="circle"
-                  iconSize={window.innerWidth < 640 ? 8 : 10}
-                  wrapperClassName="text-xs sm:text-sm"
-                />
-                <Bar 
-                  dataKey="casos" 
-                  name="Casos Registrados"
-                  radius={[window.innerWidth < 640 ? 8 : 12, window.innerWidth < 640 ? 8 : 12, 0, 0]}
-                  animationDuration={1500}
-                >
-                  {dataEnfermedades.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={`url(#gradient-${index})`} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
 
-        {/* Detalles de enfermedades mejorado */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-500/10 rounded-lg">
-              <TrendingDown className="w-5 h-5 text-amber-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold">Distribución Detallada</h3>
-              <p className="text-sm text-muted-foreground">
-                Análisis por sexo y grupo etario
-              </p>
-            </div>
-          </div>
-          
-          <div className="grid gap-3">
-            {salud.distribucionPorEnfermedad.slice(0, 5).map((enfermedad, index) => (
-              <div 
-                key={index} 
-                className={cn(
-                  "group relative p-4 rounded-xl overflow-hidden",
-                  "bg-gradient-to-r from-muted/50 to-muted/30",
-                  "hover:from-primary/10 hover:to-secondary/10",
-                  "border-2 border-transparent hover:border-primary/20",
-                  "transition-all duration-300 cursor-pointer"
-                )}
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm mb-2 truncate">
-                      {enfermedad.enfermedad}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-3 text-xs">
-                      <Badge variant="outline" className="text-blue-600 border-blue-200">
-                        👨 {enfermedad.distribucionPorSexo.masculino}
-                      </Badge>
-                      <Badge variant="outline" className="text-pink-600 border-pink-200">
-                        👩 {enfermedad.distribucionPorSexo.femenino}
-                      </Badge>
-                      <Badge variant="outline" className="text-purple-600 border-purple-200">
-                        👶 &lt;18: {enfermedad.distribucionPorEdad.menores18}
-                      </Badge>
-                      <Badge variant="outline" className="text-orange-600 border-orange-200">
-                        🧑 18-60: {enfermedad.distribucionPorEdad.entre18y60}
-                      </Badge>
+            <div className="grid gap-2 sm:gap-3">
+              {salud.distribucionPorEnfermedad.slice(0, 5).map((enfermedad, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "relative p-3 sm:p-4 rounded-xl",
+                    "border-l-[3px] border border-slate-200/60 dark:border-border",
+                    "bg-white/80 dark:bg-card/60",
+                    "hover:bg-slate-50 dark:hover:bg-muted/30",
+                    "transition-colors duration-200",
+                    DIST_BORDER_COLORS[i % DIST_BORDER_COLORS.length],
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-3 sm:gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-xs sm:text-sm text-slate-700 dark:text-foreground mb-2 truncate">
+                        {enfermedad.enfermedad}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-200/60 dark:border-sky-500/20">
+                          <span className="font-medium">M</span> {enfermedad.distribucionPorSexo.masculino}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-pink-50 dark:bg-pink-500/10 text-pink-700 dark:text-pink-400 border border-pink-200/60 dark:border-pink-500/20">
+                          <span className="font-medium">F</span> {enfermedad.distribucionPorSexo.femenino}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 border border-violet-200/60 dark:border-violet-500/20">
+                          <span className="font-medium">&lt;18</span> {enfermedad.distribucionPorEdad.menores18}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20">
+                          <span className="font-medium">18-60</span> {enfermedad.distribucionPorEdad.entre18y60}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0 space-y-1">
+                      <p className="text-xl sm:text-2xl font-bold text-slate-700 dark:text-foreground leading-none">
+                        {enfermedad.totalPersonas}
+                      </p>
+                      <span
+                        className="inline-block text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full"
+                        style={{
+                          backgroundColor: SOFT_COLORS[i % SOFT_COLORS.length].bar + '25',
+                          color: SOFT_COLORS[i % SOFT_COLORS.length].gradient[1],
+                        }}
+                      >
+                        {enfermedad.porcentaje}%
+                      </span>
                     </div>
                   </div>
-                  
-                  <div className="text-right space-y-1">
-                    <p className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                      {enfermedad.totalPersonas}
-                    </p>
-                    <Badge className="bg-gradient-to-r from-primary to-secondary text-white text-xs">
-                      {enfermedad.porcentaje}%
-                    </Badge>
-                  </div>
+                </div>
+              ))}
+            </div>
+          </div>{/* fin columna izquierda */}
+
+          {/* Gráfico de enfermedades — columna derecha */}
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-rose-100 dark:bg-rose-500/15 rounded-lg flex-shrink-0">
+                  <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-500 dark:text-rose-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-semibold text-slate-700 dark:text-foreground leading-tight">
+                    Enfermedades Más Comunes
+                  </h3>
+                  <p className="text-[10px] sm:text-xs text-slate-400 dark:text-muted-foreground leading-tight">
+                    Top 6 condiciones de salud registradas
+                  </p>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+              <Badge
+                variant="outline"
+                className="text-[10px] sm:text-xs self-start sm:self-auto border-rose-200 text-rose-600 dark:border-rose-500/30 dark:text-rose-400 bg-rose-50/60 dark:bg-rose-500/8"
+              >
+                Análisis principal
+              </Badge>
+            </div>
+
+            <div className="bg-slate-50/60 dark:bg-muted/20 rounded-xl sm:rounded-2xl p-3 sm:p-5 border border-slate-200/50 dark:border-border w-full">
+              <div className="flex flex-wrap gap-x-3 gap-y-1.5 mb-3 sm:mb-4">
+                {dataEnfermedades.map((item, i) => (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <span
+                      className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: SOFT_COLORS[i % SOFT_COLORS.length].bar }}
+                    />
+                    <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-muted-foreground truncate max-w-[90px]">
+                      {item.nombre}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={dataEnfermedades}
+                  margin={{ top: 4, right: 8, left: -12, bottom: 60 }}
+                  barCategoryGap="28%"
+                >
+                  <defs>
+                    {SOFT_COLORS.map((c, i) => (
+                      <linearGradient key={i} id={`sg-${i}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={c.gradient[0]} stopOpacity={0.95} />
+                        <stop offset="100%" stopColor={c.gradient[1]} stopOpacity={0.65} />
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <CartesianGrid strokeDasharray="4 4" stroke="#e2e8f0" strokeOpacity={0.6} vertical={false} />
+                  <XAxis
+                    dataKey="nombre"
+                    angle={-38}
+                    textAnchor="end"
+                    height={70}
+                    tick={{ fontSize: 10, fill: '#94a3b8' }}
+                    axisLine={{ stroke: '#e2e8f0' }}
+                    tickLine={false}
+                  />
+                  <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={36} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(148,163,184,0.08)' }} />
+                  <Bar dataKey="casos" name="Casos" radius={[8, 8, 0, 0]} animationDuration={1200} animationEasing="ease-out">
+                    {dataEnfermedades.map((_, i) => (
+                      <Cell key={`cell-${i}`} fill={`url(#sg-${i % SOFT_COLORS.length})`} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>{/* fin columna derecha */}
+
+        </div>{/* fin grid */}
+
       </CardContent>
     </Card>
   )
