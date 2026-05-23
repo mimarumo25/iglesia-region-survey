@@ -43,7 +43,7 @@ export interface PersonaConsolidada {
   };
 
   // Arrays (la API retorna objetos {id,nombre} para estos campos, no strings planos)
-  liderazgo: Array<string | { id?: string | number; nombre: string }>;
+  liderazgos: Array<{ id: number; nombre: string }>;
   necesidad_enfermo: Array<string | { id?: string | number; nombre: string }>;
   destrezas: Array<string | { id?: string | number; nombre: string }>;
 

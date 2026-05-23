@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { obtenerEstadisticasCompletas } from "@/services/estadisticas-completas";
 import type { EstadisticasCompletasDatos } from "@/types/estadisticas-completas";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { 
+import {
   ResumenGeneralCards,
   SaludVisualizacion,
   EducacionVisualizacion,
@@ -21,21 +21,19 @@ import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 const DashboardMain = () => {
   const navigate = useNavigate();
-  
-  // Estado para estadísticas del API
+
   const [estadisticasCompletas, setEstadisticasCompletas] = useState<EstadisticasCompletasDatos | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Obtener estadísticas al montar el componente
   useEffect(() => {
     const fetchEstadisticas = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         const dataCompletas = await obtenerEstadisticasCompletas();
-        
+
         setEstadisticasCompletas(dataCompletas);
       } catch (err: any) {
         setError(err.message || 'Error al cargar estadísticas del dashboard');
@@ -50,7 +48,7 @@ const DashboardMain = () => {
   return (
     <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-3 lg:px-6 py-6 lg:py-8 space-y-8 lg:space-y-10 min-h-screen bg-background/50">
       <DashboardHeader />
-      
+
       {/* Estado de carga */}
       {isLoading && (
         <ParishCard variant="elevated" className="border-primary/20">
@@ -86,7 +84,7 @@ const DashboardMain = () => {
       {!isLoading && estadisticasCompletas && (
         <>
           {/* Botón de acción principal para nueva encuesta */}
-          <ParishCard variant="gradient" themeBackground="animated" className="border-0 text-primary-foreground overflow-hidden">
+          <ParishCard variant="gradient" themeBackground="primary" className="border-0 text-primary-foreground overflow-hidden">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <FileText className="w-6 h-6" />
@@ -110,9 +108,9 @@ const DashboardMain = () => {
           </ParishCard>
 
           {/* Estadísticas Completas del Sistema */}
-          <div className="pt-4">
-            <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-6 flex items-center gap-3">
-              <BarChart3 className="w-7 h-7 text-primary" />
+          <div className="flex items-center gap-3 border-b border-border pb-4">
+            <BarChart3 className="w-6 h-6 text-primary flex-shrink-0" />
+            <h2 className="text-xl lg:text-2xl font-bold text-foreground tracking-tight">
               Estadísticas del Sistema
             </h2>
           </div>

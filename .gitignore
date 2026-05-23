@@ -62,3 +62,6 @@ __pycache__/
 *.bak
 *.backup
 *.orig
+.claude/
+.superpowers/
+/docs/superpowers/

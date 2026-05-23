@@ -1011,25 +1011,20 @@ const PersonasReport = () => {
                   {/* Destrezas */}
                   <div className="space-y-2">
                     <Label>Destrezas</Label>
-                    <Select
-                      value={filtrosPersonales.id_destreza?.toString() || "all"}
-                      onValueChange={(val) => setFiltrosPersonales(prev => ({
-                        ...prev,
-                        id_destreza: val !== "all" ? Number(val) : undefined
+                    <Autocomplete
+                      options={destrezasCatalogo.map(d => ({
+                        value: d.id.toString(),
+                        label: d.nombre,
+                        category: 'Destrezas'
                       }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Todas las destrezas" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas las destrezas</SelectItem>
-                        {destrezasCatalogo.map((d) => (
-                          <SelectItem key={d.id} value={d.id.toString()}>
-                            {d.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      value={filtrosPersonales.id_destreza?.toString() || ""}
+                      onValueChange={(value) => setFiltrosPersonales(prev => ({
+                        ...prev,
+                        id_destreza: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar destreza..."
+                      emptyText="No se encontraron destrezas"
+                    />
                   </div>
                 </div>
 
@@ -1917,25 +1912,20 @@ const PersonasReport = () => {
                   {/* Destreza */}
                   <div className="space-y-2">
                     <Label>Destreza</Label>
-                    <Select
-                      value={filtrosReporte.id_destreza?.toString() || "all"}
-                      onValueChange={(val) => setFiltrosReporte(prev => ({
-                        ...prev,
-                        id_destreza: val !== "all" ? Number(val) : undefined
+                    <Autocomplete
+                      options={destrezasCatalogo.map(d => ({
+                        value: d.id.toString(),
+                        label: d.nombre,
+                        category: 'Destrezas'
                       }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Todas las destrezas" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas las destrezas</SelectItem>
-                        {destrezasCatalogo.map((d) => (
-                          <SelectItem key={d.id} value={d.id.toString()}>
-                            {d.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      value={filtrosReporte.id_destreza?.toString() || ""}
+                      onValueChange={(value) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        id_destreza: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar destreza..."
+                      emptyText="No se encontraron destrezas"
+                    />
                   </div>
 
                   {/* Talla Camisa */}
