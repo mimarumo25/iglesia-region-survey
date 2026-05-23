@@ -30,6 +30,7 @@ import { Search, RotateCcw } from "lucide-react";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
 import { useMunicipioDependentCorregimientos } from "@/hooks/useMunicipioDependentCorregimientos";
 import { useMunicipioDependentCentrosPoblados } from "@/hooks/useMunicipioDependentCentrosPoblados";
+import { useMunicipioDependentVeredas } from "@/hooks/useMunicipioDependentVeredas";
 import { DifuntosFilters, DifuntosFormProps } from "@/types/difuntos";
 import { AutocompleteOption } from "@/components/ui/autocomplete";
 
@@ -39,6 +40,7 @@ const difuntosFilterSchema = z.object({
   fecha_inicio: z.date().optional().nullable(),
   fecha_fin: z.date().optional().nullable(),
   sector: z.string().optional(),
+  vereda: z.string().optional(),
   municipio: z.string().optional(),
   parroquia: z.string().optional(),
   corregimiento: z.string().optional(),
@@ -73,6 +75,7 @@ export const DifuntosForm = ({ onSearch, isLoading, onClearFilters }: DifuntosFo
       municipio: "",
       parroquia: "",
       sector: "",
+      vereda: "",
       corregimiento: "",
       centro_poblado: "",
       fecha_inicio: null,
@@ -89,6 +92,10 @@ export const DifuntosForm = ({ onSearch, isLoading, onClearFilters }: DifuntosFo
   );
   
   const { centroPobladoOptions, isLoading: centrosPobladosLoading } = useMunicipioDependentCentrosPoblados(
+    selectedMunicipio || null
+  );
+
+  const { veredaOptions, isLoading: veredasLoading } = useMunicipioDependentVeredas(
     selectedMunicipio || null
   );
 
@@ -119,6 +126,7 @@ export const DifuntosForm = ({ onSearch, isLoading, onClearFilters }: DifuntosFo
     if (selectedMunicipio) {
       form.setValue("parroquia", "");
       form.setValue("sector", "");
+      form.setValue("vereda", "");
       form.setValue("corregimiento", "");
       form.setValue("centro_poblado", "");
     }
@@ -150,7 +158,11 @@ export const DifuntosForm = ({ onSearch, isLoading, onClearFilters }: DifuntosFo
     if (data.sector && data.sector !== '__ALL__' && data.sector !== '') {
       filters.id_sector = data.sector;
     }
-    
+
+    if (data.vereda && data.vereda !== '__ALL__' && data.vereda !== '') {
+      filters.id_vereda = data.vereda;
+    }
+
     if (data.corregimiento && data.corregimiento !== '__ALL__' && data.corregimiento !== '') {
       filters.id_corregimiento = data.corregimiento;
     }
@@ -177,6 +189,7 @@ export const DifuntosForm = ({ onSearch, isLoading, onClearFilters }: DifuntosFo
       municipio: "",
       parroquia: "",
       sector: "",
+      vereda: "",
       corregimiento: "",
       centro_poblado: "",
       fecha_inicio: null,
@@ -286,7 +299,7 @@ export const DifuntosForm = ({ onSearch, isLoading, onClearFilters }: DifuntosFo
               />
             </div>
 
-            {/* Segunda fila: Sector, Corregimiento y Centro Poblado */}
+            {/* Segunda fila: Sector, Vereda, Corregimiento y Centro Poblado */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {/* Sector */}
               <FormField
@@ -302,6 +315,28 @@ export const DifuntosForm = ({ onSearch, isLoading, onClearFilters }: DifuntosFo
                         onValueChange={field.onChange}
                         placeholder={selectedMunicipio ? "Seleccionar sector..." : "Primero municipio"}
                         disabled={isLoading || !selectedMunicipio}
+                        className="text-xs sm:text-sm"
+                      />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              {/* Vereda */}
+              <FormField
+                control={form.control}
+                name="vereda"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs sm:text-sm">Vereda</FormLabel>
+                    <FormControl>
+                      <Autocomplete
+                        options={veredaOptions}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder={selectedMunicipio ? "Seleccionar vereda..." : "Primero municipio"}
+                        disabled={isLoading || !selectedMunicipio || veredasLoading}
                         className="text-xs sm:text-sm"
                       />
                     </FormControl>

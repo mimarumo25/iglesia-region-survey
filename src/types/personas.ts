@@ -129,7 +129,7 @@ export interface FiltrosPersonales {
   id_profesion?: number;
   id_nivel_educativo?: number; // ⚠️ CORREGIDO: era "id_nivel_estudios"
   id_comunidad_cultural?: number;
-  liderazgo?: boolean | string; // ⚠️ Acepta 'all', 'true', 'false', o boolean para UI
+  id_liderazgo?: string;
   id_destreza?: number; // ⚠️ AGREGADO: faltaba en implementación original
   id_municipio?: number;
   id_parroquia?: number;

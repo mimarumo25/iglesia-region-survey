@@ -39,6 +39,7 @@ import { Autocomplete } from "@/components/ui/autocomplete";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
 import { useGeographicFilters } from "@/hooks/useGeographicFilters";
 import { useDestrezasFormulario } from "@/hooks/useDestrezasFormulario";
+import { useLiderazgoFormulario } from "@/hooks/useLiderazgoFormulario";
 import { useToast } from "@/hooks/use-toast";
 import PersonasTable from "@/components/personas/PersonasTable";
 import type { 
@@ -60,6 +61,7 @@ const PersonasReport = () => {
   const [activeTab, setActiveTab] = useState("geografico");
   const configData = useConfigurationData();
   const { destrezas: destrezasCatalogo } = useDestrezasFormulario();
+  const { liderazgos: liderazgosCatalogo, isLoading: liderazgosLoading } = useLiderazgoFormulario();
   const { toast } = useToast();
 
   // Estados compartidos para resultados
@@ -99,7 +101,6 @@ const PersonasReport = () => {
   });
 
   const [filtrosPersonales, setFiltrosPersonales] = useState<FiltrosPersonales>({
-    liderazgo: 'all' as any,
     page: 1,
     limit: 100
   });
@@ -146,7 +147,6 @@ const PersonasReport = () => {
   });
 
   const [filtrosReporte, setFiltrosReporte] = useState<FiltrosReporteGeneral>({
-    liderazgo: 'all' as any,
     page: 1,
     limit: 100
   });
@@ -196,15 +196,7 @@ const PersonasReport = () => {
         
         case 'personal':
           endpoint = '/api/personas/consolidado/personal';
-          params = {
-            ...filtrosPersonales,
-            page: newPage,
-            liderazgo: typeof filtrosPersonales.liderazgo === 'string'
-                     ? (filtrosPersonales.liderazgo === 'true' ? true 
-                       : filtrosPersonales.liderazgo === 'false' ? false 
-                       : undefined)
-                     : filtrosPersonales.liderazgo
-          };
+          params = { ...filtrosPersonales, page: newPage };
           setFiltrosPersonales(prev => ({ ...prev, page: newPage }));
           break;
         
@@ -222,15 +214,7 @@ const PersonasReport = () => {
         
         case 'reporte':
           endpoint = '/api/personas/consolidado/reporte';
-          params = {
-            ...filtrosReporte,
-            page: newPage,
-            liderazgo: typeof filtrosReporte.liderazgo === 'string'
-                     ? (filtrosReporte.liderazgo === 'true' ? true 
-                       : filtrosReporte.liderazgo === 'false' ? false 
-                       : undefined)
-                     : filtrosReporte.liderazgo
-          };
+          params = { ...filtrosReporte, page: newPage };
           setFiltrosReporte(prev => ({ ...prev, page: newPage }));
           break;
         
@@ -284,14 +268,7 @@ const PersonasReport = () => {
         
         case 'personal':
           endpoint = '/api/personas/consolidado/personal';
-          params = {
-            ...filtrosPersonales,
-            liderazgo: typeof filtrosPersonales.liderazgo === 'string'
-                     ? (filtrosPersonales.liderazgo === 'true' ? true 
-                       : filtrosPersonales.liderazgo === 'false' ? false 
-                       : undefined)
-                     : filtrosPersonales.liderazgo
-          };
+          params = { ...filtrosPersonales };
           break;
         
         case 'tallas':
@@ -306,14 +283,7 @@ const PersonasReport = () => {
         
         case 'reporte':
           endpoint = '/api/personas/consolidado/reporte';
-          params = {
-            ...filtrosReporte,
-            liderazgo: typeof filtrosReporte.liderazgo === 'string'
-                     ? (filtrosReporte.liderazgo === 'true' ? true 
-                       : filtrosReporte.liderazgo === 'false' ? false 
-                       : undefined)
-                     : filtrosReporte.liderazgo
-          };
+          params = { ...filtrosReporte };
           break;
         
         default:
@@ -370,15 +340,7 @@ const PersonasReport = () => {
           break;
         case 'personal':
           endpoint = '/api/personas/consolidado/personal';
-          params = { 
-            ...filtrosPersonales, 
-            format: 'excel',
-            liderazgo: typeof filtrosPersonales.liderazgo === 'string'
-                     ? (filtrosPersonales.liderazgo === 'true' ? true 
-                       : filtrosPersonales.liderazgo === 'false' ? false 
-                       : undefined)
-                     : filtrosPersonales.liderazgo
-          };
+          params = { ...filtrosPersonales, format: 'excel' };
           break;
         case 'tallas':
           endpoint = '/api/personas/consolidado/tallas';
@@ -390,15 +352,7 @@ const PersonasReport = () => {
           break;
         case 'reporte':
           endpoint = '/api/personas/consolidado/reporte';
-          params = { 
-            ...filtrosReporte, 
-            format: 'excel',
-            liderazgo: typeof filtrosReporte.liderazgo === 'string'
-                     ? (filtrosReporte.liderazgo === 'true' ? true 
-                       : filtrosReporte.liderazgo === 'false' ? false 
-                       : undefined)
-                     : filtrosReporte.liderazgo
-          };
+          params = { ...filtrosReporte, format: 'excel' };
           break;
       }
 
@@ -459,7 +413,7 @@ const PersonasReport = () => {
         setFiltrosFamilia({ page: 1, limit: 100 });
         break;
       case 'personal':
-        setFiltrosPersonales({ liderazgo: 'all' as any, page: 1, limit: 100 });
+        setFiltrosPersonales({ page: 1, limit: 100 });
         break;
       case 'tallas':
         setFiltrosTallas({ 
@@ -475,7 +429,7 @@ const PersonasReport = () => {
         setFiltrosEdad({ page: 1, limit: 100 });
         break;
       case 'reporte':
-        setFiltrosReporte({ liderazgo: 'all' as any, page: 1, limit: 100 });
+        setFiltrosReporte({ page: 1, limit: 100 });
         break;
     }
     
@@ -1037,22 +991,21 @@ const PersonasReport = () => {
                   {/* Liderazgo */}
                   <div className="space-y-2">
                     <Label>Liderazgo</Label>
-                    <Select 
-                      value={typeof filtrosPersonales.liderazgo === 'string' ? filtrosPersonales.liderazgo : 'all'}
-                      onValueChange={(value) => setFiltrosPersonales(prev => ({ 
-                        ...prev, 
-                        liderazgo: value as any
+                    <Autocomplete
+                      options={liderazgosCatalogo.map(l => ({
+                        value: l.id,
+                        label: l.nombre,
+                        category: 'Liderazgo'
                       }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="true">Solo con liderazgo</SelectItem>
-                        <SelectItem value="false">Sin liderazgo</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      value={filtrosPersonales.id_liderazgo || ""}
+                      onValueChange={(value) => setFiltrosPersonales(prev => ({
+                        ...prev,
+                        id_liderazgo: value || undefined
+                      }))}
+                      placeholder="Seleccionar liderazgo..."
+                      loading={liderazgosLoading}
+                      emptyText="No se encontraron tipos de liderazgo"
+                    />
                   </div>
 
                   {/* Destrezas */}
@@ -1944,22 +1897,21 @@ const PersonasReport = () => {
                   {/* Liderazgo */}
                   <div className="space-y-2">
                     <Label>Liderazgo</Label>
-                    <Select 
-                      value={typeof filtrosReporte.liderazgo === 'string' ? filtrosReporte.liderazgo : 'all'}
-                      onValueChange={(value) => setFiltrosReporte(prev => ({ 
-                        ...prev, 
-                        liderazgo: value as any
+                    <Autocomplete
+                      options={liderazgosCatalogo.map(l => ({
+                        value: l.id,
+                        label: l.nombre,
+                        category: 'Liderazgo'
                       }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="true">Solo con liderazgo</SelectItem>
-                        <SelectItem value="false">Sin liderazgo</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      value={filtrosReporte.id_liderazgo || ""}
+                      onValueChange={(value) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        id_liderazgo: value || undefined
+                      }))}
+                      placeholder="Seleccionar liderazgo..."
+                      loading={liderazgosLoading}
+                      emptyText="No se encontraron tipos de liderazgo"
+                    />
                   </div>
 
                   {/* Destreza */}

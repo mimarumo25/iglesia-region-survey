@@ -57,6 +57,7 @@ export interface SaludFiltros {
   id_parroquia?: number;
   id_municipio?: number;
   id_sector?: number;
+  id_vereda?: number;
   id_corregimiento?: number;
   id_centro_poblado?: number;
   limite?: number;

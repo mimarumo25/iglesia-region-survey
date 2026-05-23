@@ -440,53 +440,53 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
         </div>
 
         {/* VISTA DESKTOP - Tabla Completa (solo lg+) */}
-        <div className="hidden lg:block rounded-md border overflow-x-auto">
+        <div className="hidden lg:block rounded-md border overflow-auto max-h-[70vh]">
           <div className="min-w-full">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   {/* Información Personal */}
-                  <TableHead className="font-semibold min-w-[200px] sticky left-0 bg-muted/50 z-10">Nombre Completo</TableHead>
-                  <TableHead className="font-semibold min-w-[130px]">Identificación</TableHead>
-                  <TableHead className="font-semibold min-w-[120px]">Fecha Nac.</TableHead>
-                  <TableHead className="font-semibold min-w-[100px]">Sexo</TableHead>
+                  <TableHead className="font-semibold min-w-[200px] sticky top-0 left-0 bg-muted/50 z-30">Nombre Completo</TableHead>
+                  <TableHead className="font-semibold min-w-[130px] sticky top-0 bg-muted/50 z-20">Identificación</TableHead>
+                  <TableHead className="font-semibold min-w-[120px] sticky top-0 bg-muted/50 z-20">Fecha Nac.</TableHead>
+                  <TableHead className="font-semibold min-w-[100px] sticky top-0 bg-muted/50 z-20">Sexo</TableHead>
 
                   {/* Contacto */}
-                  <TableHead className="font-semibold min-w-[130px]">Teléfono</TableHead>
-                  <TableHead className="font-semibold min-w-[180px]">Correo</TableHead>
+                  <TableHead className="font-semibold min-w-[130px] sticky top-0 bg-muted/50 z-20">Teléfono</TableHead>
+                  <TableHead className="font-semibold min-w-[180px] sticky top-0 bg-muted/50 z-20">Correo</TableHead>
 
                   {/* Ubicación Geográfica */}
-                  <TableHead className="font-semibold min-w-[140px]">Municipio</TableHead>
-                  <TableHead className="font-semibold min-w-[150px]">Parroquia</TableHead>
-                  <TableHead className="font-semibold min-w-[120px]">Sector</TableHead>
-                  <TableHead className="font-semibold min-w-[120px]">Vereda</TableHead>
+                  <TableHead className="font-semibold min-w-[140px] sticky top-0 bg-muted/50 z-20">Municipio</TableHead>
+                  <TableHead className="font-semibold min-w-[150px] sticky top-0 bg-muted/50 z-20">Parroquia</TableHead>
+                  <TableHead className="font-semibold min-w-[120px] sticky top-0 bg-muted/50 z-20">Sector</TableHead>
+                  <TableHead className="font-semibold min-w-[120px] sticky top-0 bg-muted/50 z-20">Vereda</TableHead>
 
                   {/* Información Familiar */}
-                  <TableHead className="font-semibold min-w-[130px]">Parentesco</TableHead>
-                  <TableHead className="font-semibold min-w-[160px]">Apellido Familiar</TableHead>
-                  <TableHead className="font-semibold min-w-[120px]">Tipo Vivienda</TableHead>
+                  <TableHead className="font-semibold min-w-[130px] sticky top-0 bg-muted/50 z-20">Parentesco</TableHead>
+                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted/50 z-20">Apellido Familiar</TableHead>
+                  <TableHead className="font-semibold min-w-[120px] sticky top-0 bg-muted/50 z-20">Tipo Vivienda</TableHead>
 
                   {/* Datos Personales */}
-                  <TableHead className="font-semibold min-w-[120px]">Estado Civil</TableHead>
-                  <TableHead className="font-semibold min-w-[140px]">Profesión</TableHead>
-                  <TableHead className="font-semibold min-w-[150px]">Nivel Educativo</TableHead>
-                  <TableHead className="font-semibold min-w-[140px]">Comunidad Cultural</TableHead>
+                  <TableHead className="font-semibold min-w-[120px] sticky top-0 bg-muted/50 z-20">Estado Civil</TableHead>
+                  <TableHead className="font-semibold min-w-[140px] sticky top-0 bg-muted/50 z-20">Profesión</TableHead>
+                  <TableHead className="font-semibold min-w-[150px] sticky top-0 bg-muted/50 z-20">Nivel Educativo</TableHead>
+                  <TableHead className="font-semibold min-w-[140px] sticky top-0 bg-muted/50 z-20">Comunidad Cultural</TableHead>
 
                   {/* Tallas */}
-                  <TableHead className="font-semibold min-w-[90px] text-center">Camisa</TableHead>
-                  <TableHead className="font-semibold min-w-[90px] text-center">Pantalón</TableHead>
-                  <TableHead className="font-semibold min-w-[90px] text-center">Zapato</TableHead>
+                  <TableHead className="font-semibold min-w-[90px] text-center sticky top-0 bg-muted/50 z-20">Camisa</TableHead>
+                  <TableHead className="font-semibold min-w-[90px] text-center sticky top-0 bg-muted/50 z-20">Pantalón</TableHead>
+                  <TableHead className="font-semibold min-w-[90px] text-center sticky top-0 bg-muted/50 z-20">Zapato</TableHead>
 
                   {/* Servicios */}
-                  <TableHead className="font-semibold min-w-[160px]">Acueducto</TableHead>
-                  <TableHead className="font-semibold min-w-[160px]">Aguas Residuales</TableHead>
-                  <TableHead className="font-semibold min-w-[160px]">Disposición Basura</TableHead>
+                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted/50 z-20">Acueducto</TableHead>
+                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted/50 z-20">Aguas Residuales</TableHead>
+                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted/50 z-20">Disposición Basura</TableHead>
 
                   {/* Arrays */}
-                  <TableHead className="font-semibold min-w-[140px]">Destrezas</TableHead>
-                  <TableHead className="font-semibold min-w-[140px]">Liderazgo</TableHead>
-                  <TableHead className="font-semibold min-w-[160px]">Necesidades Especiales</TableHead>
-                  <TableHead className="font-semibold min-w-[160px]">Celebraciones</TableHead>
+                  <TableHead className="font-semibold min-w-[140px] sticky top-0 bg-muted/50 z-20">Destrezas</TableHead>
+                  <TableHead className="font-semibold min-w-[140px] sticky top-0 bg-muted/50 z-20">Liderazgo</TableHead>
+                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted/50 z-20">Necesidades Especiales</TableHead>
+                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted/50 z-20">Celebraciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

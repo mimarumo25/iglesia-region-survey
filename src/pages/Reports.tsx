@@ -34,6 +34,7 @@ import { useParroquias } from "@/hooks/useParroquias";
 import { useCorregimientos } from "@/hooks/useCorregimientos";
 import { useCentrosPoblados } from "@/hooks/useCentrosPoblados";
 import { useSectores } from "@/hooks/useSectores";
+import { useVeredas } from "@/hooks/useVeredas";
 
 /**
  * 📊 Módulo de Reportes y Estadísticas - Sistema MIA
@@ -115,6 +116,7 @@ interface SaludFiltersUI {
   parroquia: string;
   municipio: string;
   sector: string;
+  vereda: string;
   corregimiento: string;
   centro_poblado: string;
   limite: number;
@@ -131,6 +133,7 @@ const Reports = () => {
   const { useCorregimientosByMunicipioQuery } = useCorregimientos();
   const { useCentrosPobladosByMunicipioQuery } = useCentrosPoblados();
   const { useSectoresByMunicipioQuery } = useSectores();
+  const { useVeredasQuery } = useVeredas();
 
   // Hook para gestión de datos de salud
   const {
@@ -169,6 +172,7 @@ const Reports = () => {
     parroquia: "",
     municipio: "",
     sector: "",
+    vereda: "",
     corregimiento: "",
     centro_poblado: "",
     limite: 100,
@@ -202,6 +206,13 @@ const Reports = () => {
 
   const { data: saludCentrosPobladosByMunicipioData } = useCentrosPobladosByMunicipioQuery(
     saludFilters.municipio ? Number(saludFilters.municipio) : null
+  );
+
+  const { data: saludVeredasData } = useVeredasQuery(
+    '',
+    saludFilters.municipio || '',
+    1,
+    1000
   );
 
   // ============================================================
@@ -402,6 +413,22 @@ const Reports = () => {
     });
   }, [saludFilters.municipio, saludSectoresByMunicipioData, configData.sectorOptions, configData.sectorItems]);
 
+  const filteredSaludVeredaOptions = useMemo(() => {
+    if (!saludFilters.municipio) return configData.veredaOptions;
+    if (saludVeredasData?.data && Array.isArray(saludVeredasData.data)) {
+      return saludVeredasData.data.map(v => ({
+        value: v.id_vereda?.toString() || '',
+        label: v.nombre || 'Sin nombre',
+        description: 'Vereda del municipio',
+        category: 'Ubicación'
+      }));
+    }
+    return configData.veredaOptions.filter(option => {
+      const vereda = configData.veredaItems?.find(v => v.id === option.value);
+      return vereda?.id_municipio?.toString() === saludFilters.municipio;
+    });
+  }, [saludFilters.municipio, saludVeredasData, configData.veredaOptions, configData.veredaItems]);
+
   /**
    * Filtrar opciones de Corregimiento basadas en el municipio seleccionado (Salud)
    * Prioriza datos dinámicos de la API, fallback a filtro local
@@ -486,11 +513,12 @@ const Reports = () => {
           municipio: value,
           parroquia: "",
           sector: "",
+          vereda: "",
           corregimiento: "",
           centro_poblado: ""
         };
       }
-      
+
       return { ...prev, [key]: value };
     });
   };
@@ -525,6 +553,7 @@ const Reports = () => {
       parroquia: "",
       municipio: "",
       sector: "",
+      vereda: "",
       corregimiento: "",
       centro_poblado: "",
       limite: 100,
@@ -658,9 +687,10 @@ const Reports = () => {
       id_sexo: saludFilters.sexo ? Number(saludFilters.sexo) : undefined,
       id_parroquia: saludFilters.parroquia ? Number(saludFilters.parroquia) : undefined,
       id_municipio: saludFilters.municipio ? Number(saludFilters.municipio) : undefined,
+      id_sector: saludFilters.sector ? Number(saludFilters.sector) : undefined,
+      id_vereda: saludFilters.vereda ? Number(saludFilters.vereda) : undefined,
       id_corregimiento: saludFilters.corregimiento ? Number(saludFilters.corregimiento) : undefined,
       id_centro_poblado: saludFilters.centro_poblado ? Number(saludFilters.centro_poblado) : undefined,
-      id_sector: saludFilters.sector ? Number(saludFilters.sector) : undefined,
       limite: saludFilters.limite,
       offset: saludFilters.offset
     };
@@ -701,9 +731,10 @@ const Reports = () => {
       id_sexo: saludFilters.sexo ? Number(saludFilters.sexo) : undefined,
       id_parroquia: saludFilters.parroquia ? Number(saludFilters.parroquia) : undefined,
       id_municipio: saludFilters.municipio ? Number(saludFilters.municipio) : undefined,
+      id_sector: saludFilters.sector ? Number(saludFilters.sector) : undefined,
+      id_vereda: saludFilters.vereda ? Number(saludFilters.vereda) : undefined,
       id_corregimiento: saludFilters.corregimiento ? Number(saludFilters.corregimiento) : undefined,
       id_centro_poblado: saludFilters.centro_poblado ? Number(saludFilters.centro_poblado) : undefined,
-      id_sector: saludFilters.sector ? Number(saludFilters.sector) : undefined,
       limite: 5000 // Límite alto para exportación completa
     };
 
@@ -1039,6 +1070,20 @@ const Reports = () => {
                       loading={configData.sectoresLoading}
                       disabled={!saludFilters.municipio}
                       emptyText="No hay sectores en este municipio"
+                    />
+                  </div>
+
+                  {/* Vereda - Filtrada por municipio */}
+                  <div className="space-y-2">
+                    <Label htmlFor="salud_vereda" className="text-sm font-medium">Vereda</Label>
+                    <Autocomplete
+                      options={filteredSaludVeredaOptions}
+                      value={saludFilters.vereda}
+                      onValueChange={(value) => handleSaludFilterChange('vereda', value)}
+                      placeholder={saludFilters.municipio ? "Seleccionar vereda..." : "Primero seleccione municipio"}
+                      loading={configData.veredasLoading}
+                      disabled={!saludFilters.municipio}
+                      emptyText="No hay veredas en este municipio"
                     />
                   </div>
 
