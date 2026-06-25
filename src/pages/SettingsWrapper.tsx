@@ -19,6 +19,7 @@ import EnfermedadesPage from './Enfermedades';
 import DisposicionBasuraPage from './DisposicionBasura';
 import TiposIdentificacionPage from './TiposIdentificacion';
 import LiderazgoPage from './Liderazgo';
+import NecesidadesEnfermoPage from './NecesidadesEnfermo';
 
 const SettingsWrapper = () => {
   const location = useLocation();
@@ -58,6 +59,8 @@ const SettingsWrapper = () => {
         return <SectoresConfigPage />;
       case '/settings/enfermedades':
         return <EnfermedadesPage />;
+      case '/settings/necesidades-enfermo':
+        return <NecesidadesEnfermoPage />;
       case '/settings/disposicion-basura':
         return <DisposicionBasuraPage />;
       case '/settings/tipos-identificacion':

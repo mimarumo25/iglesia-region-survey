@@ -10,11 +10,8 @@
 
 import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { 
   Calendar,
-  FileSpreadsheet,
   Database,
   Activity,
   Download
@@ -78,8 +75,8 @@ export const DifuntosReportPage = () => {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header de la página */}
-      <Card>
-        <CardHeader className="space-y-4">
+      <Card className="report-card">
+        <CardHeader className="report-card-header space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="space-y-1">
               <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
@@ -91,24 +88,6 @@ export const DifuntosReportPage = () => {
                 con filtros avanzados por ubicación, parentesco y fechas
               </CardDescription>
             </div>
-            
-            {/* Botones de acción agrupados */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-              <Button
-                variant="default"
-                onClick={exportToExcel}
-                disabled={isExporting || difuntos.length === 0}
-                className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-xs sm:text-sm h-9"
-              >
-                {isExporting ? (
-                  <div className="animate-spin h-3 w-3 sm:h-4 sm:w-4 border-2 border-current border-t-transparent rounded-full" />
-                ) : (
-                  <FileSpreadsheet className="h-3 w-3 sm:h-4 sm:w-4" />
-                )}
-                <span className="hidden xs:inline">Descargar Excel</span>
-                <span className="xs:hidden">Excel</span>
-              </Button>
-            </div>
           </div>
         </CardHeader>
       </Card>
@@ -118,6 +97,9 @@ export const DifuntosReportPage = () => {
         onSearch={handleSearch}
         isLoading={isLoading}
         onClearFilters={handleClearFilters}
+        onExport={exportToExcel}
+        isExporting={isExporting}
+        exportDisabled={difuntos.length === 0}
       />
 
       {/* Mensaje de error si existe */}

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Check, ChevronsUpDown, Search, X, Star } from "lucide-react"
+import { Check, ChevronsUpDown, Plus, Search, X, Star } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -43,6 +43,8 @@ interface EnhancedAutocompleteProps {
   allowClear?: boolean
   maxHeight?: string
   mobilePlaceholder?: string
+  onCreateOption?: (searchValue: string) => void
+  createOptionLabel?: string
 }
 
 export function EnhancedAutocomplete({
@@ -61,6 +63,8 @@ export function EnhancedAutocomplete({
   allowClear = true,
   maxHeight = "300px",
   mobilePlaceholder,
+  onCreateOption,
+  createOptionLabel = "Crear nueva opción",
 }: EnhancedAutocompleteProps) {
   const [open, setOpen] = React.useState(false)
   const [searchValue, setSearchValue] = React.useState("")
@@ -264,35 +268,53 @@ export function EnhancedAutocomplete({
             onValueChange={setSearchValue}
           />
           
-          <CommandList 
-            className="overflow-auto overscroll-contain touch-pan-y" 
-            style={{ maxHeight, WebkitOverflowScrolling: 'touch' }}
-          >
-            <CommandEmpty className="py-8 text-center text-sm text-gray-500">
-              <div className="flex flex-col items-center gap-3">
-                <Search className="w-12 h-12 text-gray-300" />
-                <div>
-                  <p className="font-medium">{emptyText}</p>
-                  {searchValue && (
-                    <p className="text-xs text-gray-400 mt-1">
-                      No se encontraron resultados para "{searchValue}"
-                    </p>
-                  )}
-                </div>
-              </div>
-            </CommandEmpty>
-            
-            {filteredAndGroupedOptions.map(({ category, options }) => (
-              <CommandGroup key={category}>
-                {showCategories && category && options.length > 0 && (
-                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 sticky top-0 z-10">
-                    {category}
+          <div className="overflow-y-auto overscroll-contain touch-pan-y" style={{ maxHeight, WebkitOverflowScrolling: 'touch' }}>
+            <CommandList className="max-h-none overflow-visible">
+              <CommandEmpty className="py-8 text-center text-sm text-gray-500">
+                <div className="flex flex-col items-center gap-3">
+                  <Search className="w-12 h-12 text-gray-300" />
+                  <div>
+                    <p className="font-medium">{emptyText}</p>
+                    {searchValue && (
+                      <p className="text-xs text-gray-400 mt-1">
+                        No se encontraron resultados para "{searchValue}"
+                      </p>
+                    )}
                   </div>
-                )}
-                {options.map(renderOption)}
-              </CommandGroup>
-            ))}
-          </CommandList>
+                </div>
+              </CommandEmpty>
+
+              {filteredAndGroupedOptions.map(({ category, options }) => (
+                <CommandGroup key={category}>
+                  {showCategories && category && options.length > 0 && (
+                    <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 sticky top-0 z-10">
+                      {category}
+                    </div>
+                  )}
+                  {options.map(renderOption)}
+                </CommandGroup>
+              ))}
+            </CommandList>
+          </div>
+          {onCreateOption && (
+            <div className="shrink-0 border-t border-gray-200 bg-white p-1.5">
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-auto w-full justify-start gap-2 px-3 py-2.5 text-primary font-semibold hover:bg-primary/10"
+                onClick={() => {
+                  onCreateOption(searchValue.trim())
+                  setOpen(false)
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                <span className="truncate">
+                  {createOptionLabel}
+                  {searchValue.trim() ? `: "${searchValue.trim()}"` : ""}
+                </span>
+              </Button>
+            </div>
+          )}
         </Command>
       </PopoverContent>
     </Popover>

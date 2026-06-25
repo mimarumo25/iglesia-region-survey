@@ -21,8 +21,9 @@
  * - ErrorBoundary para manejo de errores
  */
 
-import React from "react";
+import React, { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,13 +37,19 @@ import { useConfigurationData } from "@/hooks/useConfigurationData";
 import { useAutocompleteConfiguration } from "@/hooks/useAutocompleteConfiguration";
 import { DeceasedMemberFormData } from "@/hooks/useDeceasedGrid";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
-import { 
+import {
   DIALOG_CONFIG, 
   DIALOG_BUTTONS, 
   generateDialogTitle, 
   generateButtonText,
   DialogFormMode 
 } from "@/utils/dialog-helpers";
+import { CatalogFormModal } from "@/components/ui/config-modal";
+import {
+  CATALOG_CREATE_DEFINITIONS,
+  CatalogCreatedOption,
+  createCatalogOption,
+} from "@/config/catalog-create";
 
 interface DeceasedMemberDialogProps {
   form: UseFormReturn<DeceasedMemberFormData>;
@@ -77,6 +84,20 @@ const DeceasedMemberDialog: React.FC<DeceasedMemberDialogProps> = ({
 }) => {
   // Hook para datos de configuración
   const configurationData = useConfigurationData();
+  const queryClient = useQueryClient();
+  const [catalogToCreate, setCatalogToCreate] = useState<"sexo" | "parentesco" | null>(null);
+  const [catalogInitialName, setCatalogInitialName] = useState("");
+
+  const createDeceasedCatalogOption = async (values: Record<string, string>): Promise<CatalogCreatedOption> => {
+    if (!catalogToCreate) throw new Error("Catálogo no seleccionado");
+    const created = await createCatalogOption(catalogToCreate, values);
+    await Promise.all(
+      CATALOG_CREATE_DEFINITIONS[catalogToCreate].queryKeys.map((queryKey) =>
+        queryClient.invalidateQueries({ queryKey: [queryKey] })
+      )
+    );
+    return created;
+  };
   
   // Determinar el modo del formulario basado en si hay un miembro siendo editado
   const formMode: DialogFormMode = editingMember ? 'edit' : 'create';
@@ -194,6 +215,11 @@ const DeceasedMemberDialog: React.FC<DeceasedMemberDialogProps> = ({
                               emptyText="No se encontraron sexos"
                               searchPlaceholder="Buscar sexo..."
                               errorText="Error al cargar sexos"
+                              onCreateOption={(searchValue) => {
+                                setCatalogInitialName(searchValue);
+                                setCatalogToCreate("sexo");
+                              }}
+                              createOptionLabel="Crear nuevo sexo"
                             />
                           </ErrorBoundary>
                         </FormControl>
@@ -230,6 +256,11 @@ const DeceasedMemberDialog: React.FC<DeceasedMemberDialogProps> = ({
                               emptyText="No se encontraron parentescos"
                               searchPlaceholder="Buscar parentesco..."
                               errorText="Error al cargar parentescos"
+                              onCreateOption={(searchValue) => {
+                                setCatalogInitialName(searchValue);
+                                setCatalogToCreate("parentesco");
+                              }}
+                              createOptionLabel="Crear nuevo parentesco"
                             />
                           </ErrorBoundary>
                         </FormControl>
@@ -293,6 +324,27 @@ const DeceasedMemberDialog: React.FC<DeceasedMemberDialogProps> = ({
             </DialogFooter>
           </form>
         </Form>
+        {catalogToCreate && (
+          <CatalogFormModal
+            open={true}
+            onOpenChange={(open) => {
+              if (!open) setCatalogToCreate(null);
+            }}
+            title={CATALOG_CREATE_DEFINITIONS[catalogToCreate].title}
+            description={CATALOG_CREATE_DEFINITIONS[catalogToCreate].description}
+            submitText={CATALOG_CREATE_DEFINITIONS[catalogToCreate].submitText}
+            fields={CATALOG_CREATE_DEFINITIONS[catalogToCreate].fields({})}
+            initialValues={{ nombre: catalogInitialName }}
+            onSubmit={createDeceasedCatalogOption}
+            onCreated={(created) => {
+              form.setValue(
+                catalogToCreate,
+                { id: String(created.id), nombre: created.nombre },
+                { shouldDirty: true, shouldValidate: true }
+              );
+            }}
+          />
+        )}
       </DialogContent>
   );
 };

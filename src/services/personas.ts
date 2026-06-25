@@ -11,6 +11,7 @@ import type {
   FiltrosPersonales,
   FiltrosTallas,
   FiltrosEdad,
+  FiltrosCumpleanos,
   FiltrosReporteGeneral
 } from '@/types/personas';
 
@@ -67,6 +68,16 @@ export const getPersonasEdad = async (filtros: FiltrosEdad = {}): Promise<Person
 };
 
 /**
+ * Consultar personas por mes de cumpleaños
+ */
+export const getPersonasCumpleanos = async (filtros: FiltrosCumpleanos): Promise<PersonasResponse> => {
+  const response = await apiClient.get(`${BASE_URL}/cumpleanos`, {
+    params: filtros
+  });
+  return response.data;
+};
+
+/**
  * 📊 Generar reporte general con todos los filtros
  */
 export const getReporteGeneral = async (filtros: FiltrosReporteGeneral = {}): Promise<PersonasResponse> => {
@@ -81,7 +92,7 @@ export const getReporteGeneral = async (filtros: FiltrosReporteGeneral = {}): Pr
  */
 export const exportPersonasGeograficasExcel = async (filtros: FiltrosGeograficos = {}): Promise<void> => {
   const filtrosExcel = { ...filtros, format: 'excel' as const };
-  
+
   const response = await apiClient.get(`${BASE_URL}/geografico`, {
     params: filtrosExcel,
     responseType: 'blob'
@@ -91,7 +102,7 @@ export const exportPersonasGeograficasExcel = async (filtros: FiltrosGeograficos
   const blob = new Blob([response.data], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   });
-  
+
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -107,7 +118,7 @@ export const exportPersonasGeograficasExcel = async (filtros: FiltrosGeograficos
  */
 export const exportPersonasFamiliaExcel = async (filtros: FiltrosFamilia = {}): Promise<void> => {
   const filtrosExcel = { ...filtros, format: 'excel' as const };
-  
+
   const response = await apiClient.get(`${BASE_URL}/familia`, {
     params: filtrosExcel,
     responseType: 'blob'
@@ -116,7 +127,7 @@ export const exportPersonasFamiliaExcel = async (filtros: FiltrosFamilia = {}): 
   const blob = new Blob([response.data], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   });
-  
+
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -132,7 +143,7 @@ export const exportPersonasFamiliaExcel = async (filtros: FiltrosFamilia = {}): 
  */
 export const exportPersonasPersonalesExcel = async (filtros: FiltrosPersonales = {}): Promise<void> => {
   const filtrosExcel = { ...filtros, format: 'excel' as const };
-  
+
   const response = await apiClient.get(`${BASE_URL}/personal`, {
     params: filtrosExcel,
     responseType: 'blob'
@@ -141,7 +152,7 @@ export const exportPersonasPersonalesExcel = async (filtros: FiltrosPersonales =
   const blob = new Blob([response.data], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   });
-  
+
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -157,7 +168,7 @@ export const exportPersonasPersonalesExcel = async (filtros: FiltrosPersonales =
  */
 export const exportPersonasTallasExcel = async (filtros: FiltrosTallas = {}): Promise<void> => {
   const filtrosExcel = { ...filtros, format: 'excel' as const };
-  
+
   const response = await apiClient.get(`${BASE_URL}/tallas`, {
     params: filtrosExcel,
     responseType: 'blob'
@@ -166,7 +177,7 @@ export const exportPersonasTallasExcel = async (filtros: FiltrosTallas = {}): Pr
   const blob = new Blob([response.data], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   });
-  
+
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -182,7 +193,7 @@ export const exportPersonasTallasExcel = async (filtros: FiltrosTallas = {}): Pr
  */
 export const exportPersonasEdadExcel = async (filtros: FiltrosEdad = {}): Promise<void> => {
   const filtrosExcel = { ...filtros, format: 'excel' as const };
-  
+
   const response = await apiClient.get(`${BASE_URL}/edad`, {
     params: filtrosExcel,
     responseType: 'blob'
@@ -191,7 +202,7 @@ export const exportPersonasEdadExcel = async (filtros: FiltrosEdad = {}): Promis
   const blob = new Blob([response.data], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   });
-  
+
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -203,11 +214,36 @@ export const exportPersonasEdadExcel = async (filtros: FiltrosEdad = {}): Promis
 };
 
 /**
+ * Exportar reporte de cumpleaños a Excel
+ */
+export const exportPersonasCumpleanosExcel = async (filtros: FiltrosCumpleanos): Promise<void> => {
+  const filtrosExcel = { ...filtros, format: 'excel' as const };
+
+  const response = await apiClient.get(`${BASE_URL}/cumpleanos`, {
+    params: filtrosExcel,
+    responseType: 'blob'
+  });
+
+  const blob = new Blob([response.data], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  });
+
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `personas-cumpleanos-${new Date().toISOString().split('T')[0]}.xlsx`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
+/**
  * 📥 Exportar reporte general a Excel
  */
 export const exportReporteGeneralExcel = async (filtros: FiltrosReporteGeneral = {}): Promise<void> => {
   const filtrosExcel = { ...filtros, format: 'excel' as const };
-  
+
   const response = await apiClient.get(`${BASE_URL}/reporte`, {
     params: filtrosExcel,
     responseType: 'blob'
@@ -216,7 +252,7 @@ export const exportReporteGeneralExcel = async (filtros: FiltrosReporteGeneral =
   const blob = new Blob([response.data], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   });
-  
+
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;

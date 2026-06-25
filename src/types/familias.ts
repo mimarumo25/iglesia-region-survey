@@ -50,7 +50,8 @@ export interface MiembroFamiliaConsolidado {
   enfermedades: string;
   liderazgo: string;
   destrezas: string;
-  necesidades_enfermo: string;
+  necesidades_enfermo: string | Array<string | { id?: string | number; nombre?: string; tipo_necesidad?: string; id_tipo_necesidad_enfermo?: string | number }>;
+  necesidadesEnfermo?: Array<{ id?: number; nombre?: string; tipo_necesidad?: string; id_tipo_necesidad_enfermo?: string | number }>;
   comunion_casa: boolean;
   tallas: {
     id_persona?: string;

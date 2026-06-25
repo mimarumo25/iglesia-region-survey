@@ -74,7 +74,13 @@ const familyMemberSchema = z.object({
     }),
     nombre: z.string().min(1, "El nombre de la enfermedad es requerido"),
   })).optional().default([]),
-  necesidadesEnfermo: z.array(z.string().min(1, "La necesidad no puede estar vacía")).optional().default([]),
+  necesidadesEnfermo: z.array(z.object({
+    id: z.union([z.number(), z.string()]).transform((value) => {
+      const id = typeof value === 'string' ? parseInt(value, 10) : value;
+      return Number.isFinite(id) ? id : 0;
+    }),
+    nombre: z.string().min(1, "El nombre de la necesidad es requerido"),
+  })).optional().default([]),
   solicitudComunionCasa: z.boolean().optional(),
   
   // SECCIÓN 6: INFORMACIÓN DE TALLAS
@@ -453,7 +459,8 @@ const formDataToFamilyMember = (data: FamilyMemberFormData, id: string, configur
     // SECCIÓN 5: INFORMACIÓN CULTURAL Y DE SALUD
     comunidadCultural: createConfigItemFromValue(data.comunidadCultural, 'comunidadesCulturalesOptions'),
     enfermedades: (data.enfermedades || []).filter(e => e.id && e.nombre) as Array<{ id: number; nombre: string }>,
-    necesidadesEnfermo: Array.isArray(data.necesidadesEnfermo) ? data.necesidadesEnfermo : [],
+    necesidadesEnfermo: (Array.isArray(data.necesidadesEnfermo) ? data.necesidadesEnfermo : [])
+      .filter((item) => item.id && item.nombre),
     solicitudComunionCasa: data.solicitudComunionCasa || false,
     
     // SECCIÓN 6: INFORMACIÓN DE TALLAS

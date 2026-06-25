@@ -25,6 +25,7 @@ import {
 import { Loader2, Users, CheckCircle2, XCircle, MapPin, Phone, Mail, Home, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PersonaConsolidada } from "@/types/personas";
+import { normalizeCatalogOptions } from "@/utils/catalogOptionFormatters";
 
 interface PersonasTableProps {
   personas: PersonaConsolidada[];
@@ -117,23 +118,26 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
   /**
    * Formatea arrays (como destrezas) en badges
    */
-  const formatArray = (arr: Array<string | { id?: string | number; nombre?: string }> | null | undefined): JSX.Element => {
-    if (!arr || arr.length === 0) {
+  const formatArray = (value: unknown): JSX.Element => {
+    const items = normalizeCatalogOptions(value);
+
+    if (items.length === 0) {
       return <span className="text-muted-foreground">-</span>;
     }
 
     return (
       <div className="flex flex-wrap gap-1">
-        {arr.map((item, index) => {
-          const label = typeof item === 'object' && item !== null ? (item.nombre ?? '-') : String(item);
-          return (
-            <Badge key={index} variant="outline" className="text-xs">
-              {label}
-            </Badge>
-          );
-        })}
+        {items.map((item, index) => (
+          <Badge key={`${item.id ?? item.nombre}-${index}`} variant="outline" className="text-xs">
+            {item.nombre}
+          </Badge>
+        ))}
       </div>
     );
+  };
+
+  const hasCatalogOptions = (value: unknown): boolean => {
+    return normalizeCatalogOptions(value).length > 0;
   };
 
   /**
@@ -404,10 +408,10 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
                     )}
 
                     {/* Necesidades Especiales */}
-                    {persona.necesidad_enfermo && persona.necesidad_enfermo.length > 0 && (
+                    {hasCatalogOptions(persona.necesidadesEnfermo || persona.necesidad_enfermo) && (
                       <div className="border-t pt-2 space-y-1 text-xs">
                         <p className="text-muted-foreground font-medium">Necesidades Especiales</p>
-                        {formatArray(persona.necesidad_enfermo)}
+                        {formatArray(persona.necesidadesEnfermo || persona.necesidad_enfermo)}
                       </div>
                     )}
                   </CardContent>
@@ -522,7 +526,7 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
                     {/* Arrays */}
                     <TableCell className="text-sm">{formatArray(persona.destrezas)}</TableCell>
                     <TableCell className="text-sm">{formatArray(persona.liderazgos)}</TableCell>
-                    <TableCell className="text-sm">{formatArray(persona.necesidad_enfermo)}</TableCell>
+                    <TableCell className="text-sm">{formatArray(persona.necesidadesEnfermo || persona.necesidad_enfermo)}</TableCell>
                     <TableCell className="text-sm">
                       {persona.celebraciones?.length
                         ? persona.celebraciones.map(c => `${c.motivo} (${c.dia}/${c.mes})`).join(', ')

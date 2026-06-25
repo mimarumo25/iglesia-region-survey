@@ -21,6 +21,8 @@ interface AutocompleteWithLoadingProps {
   showCategories?: boolean;
   allowClear?: boolean;
   mobilePlaceholder?: string;
+  onCreateOption?: (searchValue: string) => void;
+  createOptionLabel?: string;
 }
 
 export const AutocompleteWithLoading: React.FC<AutocompleteWithLoadingProps> = ({
@@ -40,6 +42,8 @@ export const AutocompleteWithLoading: React.FC<AutocompleteWithLoadingProps> = (
   showCategories = false,
   allowClear = true,
   mobilePlaceholder,
+  onCreateOption,
+  createOptionLabel,
 }) => {
   // Ref para rastrear si el componente está montado
   const mountedRef = useRef(true);
@@ -135,6 +139,8 @@ export const AutocompleteWithLoading: React.FC<AutocompleteWithLoadingProps> = (
     disabled: disabled || isLoading,
     className: className || '',
     mobilePlaceholder,
+    onCreateOption,
+    createOptionLabel,
   };
 
   // Props adicionales para Enhanced

@@ -65,3 +65,4 @@ __pycache__/
 .claude/
 .superpowers/
 /docs/superpowers/
+.playwright-mcp

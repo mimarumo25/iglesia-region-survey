@@ -19,6 +19,7 @@ import {
   Mail
 } from 'lucide-react';
 import type { MiembroFamiliaConsolidado } from '@/types/familias';
+import { formatCatalogOptionLabels } from '@/utils/catalogOptionFormatters';
 
 interface MiembrosDetailedTabsProps {
   miembros: MiembroFamiliaConsolidado[];
@@ -40,6 +41,10 @@ const formatearFecha = (fecha: string | null | undefined): string => {
     return '-';
   }
 };
+
+const formatNecesidadesEnfermo = (miembro: MiembroFamiliaConsolidado): string => (
+  formatCatalogOptionLabels((miembro as any).necesidadesEnfermo ?? miembro.necesidades_enfermo)
+);
 
 const MiembrosDetailedTabs: React.FC<MiembrosDetailedTabsProps> = ({ miembros }) => {
   if (!miembros || miembros.length === 0) {
@@ -229,11 +234,11 @@ const MiembrosDetailedTabs: React.FC<MiembrosDetailedTabsProps> = ({ miembros })
                     )}
                   </td>
                   <td className="p-3">
-                    {miembro.necesidades_enfermo ? (
+                    {formatNecesidadesEnfermo(miembro) !== '-' ? (
                       <div className="flex items-center gap-1">
                         <Heart className="h-3 w-3 text-orange-500" />
-                        <span className="text-xs text-orange-600 max-w-[250px] line-clamp-2" title={miembro.necesidades_enfermo}>
-                          {miembro.necesidades_enfermo}
+                        <span className="text-xs text-orange-600 max-w-[250px] line-clamp-2" title={formatNecesidadesEnfermo(miembro)}>
+                          {formatNecesidadesEnfermo(miembro)}
                         </span>
                       </div>
                     ) : (

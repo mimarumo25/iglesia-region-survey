@@ -66,4 +66,7 @@ export interface DifuntosFormProps {
   onSearch: (filters: DifuntosFilters) => void;
   isLoading?: boolean;
   onClearFilters: () => void;
+  onExport: () => void;
+  isExporting?: boolean;
+  exportDisabled?: boolean;
 }

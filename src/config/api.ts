@@ -73,6 +73,7 @@ export const API_ENDPOINTS = {
     DEPARTAMENTOS: '/api/catalog/departamentos',
     DISPOSICION_BASURA: '/api/catalog/disposicion-basura',
     ENFERMEDADES: '/api/catalog/enfermedades',
+    NECESIDADES_ENFERMO: '/api/catalog/necesidad-enfermo',
     ESTADOS_CIVILES: '/api/catalog/estados-civiles',
     ESTUDIOS: '/api/catalog/estudios',
     MUNICIPIOS: '/api/catalog/municipios',

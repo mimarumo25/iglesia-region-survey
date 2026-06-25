@@ -44,7 +44,8 @@ export interface PersonaConsolidada {
 
   // Arrays (la API retorna objetos {id,nombre} para estos campos, no strings planos)
   liderazgos: Array<{ id: number; nombre: string }>;
-  necesidad_enfermo: Array<string | { id?: string | number; nombre: string }>;
+  necesidad_enfermo?: string | Array<string | { id?: string | number; nombre?: string; tipo_necesidad?: string; id_tipo_necesidad_enfermo?: string | number }>;
+  necesidadesEnfermo?: Array<{ id?: number; nombre?: string; tipo_necesidad?: string; id_tipo_necesidad_enfermo?: string | number }>;
   destrezas: Array<string | { id?: string | number; nombre: string }>;
 
   // Celebraciones
@@ -125,12 +126,14 @@ export interface FiltrosFamilia {
  * ⚠️ CORREGIDO según Swagger API - NO incluye nombres, apellidos, documento, sexo
  */
 export interface FiltrosPersonales {
+  mes_nacimiento?: number;
   id_estado_civil?: number;
   id_profesion?: number;
   id_nivel_educativo?: number; // ⚠️ CORREGIDO: era "id_nivel_estudios"
   id_comunidad_cultural?: number;
   id_liderazgo?: string;
   id_destreza?: number; // ⚠️ AGREGADO: faltaba en implementación original
+  id_necesidad_enfermo?: number;
   id_municipio?: number;
   id_parroquia?: number;
   id_sector?: number;
@@ -155,6 +158,7 @@ export interface FiltrosTallas {
   sexo?: string; // ⚠️ NUEVO: Nombre del sexo (ej: "Masculino", "Femenino")
   edad_min?: number; // ⚠️ NUEVO: Edad mínima para filtrar
   edad_max?: number; // ⚠️ NUEVO: Edad máxima para filtrar
+  id_necesidad_enfermo?: number;
   id_municipio?: number;
   id_parroquia?: number;
   id_sector?: number;
@@ -173,6 +177,7 @@ export interface FiltrosTallas {
 export interface FiltrosEdad {
   edad_min?: number;
   edad_max?: number;
+  id_necesidad_enfermo?: number;
   id_municipio?: number;
   id_parroquia?: number;
   id_sector?: number;

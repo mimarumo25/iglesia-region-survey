@@ -176,11 +176,11 @@ const ModernDatePicker = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-auto p-0 bg-white border-2 border-gray-300 rounded-xl shadow-2xl" 
+        className="w-[calc(100vw-1.5rem)] max-w-[360px] p-0 bg-white border-2 border-gray-300 rounded-xl shadow-2xl sm:w-auto sm:max-w-none"
         align="start"
         sideOffset={4}
       >
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-t-xl border-b border-gray-200">
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 sm:p-4 rounded-t-xl border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-semibold text-gray-800 text-sm">{title}</h4>
@@ -207,7 +207,7 @@ const ModernDatePicker = ({
           </div>
         </div>
 
-        <div className="p-3">
+        <div className="overflow-x-auto p-2 sm:p-3">
           {viewMode === 'calendar' ? (
             <div className="space-y-3">
               {/* Controles rápidos de navegación */}
@@ -295,12 +295,12 @@ const ModernDatePicker = ({
               />
             </div>
           ) : (
-            <div className="space-y-4 min-w-[300px]">
+            <div className="space-y-4 min-w-0 sm:min-w-[300px]">
               <div className="text-center text-sm font-medium text-gray-700 mb-3">
                 Seleccionar Año, Mes y Día
               </div>
               
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {/* Selector de Año */}
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-gray-600">Año</label>

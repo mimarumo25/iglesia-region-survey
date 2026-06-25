@@ -42,6 +42,7 @@ import { useEncuesta } from "@/hooks/useEncuestas";
 import { EncuestaListItem } from "@/services/encuestas";
 import { useResponsiveTable } from "@/hooks/useResponsiveTable";
 import { MemberMobileCard } from "@/components/ui/MemberMobileCard";
+import { normalizeCatalogOptionLabels } from "@/utils/catalogOptionFormatters";
 
 // Importar estilos para animaciones móviles
 import "@/styles/mobile-animations.css";
@@ -51,38 +52,7 @@ import "@/styles/mobile-animations.css";
  * Handles: ["item1", "item2"], ["item1, item2"], "item1, item2", or simple strings
  */
 const parseArrayField = (field: string | Array<any> | null | undefined): string[] => {
-  if (!field) return [];
-
-  // Handle actual array (backend returns array directly)
-  if (Array.isArray(field)) {
-    return field
-      .map((item: any) => (typeof item === 'object' && item !== null ? item.nombre || '' : String(item)))
-      .filter(Boolean);
-  }
-
-  try {
-    // Try to parse as JSON array first
-    const parsed = JSON.parse(field as string);
-    if (Array.isArray(parsed)) {
-      // Flatten array and split each element by comma
-      return parsed
-        .flatMap((item: any) => {
-          if (typeof item === 'object' && item !== null) {
-            return item.nombre ? [String(item.nombre).trim()] : [];
-          }
-          return typeof item === 'string' && item.includes(',')
-            ? item.split(',').map((s: string) => s.trim())
-            : [item];
-        })
-        .filter((item: any) => item && String(item).trim())
-        .map((item: any) => String(item).trim());
-    }
-  } catch {
-    // Not valid JSON, continue to comma splitting
-  }
-  
-  // Split by comma and filter empty items
-  return field.split(',').map(item => item.trim()).filter(item => item);
+  return normalizeCatalogOptionLabels(field);
 };
 
 const SurveyDetails = () => {
@@ -767,7 +737,7 @@ const SurveyDetails = () => {
                     )}
 
                     {/* Necesidades de Enfermo */}
-                    {miembro.necesidad_enfermo && (
+                    {(miembro.necesidadesEnfermo?.length > 0 || miembro.necesidad_enfermo) && (
                       <>
                         <Separator />
                         <div>
@@ -775,7 +745,7 @@ const SurveyDetails = () => {
                             <AlertTriangle className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-orange-500`} /> Necesidades del Enfermo
                           </h4>
                           <div className="flex flex-wrap gap-2">
-                            {parseArrayField(miembro.necesidad_enfermo).map((necesidad, idx) => (
+                            {parseArrayField(miembro.necesidadesEnfermo || miembro.necesidad_enfermo).map((necesidad, idx) => (
                               <Badge key={idx} variant="outline" className="bg-orange-50 text-orange-800 border-orange-300">
                                 {necesidad}
                               </Badge>

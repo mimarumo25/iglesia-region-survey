@@ -18,7 +18,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -30,16 +29,14 @@ import {
   UserCircle,
   Shirt,
   Calendar,
-  FileSpreadsheet,
-  RefreshCw,
-  Loader2,
-  Search
+  FileSpreadsheet
 } from "lucide-react";
 import { Autocomplete } from "@/components/ui/autocomplete";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
 import { useGeographicFilters } from "@/hooks/useGeographicFilters";
 import { useDestrezasFormulario } from "@/hooks/useDestrezasFormulario";
 import { useLiderazgoFormulario } from "@/hooks/useLiderazgoFormulario";
+import { useNecesidadesEnfermoOptions } from "@/hooks/useNecesidadesEnfermo";
 import { useToast } from "@/hooks/use-toast";
 import PersonasTable from "@/components/personas/PersonasTable";
 import type { 
@@ -53,6 +50,37 @@ import type {
   PersonasResponse
 } from "@/types/personas";
 import { apiClient } from "@/interceptors/axios";
+import ModernDatePicker from "@/components/ui/modern-date-picker";
+import ReportActions from "@/components/reports/ReportActions";
+
+const MONTH_OPTIONS = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
+];
+
+const parseLocalDate = (value?: string) => {
+  if (!value) return undefined;
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
+const formatLocalDate = (value?: Date) => {
+  if (!value) return undefined;
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 /**
  * 📊 Componente Principal de Reportes de Personas
@@ -62,6 +90,7 @@ const PersonasReport = () => {
   const configData = useConfigurationData();
   const { destrezas: destrezasCatalogo } = useDestrezasFormulario();
   const { liderazgos: liderazgosCatalogo, isLoading: liderazgosLoading } = useLiderazgoFormulario();
+  const { data: necesidadesEnfermoOptions = [], isLoading: necesidadesEnfermoLoading } = useNecesidadesEnfermoOptions();
   const { toast } = useToast();
 
   // Estados compartidos para resultados
@@ -438,17 +467,27 @@ const PersonasReport = () => {
     setHasQueried(false);
   };
 
+  const renderReportActions = () => (
+    <ReportActions
+      onClear={clearFilters}
+      onQuery={handleQuery}
+      onExport={handleExportToExcel}
+      isLoading={isLoading}
+      exportDisabled={personas.length === 0}
+    />
+  );
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6 lg:space-y-8">
+      <div className="mx-auto w-full max-w-[98%] space-y-3 px-1.5 py-3 sm:space-y-6 sm:px-4 sm:py-6 lg:px-6 lg:py-8 2xl:max-w-[96%]">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2 sm:gap-3">
-              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+            <h1 className="flex items-center gap-2 text-xl font-bold sm:gap-3 sm:text-3xl">
+              <Users className="h-5 w-5 text-primary sm:h-8 sm:w-8" />
               Reportes de Personas
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground sm:mt-2 sm:text-base">
               Consulta y exporta información consolidada de personas según diferentes criterios
             </p>
           </div>
@@ -457,29 +496,29 @@ const PersonasReport = () => {
         {/* Tabs de reportes */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
           {/* TabsList con scroll horizontal en móvil */}
-          <div className="w-full overflow-x-auto pb-2">
-            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-3 lg:grid-cols-6 gap-1 sm:gap-2">
-              <TabsTrigger value="geografico" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+          <div className="report-tabs-scroll w-full overflow-x-auto pb-2">
+            <TabsList className="inline-flex w-max min-w-full gap-1 rounded-2xl border border-border/70 bg-card/80 p-1.5 shadow-sm sm:grid sm:w-auto sm:grid-cols-3 lg:grid-cols-6">
+              <TabsTrigger value="geografico" className="flex min-h-11 min-w-[112px] snap-start items-center gap-1 whitespace-nowrap sm:min-w-0 sm:gap-2">
                 <MapPin className="h-4 w-4 flex-shrink-0" />
                 <span className="text-xs sm:text-sm">Geográfico</span>
               </TabsTrigger>
-              <TabsTrigger value="familia" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+              <TabsTrigger value="familia" className="flex min-h-11 min-w-[112px] snap-start items-center gap-1 whitespace-nowrap sm:min-w-0 sm:gap-2">
                 <Home className="h-4 w-4 flex-shrink-0" />
                 <span className="text-xs sm:text-sm">Familia</span>
               </TabsTrigger>
-              <TabsTrigger value="personal" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+              <TabsTrigger value="personal" className="flex min-h-11 min-w-[112px] snap-start items-center gap-1 whitespace-nowrap sm:min-w-0 sm:gap-2">
                 <UserCircle className="h-4 w-4 flex-shrink-0" />
                 <span className="text-xs sm:text-sm">Personal</span>
               </TabsTrigger>
-              <TabsTrigger value="tallas" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+              <TabsTrigger value="tallas" className="flex min-h-11 min-w-[112px] snap-start items-center gap-1 whitespace-nowrap sm:min-w-0 sm:gap-2">
                 <Shirt className="h-4 w-4 flex-shrink-0" />
                 <span className="text-xs sm:text-sm">Tallas</span>
               </TabsTrigger>
-              <TabsTrigger value="edad" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+              <TabsTrigger value="edad" className="flex min-h-11 min-w-[112px] snap-start items-center gap-1 whitespace-nowrap sm:min-w-0 sm:gap-2">
                 <Calendar className="h-4 w-4 flex-shrink-0" />
                 <span className="text-xs sm:text-sm">Edad</span>
               </TabsTrigger>
-              <TabsTrigger value="reporte" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+              <TabsTrigger value="reporte" className="flex min-h-11 min-w-[112px] snap-start items-center gap-1 whitespace-nowrap sm:min-w-0 sm:gap-2">
                 <FileSpreadsheet className="h-4 w-4 flex-shrink-0" />
                 <span className="text-xs sm:text-sm">Reporte</span>
               </TabsTrigger>
@@ -488,49 +527,18 @@ const PersonasReport = () => {
 
           {/* Tab Content: Geográfico */}
           <TabsContent value="geografico" className="space-y-4 sm:space-y-6">
-            <Card>
-              <CardHeader>
+            <Card className="report-card">
+              <CardHeader className="report-card-header">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <CardTitle className="flex items-center gap-2">
                     <MapPin className="h-5 w-5" />
                     Filtros Geográficos
                   </CardTitle>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={clearFilters}
-                      disabled={isLoading}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <RefreshCw className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Limpiar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleQuery}
-                      disabled={isLoading}
-                      className="bg-primary hover:bg-primary/90 flex-1 sm:flex-none"
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
-                      ) : (
-                        <Search className="h-4 w-4 sm:mr-2" />
-                      )}
-                      <span className="hidden sm:inline">Consultar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleExportToExcel}
-                      disabled={isLoading || personas.length === 0}
-                      className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none"
-                    >
-                      <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Excel</span>
-                    </Button>
-                  </div>
+                  {renderReportActions()}
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+              <CardContent className="report-card-content">
+                <div className="report-filter-section report-filter-section-primary report-filter-fields grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {/* Municipio */}
                   <div className="space-y-2">
                     <Label>Municipio</Label>
@@ -658,49 +666,21 @@ const PersonasReport = () => {
 
           {/* Tab Content: Familia */}
           <TabsContent value="familia" className="space-y-4 sm:space-y-6">
-            <Card>
-              <CardHeader>
+            <Card className="report-card">
+              <CardHeader className="report-card-header">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <CardTitle className="flex items-center gap-2">
                     <Home className="h-5 w-5" />
                     Filtros de Familia
                   </CardTitle>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={clearFilters}
-                      disabled={isLoading}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <RefreshCw className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Limpiar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleQuery}
-                      disabled={isLoading}
-                      className="bg-primary hover:bg-primary/90 flex-1 sm:flex-none"
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
-                      ) : (
-                        <Search className="h-4 w-4 sm:mr-2" />
-                      )}
-                      <span className="hidden sm:inline">Consultar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleExportToExcel}
-                      disabled={isLoading || personas.length === 0}
-                      className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none"
-                    >
-                      <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Excel</span>
-                    </Button>
-                  </div>
+                  {renderReportActions()}
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              <CardContent className="report-card-content flex flex-col">
+                <div className="report-section-title order-4 rounded-xl bg-secondary/[0.05] px-4 py-3">
+                  Filtros específicos
+                </div>
+                <div className="report-filter-fields order-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                   {/* Apellido Familiar */}
                   <div className="space-y-2">
                     <Label>Apellido Familiar</Label>
@@ -750,12 +730,12 @@ const PersonasReport = () => {
                 </div>
 
                 {/* Filtros Geográficos */}
-                <Separator className="my-6" />
-                <div className="mb-4 flex items-center gap-2">
+                <Separator className="order-3 my-6" />
+                <div className="report-section-title order-1 rounded-xl bg-primary/[0.05] px-4 py-3">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-semibold text-muted-foreground">Filtros Geográficos</span>
+                  <span className="text-sm font-semibold text-muted-foreground">Ubicación geográfica</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="report-filter-fields order-2 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                   {/* Municipio */}
                   <div className="space-y-2">
                     <Label>Municipio</Label>
@@ -881,49 +861,21 @@ const PersonasReport = () => {
 
           {/* Tab Content: Personal */}
           <TabsContent value="personal" className="space-y-4 sm:space-y-6">
-            <Card>
-              <CardHeader>
+            <Card className="report-card">
+              <CardHeader className="report-card-header">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <CardTitle className="flex items-center gap-2">
                     <UserCircle className="h-5 w-5" />
                     Filtros Personales
                   </CardTitle>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={clearFilters}
-                      disabled={isLoading}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <RefreshCw className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Limpiar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleQuery}
-                      disabled={isLoading}
-                      className="bg-primary hover:bg-primary/90 flex-1 sm:flex-none"
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
-                      ) : (
-                        <Search className="h-4 w-4 sm:mr-2" />
-                      )}
-                      <span className="hidden sm:inline">Consultar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleExportToExcel}
-                      disabled={isLoading || personas.length === 0}
-                      className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none"
-                    >
-                      <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Excel</span>
-                    </Button>
-                  </div>
+                  {renderReportActions()}
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              <CardContent className="report-card-content flex flex-col">
+                <div className="report-section-title order-4 rounded-xl bg-secondary/[0.05] px-4 py-3">
+                  Filtros específicos
+                </div>
+                <div className="report-filter-fields order-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                   {/* Estado Civil */}
                   <div className="space-y-2">
                     <Label>Estado Civil</Label>
@@ -1026,15 +978,58 @@ const PersonasReport = () => {
                       emptyText="No se encontraron destrezas"
                     />
                   </div>
+
+                  {/* Necesidad del Enfermo */}
+                  <div className="space-y-2">
+                    <Label>Necesidad del Enfermo</Label>
+                    <Autocomplete
+                      options={necesidadesEnfermoOptions.map((necesidad) => ({
+                        value: necesidad.id.toString(),
+                        label: necesidad.nombre,
+                        category: 'Necesidades del Enfermo'
+                      }))}
+                      value={filtrosPersonales.id_necesidad_enfermo?.toString() || ""}
+                      onValueChange={(value) => setFiltrosPersonales(prev => ({
+                        ...prev,
+                        id_necesidad_enfermo: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar necesidad..."
+                      loading={necesidadesEnfermoLoading}
+                      emptyText="No se encontraron necesidades"
+                    />
+                  </div>
+                  {/* Mes de nacimiento */}
+                  <div className="space-y-2">
+                    <Label>Mes de nacimiento</Label>
+                    <Select
+                      value={filtrosPersonales.mes_nacimiento?.toString() || "all"}
+                      onValueChange={(value) => setFiltrosPersonales(prev => ({
+                        ...prev,
+                        mes_nacimiento: value === "all" ? undefined : Number(value)
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar mes..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos los meses</SelectItem>
+                        {MONTH_OPTIONS.map((month, index) => (
+                          <SelectItem key={month} value={(index + 1).toString()}>
+                            {month}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {/* Filtros Geográficos */}
-                <Separator className="my-6" />
-                <div className="mb-4 flex items-center gap-2">
+                <Separator className="order-3 my-6" />
+                <div className="report-section-title order-1 rounded-xl bg-primary/[0.05] px-4 py-3">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-semibold text-muted-foreground">Filtros Geográficos</span>
+                  <span className="text-sm font-semibold text-muted-foreground">Ubicación geográfica</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="report-filter-fields order-2 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                   {/* Municipio */}
                   <div className="space-y-2">
                     <Label>Municipio</Label>
@@ -1160,49 +1155,41 @@ const PersonasReport = () => {
 
           {/* Tab Content: Tallas */}
           <TabsContent value="tallas" className="space-y-4 sm:space-y-6">
-            <Card>
-              <CardHeader>
+            <Card className="report-card">
+              <CardHeader className="report-card-header">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <CardTitle className="flex items-center gap-2">
                     <Shirt className="h-5 w-5" />
                     Filtros de Tallas
                   </CardTitle>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={clearFilters}
-                      disabled={isLoading}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <RefreshCw className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Limpiar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleQuery}
-                      disabled={isLoading}
-                      className="bg-primary hover:bg-primary/90 flex-1 sm:flex-none"
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
-                      ) : (
-                        <Search className="h-4 w-4 sm:mr-2" />
-                      )}
-                      <span className="hidden sm:inline">Consultar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleExportToExcel}
-                      disabled={isLoading || personas.length === 0}
-                      className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none"
-                    >
-                      <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Excel</span>
-                    </Button>
-                  </div>
+                  {renderReportActions()}
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              <CardContent className="report-card-content flex flex-col">
+                <div className="report-section-title order-4 rounded-xl bg-secondary/[0.05] px-4 py-3">
+                  Filtros específicos
+                </div>
+                <div className="report-filter-fields order-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+
+                  {/* Necesidad del Enfermo */}
+                  <div className="space-y-2">
+                    <Label>Necesidad del Enfermo</Label>
+                    <Autocomplete
+                      options={necesidadesEnfermoOptions.map((necesidad) => ({
+                        value: necesidad.id.toString(),
+                        label: necesidad.nombre,
+                        category: 'Necesidades del Enfermo'
+                      }))}
+                      value={filtrosTallas.id_necesidad_enfermo?.toString() || ""}
+                      onValueChange={(value) => setFiltrosTallas(prev => ({
+                        ...prev,
+                        id_necesidad_enfermo: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar necesidad..."
+                      loading={necesidadesEnfermoLoading}
+                      emptyText="No se encontraron necesidades"
+                    />
+                  </div>
                   {/* Talla Camisa */}
                   <div className="space-y-2">
                     <Label>Talla Camisa</Label>
@@ -1295,12 +1282,12 @@ const PersonasReport = () => {
                 </div>
 
                 {/* Filtros Geográficos */}
-                <Separator className="my-6" />
-                <div className="mb-4 flex items-center gap-2">
+                <Separator className="order-3 my-6" />
+                <div className="report-section-title order-1 rounded-xl bg-primary/[0.05] px-4 py-3">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-semibold text-muted-foreground">Filtros Geográficos</span>
+                  <span className="text-sm font-semibold text-muted-foreground">Ubicación geográfica</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="report-filter-fields order-2 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                   {/* Municipio */}
                   <div className="space-y-2">
                     <Label>Municipio</Label>
@@ -1423,52 +1410,23 @@ const PersonasReport = () => {
               />
             )}
           </TabsContent>
-
           {/* Tab Content: Edad */}
           <TabsContent value="edad" className="space-y-4 sm:space-y-6">
-            <Card>
-              <CardHeader>
+            <Card className="report-card">
+              <CardHeader className="report-card-header">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
                     Filtros de Edad
                   </CardTitle>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={clearFilters}
-                      disabled={isLoading}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <RefreshCw className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Limpiar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleQuery}
-                      disabled={isLoading}
-                      className="bg-primary hover:bg-primary/90 flex-1 sm:flex-none"
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
-                      ) : (
-                        <Search className="h-4 w-4 sm:mr-2" />
-                      )}
-                      <span className="hidden sm:inline">Consultar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleExportToExcel}
-                      disabled={isLoading || personas.length === 0}
-                      className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none"
-                    >
-                      <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Excel</span>
-                    </Button>
-                  </div>
+                  {renderReportActions()}
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <CardContent className="report-card-content flex flex-col">
+                <div className="report-section-title order-4 rounded-xl bg-secondary/[0.05] px-4 py-3">
+                  Filtros específicos
+                </div>
+                <div className="report-filter-fields order-5 grid grid-cols-1 sm:grid-cols-2">
                   {/* Edad Mínima */}
                   <div className="space-y-2">
                     <Label>Edad Mínima</Label>
@@ -1500,15 +1458,34 @@ const PersonasReport = () => {
                       placeholder="Ej: 65"
                     />
                   </div>
+                  {/* Necesidad del Enfermo */}
+                  <div className="space-y-2">
+                    <Label>Necesidad del Enfermo</Label>
+                    <Autocomplete
+                      options={necesidadesEnfermoOptions.map((necesidad) => ({
+                        value: necesidad.id.toString(),
+                        label: necesidad.nombre,
+                        category: 'Necesidades del Enfermo'
+                      }))}
+                      value={filtrosEdad.id_necesidad_enfermo?.toString() || ""}
+                      onValueChange={(value) => setFiltrosEdad(prev => ({
+                        ...prev,
+                        id_necesidad_enfermo: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar necesidad..."
+                      loading={necesidadesEnfermoLoading}
+                      emptyText="No se encontraron necesidades"
+                    />
+                  </div>
                 </div>
 
                 {/* Filtros Geográficos */}
-                <Separator className="my-6" />
-                <div className="mb-4 flex items-center gap-2">
+                <Separator className="order-3 my-6" />
+                <div className="report-section-title order-1 rounded-xl bg-primary/[0.05] px-4 py-3">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-semibold text-muted-foreground">Filtros Geográficos</span>
+                  <span className="text-sm font-semibold text-muted-foreground">Ubicación geográfica</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="report-filter-fields order-2 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                   {/* Municipio */}
                   <div className="space-y-2">
                     <Label>Municipio</Label>
@@ -1634,48 +1611,17 @@ const PersonasReport = () => {
 
           {/* Tab Content: Reporte General */}
           <TabsContent value="reporte" className="space-y-4 sm:space-y-6">
-            <Card>
-              <CardHeader>
+            <Card className="report-card">
+              <CardHeader className="report-card-header">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <CardTitle className="flex items-center gap-2">
                     <FileSpreadsheet className="h-5 w-5" />
                     Reporte General Consolidado
                   </CardTitle>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={clearFilters}
-                      disabled={isLoading}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <RefreshCw className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Limpiar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleQuery}
-                      disabled={isLoading}
-                      className="bg-primary hover:bg-primary/90 flex-1 sm:flex-none"
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
-                      ) : (
-                        <Search className="h-4 w-4 sm:mr-2" />
-                      )}
-                      <span className="hidden sm:inline">Consultar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleExportToExcel}
-                      disabled={isLoading || personas.length === 0}
-                      className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none"
-                    >
-                      <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Excel</span>
-                    </Button>
-                  </div>
+                  {renderReportActions()}
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="report-card-content">
                 <p className="text-sm text-muted-foreground mb-4">
                   Este tab combina todos los filtros disponibles para generar reportes personalizados.
                   Puedes mezclar filtros geográficos, familiares, personales, de tallas y edad.
@@ -1683,7 +1629,14 @@ const PersonasReport = () => {
                 <Separator className="my-4" />
                 
                 {/* Filtros simplificados para reporte general */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="report-filter-fields grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="report-section-title col-span-full rounded-xl bg-primary/[0.05] px-4 py-3">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold text-muted-foreground">
+                      Ubicación geográfica
+                    </span>
+                  </div>
+
                   {/* Municipio */}
                   <div className="space-y-2">
                     <Label>Municipio</Label>
@@ -1784,6 +1737,10 @@ const PersonasReport = () => {
                       loading={geoFiltersReporte.isLoadingCentrosPoblados}
                       disabled={!filtrosReporte.id_municipio}
                     />
+                  </div>
+
+                  <div className="report-section-title col-span-full mt-2 rounded-xl bg-secondary/[0.05] px-4 py-3">
+                    Filtros específicos
                   </div>
 
                   {/* Apellido Familiar */}
@@ -1928,6 +1885,26 @@ const PersonasReport = () => {
                     />
                   </div>
 
+
+                  {/* Necesidad del Enfermo */}
+                  <div className="space-y-2">
+                    <Label>Necesidad del Enfermo</Label>
+                    <Autocomplete
+                      options={necesidadesEnfermoOptions.map((necesidad) => ({
+                        value: necesidad.id.toString(),
+                        label: necesidad.nombre,
+                        category: 'Necesidades del Enfermo'
+                      }))}
+                      value={filtrosReporte.id_necesidad_enfermo?.toString() || ""}
+                      onValueChange={(value) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        id_necesidad_enfermo: value ? Number(value) : undefined
+                      }))}
+                      placeholder="Seleccionar necesidad..."
+                      loading={necesidadesEnfermoLoading}
+                      emptyText="No se encontraron necesidades"
+                    />
+                  </div>
                   {/* Talla Camisa */}
                   <div className="space-y-2">
                     <Label>Talla Camisa</Label>
@@ -1994,30 +1971,61 @@ const PersonasReport = () => {
                       placeholder="Ej: 65"
                     />
                   </div>
+                  {/* Mes de nacimiento */}
+                  <div className="space-y-2">
+                    <Label>Mes de nacimiento</Label>
+                    <Select
+                      value={filtrosReporte.mes_nacimiento?.toString() || "all"}
+                      onValueChange={(value) => setFiltrosReporte(prev => ({
+                        ...prev,
+                        mes_nacimiento: value === "all" ? undefined : Number(value)
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar mes..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos los meses</SelectItem>
+                        {MONTH_OPTIONS.map((month, index) => (
+                          <SelectItem key={month} value={(index + 1).toString()}>
+                            {month}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="report-section-title col-span-full mt-2 rounded-xl bg-muted/50 px-4 py-3">
+                    Rango de fechas
+                  </div>
 
                   {/* Fecha Registro Desde */}
                   <div className="space-y-2">
                     <Label>Fecha Registro Desde</Label>
-                    <Input
-                      type="date"
-                      value={filtrosReporte.fecha_registro_desde || ""}
-                      onChange={(e) => setFiltrosReporte(prev => ({
+                    <ModernDatePicker
+                      value={parseLocalDate(filtrosReporte.fecha_registro_desde)}
+                      onChange={(date) => setFiltrosReporte(prev => ({
                         ...prev,
-                        fecha_registro_desde: e.target.value || undefined
+                        fecha_registro_desde: formatLocalDate(date)
                       }))}
+                      placeholder="Seleccionar fecha desde"
+                      title="Fecha de registro (Desde)"
+                      description="Elija la fecha inicial del registro"
                     />
                   </div>
 
                   {/* Fecha Registro Hasta */}
                   <div className="space-y-2">
                     <Label>Fecha Registro Hasta</Label>
-                    <Input
-                      type="date"
-                      value={filtrosReporte.fecha_registro_hasta || ""}
-                      onChange={(e) => setFiltrosReporte(prev => ({
+                    <ModernDatePicker
+                      value={parseLocalDate(filtrosReporte.fecha_registro_hasta)}
+                      onChange={(date) => setFiltrosReporte(prev => ({
                         ...prev,
-                        fecha_registro_hasta: e.target.value || undefined
+                        fecha_registro_hasta: formatLocalDate(date)
                       }))}
+                      placeholder="Seleccionar fecha hasta"
+                      title="Fecha de registro (Hasta)"
+                      description="Elija la fecha final del registro"
                     />
                   </div>
                 </div>

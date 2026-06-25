@@ -148,6 +148,8 @@ export interface EncuestaListItem {
         pantalon: string;
         zapato: string;
       };
+      necesidadesEnfermo?: Array<{ id: number; nombre: string }>;
+      necesidad_enfermo?: string;
     }>;
   };
   deceasedMembers: Array<{
@@ -194,6 +196,7 @@ export interface MiembroFamilia {
   comunidad_cultural?: string;
   enfermedades_cronicas?: string[];
   discapacidades?: string[];
+  necesidadesEnfermo?: Array<{ id: number; nombre: string }>;
   motivo_fecha_celebrar?: string;
   dia_fecha_celebrar?: string;
   mes_fecha_celebrar?: string;

@@ -187,9 +187,13 @@ const transformEncuestaListItemToFormData = (encuesta: EncuestaListItem): FormDa
         id: e.id || 0,
         nombre: e.nombre || ''
       })),
-      // 🔄 necesidad_enfermo: STRING singular (no array)
-      necesidadesEnfermo: (persona as any).necesidad_enfermo 
-        ? [(persona as any).necesidad_enfermo]
+      necesidadesEnfermo: Array.isArray((persona as any).necesidadesEnfermo)
+        ? (persona as any).necesidadesEnfermo
+            .map((item: any) => ({
+              id: Number(item.id ?? item.id_tipo_necesidad_enfermo),
+              nombre: item.nombre ?? item.tipo_necesidad ?? '',
+            }))
+            .filter((item: any) => Number.isFinite(item.id) && item.nombre)
         : [],
       solicitudComunionCasa: (persona as any).solicitudComunionCasa || false,
       profesionMotivoFechaCelebrar: {
@@ -374,7 +378,14 @@ const transformEncuestaCompletaToFormData = (encuesta: EncuestaCompleta): FormDa
         return rawEmail && !rawEmail.includes('@temp.com') && !rawEmail.includes('temp.') ? rawEmail : '';
       })(),
       enfermedades: (miembro as any).enfermedades || [],
-      necesidadesEnfermo: (miembro as any).necesidadesEnfermo || [],
+      necesidadesEnfermo: Array.isArray((miembro as any).necesidadesEnfermo)
+        ? (miembro as any).necesidadesEnfermo
+            .map((item: any) => ({
+              id: Number(item.id ?? item.id_tipo_necesidad_enfermo),
+              nombre: item.nombre ?? item.tipo_necesidad ?? '',
+            }))
+            .filter((item: any) => Number.isFinite(item.id) && item.nombre)
+        : [],
       solicitudComunionCasa: (miembro as any).solicitudComunionCasa || false,
       profesionMotivoFechaCelebrar: {
         profesion: miembro.profesion_oficio ? {

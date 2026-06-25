@@ -19,12 +19,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Autocomplete } from "@/components/ui/autocomplete";
 import ModernDatePicker from "@/components/ui/modern-date-picker";
-import { Search, RotateCcw } from "lucide-react";
+import ReportActions from "@/components/reports/ReportActions";
 
 // Hooks
 import { useConfigurationData } from "@/hooks/useConfigurationData";
@@ -61,7 +60,14 @@ type DifuntosFormData = z.infer<typeof difuntosFilterSchema>;
 /**
  * Componente DifuntosForm - Formulario de filtros para consulta de difuntos
  */
-export const DifuntosForm = ({ onSearch, isLoading, onClearFilters }: DifuntosFormProps) => {
+export const DifuntosForm = ({
+  onSearch,
+  isLoading,
+  onClearFilters,
+  onExport,
+  isExporting,
+  exportDisabled,
+}: DifuntosFormProps) => {
   const [hasFilters, setHasFilters] = useState(false);
   
   // Configuración de datos para autocompletados
@@ -210,57 +216,24 @@ export const DifuntosForm = ({ onSearch, isLoading, onClearFilters }: DifuntosFo
   });
 
   return (
-    <Card className="mb-4">
-      <CardContent className="p-2 sm:p-4">
+    <Card className="report-card mb-4">
+      <CardContent className="report-card-content">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
             
-            {/* Primera fila: Parentesco, Municipio y Parroquia */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {/* Parentesco */}
-              <FormField
-                control={form.control}
-                name="parentesco"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs sm:text-sm">Parentesco</FormLabel>
-                    <FormControl>
-                      <Select 
-                        value={field.value} 
-                        onValueChange={field.onChange}
-                        disabled={isLoading}
-                      >
-                        <SelectTrigger className="w-full h-9">
-                          <SelectValue 
-                            placeholder="Seleccionar parentesco"
-                          />
-                        </SelectTrigger>
-                        <SelectContent className="max-w-[calc(100vw-2rem)]">
-                          <SelectItem value="__EMPTY__">-- Seleccionar --</SelectItem>
-                          <SelectItem value="__ALL__">Todos</SelectItem>
-                          {configData.parentescosOptions.map((item) => (
-                            <SelectItem 
-                              key={item.value} 
-                              value={item.value}
-                            >
-                              {item.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
-              />
+            <div className="report-section-title rounded-xl bg-primary/[0.05] px-4 py-3">
+              Ubicación geográfica
+            </div>
 
+            {/* Primera fila: Municipio y Parroquia */}
+            <div className="report-filter-fields grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {/* Municipio - Base para filtros dependientes */}
               <FormField
                 control={form.control}
                 name="municipio"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs sm:text-sm">Municipio *</FormLabel>
+                    <FormLabel className="text-xs sm:text-sm">Municipio</FormLabel>
                     <FormControl>
                       <Autocomplete
                         options={configData.municipioOptions}
@@ -300,7 +273,7 @@ export const DifuntosForm = ({ onSearch, isLoading, onClearFilters }: DifuntosFo
             </div>
 
             {/* Segunda fila: Sector, Vereda, Corregimiento y Centro Poblado */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="report-filter-fields grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {/* Sector */}
               <FormField
                 control={form.control}
@@ -390,8 +363,50 @@ export const DifuntosForm = ({ onSearch, isLoading, onClearFilters }: DifuntosFo
               />
             </div>
 
+            <div className="report-section-title mt-5 rounded-xl bg-secondary/[0.05] px-4 py-3">
+              Filtros específicos
+            </div>
+
+            <div className="report-filter-fields grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {/* Parentesco */}
+              <FormField
+                control={form.control}
+                name="parentesco"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs sm:text-sm">Parentesco</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={isLoading}
+                      >
+                        <SelectTrigger className="w-full h-9">
+                          <SelectValue placeholder="Seleccionar parentesco" />
+                        </SelectTrigger>
+                        <SelectContent className="max-w-[calc(100vw-2rem)]">
+                          <SelectItem value="__EMPTY__">-- Seleccionar --</SelectItem>
+                          <SelectItem value="__ALL__">Todos</SelectItem>
+                          {configData.parentescosOptions.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="report-section-title mt-5 rounded-xl bg-muted/50 px-4 py-3">
+              Rango de fechas
+            </div>
+
             {/* Tercera fila: Fechas */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="report-filter-fields grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {/* Fecha Inicio */}
               <FormField
                 control={form.control}
@@ -440,30 +455,16 @@ export const DifuntosForm = ({ onSearch, isLoading, onClearFilters }: DifuntosFo
             </div>
 
             {/* Botones de acción */}
-            <div className="flex justify-end gap-2 pt-2">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handleClearFilters}
-                disabled={isLoading || !hasActiveFilters}
-                className="text-xs sm:text-sm"
-              >
-                <RotateCcw className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                Limpiar
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={isLoading}
-                className="bg-primary hover:bg-primary/90 text-xs sm:text-sm"
-              >
-                {isLoading ? (
-                  <div className="animate-spin mr-2 h-3 w-3 sm:h-4 sm:w-4 border-2 border-current border-t-transparent rounded-full" />
-                ) : (
-                  <Search className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                )}
-                Consultar
-              </Button>
-            </div>
+            <ReportActions
+              onClear={handleClearFilters}
+              onExport={onExport}
+              isLoading={isLoading}
+              isExporting={isExporting}
+              clearDisabled={!hasActiveFilters}
+              exportDisabled={exportDisabled}
+              queryType="submit"
+              className="justify-end pt-2"
+            />
           </form>
         </Form>
       </CardContent>

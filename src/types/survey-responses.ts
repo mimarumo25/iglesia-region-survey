@@ -99,8 +99,9 @@ export interface SurveyPerson {
   comunidad_cultural: LocationItem;
   celebraciones: PersonCelebration[];
   enfermedades: Array<{ id: number; nombre: string }>;
+  necesidadesEnfermo?: Array<{ id: number; nombre: string }>;
   solicitudComunionCasa?: boolean; // ✅ NUEVO
-  necesidad_enfermo?: string; // ✅ NUEVO
+  necesidad_enfermo?: string; // Campo legacy
   
   // Campos deprecated (mantener para compatibilidad)
   motivo_celebrar_deprecated?: string | null;

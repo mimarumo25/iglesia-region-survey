@@ -44,10 +44,15 @@ import {
   Eye
 } from "lucide-react";
 import type { MiembroFamiliaConsolidado, CelebracionMiembro, EnfermedadMiembro } from "@/types/familias";
+import { formatCatalogOptionLabels } from "@/utils/catalogOptionFormatters";
 
 interface MiembrosTableWithDialogProps {
   miembros: MiembroFamiliaConsolidado[];
 }
+
+const formatNecesidadesEnfermo = (miembro: MiembroFamiliaConsolidado): string => (
+  formatCatalogOptionLabels((miembro as any).necesidadesEnfermo ?? miembro.necesidades_enfermo)
+);
 
 const MiembrosTableWithDialog = ({ miembros }: MiembrosTableWithDialogProps) => {
   const [selectedMiembro, setSelectedMiembro] = useState<MiembroFamiliaConsolidado | null>(null);
@@ -354,11 +359,11 @@ const MiembrosTableWithDialog = ({ miembros }: MiembrosTableWithDialogProps) => 
                         </div>
                       )}
                       
-                      {selectedMiembro.necesidades_enfermo && (
+                      {formatNecesidadesEnfermo(selectedMiembro) !== '-' && (
                         <div className="p-3 rounded-md bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800">
                           <p className="text-xs text-muted-foreground mb-1 font-semibold">Necesidades Especiales</p>
                           <p className="font-medium text-orange-700 dark:text-orange-400">
-                            {selectedMiembro.necesidades_enfermo}
+                            {formatNecesidadesEnfermo(selectedMiembro)}
                           </p>
                         </div>
                       )}

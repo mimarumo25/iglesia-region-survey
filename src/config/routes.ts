@@ -5,6 +5,8 @@ export const lazyRoutes = {
   '/surveys': () => import('@/pages/Surveys'),
   '/surveys/:id': () => import('@/pages/SurveyDetails'),
   '/reports': () => import('@/pages/Reports'),
+  '/reports/personas': () => import('@/pages/PersonasReport'),
+  '/reports/cumpleanos': () => import('@/pages/BirthdayReport'),
   '/users': () => import('@/pages/Users'),
   '/profile': () => import('@/pages/Profile'),
   
@@ -25,6 +27,7 @@ export const lazyRoutes = {
   '/settings/estudios': () => import('@/pages/SettingsWrapper'),
   '/settings/departamentos': () => import('@/pages/SettingsWrapper'),
   '/settings/profesiones': () => import('@/pages/SettingsWrapper'),
+  '/settings/necesidades-enfermo': () => import('@/pages/SettingsWrapper'),
   '/settings/sectores-config': () => import('@/pages/SettingsWrapper'),
     // '/settings/tallas': () => import('@/pages/SettingsWrapper'),
   
@@ -71,6 +74,11 @@ export const routeMetadata: Record<string, {
   },
   '/reports': {
     skeletonType: 'dashboard',
+    priority: 'medium',
+    preloadTrigger: 'hover'
+  },
+  '/reports/cumpleanos': {
+    skeletonType: 'table',
     priority: 'medium',
     preloadTrigger: 'hover'
   },

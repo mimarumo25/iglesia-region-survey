@@ -78,14 +78,6 @@ export class AuthService {
       const response: AxiosResponse<LoginResponse> = await authApi.post(API_ENDPOINTS.AUTH.LOGIN, {
         correo_electronico: credentials.email,
         contrasena: credentials.password,
-      }, {
-        headers: {
-          'Origin': window.location.origin,
-          'Sec-Fetch-Dest': 'empty',
-          'Sec-Fetch-Mode': 'cors',
-          'Sec-Fetch-Site': 'same-origin',
-          'User-Agent': navigator.userAgent,
-        },
       });
 
       // Validar respuesta exitosa
@@ -242,11 +234,6 @@ export class AuthService {
           headers: {
             'Accept-Language': 'es,es-ES;q=0.9',
             'Authorization': `Bearer ${accessToken}`,
-            'Connection': 'keep-alive',
-            'Content-Length': '0',
-            'Origin': window.location.origin,
-            'Referer': `${window.location.origin}/api-docs/`,
-            'User-Agent': navigator.userAgent,
             'accept': 'application/json',
           },
         });
@@ -272,10 +259,6 @@ export class AuthService {
     try {
       const response: AxiosResponse<ForgotPasswordResponse> = await authApi.post(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, {
         email,
-      }, {
-        headers: {
-          'Origin': window.location.origin,
-        },
       });
 
       // Toast de éxito
@@ -305,10 +288,6 @@ export class AuthService {
       const response: AxiosResponse<ResetPasswordResponse> = await authApi.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
         token,
         newPassword,
-      }, {
-        headers: {
-          'Origin': window.location.origin,
-        },
       });
 
       // Toast de éxito

@@ -62,7 +62,7 @@ export interface ConfigurationItem {
  * @property {Array<{id: string; nombre: string}>} enQueEresLider - Tipos de liderazgo del catálogo
  * @property {string} correoElectronico - Email de contacto
  * @property {Array<{id: number; nombre: string}>} enfermedades - Enfermedades o condiciones de salud
- * @property {string[]} necesidadesEnfermo - Necesidades específicas por enfermedad
+ * @property {Array<{id: number; nombre: string}>} necesidadesEnfermo - Necesidades del catálogo
  * @property {boolean} solicitudComunionCasa - Si solicita comunión en casa
  * @property {Object} profesionMotivoFechaCelebrar - Datos de profesión y celebraciones
  * @property {ConfigurationItem | null} profesionMotivoFechaCelebrar.profesion - Profesión u oficio
@@ -118,7 +118,7 @@ export interface FamilyMember {
   enQueEresLider: Array<{ id: string; nombre: string }>;
   correoElectronico: string;
   enfermedades: Array<{ id: number; nombre: string }>;
-  necesidadesEnfermo: string[];
+  necesidadesEnfermo: Array<{ id: number; nombre: string }>;
   solicitudComunionCasa: boolean;
   profesionMotivoFechaCelebrar: {
     profesion: ConfigurationItem | null;

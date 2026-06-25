@@ -26,6 +26,7 @@ const Surveys = React.lazy(() => import("./pages/Surveys"));
 const SurveyDetails = React.lazy(() => import("./pages/SurveyDetails"));
 const Reports = React.lazy(() => import("./pages/Reports"));
 const PersonasReport = React.lazy(() => import("./pages/PersonasReport"));
+const BirthdayReport = React.lazy(() => import("./pages/BirthdayReport"));
 const Users = React.lazy(() => import("./pages/Users"));
 const SettingsWrapper = React.lazy(() => import("./pages/SettingsWrapper"));
 const Parroquias = React.lazy(() => import("./pages/Parroquias"));
@@ -52,7 +53,7 @@ const queryClient = new QueryClient();
 const AppWithTypography = ({ children }: { children: React.ReactNode }) => {
   // Inicializar tipografía global
   useGlobalTypography();
-  
+
   return <>{children}</>;
 };
 
@@ -68,7 +69,7 @@ const App = () => (
           <AuthProvider>
             <Toaster />
             <Sonner />
-            <ErrorBoundary 
+            <ErrorBoundary
               showErrorDetails={import.meta.env.DEV}
               onError={(error) => console.error("Top-level error:", error)}
             >
@@ -91,152 +92,163 @@ const App = () => (
             }>
               <Routes>
                 {/* Ruta raíz - redirigir al dashboard */}
-                <Route 
-                  path="/" 
+                <Route
+                  path="/"
                   element={
                     <PrivateRoute>
                       <Navigate to="/dashboard" replace />
                     </PrivateRoute>
-                  } 
+                  }
                 />
-                
+
                 {/* Rutas públicas - solo accesibles para usuarios no autenticados */}
-                <Route 
-                  path="/login" 
+                <Route
+                  path="/login"
                   element={
                     <PublicRoute>
                       <Login />
                     </PublicRoute>
-                  } 
+                  }
                 />
-                
+
                 {/* Ruta pública para reset password */}
-                <Route 
-                  path="/reset-password" 
+                <Route
+                  path="/reset-password"
                   element={
                     <PublicRoute>
                       <ResetPassword />
                     </PublicRoute>
-                  } 
+                  }
                 />
-                
+
                 {/* Ruta pública para verificación de email */}
-                <Route 
-                  path="/verify-email" 
+                <Route
+                  path="/verify-email"
                   element={
                     <PublicRoute>
                       <VerifyEmail />
                     </PublicRoute>
-                  } 
+                  }
                 />
-                
+
                 {/* Rutas protegidas - requieren autenticación */}
-                <Route 
-                  path="/dashboard" 
+                <Route
+                  path="/dashboard"
                   element={
                     <PrivateRoute>
                       <Layout>
                         <Dashboard />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
-                
-                <Route 
-                  path="/survey" 
+
+                <Route
+                  path="/survey"
                   element={
                     <PrivateRoute>
                       <Layout>
                         <SurveyForm />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
-                
-                <Route 
-                  path="/surveys" 
+
+                <Route
+                  path="/surveys"
                   element={
                     <PrivateRoute>
                       <Layout>
                         <Surveys />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
                 {/* IMPORTANTE: Ruta específica ANTES de la genérica */}
                 {/* Ruta para editar encuestas existentes */}
-                <Route 
-                  path="/surveys/:id/edit" 
+                <Route
+                  path="/surveys/:id/edit"
                   element={
                     <PrivateRoute>
                       <Layout>
                         <SurveyForm />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
                 {/* Ruta para ver detalles de encuesta (debe ir DESPUÉS de /edit) */}
-                <Route 
-                  path="/surveys/:id" 
+                <Route
+                  path="/surveys/:id"
                   element={
                     <PrivateRoute>
                       <Layout>
                         <SurveyDetails />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/survey/new-hierarchy" 
+                <Route
+                  path="/survey/new-hierarchy"
                   element={
                     <PrivateRoute>
                       <Layout>
                         <NewSurveyWithHierarchy />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
-                
-                <Route 
-                  path="/reports" 
+
+                <Route
+                  path="/reports"
                   element={
                     <PrivateRoute>
                       <Layout>
                         <Reports />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/reports/personas" 
+                <Route
+                  path="/reports/personas"
                   element={
                     <PrivateRoute>
                       <Layout>
                         <PersonasReport />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
-                
+
+
+                <Route
+                  path="/reports/cumpleanos"
+                  element={
+                    <PrivateRoute>
+                      <Layout>
+                        <BirthdayReport />
+                      </Layout>
+                    </PrivateRoute>
+                  }
+                />
                 {/* Rutas con permisos específicos - Usuarios (solo admins) */}
-                <Route 
-                  path="/users" 
+                <Route
+                  path="/users"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <Users />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
                 {/* Ruta específica para crear nuevo usuario */}
-                <Route 
-                  path="/users/new" 
+                <Route
+                  path="/users/new"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
@@ -244,325 +256,336 @@ const App = () => (
                         {/* TODO: Implementar modo create */}
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
                 {/* Ruta de perfil del usuario */}
-                <Route 
-                  path="/profile" 
+                <Route
+                  path="/profile"
                   element={
                     <PrivateRoute>
                       <Layout>
                         <Profile />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
                 {/* Ruta de debug temporal */}
-                <Route 
-                  path="/debug-user" 
+                <Route
+                  path="/debug-user"
                   element={
                     <PrivateRoute>
                       <Layout>
                         <DebugUserMenu />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
-                
-                <Route 
-                  path="/settings" 
+
+                <Route
+                  path="/settings"
                   element={
                     <PrivateRoute>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
                 {/* Rutas específicas para sub-configuraciones */}
-                <Route 
-                  path="/settings/parroquias" 
+                <Route
+                  path="/settings/parroquias"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/enfermedades" 
+                <Route
+                  path="/settings/enfermedades"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/veredas" 
+                <Route
+                  path="/settings/necesidades-enfermo"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/municipios" 
+                <Route
+                  path="/settings/veredas"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/corregimientos" 
+                <Route
+                  path="/settings/municipios"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/centros-poblados" 
+                <Route
+                  path="/settings/corregimientos"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/aguas-residuales" 
+                <Route
+                  path="/settings/centros-poblados"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/tipos-vivienda" 
+                <Route
+                  path="/settings/aguas-residuales"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/parentescos" 
+                <Route
+                  path="/settings/tipos-vivienda"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/estados-civiles" 
+                <Route
+                  path="/settings/parentescos"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/disposicion-basura" 
+                <Route
+                  path="/settings/estados-civiles"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/tipos-identificacion" 
+                <Route
+                  path="/settings/disposicion-basura"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/liderazgo" 
+                <Route
+                  path="/settings/tipos-identificacion"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/sexos" 
+                <Route
+                  path="/settings/liderazgo"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/comunidades-culturales" 
+                <Route
+                  path="/settings/sexos"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/estudios" 
+                <Route
+                  path="/settings/comunidades-culturales"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/departamentos" 
+                <Route
+                  path="/settings/estudios"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/profesiones" 
+                <Route
+                  path="/settings/departamentos"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/habilidades" 
+                <Route
+                  path="/settings/profesiones"
+                  element={
+                    <PrivateRoute requiredRole={["admin"]}>
+                      <Layout>
+                        <SettingsWrapper />
+                      </Layout>
+                    </PrivateRoute>
+                  }
+                />
+
+                <Route
+                  path="/settings/habilidades"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <Habilidades />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/destrezas" 
+                <Route
+                  path="/settings/destrezas"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <Destrezas />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/destrezas-test" 
+                <Route
+                  path="/settings/destrezas-test"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <DestrezasTest />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/test/family-dialog" 
+                <Route
+                  path="/test/family-dialog"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <FamilyMemberDialogTest />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/settings/sectores-config" 
+                <Route
+                  path="/settings/sectores-config"
                   element={
                     <PrivateRoute requiredRole={["admin"]}>
                       <Layout>
                         <SettingsWrapper />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
                 {/* Ruta específica para parroquias (opcional, ahora redirige a settings/parroquias) */}
-                <Route 
-                  path="/parroquias" 
-                  element={<Navigate to="/settings/parroquias" replace />} 
+                <Route
+                  path="/parroquias"
+                  element={<Navigate to="/settings/parroquias" replace />}
                 />
 
                 {/* Ruta específica para veredas (opcional, ahora redirige a settings/veredas) */}
-                <Route 
-                  path="/veredas" 
-                  element={<Navigate to="/settings/veredas" replace />} 
+                <Route
+                  path="/veredas"
+                  element={<Navigate to="/settings/veredas" replace />}
                 />
-                
+
                 {/* Página de demostración de tallas (temporal para desarrollo) */}
-                <Route 
-                  path="/demo/tallas" 
+                <Route
+                  path="/demo/tallas"
                   element={
                     <PrivateRoute>
                       <Layout>
                         <TallasDemoPage />
                       </Layout>
                     </PrivateRoute>
-                  } 
+                  }
                 />
 
                 {/* Página de no autorizado */}
-                <Route 
-                  path="/unauthorized" 
+                <Route
+                  path="/unauthorized"
                   element={
                     <div className="flex items-center justify-center min-h-screen">
                       <div className="text-center">
@@ -570,9 +593,9 @@ const App = () => (
                         <p className="text-muted-foreground">No tienes permisos para acceder a esta página.</p>
                       </div>
                     </div>
-                  } 
+                  }
                 />
-                
+
                 {/* Ruta catch-all para páginas no encontradas */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

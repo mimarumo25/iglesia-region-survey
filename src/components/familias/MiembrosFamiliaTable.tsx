@@ -23,6 +23,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import type { MiembroFamiliaConsolidado } from '@/types/familias';
+import { formatCatalogOptionLabels } from '@/utils/catalogOptionFormatters';
 
 interface MiembrosFamiliaTableProps {
   miembros: MiembroFamiliaConsolidado[];
@@ -57,6 +58,10 @@ const formatearFecha = (fecha: string): string => {
     return fecha;
   }
 };
+
+const formatNecesidadesEnfermo = (miembro: MiembroFamiliaConsolidado): string => (
+  formatCatalogOptionLabels((miembro as any).necesidadesEnfermo ?? miembro.necesidades_enfermo)
+);
 
 const MiembrosFamiliaTable: React.FC<MiembrosFamiliaTableProps> = ({ miembros }) => {
   if (!miembros || miembros.length === 0) {
@@ -153,7 +158,7 @@ const MiembrosFamiliaTable: React.FC<MiembrosFamiliaTableProps> = ({ miembros })
                     <span className="text-xs text-muted-foreground">-</span>
                   )}
                 </td>
-                <td className="p-3 text-xs">{miembro.necesidades_enfermo || '-'}</td>
+                <td className="p-3 text-xs">{formatNecesidadesEnfermo(miembro)}</td>
                 <td className="p-3 text-xs">{miembro.liderazgo || '-'}</td>
                 <td className="p-3 text-xs">{miembro.destrezas || '-'}</td>
                 <td className="p-3">
@@ -291,7 +296,7 @@ const MiembrosFamiliaTable: React.FC<MiembrosFamiliaTableProps> = ({ miembros })
               )}
 
               {/* Salud */}
-              {(miembro.enfermedades || miembro.necesidades_enfermo) && (
+              {(miembro.enfermedades || formatNecesidadesEnfermo(miembro) !== '-') && (
                 <div className="border-t pt-3 space-y-2">
                   <p className="text-xs font-semibold text-muted-foreground uppercase">Salud</p>
                   {miembro.enfermedades && (
@@ -303,12 +308,12 @@ const MiembrosFamiliaTable: React.FC<MiembrosFamiliaTableProps> = ({ miembros })
                       </div>
                     </div>
                   )}
-                  {miembro.necesidades_enfermo && (
+                  {formatNecesidadesEnfermo(miembro) !== '-' && (
                     <div className="flex items-start gap-2 text-xs">
                       <Heart className="h-3 w-3 text-orange-500 mt-0.5 flex-shrink-0" />
                       <div className="bg-orange-50 border border-orange-200 rounded-md px-2 py-1 flex-1">
                         <span className="text-muted-foreground font-medium">Necesidades:</span>
-                        <span className="ml-1 text-orange-700 font-semibold">{miembro.necesidades_enfermo}</span>
+                        <span className="ml-1 text-orange-700 font-semibold">{formatNecesidadesEnfermo(miembro)}</span>
                       </div>
                     </div>
                   )}

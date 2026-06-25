@@ -43,7 +43,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   CreditCard,
-  Star
+  Star,
+  Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -88,6 +89,12 @@ const navigationItems = [
         url: "/reports/personas",
         icon: User,
         description: "Reporte de personas"
+      },
+      {
+        title: "Cumpleaños",
+        url: "/reports/cumpleanos",
+        icon: Calendar,
+        description: "Personas por mes de cumpleaños"
       }
     ]
   },
@@ -136,6 +143,13 @@ const navigationItems = [
         url: "/settings/enfermedades",
         icon: Heart,
         description: "Catálogo de enfermedades",
+        requiredRoles: ["admin"]
+      },
+      {
+        title: "Necesidades del Enfermo",
+        url: "/settings/necesidades-enfermo",
+        icon: Activity,
+        description: "Catálogo de necesidades de salud",
         requiredRoles: ["admin"]
       },
       {

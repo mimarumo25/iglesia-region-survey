@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Check, ChevronsUpDown, Search, X } from "lucide-react"
+import { Check, ChevronsUpDown, Plus, Search, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -38,6 +38,8 @@ interface AutocompleteProps {
   className?: string
   loading?: boolean
   mobilePlaceholder?: string
+  onCreateOption?: (searchValue: string) => void
+  createOptionLabel?: string
 }
 
 export function Autocomplete({
@@ -51,6 +53,8 @@ export function Autocomplete({
   className,
   loading = false,
   mobilePlaceholder,
+  onCreateOption,
+  createOptionLabel = "Crear nueva opción",
 }: AutocompleteProps) {
   const [open, setOpen] = React.useState(false)
   const [searchValue, setSearchValue] = React.useState("")
@@ -171,7 +175,7 @@ export function Autocomplete({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="p-0 bg-white border-2 border-gray-300 rounded-xl shadow-lg" 
+          className="max-w-[calc(100vw-1.5rem)] p-0 bg-white border-2 border-gray-300 rounded-xl shadow-lg"
           align="start" 
           side="bottom"
           style={{ width: triggerWidth > 0 ? `${triggerWidth}px` : 'var(--radix-popover-trigger-width)' }}
@@ -184,41 +188,59 @@ export function Autocomplete({
               value={searchValue}
               onValueChange={setSearchValue}
             />
-            <CommandList 
-              className="max-h-60 overflow-auto overscroll-contain touch-pan-y"
-              style={{ WebkitOverflowScrolling: 'touch' }}
-            >
-              <CommandEmpty className="py-6 text-center text-xs sm:text-sm text-gray-500">
-                <div className="flex flex-col items-center gap-2">
-                  <Search className="w-6 h-6 sm:w-8 sm:h-8 text-gray-300" />
-                  <span>{emptyText}</span>
-                </div>
-              </CommandEmpty>
-              <CommandGroup>
-                {orderedOptions.map((option) => (
-                  <CommandItem
-                    key={option.value}
-                    value={option.label}
-                    onSelect={() => {
-                      const trimmedValue = trimString(option.value)
-                      const newValue = value === trimmedValue ? "" : trimmedValue
-                      onValueChange(newValue)
-                      setOpen(false)
-                      setSearchValue("")
-                    }}
-                    className="cursor-pointer hover:bg-blue-50 px-2 sm:px-3 py-2 sm:py-3 text-gray-800 rounded-lg transition-colors duration-150 mx-1 my-0.5 flex items-start gap-2 sm:gap-3"
-                  >
-                    <Check
-                      className={cn(
-                        "h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0 mt-0.5",
-                        value === option.value ? "opacity-100 text-blue-600" : "opacity-0"
-                      )}
-                    />
-                    <span className="flex-1 text-xs sm:text-sm font-medium break-words leading-tight">{option.label}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
+            <div className="max-h-60 overflow-y-auto overscroll-contain touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <CommandList className="max-h-none overflow-visible">
+                <CommandEmpty className="py-6 text-center text-xs sm:text-sm text-gray-500">
+                  <div className="flex flex-col items-center gap-2">
+                    <Search className="w-6 h-6 sm:w-8 sm:h-8 text-gray-300" />
+                    <span>{emptyText}</span>
+                  </div>
+                </CommandEmpty>
+                <CommandGroup>
+                  {orderedOptions.map((option) => (
+                    <CommandItem
+                      key={option.value}
+                      value={option.label}
+                      onSelect={() => {
+                        const trimmedValue = trimString(option.value)
+                        const newValue = value === trimmedValue ? "" : trimmedValue
+                        onValueChange(newValue)
+                        setOpen(false)
+                        setSearchValue("")
+                      }}
+                      className="cursor-pointer hover:bg-blue-50 px-2 sm:px-3 py-2 sm:py-3 text-gray-800 rounded-lg transition-colors duration-150 mx-1 my-0.5 flex items-start gap-2 sm:gap-3"
+                    >
+                      <Check
+                        className={cn(
+                          "h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0 mt-0.5",
+                          value === option.value ? "opacity-100 text-blue-600" : "opacity-0"
+                        )}
+                      />
+                      <span className="flex-1 text-xs sm:text-sm font-medium break-words leading-tight">{option.label}</span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </div>
+            {onCreateOption && (
+              <div className="shrink-0 border-t border-gray-200 bg-white p-1.5">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-auto w-full justify-start gap-2 px-3 py-2.5 text-primary font-semibold hover:bg-primary/10"
+                  onClick={() => {
+                    onCreateOption(searchValue.trim())
+                    setOpen(false)
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="truncate">
+                    {createOptionLabel}
+                    {searchValue.trim() ? `: "${searchValue.trim()}"` : ""}
+                  </span>
+                </Button>
+              </div>
+            )}
           </Command>
         </PopoverContent>
       </Popover>

@@ -20,7 +20,8 @@ import {
   generateButtonText,
   DialogFormMode 
 } from "@/utils/dialog-helpers";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { trimString } from "@/utils/stringTrimHelpers";
 // Importar componentes de tallas
 import { TallaSelect } from "@/components/tallas";
@@ -30,8 +31,30 @@ import { useDestrezasFormulario } from "@/hooks/useDestrezasFormulario";
 import { useLiderazgoFormulario } from "@/hooks/useLiderazgoFormulario";
 // Importar componente de selección múltiple
 import { MultiSelectWithChips } from "@/components/ui/multi-select-chips";
-// Importar componente de chip input
-import { ChipInput } from "@/components/ui/chip-input";
+import { useNecesidadesEnfermoOptions } from "@/hooks/useNecesidadesEnfermo";
+import { CreateNecesidadEnfermoDialog } from "@/components/necesidades-enfermo/CreateNecesidadEnfermoDialog";
+import { CatalogFormModal } from "@/components/ui/config-modal";
+import {
+  CATALOG_CREATE_DEFINITIONS,
+  CatalogCreateKey,
+  CatalogCreatedOption,
+  createCatalogOption,
+} from "@/config/catalog-create";
+
+type FamilyCatalogKey = Extract<
+  CatalogCreateKey,
+  | "tipoIdentificacion"
+  | "sexo"
+  | "parentesco"
+  | "situacionCivil"
+  | "estudio"
+  | "profesion"
+  | "comunidadCultural"
+  | "enfermedades"
+  | "liderazgo"
+  | "habilidades"
+  | "destrezas"
+>;
 
 const MONTH_OPTIONS = [
   { value: "1", label: "Enero" },
@@ -76,12 +99,22 @@ const FamilyMemberDialog = ({
   editingMember 
 }: FamilyMemberDialogProps) => {
   const configurationData = useConfigurationData();
+  const queryClient = useQueryClient();
   const isMountedRef = useRef(true);
   
   // Cargar habilidades y destrezas activas desde la API usando hooks simplificados
   const { habilidades, isLoading: habilidadesLoading, error: habilidadesError } = useHabilidadesFormulario();
   const { destrezas, isLoading: destrezasLoading, error: destrezasError } = useDestrezasFormulario();
   const { liderazgos, isLoading: liderazgosLoading, error: liderazgosError } = useLiderazgoFormulario();
+  const {
+    data: necesidadesEnfermo = [],
+    isLoading: necesidadesEnfermoLoading,
+    error: necesidadesEnfermoError,
+  } = useNecesidadesEnfermoOptions();
+  const [showCreateNecesidadDialog, setShowCreateNecesidadDialog] = useState(false);
+  const [newNecesidadName, setNewNecesidadName] = useState('');
+  const [catalogToCreate, setCatalogToCreate] = useState<FamilyCatalogKey | null>(null);
+  const [catalogInitialName, setCatalogInitialName] = useState("");
   const {
     fields: celebracionFields,
     append: appendCelebracion,
@@ -98,6 +131,39 @@ const FamilyMemberDialog = ({
       dia: "",
       mes: "",
     });
+  };
+
+  const openCatalogCreate = (catalog: FamilyCatalogKey, searchValue: string) => {
+    setCatalogInitialName(searchValue);
+    setCatalogToCreate(catalog);
+  };
+
+  const createFamilyCatalogOption = async (values: Record<string, string>): Promise<CatalogCreatedOption> => {
+    if (!catalogToCreate) throw new Error("Catálogo no seleccionado");
+    const created = await createCatalogOption(catalogToCreate, values);
+    await Promise.all(
+      CATALOG_CREATE_DEFINITIONS[catalogToCreate].queryKeys.map((queryKey) =>
+        queryClient.invalidateQueries({ queryKey: [queryKey] })
+      )
+    );
+    return created;
+  };
+
+  const selectCreatedCatalogOption = (created: CatalogCreatedOption) => {
+    if (!catalogToCreate) return;
+    const id = String(created.id);
+    if (catalogToCreate === "profesion") {
+      form.setValue("profesionMotivoFechaCelebrar.profesion", id, { shouldDirty: true, shouldValidate: true });
+    } else if (catalogToCreate === "enfermedades") {
+      const current = form.getValues("enfermedades") || [];
+      form.setValue("enfermedades", [...current, created], { shouldDirty: true, shouldValidate: true });
+    } else if (catalogToCreate === "liderazgo" || catalogToCreate === "habilidades" || catalogToCreate === "destrezas") {
+      const fieldName = catalogToCreate === "liderazgo" ? "enQueEresLider" : catalogToCreate;
+      const current = form.getValues(fieldName) || [];
+      form.setValue(fieldName, [...current, created] as never, { shouldDirty: true, shouldValidate: true });
+    } else {
+      form.setValue(catalogToCreate, id as never, { shouldDirty: true, shouldValidate: true });
+    }
   };
 
   useEffect(() => {
@@ -304,6 +370,8 @@ const FamilyMemberDialog = ({
                           isLoading={configurationData.tiposIdentificacionLoading}
                           error={configurationData.tiposIdentificacionError}
                           emptyText="No hay tipos de identificación disponibles"
+                          onCreateOption={(searchValue) => openCatalogCreate("tipoIdentificacion", searchValue)}
+                          createOptionLabel="Crear nuevo tipo de identificación"
                         />
                       </FormControl>
                       <FormMessage className="text-destructive text-xs font-medium" />
@@ -394,6 +462,8 @@ const FamilyMemberDialog = ({
                           isLoading={configurationData.sexosLoading}
                           error={configurationData.sexosError}
                           emptyText="No hay opciones de sexo disponibles"
+                          onCreateOption={(searchValue) => openCatalogCreate("sexo", searchValue)}
+                          createOptionLabel="Crear nuevo sexo"
                         />
                       </FormControl>
                       <FormMessage />
@@ -417,6 +487,8 @@ const FamilyMemberDialog = ({
                           isLoading={configurationData.parentescosLoading}
                           error={configurationData.parentescosError}
                           emptyText="No hay opciones de parentesco disponibles"
+                          onCreateOption={(searchValue) => openCatalogCreate("parentesco", searchValue)}
+                          createOptionLabel="Crear nuevo parentesco"
                         />
                       </FormControl>
                       <FormMessage />
@@ -440,6 +512,8 @@ const FamilyMemberDialog = ({
                           isLoading={configurationData.situacionesCivilesLoading}
                           error={configurationData.situacionesCivilesError}
                           emptyText="No hay opciones de estado civil disponibles"
+                          onCreateOption={(searchValue) => openCatalogCreate("situacionCivil", searchValue)}
+                          createOptionLabel="Crear nuevo estado civil"
                         />
                       </FormControl>
                       <FormMessage />
@@ -475,6 +549,8 @@ const FamilyMemberDialog = ({
                           isLoading={configurationData.estudiosLoading}
                           error={configurationData.estudiosError}
                           emptyText="No hay opciones de estudios disponibles"
+                          onCreateOption={(searchValue) => openCatalogCreate("estudio", searchValue)}
+                          createOptionLabel="Crear nuevo nivel de estudios"
                         />
                       </FormControl>
                       <FormMessage />
@@ -498,6 +574,8 @@ const FamilyMemberDialog = ({
                           isLoading={configurationData.profesionesLoading}
                           error={configurationData.profesionesError}
                           emptyText="No hay opciones de profesiones disponibles"
+                          onCreateOption={(searchValue) => openCatalogCreate("profesion", searchValue)}
+                          createOptionLabel="Crear nueva profesión"
                         />
                       </FormControl>
                       <FormMessage />
@@ -533,6 +611,8 @@ const FamilyMemberDialog = ({
                           isLoading={configurationData.comunidadesCulturalesLoading}
                           error={configurationData.comunidadesCulturalesError}
                           emptyText="No hay opciones de comunidades culturales disponibles"
+                          onCreateOption={(searchValue) => openCatalogCreate("comunidadCultural", searchValue)}
+                          createOptionLabel="Crear nueva comunidad cultural"
                         />
                       </FormControl>
                       <FormMessage />
@@ -569,6 +649,8 @@ const FamilyMemberDialog = ({
                           }}
                           placeholder="Seleccionar enfermedades..."
                           emptyText="No hay opciones de enfermedades disponibles"
+                          onCreateOption={(searchValue) => openCatalogCreate("enfermedades", searchValue)}
+                          createOptionLabel="Crear nueva enfermedad"
                         />
                       </FormControl>
                       <FormMessage />
@@ -584,11 +666,24 @@ const FamilyMemberDialog = ({
                     <FormItem className="md:col-span-2 space-y-2 p-4 bg-card/50 rounded-xl border border-border dark:bg-card/50 dark:border-border shadow-sm">
                       <FormLabel className="text-foreground dark:text-foreground font-bold text-sm">Necesidades del Enfermo</FormLabel>
                       <FormControl>
-                        <ChipInput
+                        <MultiSelectWithChips
+                          options={necesidadesEnfermo}
                           value={Array.isArray(field.value) ? field.value : []}
                           onChange={field.onChange}
-                          placeholder="Escribe una necesidad y presiona Enter..."
-                          className="bg-input border-2 border-input-border text-foreground font-semibold rounded-xl focus-within:bg-accent focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-200 dark:bg-input dark:border-input-border dark:text-foreground"
+                          placeholder="Seleccionar necesidades..."
+                          searchPlaceholder="Buscar necesidad..."
+                          emptyText="No se encontraron necesidades"
+                          isLoading={necesidadesEnfermoLoading}
+                          error={necesidadesEnfermoError instanceof Error
+                            ? necesidadesEnfermoError.message
+                            : necesidadesEnfermoError
+                              ? 'Error al cargar necesidades'
+                              : undefined}
+                          onCreateOption={(searchValue) => {
+                            setNewNecesidadName(searchValue);
+                            setShowCreateNecesidadDialog(true);
+                          }}
+                          createOptionLabel="Crear nueva necesidad"
                         />
                       </FormControl>
                       <FormMessage />
@@ -875,6 +970,8 @@ const FamilyMemberDialog = ({
                           emptyText="No se encontraron tipos de liderazgo"
                           isLoading={liderazgosLoading}
                           error={liderazgosError}
+                          onCreateOption={(searchValue) => openCatalogCreate("liderazgo", searchValue)}
+                          createOptionLabel="Crear nuevo tipo de liderazgo"
                         />
                       </FormControl>
                       <FormMessage />
@@ -916,6 +1013,8 @@ const FamilyMemberDialog = ({
                           emptyText="No se encontraron habilidades"
                           isLoading={habilidadesLoading}
                           error={habilidadesError}
+                          onCreateOption={(searchValue) => openCatalogCreate("habilidades", searchValue)}
+                          createOptionLabel="Crear nueva habilidad"
                         />
                       </FormControl>
                       <FormMessage />
@@ -945,6 +1044,8 @@ const FamilyMemberDialog = ({
                           emptyText="No se encontraron destrezas"
                           isLoading={destrezasLoading}
                           error={destrezasError}
+                          onCreateOption={(searchValue) => openCatalogCreate("destrezas", searchValue)}
+                          createOptionLabel="Crear nueva destreza"
                         />
                       </FormControl>
                       <FormMessage />
@@ -976,6 +1077,35 @@ const FamilyMemberDialog = ({
             </DialogFooter>
           </form>
         </Form>
+        <CreateNecesidadEnfermoDialog
+          open={showCreateNecesidadDialog}
+          onOpenChange={setShowCreateNecesidadDialog}
+          initialName={newNecesidadName}
+          onCreated={(created) => {
+            const current = form.getValues('necesidadesEnfermo') || [];
+            if (!current.some((item) => Number(item.id) === created.id)) {
+              form.setValue('necesidadesEnfermo', [...current, created], {
+                shouldDirty: true,
+                shouldValidate: true,
+              });
+            }
+          }}
+        />
+        {catalogToCreate && (
+          <CatalogFormModal
+            open={true}
+            onOpenChange={(open) => {
+              if (!open) setCatalogToCreate(null);
+            }}
+            title={CATALOG_CREATE_DEFINITIONS[catalogToCreate].title}
+            description={CATALOG_CREATE_DEFINITIONS[catalogToCreate].description}
+            submitText={CATALOG_CREATE_DEFINITIONS[catalogToCreate].submitText}
+            fields={CATALOG_CREATE_DEFINITIONS[catalogToCreate].fields({})}
+            initialValues={{ nombre: catalogInitialName }}
+            onSubmit={createFamilyCatalogOption}
+            onCreated={selectCreatedCatalogOption}
+          />
+        )}
       </DialogContent>
     </ErrorBoundary>
   );

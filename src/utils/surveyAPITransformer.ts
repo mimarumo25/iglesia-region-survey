@@ -44,7 +44,7 @@ interface APIFamilyMember {
   enQueEresLider?: Array<{ id: string; nombre: string }>;
   correo_electronico?: string | null;
   enfermedades?: Array<{ id: number; nombre: string }>;
-  necesidadesEnfermo?: string[];
+  necesidadesEnfermo?: Array<{ id: number; nombre: string }>;
   solicitudComunionCasa?: boolean;
   profesionMotivoFechaCelebrar?: {
     profesion: {
@@ -253,7 +253,14 @@ function transformFamilyMember(member: FamilyMember): APIFamilyMember {
       ? member.correoElectronico
       : null,
     enfermedades: member.enfermedades || [],
-    necesidadesEnfermo: Array.isArray(member.necesidadesEnfermo) ? member.necesidadesEnfermo : [],
+    necesidadesEnfermo: Array.isArray(member.necesidadesEnfermo)
+      ? member.necesidadesEnfermo
+          .map((item) => ({
+            id: Number(item.id),
+            nombre: item.nombre,
+          }))
+          .filter((item) => Number.isFinite(item.id) && item.id > 0 && item.nombre)
+      : [],
     solicitudComunionCasa: member.solicitudComunionCasa || false,
     profesionMotivoFechaCelebrar: {
       profesion: profesion,

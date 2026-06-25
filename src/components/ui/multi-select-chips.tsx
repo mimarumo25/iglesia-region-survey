@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Check, ChevronsUpDown, X } from "lucide-react"
+import { Check, ChevronsUpDown, Plus, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,7 +21,7 @@ import { Loader2 } from "lucide-react"
 export interface MultiSelectOption {
   id: number | string;
   nombre: string;
-  [key: string]: any; // Permitir propiedades adicionales
+  [key: string]: unknown;
 }
 
 interface MultiSelectWithChipsProps {
@@ -35,6 +35,8 @@ interface MultiSelectWithChipsProps {
   error?: string;
   disabled?: boolean;
   className?: string;
+  onCreateOption?: (searchValue: string) => void;
+  createOptionLabel?: string;
 }
 
 /**
@@ -66,6 +68,8 @@ export const MultiSelectWithChips = ({
   error,
   disabled = false,
   className,
+  onCreateOption,
+  createOptionLabel = "Crear nueva opción",
 }: MultiSelectWithChipsProps) => {
   const [open, setOpen] = React.useState(false)
   const [searchValue, setSearchValue] = React.useState("")
@@ -146,26 +150,47 @@ export const MultiSelectWithChips = ({
               value={searchValue}
               onValueChange={setSearchValue}
             />
-            <CommandList>
-              <CommandEmpty>{emptyText}</CommandEmpty>
-              <CommandGroup>
-                {filteredOptions.map((option) => (
-                  <CommandItem
-                    key={option.id}
-                    value={option.nombre}
-                    onSelect={() => toggleOption(option)}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        isSelected(option) ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {option.nombre}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
+            <div className="max-h-60 overflow-y-auto overscroll-contain touch-pan-y">
+              <CommandList className="max-h-none overflow-visible">
+                <CommandEmpty>{emptyText}</CommandEmpty>
+                <CommandGroup>
+                  {filteredOptions.map((option) => (
+                    <CommandItem
+                      key={option.id}
+                      value={option.nombre}
+                      onSelect={() => toggleOption(option)}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          isSelected(option) ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {option.nombre}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </div>
+            {onCreateOption && (
+              <div className="shrink-0 border-t border-border bg-popover p-1.5">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-auto w-full justify-start px-3 py-2.5 text-primary font-semibold"
+                  onClick={() => {
+                    onCreateOption(searchValue.trim())
+                    setOpen(false)
+                  }}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  <span className="truncate">
+                    {createOptionLabel}
+                    {searchValue.trim() ? `: "${searchValue.trim()}"` : ''}
+                  </span>
+                </Button>
+              </div>
+            )}
           </Command>
         </PopoverContent>
       </Popover>

@@ -19,6 +19,8 @@ interface StandardFormFieldProps {
   autocompleteOptions?: AutocompleteOption[];
   isLoading?: boolean;
   error?: any;
+  onCreateOption?: (searchValue: string) => void;
+  createOptionLabel?: string;
 }
 
 // Componente para manejar textos largos con "Ver más"
@@ -69,7 +71,9 @@ const StandardFormField = ({
   onChange, 
   autocompleteOptions = [], 
   isLoading = false, 
-  error = null 
+  error = null,
+  onCreateOption,
+  createOptionLabel,
 }: StandardFormFieldProps) => {
   
   const renderLabel = () => (
@@ -156,6 +160,8 @@ const StandardFormField = ({
             showDescriptions={true}
             showCategories={false}
             allowClear={true}
+            onCreateOption={onCreateOption}
+            createOptionLabel={createOptionLabel}
             data-testid={`autocomplete-${field.id}`}
           />
         </div>

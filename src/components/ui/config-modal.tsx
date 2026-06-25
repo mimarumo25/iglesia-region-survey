@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Autocomplete, AutocompleteOption } from '@/components/ui/autocomplete';
-import { Loader2, LucideIcon } from 'lucide-react';
+import { Loader2, LucideIcon, Plus } from 'lucide-react';
 
 // Tipos para los diferentes tipos de modal
 export type ConfigModalType = 'create' | 'edit' | 'delete';
@@ -71,9 +71,9 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
         };
       case 'edit':
         return {
-          gradient: 'bg-gradient-secondary',
-          titleGradient: 'bg-gradient-secondary bg-clip-text text-transparent',
-          submitClass: 'bg-gradient-secondary hover:bg-gradient-hover',
+          gradient: 'bg-gradient-primary',
+          titleGradient: 'bg-gradient-primary bg-clip-text text-transparent',
+          submitClass: 'bg-gradient-primary hover:bg-gradient-hover',
         };
       case 'delete':
         return {
@@ -268,6 +268,112 @@ export const ConfigFormField: React.FC<ConfigFormFieldProps> = ({
         />
       )}
     </div>
+  );
+};
+
+export interface CatalogFormFieldDefinition {
+  id: string;
+  label: string;
+  type?: 'text' | 'textarea' | 'autocomplete';
+  placeholder?: string;
+  required?: boolean;
+  rows?: number;
+  options?: AutocompleteOption[];
+  searchPlaceholder?: string;
+  emptyText?: string;
+  loading?: boolean;
+  disabled?: boolean;
+}
+
+export interface CatalogFormModalProps<TCreated> {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description: string;
+  fields: CatalogFormFieldDefinition[];
+  initialValues?: Record<string, string>;
+  icon?: LucideIcon;
+  submitText?: string;
+  onSubmit: (values: Record<string, string>) => Promise<TCreated>;
+  onCreated?: (created: TCreated) => void;
+}
+
+/**
+ * Formulario declarativo para catálogos.
+ * Usa el mismo ConfigModal de las pantallas de Configuración y permite
+ * abrirlo sobre encuestas sin duplicar estructura, estilos ni validaciones.
+ */
+export const CatalogFormModal = <TCreated,>({
+  open,
+  onOpenChange,
+  title,
+  description,
+  fields,
+  initialValues = {},
+  icon = Plus,
+  submitText = 'Crear',
+  onSubmit,
+  onCreated,
+}: CatalogFormModalProps<TCreated>) => {
+  const [values, setValues] = React.useState<Record<string, string>>(initialValues);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
+
+  React.useEffect(() => {
+    if (!open) return;
+    setValues({
+      ...Object.fromEntries(fields.map((field) => [field.id, ''])),
+      ...initialValues,
+    });
+    setError('');
+  }, [fields, initialValues, open]);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const missingField = fields.find((field) => field.required && !values[field.id]?.trim());
+    if (missingField) {
+      setError(`El campo ${missingField.label} es obligatorio`);
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      const normalizedValues = Object.fromEntries(
+        Object.entries(values).map(([key, value]) => [key, value.trim()])
+      );
+      const created = await onSubmit(normalizedValues);
+      onCreated?.(created);
+      onOpenChange(false);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'No se pudo guardar el registro');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <ConfigModal
+      open={open}
+      onOpenChange={onOpenChange}
+      type="create"
+      title={title}
+      description={description}
+      icon={icon}
+      loading={loading}
+      onSubmit={handleSubmit}
+      submitText={submitText}
+    >
+      {fields.map((field) => (
+        <ConfigFormField
+          key={field.id}
+          {...field}
+          value={values[field.id] || ''}
+          onChange={(value) => setValues((current) => ({ ...current, [field.id]: value }))}
+        />
+      ))}
+      {error && <p className="text-sm font-medium text-destructive">{error}</p>}
+    </ConfigModal>
   );
 };
 

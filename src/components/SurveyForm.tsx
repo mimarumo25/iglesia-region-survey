@@ -41,6 +41,12 @@ import { transformEncuestaToFormData, validateTransformedData } from "@/utils/en
 import { hasLeadershipFamilyMember, getLeadershipMessage } from "@/utils/familyValidationHelpers";
 import { ENCUESTAS_QUERY_KEYS } from "@/hooks/useEncuestas";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { CatalogFormModal } from "@/components/ui/config-modal";
+import {
+  CATALOG_CREATE_DEFINITIONS,
+  CatalogCreateKey,
+  createCatalogOption,
+} from "@/config/catalog-create";
 // Removed storage debugger import - component was cleaned up
 
 /**
@@ -145,6 +151,8 @@ const SurveyForm = () => {
   const [showDataProtectionModal, setShowDataProtectionModal] = useState(false); // NO mostrar automáticamente
   const [hasAcceptedDataProtection, setHasAcceptedDataProtection] = useState(false); // Inicia sin aceptar
   const [isDraftLoaded, setIsDraftLoaded] = useState(false); // Indica si el borrador ya fue cargado
+  const [catalogFieldToCreate, setCatalogFieldToCreate] = useState<string | null>(null);
+  const [catalogInitialName, setCatalogInitialName] = useState("");
   const { toast } = useToast();
 
   // Hook para cargar datos de configuración
@@ -182,6 +190,34 @@ const SurveyForm = () => {
 
   const currentStageData = formStages.find(stage => stage.id === currentStage);
   const progress = (currentStage / formStages.length) * 100;
+
+  const surveyCatalogKeys = new Set<CatalogCreateKey>([
+    "municipio",
+    "parroquia",
+    "corregimiento",
+    "centro_poblado",
+    "vereda",
+    "sector",
+    "tipo_vivienda",
+    "sistema_acueducto",
+  ]);
+
+  const createSurveyCatalogOption = async (values: Record<string, string>) => {
+    if (!catalogFieldToCreate || !surveyCatalogKeys.has(catalogFieldToCreate as CatalogCreateKey)) {
+      throw new Error("Este campo no admite creación en línea");
+    }
+    const key = catalogFieldToCreate as CatalogCreateKey;
+    const created = await createCatalogOption(key, values, {
+      municipioId: formData.municipio,
+      departamentoOptions: configurationData.departamentoOptions,
+    });
+    await Promise.all(
+      CATALOG_CREATE_DEFINITIONS[key].queryKeys.map((queryKey) =>
+        queryClient.invalidateQueries({ queryKey: [queryKey] })
+      )
+    );
+    return created;
+  };
 
   // Fallback defensivo para evitar bloqueos en loading infinito
   useEffect(() => {
@@ -1077,6 +1113,13 @@ const SurveyForm = () => {
                       autocompleteOptions={getFieldAutocompleteOptions(field)}
                       isLoading={getFieldLoadingState(field)}
                       error={getFieldErrorState(field)}
+                      onCreateOption={surveyCatalogKeys.has(field.id as CatalogCreateKey) ? (searchValue) => {
+                        setCatalogInitialName(searchValue);
+                        setCatalogFieldToCreate(field.id);
+                      } : undefined}
+                      createOptionLabel={surveyCatalogKeys.has(field.id as CatalogCreateKey)
+                        ? `Crear ${CATALOG_CREATE_DEFINITIONS[field.id as CatalogCreateKey].title.toLowerCase()}`
+                        : undefined}
                     />
                   )}
                 </div>
@@ -1107,6 +1150,27 @@ const SurveyForm = () => {
         }}
         isRequired={true}
       />
+
+      {catalogFieldToCreate && surveyCatalogKeys.has(catalogFieldToCreate as CatalogCreateKey) && (
+        <CatalogFormModal
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setCatalogFieldToCreate(null);
+          }}
+          title={CATALOG_CREATE_DEFINITIONS[catalogFieldToCreate as CatalogCreateKey].title}
+          description={CATALOG_CREATE_DEFINITIONS[catalogFieldToCreate as CatalogCreateKey].description}
+          submitText={CATALOG_CREATE_DEFINITIONS[catalogFieldToCreate as CatalogCreateKey].submitText}
+          fields={CATALOG_CREATE_DEFINITIONS[catalogFieldToCreate as CatalogCreateKey].fields({
+            municipioId: formData.municipio,
+            departamentoOptions: configurationData.departamentoOptions,
+          })}
+          initialValues={{ nombre: catalogInitialName }}
+          onSubmit={createSurveyCatalogOption}
+          onCreated={(created) => {
+            handleFieldChange(catalogFieldToCreate, String(created.id));
+          }}
+        />
+      )}
 
       {/* Storage debugger component was removed during cleanup */}
     </div>

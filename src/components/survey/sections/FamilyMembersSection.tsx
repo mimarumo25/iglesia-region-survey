@@ -15,42 +15,13 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import type { SurveyResponseData, SurveyPerson } from '@/types/survey-responses'
+import { normalizeCatalogOptionLabels } from '@/utils/catalogOptionFormatters'
 
 /**
  * Helper function to parse JSON array strings or comma-separated strings into array
  */
 const parseArrayField = (field: string | Array<any> | null | undefined): string[] => {
-  if (!field) return [];
-
-  // Handle actual array (backend returns array directly)
-  if (Array.isArray(field)) {
-    return field
-      .map((item: any) => (typeof item === 'object' && item !== null ? item.nombre || '' : String(item)))
-      .filter(Boolean);
-  }
-
-  try {
-    const parsed = JSON.parse(field as string);
-    if (Array.isArray(parsed)) {
-      // Flatten array and split each element by comma
-      return parsed
-        .flatMap((item: any) => {
-          if (typeof item === 'object' && item !== null) {
-            return item.nombre ? [String(item.nombre).trim()] : [];
-          }
-          return typeof item === 'string' && item.includes(',')
-            ? item.split(',').map((s: string) => s.trim())
-            : [item];
-        })
-        .filter((item: any) => item && String(item).trim())
-        .map((item: any) => String(item).trim());
-    }
-  } catch {
-    // Not valid JSON, continue
-  }
-  
-  // Split by comma and filter empty items
-  return field.split(',').map(item => item.trim()).filter(item => item);
+  return normalizeCatalogOptionLabels(field);
 };
 
 interface FamilyMembersSectionProps {
@@ -292,13 +263,13 @@ const PersonDetailCard: React.FC<{ person: SurveyPerson }> = ({ person }) => {
         )}
 
         {/* Necesidades del Enfermo */}
-        {person.necesidad_enfermo && (
+        {(person.necesidadesEnfermo?.length || person.necesidad_enfermo) && (
           <div className="space-y-2">
             <h5 className="text-xs font-bold text-orange-700 uppercase tracking-wide flex items-center gap-1">
               <AlertTriangle className="w-3 h-3" /> Necesidades del Enfermo
             </h5>
             <div className="flex flex-wrap gap-2">
-              {parseArrayField(person.necesidad_enfermo).map((necesidad, idx) => (
+              {parseArrayField(person.necesidadesEnfermo || person.necesidad_enfermo).map((necesidad, idx) => (
                 <Badge key={idx} variant="outline" className="bg-orange-50 text-orange-800 border-orange-300 text-xs">
                   {necesidad}
                 </Badge>

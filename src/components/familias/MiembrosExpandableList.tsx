@@ -34,6 +34,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import type { MiembroFamiliaConsolidado } from '@/types/familias';
+import { formatCatalogOptionLabels } from '@/utils/catalogOptionFormatters';
 
 interface MiembrosExpandableListProps {
   miembros: MiembroFamiliaConsolidado[];
@@ -55,6 +56,10 @@ const formatearFecha = (fecha: string | null | undefined): string => {
     return '-';
   }
 };
+
+const formatNecesidadesEnfermo = (miembro: MiembroFamiliaConsolidado): string => (
+  formatCatalogOptionLabels((miembro as any).necesidadesEnfermo ?? miembro.necesidades_enfermo)
+);
 
 const MiembrosExpandableList: React.FC<MiembrosExpandableListProps> = ({ miembros }) => {
   if (!miembros || miembros.length === 0) {
@@ -320,9 +325,9 @@ const MiembrosExpandableList: React.FC<MiembrosExpandableListProps> = ({ miembro
                           <Heart className="h-3 w-3 text-orange-500" />
                           <span className="text-xs text-muted-foreground">Necesidades del Enfermo</span>
                         </div>
-                        {miembro.necesidades_enfermo ? (
+                        {formatNecesidadesEnfermo(miembro) !== '-' ? (
                           <div className="bg-orange-50 border border-orange-200 rounded-md p-2">
-                            <p className="text-orange-700 font-medium text-xs">{miembro.necesidades_enfermo}</p>
+                            <p className="text-orange-700 font-medium text-xs">{formatNecesidadesEnfermo(miembro)}</p>
                           </div>
                         ) : (
                           <p className="text-muted-foreground text-xs">No especificado</p>

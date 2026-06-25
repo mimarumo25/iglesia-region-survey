@@ -6,19 +6,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Users, 
   Heart, 
-  Calendar, 
-  FileSpreadsheet,
-  RefreshCw,
-  Loader2,
-  Search
+  Calendar
 } from "lucide-react";
 import { Autocomplete } from "@/components/ui/autocomplete";
 import { useConfigurationData } from "@/hooks/useConfigurationData";
@@ -35,6 +29,7 @@ import { useCorregimientos } from "@/hooks/useCorregimientos";
 import { useCentrosPoblados } from "@/hooks/useCentrosPoblados";
 import { useSectores } from "@/hooks/useSectores";
 import { useVeredas } from "@/hooks/useVeredas";
+import ReportActions from "@/components/reports/ReportActions";
 
 /**
  * 📊 Módulo de Reportes y Estadísticas - Sistema MIA
@@ -743,19 +738,19 @@ const Reports = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full max-w-[98%] 2xl:max-w-[96%] mx-auto px-2 sm:px-3 lg:px-6 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6 lg:space-y-8">
+      <div className="mx-auto w-full max-w-[98%] space-y-3 px-1.5 py-3 sm:space-y-6 sm:px-3 sm:py-6 lg:px-6 lg:py-8 2xl:max-w-[96%]">
         {/* Tabs de reportes */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-3 h-auto gap-1 p-1">
-            <TabsTrigger value="familias" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
+          <TabsList className="grid h-auto w-full grid-cols-3 gap-1 rounded-2xl border border-border/70 bg-card/80 p-1 shadow-sm sm:p-1.5">
+            <TabsTrigger value="familias" className="flex min-h-11 items-center justify-center gap-1 px-1 text-[11px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm">
               <Users className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
               <span className="truncate">Familias</span>
             </TabsTrigger>
-            <TabsTrigger value="salud" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
+            <TabsTrigger value="salud" className="flex min-h-11 items-center justify-center gap-1 px-1 text-[11px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm">
               <Heart className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
               <span className="truncate">Salud</span>
             </TabsTrigger>
-            <TabsTrigger value="difuntos" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
+            <TabsTrigger value="difuntos" className="flex min-h-11 items-center justify-center gap-1 px-1 text-[11px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm">
               <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
               <span className="truncate">Difuntos</span>
             </TabsTrigger>
@@ -764,8 +759,8 @@ const Reports = () => {
           {/* Tab Content: Familias */}
           <TabsContent value="familias" className="space-y-4 sm:space-y-6">
             {/* Card de filtros y botones de exportación */}
-            <Card>
-              <CardHeader className="space-y-4">
+            <Card className="report-card">
+              <CardHeader className="report-card-header space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="space-y-1">
                     <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
@@ -778,49 +773,26 @@ const Reports = () => {
                   </div>
                   
                   {/* Botones de acción - Stack en móvil, inline en desktop */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={clearFamiliasFilters}
-                      disabled={familiasLoading}
-                      className="flex items-center justify-center gap-2 text-xs sm:text-sm h-9"
-                    >
-                      <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span>Limpiar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleQueryFamilias}
-                      disabled={familiasLoading}
-                      className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-xs sm:text-sm h-9"
-                    >
-                      {familiasLoading ? (
-                        <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                      ) : (
-                        <Search className="h-3 w-3 sm:h-4 sm:w-4" />
-                      )}
-                      <span className="hidden xs:inline">Consultar Familias</span>
-                      <span className="xs:hidden">Consultar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleExportFamiliasToExcel}
-                      disabled={familiasLoading}
-                      className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-xs sm:text-sm h-9"
-                    >
-                      <FileSpreadsheet className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="hidden xs:inline">Descargar Excel</span>
-                      <span className="xs:hidden">Excel</span>
-                    </Button>
-                  </div>
+                  <ReportActions
+                    onClear={clearFamiliasFilters}
+                    onQuery={handleQueryFamilias}
+                    onExport={handleExportFamiliasToExcel}
+                    isLoading={familiasLoading}
+                  />
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="report-card-content">
+                <div className="report-section-title rounded-xl bg-primary/[0.05] px-4 py-3">
+                  <span className="text-sm font-semibold text-muted-foreground">
+                    Ubicación geográfica
+                  </span>
+                </div>
                 {/* Campos de filtros - Ubicación geográfica */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                <div className="report-filter-fields grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {/* Municipio - FILTRO PRINCIPAL */}
                   <div className="space-y-2">
                     <Label htmlFor="familia_municipio" className="text-sm font-medium">
-                      Municipio <span className="text-primary">⭐</span>
+                      Municipio
                     </Label>
                     <Autocomplete
                       options={configData.municipioOptions}
@@ -917,8 +889,8 @@ const Reports = () => {
           {/* Tab Content: Salud */}
           <TabsContent value="salud" className="space-y-4 sm:space-y-6">
             {/* Card de filtros y botones de exportación */}
-            <Card>
-              <CardHeader className="space-y-4">
+            <Card className="report-card">
+              <CardHeader className="report-card-header space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="space-y-1">
                     <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
@@ -931,109 +903,89 @@ const Reports = () => {
                   </div>
                   
                   {/* Botones de acción - Stack en móvil, inline en desktop */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={clearSaludFilters}
-                      disabled={saludLoading}
-                      className="flex items-center justify-center gap-2 text-xs sm:text-sm h-9"
-                    >
-                      <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span>Limpiar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleQuerySaludWithReset}
-                      disabled={saludLoading}
-                      className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-xs sm:text-sm h-9"
-                    >
-                      {saludLoading ? (
-                        <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                      ) : (
-                        <Search className="h-3 w-3 sm:h-4 sm:w-4" />
-                      )}
-                      <span>Consultar</span>
-                    </Button>
-                    <Button 
-                      onClick={handleExportSaludToExcel}
-                      disabled={saludLoading}
-                      className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-xs sm:text-sm h-9"
-                    >
-                      <FileSpreadsheet className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="hidden xs:inline">Descargar Excel</span>
-                      <span className="xs:hidden">Excel</span>
-                    </Button>
-                  </div>
+                  <ReportActions
+                    onClear={clearSaludFilters}
+                    onQuery={handleQuerySaludWithReset}
+                    onExport={handleExportSaludToExcel}
+                    isLoading={saludLoading}
+                  />
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="report-card-content flex flex-col gap-4">
                 {/* Campos de filtros - Datos de salud */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-                  {/* Enfermedad */}
-                  <div className="space-y-2">
-                    <Label htmlFor="salud_enfermedad" className="text-sm font-medium">Enfermedad</Label>
-                    <Autocomplete
-                      options={configData.enfermedadesOptions}
-                      value={saludFilters.enfermedad}
-                      onValueChange={(value) => handleSaludFilterChange('enfermedad', value)}
-                      placeholder="Seleccionar enfermedad..."
-                      loading={configData.enfermedadesLoading}
-                      emptyText="No se encontraron enfermedades"
-                    />
+                <div className="report-filter-section report-filter-section-secondary report-filter-fields order-3">
+                  <div className="report-section-title">
+                    Filtros específicos
                   </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                    {/* Enfermedad */}
+                    <div className="space-y-2">
+                      <Label htmlFor="salud_enfermedad" className="text-sm font-medium">Enfermedad</Label>
+                      <Autocomplete
+                        options={configData.enfermedadesOptions}
+                        value={saludFilters.enfermedad}
+                        onValueChange={(value) => handleSaludFilterChange('enfermedad', value)}
+                        placeholder="Seleccionar enfermedad..."
+                        loading={configData.enfermedadesLoading}
+                        emptyText="No se encontraron enfermedades"
+                      />
+                    </div>
 
-                  {/* Sexo */}
-                  <div className="space-y-2">
-                    <Label htmlFor="salud_sexo" className="text-sm font-medium">Sexo</Label>
-                    <Autocomplete
-                      options={configData.sexoOptions}
-                      value={saludFilters.sexo}
-                      onValueChange={(value) => handleSaludFilterChange('sexo', value)}
-                      placeholder="Seleccionar sexo..."
-                      loading={configData.sexosLoading}
-                      emptyText="No se encontraron opciones"
-                    />
-                  </div>
+                    {/* Sexo */}
+                    <div className="space-y-2">
+                      <Label htmlFor="salud_sexo" className="text-sm font-medium">Sexo</Label>
+                      <Autocomplete
+                        options={configData.sexoOptions}
+                        value={saludFilters.sexo}
+                        onValueChange={(value) => handleSaludFilterChange('sexo', value)}
+                        placeholder="Seleccionar sexo..."
+                        loading={configData.sexosLoading}
+                        emptyText="No se encontraron opciones"
+                      />
+                    </div>
 
-                  {/* Edad Mínima */}
-                  <div className="space-y-2">
-                    <Label htmlFor="salud_edad_min" className="text-sm font-medium">Edad Mínima</Label>
-                    <Input
-                      id="salud_edad_min"
-                      type="number"
-                      min={0}
-                      max={120}
-                      value={saludFilters.edad_min}
-                      onChange={(e) => handleSaludFilterChange('edad_min', e.target.value)}
-                      placeholder="Ej: 18"
-                      className="w-full h-9 text-sm"
-                    />
-                  </div>
+                    {/* Edad Mínima */}
+                    <div className="space-y-2">
+                      <Label htmlFor="salud_edad_min" className="text-sm font-medium">Edad Mínima</Label>
+                      <Input
+                        id="salud_edad_min"
+                        type="number"
+                        min={0}
+                        max={120}
+                        value={saludFilters.edad_min}
+                        onChange={(e) => handleSaludFilterChange('edad_min', e.target.value)}
+                        placeholder="Ej: 18"
+                        className="w-full h-9 text-sm"
+                      />
+                    </div>
 
-                  {/* Edad Máxima */}
-                  <div className="space-y-2">
-                    <Label htmlFor="salud_edad_max" className="text-sm font-medium">Edad Máxima</Label>
-                    <Input
-                      id="salud_edad_max"
-                      type="number"
-                      min={0}
-                      max={120}
-                      value={saludFilters.edad_max}
-                      onChange={(e) => handleSaludFilterChange('edad_max', e.target.value)}
-                      placeholder="Ej: 65"
-                      className="w-full h-9 text-sm"
-                    />
+                    {/* Edad Máxima */}
+                    <div className="space-y-2">
+                      <Label htmlFor="salud_edad_max" className="text-sm font-medium">Edad Máxima</Label>
+                      <Input
+                        id="salud_edad_max"
+                        type="number"
+                        min={0}
+                        max={120}
+                        value={saludFilters.edad_max}
+                        onChange={(e) => handleSaludFilterChange('edad_max', e.target.value)}
+                        placeholder="Ej: 65"
+                        className="w-full h-9 text-sm"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <Separator className="my-4 sm:my-6" />
-
                 {/* Filtros de ubicación geográfica */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                <div className="report-filter-section report-filter-section-primary report-filter-fields order-1">
+                  <div className="report-section-title">
+                    Ubicación geográfica
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {/* Municipio - FILTRO PRINCIPAL */}
                   <div className="space-y-2">
                     <Label htmlFor="salud_municipio" className="text-sm font-medium">
-                      Municipio <span className="text-primary">⭐</span>
+                      Municipio
                     </Label>
                     <Autocomplete
                       options={configData.municipioOptions}
@@ -1115,24 +1067,32 @@ const Reports = () => {
                     />
                   </div>
 
-                  {/* Límite de resultados */}
-                  <div className="space-y-2">
-                    <Label htmlFor="salud_limite" className="text-sm font-medium">Límite de resultados</Label>
-                    <Select 
-                      value={saludFilters.limite.toString()} 
-                      onValueChange={(value) => handleSaludFilterChange('limite', parseInt(value))}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="50">50 registros</SelectItem>
-                        <SelectItem value="100">100 registros</SelectItem>
-                        <SelectItem value="250">250 registros</SelectItem>
-                        <SelectItem value="500">500 registros</SelectItem>
-                        <SelectItem value="1000">1000 registros</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  </div>
+                </div>
+
+                <div className="report-filter-section report-filter-fields order-4">
+                  <div className="report-section-title">
+                    Configuración de resultados
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="salud_limite" className="text-sm font-medium">Límite de resultados</Label>
+                      <Select
+                        value={saludFilters.limite.toString()}
+                        onValueChange={(value) => handleSaludFilterChange('limite', parseInt(value))}
+                      >
+                        <SelectTrigger className="h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="50">50 registros</SelectItem>
+                          <SelectItem value="100">100 registros</SelectItem>
+                          <SelectItem value="250">250 registros</SelectItem>
+                          <SelectItem value="500">500 registros</SelectItem>
+                          <SelectItem value="1000">1000 registros</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
               </CardContent>

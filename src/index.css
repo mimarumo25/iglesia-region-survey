@@ -309,6 +309,104 @@ All colors MUST be HSL - MIA Verde y Azul Temático
 }
 
 @layer components {
+  .report-card {
+    @apply overflow-hidden border border-border/70 bg-card shadow-sm;
+    box-shadow: 0 12px 30px -24px hsl(var(--foreground) / 0.35);
+  }
+
+  .report-card-header {
+    @apply border-b border-border/70 bg-gradient-to-r from-primary/[0.07] via-background to-secondary/[0.07] px-4 py-4 sm:px-6 sm:py-5;
+  }
+
+  .report-card-content {
+    @apply bg-card/95 p-4 sm:p-6;
+  }
+
+  .report-filter-fields > .grid,
+  .report-filter-fields.grid {
+    @apply gap-4 sm:gap-5;
+  }
+
+  .report-filter-fields label {
+    @apply text-xs font-semibold tracking-wide text-foreground/80 sm:text-sm;
+  }
+
+  .report-filter-fields input,
+  .report-filter-fields [role="combobox"] {
+    @apply border-border/80 bg-background shadow-sm;
+  }
+
+  .report-filter-section {
+    @apply rounded-2xl border border-border/70 bg-muted/20 p-4 shadow-sm sm:p-5;
+  }
+
+  .report-filter-section-primary {
+    @apply border-primary/20 bg-primary/[0.035];
+  }
+
+  .report-filter-section-secondary {
+    @apply border-secondary/20 bg-secondary/[0.035];
+  }
+
+  .report-section-title {
+    @apply mb-4 flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground sm:text-base;
+  }
+
+  .report-section-title::before {
+    content: "";
+    @apply h-5 w-1 rounded-full bg-primary;
+  }
+
+  .report-tabs-scroll {
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .report-tabs-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (max-width: 639px) {
+    .report-card {
+      @apply rounded-2xl;
+    }
+
+    .report-card-header {
+      @apply px-3 py-3.5;
+    }
+
+    .report-card-content {
+      @apply p-3;
+    }
+
+    .report-filter-section {
+      @apply rounded-xl p-3;
+    }
+
+    .report-section-title {
+      @apply mb-3 min-h-10 px-3 py-2.5 text-sm;
+    }
+
+    .report-filter-fields {
+      @apply gap-3;
+    }
+
+    .report-filter-fields > div {
+      @apply space-y-1.5;
+    }
+
+    .report-filter-fields input,
+    .report-filter-fields [role="combobox"],
+    .report-filter-fields button[role="combobox"] {
+      min-height: 44px;
+    }
+
+    .report-filter-fields input {
+      font-size: 16px;
+    }
+  }
+
   /* ===== TRANSICIONES SINCRONIZADAS PARA TODOS LOS COMPONENTES ===== */
   
   /* Aplicar transición consistente a todos los componentes shadcn/ui */
