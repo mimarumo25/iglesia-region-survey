@@ -26,9 +26,7 @@ COPY . .
 
 # Variables de entorno necesarias en tiempo de build (Vite las embebe en el bundle)
 ARG VITE_BASE_URL_SERVICES
-ARG VITE_SKIP_AUTH=false
 ENV VITE_BASE_URL_SERVICES=$VITE_BASE_URL_SERVICES
-ENV VITE_SKIP_AUTH=$VITE_SKIP_AUTH
 
 # Build de producción (genera /app/dist)
 RUN npm run build
@@ -49,3 +47,4 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]
+

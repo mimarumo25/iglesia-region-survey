@@ -92,12 +92,6 @@ export const useAuth = () => {
         variant: "default"
       });
 
-      // En modo desarrollo, evitar la re-autenticación automática temporalmente
-      if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
-        // Agregar un flag temporal para evitar la re-autenticación inmediata
-        sessionStorage.setItem('manual_logout', 'true');
-      }
-
       // Redirigir al login
       window.location.href = '/login';
 
@@ -111,11 +105,6 @@ export const useAuth = () => {
         description: "Sesión cerrada localmente.",
         variant: "default"
       });
-
-      // En modo desarrollo, evitar la re-autenticación automática temporalmente
-      if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
-        sessionStorage.setItem('manual_logout', 'true');
-      }
 
       window.location.href = '/login';
 
@@ -191,3 +180,4 @@ export const useAuth = () => {
     setUserData,
   };
 };
+

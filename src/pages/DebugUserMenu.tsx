@@ -25,7 +25,6 @@ const DebugUserMenu = () => {
             <p><strong>Loading:</strong> {isLoading ? 'Sí' : 'No'}</p>
             <p><strong>Authenticated:</strong> {isAuthenticated ? 'Sí' : 'No'}</p>
             <p><strong>User exists:</strong> {user ? 'Sí' : 'No'}</p>
-            <p><strong>VITE_SKIP_AUTH:</strong> {import.meta.env.VITE_SKIP_AUTH}</p>
             <p><strong>DEV:</strong> {import.meta.env.DEV ? 'Sí' : 'No'}</p>
           </div>
         </CardContent>
@@ -68,3 +67,4 @@ const DebugUserMenu = () => {
 };
 
 export default DebugUserMenu;
+

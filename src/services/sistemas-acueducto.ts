@@ -1,5 +1,4 @@
 import { apiClient } from '@/interceptors/axios';
-import axios from 'axios';
 import { 
   SistemaAcueducto,
   SistemaAcueductoCreate, 
@@ -7,19 +6,7 @@ import {
   SistemasAcueductoResponse,
   ServerResponse 
 } from '@/types/sistemas-acueducto';
-import { AXIOS_CONFIG, API_ENDPOINTS } from '@/config/api';
-
-// Cliente básico sin autenticación para modo desarrollo
-const basicClient = axios.create(AXIOS_CONFIG);
-
-// Función para obtener el cliente correcto
-const getApiClient = () => {
-  // En modo desarrollo y con SKIP_AUTH, usar cliente básico
-  if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
-    return basicClient;
-  }
-  return apiClient;
-};
+import { API_ENDPOINTS } from '@/config/api';
 
 class SistemasAcueductoService {
   
@@ -30,7 +17,7 @@ class SistemasAcueductoService {
     page: number = 1
   ): Promise<SistemaAcueducto[]> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.get(
         `/api/catalog/sistemas-acueducto`,
         {
@@ -57,7 +44,7 @@ class SistemasAcueductoService {
   // Obtener un sistema de acueducto por ID
   async getSistemaAcueductoById(id: string): Promise<ServerResponse<SistemaAcueducto>> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.get(
         `/api/catalog/sistemas-acueducto/${id}`
       );
@@ -71,7 +58,7 @@ class SistemasAcueductoService {
   // Crear nuevo sistema de acueducto
   async createSistemaAcueducto(sistema: SistemaAcueductoCreate): Promise<ServerResponse<SistemaAcueducto>> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.post(
         `/api/catalog/sistemas-acueducto`,
         {
@@ -89,7 +76,7 @@ class SistemasAcueductoService {
   // Actualizar sistema de acueducto existente
   async updateSistemaAcueducto(id: string, sistema: SistemaAcueductoUpdate): Promise<ServerResponse<SistemaAcueducto>> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.put(
         `/api/catalog/sistemas-acueducto/${id}`,
         sistema
@@ -104,7 +91,7 @@ class SistemasAcueductoService {
   // Eliminar sistema de acueducto
   async deleteSistemaAcueducto(id: string): Promise<void> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       await client.delete(
         `/api/catalog/sistemas-acueducto/${id}`
       );
@@ -122,7 +109,7 @@ class SistemasAcueductoService {
     page: number = 1
   ): Promise<SistemaAcueducto[]> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.get(
         `/api/catalog/sistemas-acueducto`,
         {
@@ -153,7 +140,7 @@ class SistemasAcueductoService {
     page: number = 1
   ): Promise<SistemaAcueducto[]> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.get(
         `/api/catalog/sistemas-acueducto`,
         {
@@ -180,3 +167,4 @@ class SistemasAcueductoService {
 
 export const sistemasAcueductoService = new SistemasAcueductoService();
 export default sistemasAcueductoService;
+

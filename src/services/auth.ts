@@ -8,7 +8,7 @@ import {
   VerifyEmailResponse 
 } from '@/types/auth';
 import { TokenManager } from '@/utils/cookies';
-import { API_BASE_URL, API_TIMEOUTS, DEFAULT_HEADERS, DEV_CONFIG, API_ENDPOINTS } from '@/config/api';
+import { API_BASE_URL, API_TIMEOUTS, DEFAULT_HEADERS, API_ENDPOINTS } from '@/config/api';
 import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
 
 // Instancia de axios configurada para autenticación
@@ -205,13 +205,9 @@ export class AuthService {
 
   /**
    * Verifica si el usuario está autenticado
-   * @returns True si hay tokens válidos o está en modo desarrollo
+   * @returns True si hay tokens válidos
    */
   static isAuthenticated(): boolean {
-    // En modo desarrollo, permitir acceso sin tokens
-    if (DEV_CONFIG.IS_DEVELOPMENT && DEV_CONFIG.SKIP_AUTH) {
-      return true;
-    }
     return TokenManager.hasValidTokens();
   }
 
@@ -338,3 +334,4 @@ export class AuthService {
     }
   }
 }
+

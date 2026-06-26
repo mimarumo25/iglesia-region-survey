@@ -36,27 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (manualLogout === 'true') {
       return; // No limpiar el flag aquí para que persista
     }
-    
-    // MODO DESARROLLO: Usuario ficticio sin llamadas
-    if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
-      const devUser = {
-        id: 'dev-user-123',
-        firstName: 'Diego',
-        lastName: 'García',
-        secondName: 'Carlos',
-        secondLastName: 'López',
-        email: 'admin@parroquia.com',
-        role: 'admin',
-        phone: '+57 300 456 7890',
-        active: true,
-        emailVerified: true,
-        roles: ['Administrador']
-      };
-      auth.setUserData(devUser);
-      return;
-    }
-    
-    try {
+try {
       // SOLO verificar si hay tokens válidos almacenados (sin llamadas)
       const hasValidTokens = AuthService.isAuthenticated();
       const storedUserData = AuthService.getUserData();
@@ -101,10 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const contextValue: AuthContextType = {
     user: auth.user,
     isLoading: auth.isLoading,
-    // En modo desarrollo, forzar autenticación si hay usuario
-    isAuthenticated: import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true' 
-      ? !!auth.user 
-      : auth.isAuthenticated,
+    isAuthenticated: auth.isAuthenticated,
     login: auth.login,
     logout: handleLogout, // Usar la función personalizada
     // ❌ NO exponer refreshAuth - los componentes no deberían usarlo automáticamente
@@ -134,3 +111,4 @@ export const useAuthContext = (): AuthContextType => {
 };
 
 export default AuthContext;
+

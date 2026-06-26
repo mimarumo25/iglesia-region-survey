@@ -1,5 +1,4 @@
 import { apiClient } from '@/interceptors/axios';
-import axios from 'axios';
 import { 
   AguaResidual,
   AguaResidualCreate, 
@@ -7,19 +6,7 @@ import {
   AguasResidualesResponse,
   ServerResponse 
 } from '@/types/aguas-residuales';
-import { AXIOS_CONFIG, API_ENDPOINTS } from '@/config/api';
-
-// Cliente básico sin autenticación para modo desarrollo
-const basicClient = axios.create(AXIOS_CONFIG);
-
-// Función para obtener el cliente correcto
-const getApiClient = () => {
-  // En modo desarrollo y con SKIP_AUTH, usar cliente básico
-  if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
-    return basicClient;
-  }
-  return apiClient;
-};
+import { API_ENDPOINTS } from '@/config/api';
 
 class AguasResidualesService {
   
@@ -31,7 +18,7 @@ class AguasResidualesService {
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ): Promise<ServerResponse<AguasResidualesResponse>> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.get(
         API_ENDPOINTS.CATALOG.AGUAS_RESIDUALES,
         {
@@ -76,7 +63,7 @@ class AguasResidualesService {
   // Obtener un tipo de agua residual por ID
   async getAguaResidualById(id: string): Promise<ServerResponse<AguaResidual>> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.get(
         `/api/catalog/aguas-residuales/${id}`
       );
@@ -99,7 +86,7 @@ class AguasResidualesService {
   // Crear nuevo tipo de agua residual
   async createAguaResidual(aguaResidual: AguaResidualCreate): Promise<ServerResponse<AguaResidual>> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.post(
         `/api/catalog/aguas-residuales`,
         aguaResidual
@@ -123,7 +110,7 @@ class AguasResidualesService {
   // Actualizar tipo de agua residual existente
   async updateAguaResidual(id: string, aguaResidual: AguaResidualUpdate): Promise<ServerResponse<AguaResidual>> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.put(
         `/api/catalog/aguas-residuales/${id}`,
         aguaResidual
@@ -147,7 +134,7 @@ class AguasResidualesService {
   // Eliminar tipo de agua residual
   async deleteAguaResidual(id: string): Promise<void> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       await client.delete(
         `/api/catalog/aguas-residuales/${id}`
       );
@@ -166,7 +153,7 @@ class AguasResidualesService {
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ): Promise<ServerResponse<AguasResidualesResponse>> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.get(
         `/api/catalog/aguas-residuales`,
         {
@@ -212,3 +199,4 @@ class AguasResidualesService {
 
 export const aguasResidualesService = new AguasResidualesService();
 export default aguasResidualesService;
+

@@ -4,8 +4,6 @@ import { TokenManager } from '@/utils/cookies';
 
 // Configuración directa en el interceptor para evitar dependencias circulares
 const API_BASE_URL = import.meta.env.VITE_BASE_URL_SERVICES;
-const IS_DEVELOPMENT = import.meta.env.DEV;
-const SKIP_AUTH = import.meta.env.VITE_SKIP_AUTH === 'true';
 
 // Instancia principal de axios para todas las peticiones autenticadas
 export const apiClient = axios.create({
@@ -45,13 +43,7 @@ function onRefreshed(token: string) {
  */
 function onRefreshFailure() {
   refreshSubscribers = [];
-  
-  // En modo desarrollo con SKIP_AUTH, no limpiar sesión ni redirigir
-  if (IS_DEVELOPMENT && SKIP_AUTH) {
-    return;
-  }
-  
-  AuthService.clearSession();
+AuthService.clearSession();
   
   // Redirigir al login solo si no estamos ya en la página de login
   if (!window.location.pathname.includes('/login')) {
@@ -93,13 +85,7 @@ apiClient.interceptors.response.use(
 
     // Verificar si es un error 401 (no autorizado) y no es una petición ya reintentada
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
-      
-      // En modo desarrollo con SKIP_AUTH, solo logear el error sin procesar
-      if (IS_DEVELOPMENT && SKIP_AUTH) {
-        return Promise.reject(error);
-      }
-      
-      // Si ya hay un refresh en progreso, esperar a que termine
+// Si ya hay un refresh en progreso, esperar a que termine
       if (isRefreshing) {
         return new Promise((resolve) => {
           addRefreshSubscriber((token: string) => {
@@ -193,3 +179,4 @@ export const apiDelete = <T = any>(url: string, config?: any): Promise<AxiosResp
 };
 
 export default apiClient;
+

@@ -55,7 +55,6 @@ log "📋 Último commit: $(git log -1 --pretty=format:'%h - %s (%an, %ar)')"
 log "📝 Actualizando .env con valores de producción..."
 cat > .env << 'EOF'
 VITE_BASE_URL_SERVICES=http://206.62.139.100:3001
-VITE_SKIP_AUTH=false
 EOF
 log "🔑 VITE_BASE_URL_SERVICES=$(grep VITE_BASE_URL_SERVICES .env | cut -d= -f2)"
 
@@ -115,3 +114,4 @@ echo "📊 Ver logs en tiempo real: docker-compose logs -f"
 echo "🔄 Reiniciar aplicación: docker-compose restart"
 echo "🛑 Detener aplicación: docker-compose down"
 echo "🔍 Ver estado: docker-compose ps"
+

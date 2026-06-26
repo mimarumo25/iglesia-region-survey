@@ -1,18 +1,6 @@
 import { apiClient } from '@/interceptors/axios';
-import axios from 'axios';
-import { AXIOS_CONFIG, API_ENDPOINTS, DEV_CONFIG } from '@/config/api';
+import { API_ENDPOINTS } from '@/config/api';
 import { showErrorToast, showSuccessToast } from '@/utils/toastErrorHandler';
-
-// Cliente básico sin autenticación para modo desarrollo
-const basicClient = axios.create(AXIOS_CONFIG);
-
-// Función para obtener el cliente correcto
-const getApiClient = () => {
-  if (DEV_CONFIG.IS_DEVELOPMENT && DEV_CONFIG.SKIP_AUTH) {
-    return basicClient;
-  }
-  return apiClient;
-};
 
 // Interfaces
 export interface TipoIdentificacion {
@@ -75,7 +63,7 @@ class TiposIdentificacionService {
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ): Promise<ServerResponse<TiposIdentificacionResponse>> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.get(
         `/api/catalog/tipos-identificacion`,
         {
@@ -118,7 +106,7 @@ class TiposIdentificacionService {
   // Obtener un tipo de identificación por ID
   async getTipoIdentificacionById(id: string): Promise<ServerResponse<TipoIdentificacion>> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.get(
         `/api/catalog/tipos-identificacion/${id}`
       );
@@ -133,7 +121,7 @@ class TiposIdentificacionService {
   // Crear nuevo tipo de identificación
   async createTipoIdentificacion(tipo: TipoIdentificacionCreate): Promise<ServerResponse<TipoIdentificacion>> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.post(
         `/api/catalog/tipos-identificacion`,
         tipo
@@ -150,7 +138,7 @@ class TiposIdentificacionService {
   // Actualizar tipo de identificación existente
   async updateTipoIdentificacion(id: string, tipo: TipoIdentificacionUpdate): Promise<ServerResponse<TipoIdentificacion>> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.put(
         `/api/catalog/tipos-identificacion/${id}`,
         tipo
@@ -167,7 +155,7 @@ class TiposIdentificacionService {
   // Eliminar tipo de identificación
   async deleteTipoIdentificacion(id: string): Promise<void> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       await client.delete(
         `/api/catalog/tipos-identificacion/${id}`
       );
@@ -188,7 +176,7 @@ class TiposIdentificacionService {
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ): Promise<ServerResponse<TiposIdentificacionResponse>> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.get(
         `/api/catalog/tipos-identificacion/search`,
         {
@@ -237,7 +225,7 @@ class TiposIdentificacionService {
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ): Promise<ServerResponse<TiposIdentificacionResponse>> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.get(
         `/api/catalog/tipos-identificacion`,
         {
@@ -281,7 +269,7 @@ class TiposIdentificacionService {
   // Obtener estadísticas de tipos de identificación
   async getTipoIdentificacionStatistics(): Promise<ServerResponse<any>> {
     try {
-      const client = getApiClient();
+      const client = apiClient;
       const response = await client.get(
         `/api/catalog/tipos-identificacion/statistics`
       );
@@ -296,3 +284,4 @@ class TiposIdentificacionService {
 
 export const tiposIdentificacionService = new TiposIdentificacionService();
 export default tiposIdentificacionService;
+

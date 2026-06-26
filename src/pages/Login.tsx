@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthContext } from "@/context/AuthContext";
@@ -17,7 +16,6 @@ const Login = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [isRecoveryLoading, setIsRecoveryLoading] = useState(false);
-  const [showDevLogin, setShowDevLogin] = useState(false);
   const [formData, setFormData] = useState<LoginCredentials>({
     email: "",
     password: ""
@@ -32,22 +30,7 @@ const Login = () => {
   const { login, isLoading } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Verificar si es modo desarrollo y si se hizo logout manual
-  useEffect(() => {
-    if (import.meta.env.DEV && import.meta.env.VITE_SKIP_AUTH === 'true') {
-      const manualLogout = sessionStorage.getItem('manual_logout');
-      if (manualLogout === 'true') {
-        setShowDevLogin(true);
-        toast({
-          title: "Sesión cerrada",
-          description: "Ha cerrado sesión correctamente. Click en 'Volver a Ingresar' para continuar.",
-          variant: "default"
-        });
-      }
-      // No redirigir automáticamente, dejar que el usuario elija
-    }
-  }, []); // Solo ejecutar una vez al montar el componente
+// Solo ejecutar una vez al montar el componente
 
   // Función de validación de email
   const validateEmail = (email: string): string => {
@@ -85,14 +68,7 @@ const Login = () => {
       setErrors(prev => ({ ...prev, recoveryEmail: validateEmail(email) }));
     }
   };
-
-  // Función especial para re-ingresar en modo desarrollo
-  const handleDevLogin = () => {
-    sessionStorage.removeItem('manual_logout');
-    navigate('/dashboard', { replace: true });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validar todos los campos
@@ -242,36 +218,7 @@ const Login = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="px-8 pb-8">
-              {showDevLogin ? (
-                // Interfaz especial para modo desarrollo después del logout
-                <div className="space-y-6">
-                  <Alert className="border-green-500/50 bg-green-50 dark:bg-green-950/20">
-                    <div className="w-5 h-5 text-green-600 bg-white rounded p-1 border border-green-200">
-                      <Logo iconOnly size="sm" />
-                    </div>
-                    <AlertDescription className="text-green-800 dark:text-green-200">
-                      <strong>Logout exitoso:</strong> Ha cerrado sesión correctamente del sistema. 
-                      En modo desarrollo puede volver a ingresar sin credenciales.
-                    </AlertDescription>
-                  </Alert>
-                  
-                  <Button
-                    onClick={handleDevLogin}
-                    className="w-full h-14 parish-button-primary text-lg font-semibold rounded-2xl"
-                  >
-                    <div className="w-5 h-5 mr-2 bg-white rounded p-1">
-                      <Logo iconOnly size="sm" />
-                    </div>
-                    Volver a Ingresar (Modo Dev)
-                  </Button>
-                  
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">
-                      Modo desarrollo activo: <code className="bg-secondary/50 px-2 py-1 rounded">VITE_SKIP_AUTH=true</code>
-                    </p>
-                  </div>
-                </div>
-              ) : showForgotPassword ? (
+              {showForgotPassword ? (
                 // Formulario de recuperación de contraseña
                 <form onSubmit={handleRecoverySubmit} className="space-y-6">
                   <div className="space-y-2">
@@ -399,7 +346,7 @@ const Login = () => {
                 </form>
               )}
 
-              {!showForgotPassword && !showDevLogin && (
+              {!showForgotPassword && (
                 <div className="mt-8 text-center">
                   <button
                     type="button"
@@ -432,3 +379,4 @@ const Login = () => {
 };
 
 export default Login;
+

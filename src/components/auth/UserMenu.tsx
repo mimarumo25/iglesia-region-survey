@@ -24,23 +24,9 @@ export const UserMenu: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuthContext();
   const { currentTheme, setTheme, themePresets, isDarkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
-
-  // Si no hay usuario y no estamos en modo skip auth, no mostrar nada
-  if (!user && import.meta.env.VITE_SKIP_AUTH !== 'true') {
+  if (!user) {
     return null;
   }
-
-  // En modo desarrollo con skip auth, mostrar indicador si no hay usuario
-  if (!user && import.meta.env.VITE_SKIP_AUTH === 'true') {
-    return (
-      <Button variant="ghost" className="relative h-10 w-10 rounded-full bg-orange-100 border border-orange-300">
-        <span className="text-orange-600 text-xs font-bold" title="No User - Dev Mode">
-          NU
-        </span>
-      </Button>
-    );
-  }
-
   // Obtener iniciales del usuario con validación
   const getInitials = (firstName?: string, lastName?: string): string => {
     const first = firstName?.charAt(0) || '';
@@ -203,3 +189,4 @@ export const UserMenu: React.FC = () => {
 };
 
 export default UserMenu;
+

@@ -2,22 +2,8 @@ import axios, { AxiosInstance } from 'axios';
 import { TokenManager } from '@/utils/cookies';
 
 /**
- * Configuración centralizada de la API
- * Este arch# Configurar interceptors básicos para el cliente autenticado
-authenticatedClient.interceptors.request.use((config) => {
-  // Solo añadir token si está disponible y no estamos en modo SKIP_AUTH
-  if (!DEV_CONFIG.SKIP_AUTH) {
-    try {
-      const accessToken = TokenManager.getAccessToken();
-      if (accessToken && config.headers) {
-        config.headers.Authorization = `Bearer ${accessToken}`;
-      }
-    } catch (error) {
-      // Error silenciado - fallo al obtener token
-    }
-  }
-  return config;
-});das las configuraciones relacionadas con la API del backend
+ * Configuración centralizada de la API.
+ * Este archivo agrupa la URL base, endpoints y clientes HTTP del backend.
  */
 
 /**
@@ -49,7 +35,6 @@ export const DEFAULT_HEADERS = {
  * Configuración de desarrollo
  */
 export const DEV_CONFIG = {
-  SKIP_AUTH: import.meta.env.VITE_SKIP_AUTH === 'true',
   IS_DEVELOPMENT: import.meta.env.DEV,
 } as const;
 
@@ -161,15 +146,6 @@ export const AXIOS_CONFIG = {
   headers: DEFAULT_HEADERS,
 } as const;
 
-/**
- * Cliente básico sin autenticación para modo desarrollo
- */
-export const basicClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: API_TIMEOUTS.DEFAULT,
-  headers: DEFAULT_HEADERS,
-});
-
 // Crear un cliente autenticado aquí para evitar importaciones circulares
 const authenticatedClient = axios.create({
   baseURL: API_BASE_URL,
@@ -179,17 +155,15 @@ const authenticatedClient = axios.create({
 
 // Configurar interceptors básicos para el cliente autenticado
 authenticatedClient.interceptors.request.use((config) => {
-  // Solo añadir token si está disponible y no estamos en modo SKIP_AUTH
-  if (!DEV_CONFIG.SKIP_AUTH) {
-    try {
-      const accessToken = TokenManager.getAccessToken();
-      if (accessToken && config.headers) {
-        config.headers.Authorization = `Bearer ${accessToken}`;
-      }
-    } catch (error) {
-      // Error silenciado - fallo al obtener token
+  try {
+    const accessToken = TokenManager.getAccessToken();
+    if (accessToken && config.headers) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
+  } catch (error) {
+    // Error silenciado - fallo al obtener token
   }
+
   return config;
 });
 
@@ -198,11 +172,6 @@ authenticatedClient.interceptors.request.use((config) => {
  * Evita duplicar la lógica de selección de cliente en cada servicio
  */
 export function getApiClient(): AxiosInstance {
-  // En modo desarrollo y con SKIP_AUTH, usar cliente básico
-  if (DEV_CONFIG.IS_DEVELOPMENT && DEV_CONFIG.SKIP_AUTH) {
-    return basicClient;
-  }
-  
-  // Usar el cliente autenticado local
   return authenticatedClient;
 }
+

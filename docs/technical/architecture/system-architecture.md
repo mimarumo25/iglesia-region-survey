@@ -298,14 +298,12 @@ npm run deploy       # Build + Docker + Deploy automático
 ### Desarrollo (.env.development)
 ```env
 VITE_API_BASE_URL=http://localhost:8000/api
-VITE_SKIP_AUTH=false
 VITE_LOG_LEVEL=debug
 ```
 
 ### Producción (.env.production)
 ```env
 VITE_API_BASE_URL=https://api.parroquia.com/api
-VITE_SKIP_AUTH=false
 VITE_LOG_LEVEL=error
 ```
 
@@ -355,3 +353,4 @@ console.error('❌ Error en validación:', errors)
 - [Flujo de Datos](data-flow.md) - Transformadores y gestión de estado
 - [Autenticación](authentication.md) - Sistema de auth detallado
 - [Guía de Desarrollo](../development/development-guide.md) - Estándares de código
+
