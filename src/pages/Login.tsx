@@ -204,17 +204,11 @@ const handleSubmit = async (e: React.FormEvent) => {
             <CardHeader className="space-y-1 text-center pb-8">
               <div className="inline-block bg-primary/10 dark:bg-primary/20 rounded-2xl px-6 py-3 mb-4">
                 <CardTitle className="text-3xl text-foreground dark:text-foreground">
-                  {showDevLogin ? "Modo Desarrollo" : 
-                   showForgotPassword ? "Recuperar Contraseña" : "Iniciar Sesión"}
+                  {showForgotPassword ? "Recuperar Contraseña" : "Iniciar Sesión"}
                 </CardTitle>
               </div>
               <CardDescription className="text-muted-foreground dark:text-muted-foreground text-lg">
-                {showDevLogin 
-                  ? "Sesión cerrada correctamente en modo desarrollo"
-                  : showForgotPassword 
-                    ? "Ingrese su correo para recibir el enlace de recuperación"
-                    : "Ingrese sus credenciales para acceder al sistema"
-                }
+                {showForgotPassword ? "Ingrese su correo para recibir el enlace de recuperación" : "Ingrese sus credenciales para acceder al sistema"}
               </CardDescription>
             </CardHeader>
             <CardContent className="px-8 pb-8">
