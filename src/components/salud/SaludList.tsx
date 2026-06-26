@@ -3,6 +3,7 @@
  * Sistema MIA - Módulo de Salud
  */
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -48,6 +49,7 @@ const SaludList = ({
   limite = 10,
   onPageChange
 }: SaludListProps) => {
+  const [selectedRowKey, setSelectedRowKey] = useState<string | number | null>(null);
   
   /**
    * Determina el color del badge según la edad
@@ -137,28 +139,44 @@ const SaludList = ({
       </CardHeader>
       <CardContent className="px-2 sm:px-6">
         {/* Vista de Tabla para Desktop */}
-        <div className="hidden lg:block rounded-md border overflow-x-auto">
-          <Table>
+        <div className="hidden lg:block professional-table-shell max-h-[65vh] overflow-hidden">
+          <Table className="professional-data-table min-w-[1800px] text-[0.82rem]">
             <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50px]">ID</TableHead>
-                <TableHead className="min-w-[200px]">Nombre Completo</TableHead>
-                <TableHead className="w-[80px]">Edad</TableHead>
-                <TableHead className="w-[100px]">Sexo</TableHead>
-                <TableHead className="min-w-[180px]">Condiciones de Salud</TableHead>
-                <TableHead className="min-w-[150px]">Parroquia</TableHead>
-                <TableHead className="min-w-[150px]">Municipio</TableHead>
-                <TableHead className="min-w-[130px]">Sector</TableHead>
-                <TableHead className="min-w-[150px]">Corregimiento</TableHead>
-                <TableHead className="min-w-[150px]">Centro Poblado</TableHead>
-                <TableHead className="min-w-[130px]">Vereda</TableHead>
-                <TableHead className="min-w-[180px]">Dirección</TableHead>
-                <TableHead className="min-w-[120px]">Contacto</TableHead>
+              <TableRow className="bg-muted/70">
+                <TableHead className="w-[70px] sticky top-0 bg-muted z-20">ID</TableHead>
+                <TableHead className="min-w-[220px] sticky top-0 bg-muted z-20">Nombre Completo</TableHead>
+                <TableHead className="w-[90px] sticky top-0 bg-muted z-20">Edad</TableHead>
+                <TableHead className="w-[110px] sticky top-0 bg-muted z-20">Sexo</TableHead>
+                <TableHead className="min-w-[220px] sticky top-0 bg-muted z-20">Condiciones de Salud</TableHead>
+                <TableHead className="min-w-[170px] sticky top-0 bg-muted z-20">Parroquia</TableHead>
+                <TableHead className="min-w-[160px] sticky top-0 bg-muted z-20">Municipio</TableHead>
+                <TableHead className="min-w-[150px] sticky top-0 bg-muted z-20">Sector</TableHead>
+                <TableHead className="min-w-[170px] sticky top-0 bg-muted z-20">Corregimiento</TableHead>
+                <TableHead className="min-w-[170px] sticky top-0 bg-muted z-20">Centro Poblado</TableHead>
+                <TableHead className="min-w-[150px] sticky top-0 bg-muted z-20">Vereda</TableHead>
+                <TableHead className="min-w-[220px] sticky top-0 bg-muted z-20">Dirección</TableHead>
+                <TableHead className="min-w-[150px] sticky top-0 bg-muted z-20">Contacto</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {personas.map((persona) => (
-                <TableRow key={persona.id}>
+              {personas.map((persona) => {
+                const rowKey = persona.id;
+                const isSelected = selectedRowKey === rowKey;
+                return (
+                <TableRow
+                  key={rowKey}
+                  data-state={isSelected ? "selected" : undefined}
+                  aria-selected={isSelected}
+                  tabIndex={0}
+                  className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  onClick={() => setSelectedRowKey(rowKey)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setSelectedRowKey(rowKey);
+                    }
+                  }}
+                >
                   {/* ID */}
                   <TableCell className="font-mono text-xs">
                     #{persona.id}
@@ -326,7 +344,8 @@ const SaludList = ({
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         </div>

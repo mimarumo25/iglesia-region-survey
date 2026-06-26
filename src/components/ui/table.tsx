@@ -6,7 +6,7 @@ const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-x-auto overflow-y-visible">
+  <div className="relative w-full overflow-x-auto overflow-y-visible professional-table-scroll">
     {/* Indicador visual de scroll horizontal en móvil */}
     <div className="sm:hidden absolute top-0 right-0 z-10 bg-gradient-to-l from-background via-background/80 to-transparent w-8 h-full pointer-events-none" />
     <table
@@ -63,7 +63,7 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      "border-b border-border/80 transition-all duration-200 hover:bg-muted/60 data-[state=selected]:bg-accent/50",
+      "border-b border-border/80 transition-colors hover:bg-muted/50 data-[state=selected]:bg-primary/10",
       className
     )}
     {...props}
@@ -78,7 +78,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-12 px-2 sm:px-4 text-left align-middle font-semibold text-muted-foreground/90 dark:text-muted-foreground [&:has([role=checkbox])]:pr-0 whitespace-nowrap bg-muted/30",
+      "h-12 px-2 sm:px-4 text-left align-middle font-semibold text-muted-foreground/95 [&:has([role=checkbox])]:pr-0 whitespace-nowrap bg-muted/30",
       className
     )}
     {...props}

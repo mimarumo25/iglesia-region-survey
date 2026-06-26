@@ -56,6 +56,7 @@ const formatNecesidadesEnfermo = (miembro: MiembroFamiliaConsolidado): string =>
 
 const MiembrosTableWithDialog = ({ miembros }: MiembrosTableWithDialogProps) => {
   const [selectedMiembro, setSelectedMiembro] = useState<MiembroFamiliaConsolidado | null>(null);
+  const [selectedRowKey, setSelectedRowKey] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   /**
@@ -87,22 +88,38 @@ const MiembrosTableWithDialog = ({ miembros }: MiembrosTableWithDialogProps) => 
   return (
     <>
       {/* Tabla resumen de miembros */}
-      <div className="rounded-md border">
-        <Table>
+      <div className="professional-table-shell max-h-[55vh] overflow-hidden">
+        <Table className="professional-data-table min-w-[980px] text-[0.82rem]">
           <TableHeader>
-            <TableRow>
-              <TableHead>Nombre Completo</TableHead>
-              <TableHead>Identificación</TableHead>
-              <TableHead className="text-center">Edad</TableHead>
-              <TableHead className="text-center">Sexo</TableHead>
-              <TableHead>Parentesco</TableHead>
-              <TableHead>Contacto</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+            <TableRow className="bg-muted/70">
+              <TableHead className="sticky top-0 bg-muted z-20 min-w-[220px]">Nombre Completo</TableHead>
+              <TableHead className="sticky top-0 bg-muted z-20 min-w-[170px]">Identificación</TableHead>
+              <TableHead className="sticky top-0 bg-muted z-20 text-center min-w-[90px]">Edad</TableHead>
+              <TableHead className="sticky top-0 bg-muted z-20 text-center min-w-[100px]">Sexo</TableHead>
+              <TableHead className="sticky top-0 bg-muted z-20 min-w-[130px]">Parentesco</TableHead>
+              <TableHead className="sticky top-0 bg-muted z-20 min-w-[220px]">Contacto</TableHead>
+              <TableHead className="sticky top-0 bg-muted z-20 text-right min-w-[150px]">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {miembros.map((miembro, index) => (
-              <TableRow key={index}>
+            {miembros.map((miembro, index) => {
+              const rowKey = `${miembro.numero_identificacion || miembro.nombre_completo || "miembro"}-${index}`;
+              const isSelected = selectedRowKey === rowKey;
+              return (
+              <TableRow
+                key={rowKey}
+                data-state={isSelected ? "selected" : undefined}
+                aria-selected={isSelected}
+                tabIndex={0}
+                className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                onClick={() => setSelectedRowKey(rowKey)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setSelectedRowKey(rowKey);
+                  }
+                }}
+              >
                 <TableCell className="font-medium">{miembro.nombre_completo || "-"}</TableCell>
                 <TableCell>
                   {miembro.tipo_identificacio && miembro.numero_identificacion
@@ -142,7 +159,7 @@ const MiembrosTableWithDialog = ({ miembros }: MiembrosTableWithDialogProps) => 
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleVerDetalles(miembro)}
+                    onClick={(event) => { event.stopPropagation(); setSelectedRowKey(rowKey); handleVerDetalles(miembro); }}
                     className="flex items-center gap-2"
                   >
                     <Eye className="h-4 w-4" />
@@ -150,7 +167,8 @@ const MiembrosTableWithDialog = ({ miembros }: MiembrosTableWithDialogProps) => 
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </div>

@@ -149,6 +149,7 @@ const Surveys = () => {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedSurveyId, setSelectedSurveyId] = useState<string | null>(null);
   const [selectedSurveyData, setSelectedSurveyData] = useState<Partial<EncuestaListItem> | undefined>(undefined);
+  const [selectedRowKey, setSelectedRowKey] = useState<string | null>(null);
 
   // Hook centralizado para cargar datos de configuración
   const {
@@ -713,41 +714,41 @@ const Surveys = () => {
             </div>
           ) : (
             // Vista desktop: Tabla tradicional
-            <div className="desktop-view-transition">
-              <Table>
+            <div className="desktop-view-transition professional-table-shell max-h-[65vh] overflow-hidden">
+              <Table className="professional-data-table min-w-[1120px] text-[0.82rem]">
                 <TableHeader>
-                  <TableRow className="bg-gradient-to-r from-primary/5 to-primary/10">
-                    <TableHead className="min-w-[280px] font-semibold text-primary">
+                  <TableRow>
+                    <TableHead className="sticky top-0 z-20 min-w-[300px] font-semibold text-foreground">
                       <div className="flex items-center gap-2">
                         <span>👨‍👩‍👧‍👦</span>
                         <span>Información Familiar</span>
                       </div>
                     </TableHead>
-                    <TableHead className="min-w-[180px] font-semibold text-primary">
+                    <TableHead className="sticky top-0 z-20 min-w-[220px] font-semibold text-foreground">
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
                         <span>Ubicación</span>
                       </div>
                     </TableHead>
-                    <TableHead className="min-w-[140px] font-semibold text-primary">
+                    <TableHead className="sticky top-0 z-20 min-w-[170px] font-semibold text-foreground">
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4" />
                         <span>Encuestador</span>
                       </div>
                     </TableHead>
-                    <TableHead className="min-w-[110px] font-semibold text-primary">
+                    <TableHead className="sticky top-0 z-20 min-w-[150px] font-semibold text-foreground">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
                         <span>Creación</span>
                       </div>
                     </TableHead>
-                    <TableHead className="min-w-[110px] font-semibold text-primary">
+                    <TableHead className="sticky top-0 z-20 min-w-[150px] font-semibold text-foreground">
                       <div className="flex items-center gap-2">
                         <RefreshCw className="w-4 h-4" />
                         <span>Actualización</span>
                       </div>
                     </TableHead>
-                    <TableHead className="text-right min-w-[90px] font-semibold text-primary">Acciones</TableHead>
+                    <TableHead className="sticky top-0 z-20 min-w-[110px] text-right font-semibold text-foreground">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -755,7 +756,7 @@ const Surveys = () => {
                     // Estado de carga
                     Array.from({ length: 5 }).map((_, index) => (
                       <TableRow key={`skeleton-${index}`}>
-                        <TableCell><Skeleton className="h-16 w-full" /></TableCell>
+                        <TableCell className="min-w-[300px]"><Skeleton className="h-16 w-full" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-20" /></TableCell>
@@ -790,14 +791,29 @@ const Surveys = () => {
                     </TableRow>
                   ) : (
                     // Renderizar encuestas
-                    filteredEncuestas.map((encuesta) => (
+                    filteredEncuestas.map((encuesta) => {
+                      const rowKey = String(encuesta.id_encuesta);
+                      const isSelected = selectedRowKey === rowKey;
+
+                      return (
                       <TableRow 
                         key={`encuesta-${encuesta.id_encuesta}`} 
-                        className="hover:bg-muted/30 dark:hover:bg-muted/20 transition-colors cursor-pointer"
+                        data-state={isSelected ? "selected" : undefined}
+                        aria-selected={isSelected}
+                        tabIndex={0}
+                        className="cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                        onClick={() => setSelectedRowKey(rowKey)}
                         onDoubleClick={() => handleViewDetails(encuesta.id_encuesta)}
-                        title="Doble clic para ver detalles"
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") handleViewDetails(encuesta.id_encuesta);
+                          if (event.key === " ") {
+                            event.preventDefault();
+                            setSelectedRowKey(rowKey);
+                          }
+                        }}
+                        title="Selecciona la fila para mantenerla marcada; doble clic para ver detalles"
                       >
-                        <TableCell className="py-4">
+                        <TableCell className="min-w-[300px] py-4 align-top">
                           <div className="space-y-2">
                             {/* Apellido familiar */}
                             <div className="flex items-center gap-2">
@@ -908,6 +924,10 @@ const Surveys = () => {
                             <DropdownMenuTrigger asChild>
                               <Button
                                 variant="ghost"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setSelectedRowKey(rowKey);
+                                }}
                                 className="h-9 px-3 hover:bg-primary/10 hover:text-primary transition-colors group"
                                 disabled={deletingId === encuesta.id_encuesta}
                                 title="Opciones de encuesta"
@@ -943,7 +963,8 @@ const Surveys = () => {
                           </DropdownMenu>
                         </TableCell>
                       </TableRow>
-                    ))
+                    );
+                    })
                   )}
                 </TableBody>
               </Table>
@@ -1044,3 +1065,4 @@ const SurveysWithSafeRenderer = () => (
 );
 
 export default SurveysWithSafeRenderer;
+

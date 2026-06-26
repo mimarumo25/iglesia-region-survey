@@ -60,6 +60,7 @@ const calcularTiempoTranscurrido = (fechaFallecimiento: string): string => {
 };
 
 const DifuntosFamiliaTable: React.FC<DifuntosFamiliaTableProps> = ({ difuntos }) => {
+  const [selectedRowKey, setSelectedRowKey] = React.useState<string | null>(null);
   if (!difuntos || difuntos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -74,22 +75,35 @@ const DifuntosFamiliaTable: React.FC<DifuntosFamiliaTableProps> = ({ difuntos })
   return (
     <div className="space-y-4">
       {/* Vista de tabla para pantallas grandes */}
-      <div className="hidden lg:block overflow-x-auto rounded-md border">
-        <table className="w-full">
-          <thead className="bg-muted/50">
-            <tr>
-              <th className="p-3 text-left text-sm font-semibold">Nombre del Difunto</th>
-              <th className="p-3 text-left text-sm font-semibold">Fecha de Fallecimiento</th>
-              <th className="p-3 text-left text-sm font-semibold">Sexo</th>
-              <th className="p-3 text-left text-sm font-semibold">Parentesco</th>
-              <th className="p-3 text-left text-sm font-semibold">Causa de Fallecimiento</th>
+      <div className="hidden lg:block professional-table-shell max-h-[55vh] overflow-hidden">
+        <table className="professional-data-table w-full min-w-[900px] text-[0.82rem]">
+          <thead>
+            <tr className="bg-muted/70">
+              <th className="sticky top-0 z-20 bg-muted p-3 text-left text-sm font-semibold">Nombre del Difunto</th>
+              <th className="sticky top-0 z-20 bg-muted p-3 text-left text-sm font-semibold">Fecha de Fallecimiento</th>
+              <th className="sticky top-0 z-20 bg-muted p-3 text-left text-sm font-semibold">Sexo</th>
+              <th className="sticky top-0 z-20 bg-muted p-3 text-left text-sm font-semibold">Parentesco</th>
+              <th className="sticky top-0 z-20 bg-muted p-3 text-left text-sm font-semibold">Causa de Fallecimiento</th>
             </tr>
           </thead>
           <tbody>
-            {difuntos.map((difunto, index) => (
-              <tr 
-                key={`difunto-${index}`}
-                className="border-t hover:bg-muted/50 transition-colors"
+            {difuntos.map((difunto, index) => {
+              const rowKey = `difunto-${index}`;
+              const isSelected = selectedRowKey === rowKey;
+              return (
+              <tr
+                key={rowKey}
+                data-state={isSelected ? "selected" : undefined}
+                aria-selected={isSelected}
+                tabIndex={0}
+                className="cursor-pointer border-t transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                onClick={() => setSelectedRowKey(rowKey)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setSelectedRowKey(rowKey);
+                  }
+                }}
               >
                 <td className="p-3">
                   <div className="flex items-center gap-2">
@@ -116,7 +130,8 @@ const DifuntosFamiliaTable: React.FC<DifuntosFamiliaTableProps> = ({ difuntos })
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

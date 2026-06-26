@@ -8,6 +8,7 @@
  * @since Sistema MIA v2.0
  */
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +40,11 @@ interface PersonasTableProps {
 const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize = 100, onPageChange }: PersonasTableProps) => {
   // Calcular total de páginas
   const totalPages = Math.ceil(total / pageSize);
+  const [selectedRowKey, setSelectedRowKey] = useState<string | null>(null);
+
+  const getPersonaRowKey = (persona: PersonaConsolidada, index: number) => {
+    return `${persona.identificacion || persona.nombres || 'persona'}-${index}`;
+  };
 
   /**
    * Genera array de números de página a mostrar
@@ -178,14 +184,19 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
   }
 
   return (
-    <Card>
+    <Card className="border-border bg-card shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
           <Users className="h-5 w-5" />
           Resultados de Consulta
         </CardTitle>
-        <CardDescription className="text-sm">
-          Se encontraron <strong>{total}</strong> registros - Página <strong>{currentPage}</strong> de <strong>{totalPages}</strong>
+        <CardDescription className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            Se encontraron <strong className="text-foreground">{total}</strong> registros - Página <strong className="text-foreground">{currentPage}</strong> de <strong className="text-foreground">{totalPages}</strong>
+          </span>
+          <span className="hidden text-xs lg:inline">
+            Selecciona una fila para mantenerla marcada al desplazarte.
+          </span>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -422,60 +433,76 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
         </div>
 
         {/* VISTA DESKTOP - Tabla Completa (solo lg+) */}
-        <div className="hidden lg:block rounded-md border overflow-auto max-h-[70vh]">
-          <div className="min-w-full">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
+        <div className="hidden lg:block professional-table-shell personas-table-scroll overflow-hidden">
+          <Table className="professional-data-table min-w-[2800px] text-[0.82rem]">
+            <TableHeader>
+              <TableRow className="bg-muted/70">
                   {/* Información Personal */}
-                  <TableHead className="font-semibold min-w-[200px] sticky top-0 left-0 bg-muted/50 z-30">Nombre Completo</TableHead>
-                  <TableHead className="font-semibold min-w-[130px] sticky top-0 bg-muted/50 z-20">Identificación</TableHead>
-                  <TableHead className="font-semibold min-w-[120px] sticky top-0 bg-muted/50 z-20">Fecha Nac.</TableHead>
-                  <TableHead className="font-semibold min-w-[100px] sticky top-0 bg-muted/50 z-20">Sexo</TableHead>
+                  <TableHead className="font-semibold min-w-[200px] sticky top-0 left-0 bg-muted z-40 shadow-[8px_0_14px_-14px_hsl(var(--foreground)/0.55)]">Nombre Completo</TableHead>
+                  <TableHead className="font-semibold min-w-[130px] sticky top-0 bg-muted z-20">Identificación</TableHead>
+                  <TableHead className="font-semibold min-w-[120px] sticky top-0 bg-muted z-20">Fecha Nac.</TableHead>
+                  <TableHead className="font-semibold min-w-[100px] sticky top-0 bg-muted z-20">Sexo</TableHead>
 
                   {/* Contacto */}
-                  <TableHead className="font-semibold min-w-[130px] sticky top-0 bg-muted/50 z-20">Teléfono</TableHead>
-                  <TableHead className="font-semibold min-w-[180px] sticky top-0 bg-muted/50 z-20">Correo</TableHead>
+                  <TableHead className="font-semibold min-w-[130px] sticky top-0 bg-muted z-20">Teléfono</TableHead>
+                  <TableHead className="font-semibold min-w-[180px] sticky top-0 bg-muted z-20">Correo</TableHead>
 
                   {/* Ubicación Geográfica */}
-                  <TableHead className="font-semibold min-w-[140px] sticky top-0 bg-muted/50 z-20">Municipio</TableHead>
-                  <TableHead className="font-semibold min-w-[150px] sticky top-0 bg-muted/50 z-20">Parroquia</TableHead>
-                  <TableHead className="font-semibold min-w-[120px] sticky top-0 bg-muted/50 z-20">Sector</TableHead>
-                  <TableHead className="font-semibold min-w-[120px] sticky top-0 bg-muted/50 z-20">Vereda</TableHead>
+                  <TableHead className="font-semibold min-w-[140px] sticky top-0 bg-muted z-20">Municipio</TableHead>
+                  <TableHead className="font-semibold min-w-[150px] sticky top-0 bg-muted z-20">Parroquia</TableHead>
+                  <TableHead className="font-semibold min-w-[120px] sticky top-0 bg-muted z-20">Sector</TableHead>
+                  <TableHead className="font-semibold min-w-[120px] sticky top-0 bg-muted z-20">Vereda</TableHead>
 
                   {/* Información Familiar */}
-                  <TableHead className="font-semibold min-w-[130px] sticky top-0 bg-muted/50 z-20">Parentesco</TableHead>
-                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted/50 z-20">Apellido Familiar</TableHead>
-                  <TableHead className="font-semibold min-w-[120px] sticky top-0 bg-muted/50 z-20">Tipo Vivienda</TableHead>
+                  <TableHead className="font-semibold min-w-[130px] sticky top-0 bg-muted z-20">Parentesco</TableHead>
+                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted z-20">Apellido Familiar</TableHead>
+                  <TableHead className="font-semibold min-w-[120px] sticky top-0 bg-muted z-20">Tipo Vivienda</TableHead>
 
                   {/* Datos Personales */}
-                  <TableHead className="font-semibold min-w-[120px] sticky top-0 bg-muted/50 z-20">Estado Civil</TableHead>
-                  <TableHead className="font-semibold min-w-[140px] sticky top-0 bg-muted/50 z-20">Profesión</TableHead>
-                  <TableHead className="font-semibold min-w-[150px] sticky top-0 bg-muted/50 z-20">Nivel Educativo</TableHead>
-                  <TableHead className="font-semibold min-w-[140px] sticky top-0 bg-muted/50 z-20">Comunidad Cultural</TableHead>
+                  <TableHead className="font-semibold min-w-[120px] sticky top-0 bg-muted z-20">Estado Civil</TableHead>
+                  <TableHead className="font-semibold min-w-[140px] sticky top-0 bg-muted z-20">Profesión</TableHead>
+                  <TableHead className="font-semibold min-w-[150px] sticky top-0 bg-muted z-20">Nivel Educativo</TableHead>
+                  <TableHead className="font-semibold min-w-[140px] sticky top-0 bg-muted z-20">Comunidad Cultural</TableHead>
 
                   {/* Tallas */}
-                  <TableHead className="font-semibold min-w-[90px] text-center sticky top-0 bg-muted/50 z-20">Camisa</TableHead>
-                  <TableHead className="font-semibold min-w-[90px] text-center sticky top-0 bg-muted/50 z-20">Pantalón</TableHead>
-                  <TableHead className="font-semibold min-w-[90px] text-center sticky top-0 bg-muted/50 z-20">Zapato</TableHead>
+                  <TableHead className="font-semibold min-w-[90px] text-center sticky top-0 bg-muted z-20">Camisa</TableHead>
+                  <TableHead className="font-semibold min-w-[90px] text-center sticky top-0 bg-muted z-20">Pantalón</TableHead>
+                  <TableHead className="font-semibold min-w-[90px] text-center sticky top-0 bg-muted z-20">Zapato</TableHead>
 
                   {/* Servicios */}
-                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted/50 z-20">Acueducto</TableHead>
-                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted/50 z-20">Aguas Residuales</TableHead>
-                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted/50 z-20">Disposición Basura</TableHead>
+                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted z-20">Acueducto</TableHead>
+                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted z-20">Aguas Residuales</TableHead>
+                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted z-20">Disposición Basura</TableHead>
 
                   {/* Arrays */}
-                  <TableHead className="font-semibold min-w-[140px] sticky top-0 bg-muted/50 z-20">Destrezas</TableHead>
-                  <TableHead className="font-semibold min-w-[140px] sticky top-0 bg-muted/50 z-20">Liderazgo</TableHead>
-                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted/50 z-20">Necesidades Especiales</TableHead>
-                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted/50 z-20">Celebraciones</TableHead>
+                  <TableHead className="font-semibold min-w-[140px] sticky top-0 bg-muted z-20">Destrezas</TableHead>
+                  <TableHead className="font-semibold min-w-[140px] sticky top-0 bg-muted z-20">Liderazgo</TableHead>
+                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted z-20">Necesidades Especiales</TableHead>
+                  <TableHead className="font-semibold min-w-[160px] sticky top-0 bg-muted z-20">Celebraciones</TableHead>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {personas.map((persona, idx) => (
-                  <TableRow key={`${persona.identificacion}-${idx}`} className="hover:bg-muted/30">
+            </TableHeader>
+            <TableBody>
+              {personas.map((persona, idx) => {
+                  const rowKey = getPersonaRowKey(persona, idx);
+                  const isSelected = selectedRowKey === rowKey;
+
+                  return (
+                    <TableRow
+                      key={rowKey}
+                      data-state={isSelected ? "selected" : undefined}
+                      aria-selected={isSelected}
+                      tabIndex={0}
+                      className="group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                      onClick={() => setSelectedRowKey(rowKey)}
+                      onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedRowKey(rowKey);
+                      }
+                      }}
+                    >
                     {/* Información Personal */}
-                    <TableCell className="font-medium sticky left-0 bg-background z-10">
+                    <TableCell className="professional-sticky-cell sticky left-0 z-30 min-w-[220px] font-semibold text-foreground">
                       {formatValue(persona.nombres)}
                     </TableCell>
                     <TableCell className="text-sm">{formatValue(persona.identificacion)}</TableCell>
@@ -532,11 +559,11 @@ const PersonasTable = ({ personas, isLoading, total, currentPage = 1, pageSize =
                         ? persona.celebraciones.map(c => `${c.motivo} (${c.dia}/${c.mes})`).join(', ')
                         : '-'}
                     </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
         </div>
         
         {/* Componente de Paginación */}

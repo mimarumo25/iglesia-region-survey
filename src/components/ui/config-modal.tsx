@@ -65,15 +65,15 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
     switch (type) {
       case 'create':
         return {
-          gradient: 'bg-gradient-primary',
-          titleGradient: 'bg-gradient-primary bg-clip-text text-transparent',
-          submitClass: 'bg-gradient-primary hover:bg-gradient-hover',
+          gradient: 'bg-primary/10 text-primary',
+          titleGradient: 'text-foreground',
+          submitClass: 'bg-primary hover:bg-primary/90',
         };
       case 'edit':
         return {
-          gradient: 'bg-gradient-primary',
-          titleGradient: 'bg-gradient-primary bg-clip-text text-transparent',
-          submitClass: 'bg-gradient-primary hover:bg-gradient-hover',
+          gradient: 'bg-primary/10 text-primary',
+          titleGradient: 'text-foreground',
+          submitClass: 'bg-primary hover:bg-primary/90',
         };
       case 'delete':
         return {
@@ -83,9 +83,9 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
         };
       default:
         return {
-          gradient: 'bg-gradient-primary',
-          titleGradient: 'bg-gradient-primary bg-clip-text text-transparent',
-          submitClass: 'bg-gradient-primary hover:bg-gradient-hover',
+          gradient: 'bg-primary/10 text-primary',
+          titleGradient: 'text-foreground',
+          submitClass: 'bg-primary hover:bg-primary/90',
         };
     }
   };
@@ -97,17 +97,15 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
     return (
       <AlertDialog open={open} onOpenChange={onOpenChange}>
         <AlertDialogContent 
-          className="shadow-glow border-destructive/20 w-[95vw] max-w-md mx-2 sm:mx-auto"
-          style={{ borderRadius: '12px' }}
+          className="w-[95vw] max-w-md border-destructive/20 shadow-2xl"
         >
-          <AlertDialogHeader className="text-center pb-4 sm:pb-6">
+          <AlertDialogHeader className="pb-4 text-center sm:pb-5">
             <div 
-              className={`mx-auto w-12 h-12 sm:w-16 sm:h-16 ${colors.gradient} flex items-center justify-center mb-3 sm:mb-4`}
-              style={{ borderRadius: '12px' }}
+              className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl ${colors.gradient} sm:mb-4 sm:h-14 sm:w-14`}
             >
-              <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-destructive animate-pulse" />
+              <Icon className="h-6 w-6 text-destructive sm:h-7 sm:w-7" />
             </div>
-            <AlertDialogTitle className={`text-xl sm:text-2xl font-bold ${colors.titleGradient}`}>
+            <AlertDialogTitle className={`text-xl font-bold sm:text-2xl ${colors.titleGradient}`}>
               {title}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm sm:text-base text-muted-foreground px-2">
@@ -118,17 +116,15 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
               {' del sistema.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col sm:flex-row gap-3 pt-4 sm:pt-6">
+          <AlertDialogFooter className="gap-2 pt-4 sm:pt-5">
             <AlertDialogCancel 
-              className="w-full sm:w-auto border-input-border hover:bg-muted transition-smooth px-4 sm:px-6"
-              style={{ borderRadius: '12px' }}
+              className="w-full px-4 sm:w-auto sm:px-6"
             >
               {cancelText}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={onConfirm}
-              className={`w-full sm:w-auto ${colors.submitClass} transition-smooth shadow-md hover:shadow-hover px-4 sm:px-6`}
-              style={{ borderRadius: '12px' }}
+              className={`w-full px-4 shadow-sm sm:w-auto sm:px-6 ${colors.submitClass}`}
               disabled={loading}
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
@@ -145,17 +141,15 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="sm:max-w-2xl max-h-[95vh] w-[95vw] sm:w-full overflow-y-auto mx-2 sm:mx-auto"
-        style={{ borderRadius: '12px', boxShadow: '0 0 25px hsl(var(--primary) / 0.3)' }}
+        className="max-h-[92vh] w-[95vw] overflow-y-auto sm:max-w-2xl sm:w-full"
       >
-        <DialogHeader className="text-center pb-4 sm:pb-6">
+        <DialogHeader className="pb-4 text-center sm:pb-5">
           <div 
-            className={`mx-auto w-12 h-12 sm:w-16 sm:h-16 ${colors.gradient} flex items-center justify-center mb-3 sm:mb-4`}
-            style={{ borderRadius: '12px' }}
+            className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl ${colors.gradient} sm:mb-4 sm:h-14 sm:w-14`}
           >
-            <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-white animate-pulse-glow" />
+            <Icon className="h-6 w-6 text-primary sm:h-7 sm:w-7" />
           </div>
-          <DialogTitle className={`text-xl sm:text-2xl font-bold ${colors.titleGradient}`}>
+          <DialogTitle className={`text-xl font-bold sm:text-2xl ${colors.titleGradient}`}>
             {title}
           </DialogTitle>
           <DialogDescription className="text-sm sm:text-base text-muted-foreground px-2">
@@ -164,25 +158,23 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
         </DialogHeader>
         
         <form onSubmit={onSubmit} className="space-y-4 sm:space-y-6">
-          <div className="space-y-4 sm:space-y-6 py-2 sm:py-4 px-1 sm:px-2 max-h-[60vh] overflow-y-auto">
+          <div className="max-h-[60vh] space-y-4 overflow-y-auto px-1 py-2 sm:space-y-5 sm:px-2 sm:py-3 professional-table-scroll">
             {children}
           </div>
           
-          <DialogFooter className="flex-col sm:flex-row gap-3 pt-4 sm:pt-6">
+          <DialogFooter className="gap-2 pt-4 sm:pt-5">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="w-full sm:w-auto border-input-border hover:bg-muted transition-smooth px-4 sm:px-6"
-              style={{ borderRadius: '12px' }}
+              className="w-full px-4 sm:w-auto sm:px-6"
             >
               {cancelText}
             </Button>
             <Button 
               type="submit" 
               disabled={loading}
-              className={`w-full sm:w-auto ${colors.submitClass} transition-smooth shadow-md hover:shadow-hover px-4 sm:px-6`}
-              style={{ borderRadius: '12px' }}
+              className={`w-full px-4 shadow-sm sm:w-auto sm:px-6 ${colors.submitClass}`}
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               <Icon className="w-4 h-4 mr-2" />
@@ -240,8 +232,7 @@ export const ConfigFormField: React.FC<ConfigFormFieldProps> = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           required={required}
-          className="border-input-border focus:ring-primary focus:border-primary transition-smooth"
-          style={{ borderRadius: '12px' }}
+          className="rounded-xl border-input focus:border-primary focus:ring-primary/25"
           rows={rows}
         />
       ) : type === 'autocomplete' ? (
@@ -263,8 +254,7 @@ export const ConfigFormField: React.FC<ConfigFormFieldProps> = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           required={required}
-          className="border-input-border focus:ring-primary focus:border-primary transition-smooth h-12"
-          style={{ borderRadius: '12px' }}
+          className="h-11 rounded-xl border-input focus:border-primary focus:ring-primary/25"
         />
       )}
     </div>
@@ -414,3 +404,5 @@ export const useConfigModal = () => {
     setShowDeleteDialog,
   };
 };
+
+

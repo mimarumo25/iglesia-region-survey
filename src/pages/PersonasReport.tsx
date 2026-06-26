@@ -495,30 +495,30 @@ const PersonasReport = () => {
 
         {/* Tabs de reportes */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-          {/* TabsList con scroll horizontal en móvil */}
-          <div className="report-tabs-scroll w-full overflow-x-auto pb-2">
-            <TabsList className="inline-flex w-max min-w-full gap-1 rounded-2xl border border-border/70 bg-card/80 p-1.5 shadow-sm sm:grid sm:w-auto sm:grid-cols-3 lg:grid-cols-6">
-              <TabsTrigger value="geografico" className="flex min-h-11 min-w-[112px] snap-start items-center gap-1 whitespace-nowrap sm:min-w-0 sm:gap-2">
+          {/* TabsList responsive */}
+          <div className="w-full">
+            <TabsList className="grid h-auto w-full grid-cols-2 gap-2 rounded-2xl border border-border/70 bg-card/95 p-2 shadow-sm sm:grid-cols-3 xl:grid-cols-6">
+              <TabsTrigger value="geografico" className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-transparent px-3 py-2 text-xs font-semibold text-muted-foreground transition-colors data-[state=active]:border-primary/25 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm hover:bg-muted/70 sm:text-sm">
                 <MapPin className="h-4 w-4 flex-shrink-0" />
                 <span className="text-xs sm:text-sm">Geográfico</span>
               </TabsTrigger>
-              <TabsTrigger value="familia" className="flex min-h-11 min-w-[112px] snap-start items-center gap-1 whitespace-nowrap sm:min-w-0 sm:gap-2">
+              <TabsTrigger value="familia" className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-transparent px-3 py-2 text-xs font-semibold text-muted-foreground transition-colors data-[state=active]:border-primary/25 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm hover:bg-muted/70 sm:text-sm">
                 <Home className="h-4 w-4 flex-shrink-0" />
                 <span className="text-xs sm:text-sm">Familia</span>
               </TabsTrigger>
-              <TabsTrigger value="personal" className="flex min-h-11 min-w-[112px] snap-start items-center gap-1 whitespace-nowrap sm:min-w-0 sm:gap-2">
+              <TabsTrigger value="personal" className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-transparent px-3 py-2 text-xs font-semibold text-muted-foreground transition-colors data-[state=active]:border-primary/25 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm hover:bg-muted/70 sm:text-sm">
                 <UserCircle className="h-4 w-4 flex-shrink-0" />
                 <span className="text-xs sm:text-sm">Personal</span>
               </TabsTrigger>
-              <TabsTrigger value="tallas" className="flex min-h-11 min-w-[112px] snap-start items-center gap-1 whitespace-nowrap sm:min-w-0 sm:gap-2">
+              <TabsTrigger value="tallas" className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-transparent px-3 py-2 text-xs font-semibold text-muted-foreground transition-colors data-[state=active]:border-primary/25 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm hover:bg-muted/70 sm:text-sm">
                 <Shirt className="h-4 w-4 flex-shrink-0" />
                 <span className="text-xs sm:text-sm">Tallas</span>
               </TabsTrigger>
-              <TabsTrigger value="edad" className="flex min-h-11 min-w-[112px] snap-start items-center gap-1 whitespace-nowrap sm:min-w-0 sm:gap-2">
+              <TabsTrigger value="edad" className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-transparent px-3 py-2 text-xs font-semibold text-muted-foreground transition-colors data-[state=active]:border-primary/25 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm hover:bg-muted/70 sm:text-sm">
                 <Calendar className="h-4 w-4 flex-shrink-0" />
                 <span className="text-xs sm:text-sm">Edad</span>
               </TabsTrigger>
-              <TabsTrigger value="reporte" className="flex min-h-11 min-w-[112px] snap-start items-center gap-1 whitespace-nowrap sm:min-w-0 sm:gap-2">
+              <TabsTrigger value="reporte" className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-transparent px-3 py-2 text-xs font-semibold text-muted-foreground transition-colors data-[state=active]:border-primary/25 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm hover:bg-muted/70 sm:text-sm">
                 <FileSpreadsheet className="h-4 w-4 flex-shrink-0" />
                 <span className="text-xs sm:text-sm">Reporte</span>
               </TabsTrigger>

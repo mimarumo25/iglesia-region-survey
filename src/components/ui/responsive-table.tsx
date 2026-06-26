@@ -68,8 +68,8 @@ interface ResponsiveTableProps {
 }
 
 /**
- * Componente de tabla responsive que se adapta automáticamente al tamaño de pantalla
- * Muestra tabla tradicional en desktop y cards en móvil/tablet
+ * Componente de tabla responsive que se adapta automáticamente al tamaño de pantalla.
+ * En desktop permite marcar una fila para no perderla durante el scroll horizontal.
  */
 export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
   data,
@@ -83,10 +83,17 @@ export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
   itemKey = 'id',
   forceMobileView = false,
 }) => {
-  const { shouldUseMobileView, isMobile } = useResponsiveTable();
+  const { shouldUseMobileView } = useResponsiveTable();
   const useMobileView = forceMobileView || shouldUseMobileView;
+  const [selectedRowKey, setSelectedRowKey] = React.useState<string | number | null>(null);
 
-  // Convertir columnas a campos para MobileTableCard
+  const getItemKey = (item: any, index: number) => item?.[itemKey] ?? item?.id ?? item?.uuid ?? index;
+
+  const handleRowSelect = (item: any, index: number) => {
+    setSelectedRowKey(getItemKey(item, index));
+    onRowClick?.(item);
+  };
+
   const getMobileFields = (item: any): MobileCardField[] => {
     return columns
       .filter(col => !col.hideOnMobile)
@@ -101,7 +108,6 @@ export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
       }));
   };
 
-  // Convertir acciones para MobileTableCard
   const getMobileActions = (): MobileCardAction[] => {
     return actions.map(action => ({
       label: action.label,
@@ -113,7 +119,6 @@ export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
     }));
   };
 
-  // Filtrar columnas según el tamaño de pantalla
   const getVisibleColumns = () => {
     if (useMobileView) {
       return columns.filter(col => !col.hideOnMobile);
@@ -123,10 +128,9 @@ export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
 
   const visibleColumns = getVisibleColumns();
 
-  // Estados de carga y vacío
   if (loading) {
     return (
-      <div className={cn("flex items-center justify-center py-8", className)}>
+      <div className={cn('flex items-center justify-center py-8', className)}>
         <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         <span className="ml-2 text-muted-foreground">{loadingText}</span>
       </div>
@@ -135,7 +139,7 @@ export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
 
   if (data.length === 0) {
     return (
-      <div className={cn("text-center py-8", className)}>
+      <div className={cn('text-center py-8', className)}>
         {emptyState?.icon && (
           <div className="text-muted-foreground/50 mb-4 flex justify-center">
             {emptyState.icon}
@@ -155,13 +159,12 @@ export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
     );
   }
 
-  // Vista móvil con cards
   if (useMobileView) {
     return (
-      <div className={cn("space-y-3", className)}>
+      <div className={cn('space-y-3', className)}>
         {data.map((item, index) => (
           <MobileTableCard
-            key={item[itemKey] || index}
+            key={getItemKey(item, index)}
             item={item}
             fields={getMobileFields(item)}
             actions={getMobileActions()}
@@ -173,17 +176,16 @@ export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
     );
   }
 
-  // Vista desktop con tabla tradicional
   return (
-    <div className={cn("w-full", className)}>
-      <Table>
+    <div className={cn('professional-table-shell w-full overflow-hidden', className)}>
+      <Table className="professional-data-table">
         <TableHeader>
-          <TableRow>
+          <TableRow className="bg-muted/70">
             {visibleColumns.map((column) => (
               <TableHead
                 key={column.key}
                 className={cn(
-                  column.align === 'right' ? 'text-right' : 
+                  column.align === 'right' ? 'text-right' :
                   column.align === 'center' ? 'text-center' : '',
                   column.className
                 )}
@@ -200,57 +202,69 @@ export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((item, index) => (
-            <TableRow
-              key={item[itemKey] || index}
-              className={cn(
-                "hover:bg-muted/50 transition-colors",
-                onRowClick && "cursor-pointer"
-              )}
-              onClick={() => onRowClick?.(item)}
-            >
-              {visibleColumns.map((column) => (
-                <TableCell
-                  key={column.key}
-                  className={cn(
-                    column.align === 'right' ? 'text-right' : 
-                    column.align === 'center' ? 'text-center' : '',
-                    column.className
-                  )}
-                >
-                  {column.render 
-                    ? column.render(item[column.key], item)
-                    : item[column.key] || '-'
+          {data.map((item, index) => {
+            const rowKey = getItemKey(item, index);
+            const isSelected = selectedRowKey === rowKey;
+
+            return (
+              <TableRow
+                key={rowKey}
+                data-state={isSelected ? 'selected' : undefined}
+                aria-selected={isSelected}
+                className="group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                onClick={() => handleRowSelect(item, index)}
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    handleRowSelect(item, index);
                   }
-                </TableCell>
-              ))}
-              {actions.length > 0 && (
-                <TableCell className="text-right">
-                  <div className="flex gap-2 justify-end">
-                    {actions.map((action, actionIndex) => (
-                      <button
-                        key={actionIndex}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          action.onClick(item);
-                        }}
-                        className={cn(
-                          "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors",
-                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                          "disabled:pointer-events-none disabled:opacity-50",
-                          "h-8 w-8 hover:bg-muted",
-                          action.variant === 'destructive' && "hover:bg-destructive/10 hover:text-destructive"
-                        )}
-                        title={action.label}
-                      >
-                        {action.icon}
-                      </button>
-                    ))}
-                  </div>
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
+                }}
+              >
+                {visibleColumns.map((column) => (
+                  <TableCell
+                    key={column.key}
+                    className={cn(
+                      column.align === 'right' ? 'text-right' :
+                      column.align === 'center' ? 'text-center' : '',
+                      column.className
+                    )}
+                  >
+                    {column.render
+                      ? column.render(item[column.key], item)
+                      : item[column.key] || '-'
+                    }
+                  </TableCell>
+                ))}
+                {actions.length > 0 && (
+                  <TableCell className="text-right">
+                    <div className="flex gap-2 justify-end">
+                      {actions.map((action, actionIndex) => (
+                        <button
+                          key={actionIndex}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedRowKey(rowKey);
+                            action.onClick(item);
+                          }}
+                          className={cn(
+                            'inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors',
+                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                            'disabled:pointer-events-none disabled:opacity-50',
+                            'h-8 w-8 hover:bg-muted',
+                            action.variant === 'destructive' && 'hover:bg-destructive/10 hover:text-destructive'
+                          )}
+                          title={action.label}
+                        >
+                          {action.icon}
+                        </button>
+                      ))}
+                    </div>
+                  </TableCell>
+                )}
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>

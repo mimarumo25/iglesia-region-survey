@@ -16,6 +16,7 @@
  * @author Sistema MIA
  */
 
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -27,7 +28,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Calendar,
   MapPin,
@@ -40,12 +41,12 @@ import {
 } from "lucide-react";
 
 import { DifuntoAPI, DifuntosTableProps } from "@/types/difuntos";
-import { cn } from "@/lib/utils";
 
 /**
  * Componente DifuntosTable - Tabla de resultados de difuntos con vista responsive
  */
 export const DifuntosTable = ({ data, isLoading, total = 0 }: DifuntosTableProps) => {
+  const [selectedRowKey, setSelectedRowKey] = useState<string | null>(null);
 
   /**
    * Obtiene el color del badge según la fuente de datos
@@ -151,8 +152,8 @@ export const DifuntosTable = ({ data, isLoading, total = 0 }: DifuntosTableProps
             </div>
             
             {/* Vista desktop de carga */}
-            <div className="hidden md:block">
-              <Table>
+            <div className="hidden md:block professional-table-shell max-h-[60vh] overflow-hidden">
+              <Table className="professional-data-table min-w-[1700px] text-[0.82rem]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Fuente</TableHead>
@@ -294,28 +295,42 @@ export const DifuntosTable = ({ data, isLoading, total = 0 }: DifuntosTableProps
             </div>
 
             {/* Vista desktop - Tabla */}
-            <div className="hidden md:block">
-              <ScrollArea className="h-[400px] lg:h-[500px] w-full">
-                <div className="min-w-[1200px]">
-                  <Table>
-                    <TableHeader className="sticky top-0 bg-background z-10 border-b">
-                      <TableRow>
-                        <TableHead className="w-[100px]">Fuente</TableHead>
-                        <TableHead className="w-[280px]">Nombre Completo</TableHead>
-                        <TableHead className="w-[150px]">Fecha Aniversario</TableHead>
-                        <TableHead className="w-[120px]">Parentesco</TableHead>
-                        <TableHead className="w-[180px]">Apellido Familiar</TableHead>
-                        <TableHead className="w-[120px]">Sector</TableHead>
-                        <TableHead className="w-[120px]">Teléfono</TableHead>
-                        <TableHead className="w-[140px]">Municipio</TableHead>
-                        <TableHead className="w-[140px]">Parroquia</TableHead>
-                        <TableHead className="w-[200px]">Dirección</TableHead>
-                        <TableHead className="w-[200px]">Observaciones</TableHead>
+            <div className="hidden md:block professional-table-shell max-h-[65vh] overflow-hidden">
+              <Table className="professional-data-table min-w-[1700px] text-[0.82rem]">
+                    <TableHeader>
+                      <TableRow className="bg-muted/70">
+                        <TableHead className="w-[110px] sticky top-0 bg-muted z-20">Fuente</TableHead>
+                        <TableHead className="w-[300px] sticky top-0 bg-muted z-20">Nombre Completo</TableHead>
+                        <TableHead className="w-[160px] sticky top-0 bg-muted z-20">Fecha Aniversario</TableHead>
+                        <TableHead className="w-[140px] sticky top-0 bg-muted z-20">Parentesco</TableHead>
+                        <TableHead className="w-[190px] sticky top-0 bg-muted z-20">Apellido Familiar</TableHead>
+                        <TableHead className="w-[140px] sticky top-0 bg-muted z-20">Sector</TableHead>
+                        <TableHead className="w-[140px] sticky top-0 bg-muted z-20">Teléfono</TableHead>
+                        <TableHead className="w-[150px] sticky top-0 bg-muted z-20">Municipio</TableHead>
+                        <TableHead className="w-[160px] sticky top-0 bg-muted z-20">Parroquia</TableHead>
+                        <TableHead className="w-[220px] sticky top-0 bg-muted z-20">Dirección</TableHead>
+                        <TableHead className="w-[220px] sticky top-0 bg-muted z-20">Observaciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {data.map((difunto) => (
-                        <TableRow key={`${difunto.fuente}-${difunto.id_difunto}`} className="hover:bg-muted/50">
+                      {data.map((difunto) => {
+                        const rowKey = `${difunto.fuente}-${difunto.id_difunto}`;
+                        const isSelected = selectedRowKey === rowKey;
+                        return (
+                        <TableRow
+                          key={rowKey}
+                          data-state={isSelected ? "selected" : undefined}
+                          aria-selected={isSelected}
+                          tabIndex={0}
+                          className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                          onClick={() => setSelectedRowKey(rowKey)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              setSelectedRowKey(rowKey);
+                            }
+                          }}
+                        >
                           {/* Fuente */}
                           <TableCell>
                             <Badge variant={getBadgeVariant(difunto.fuente)} className="text-xs">
@@ -418,12 +433,10 @@ export const DifuntosTable = ({ data, isLoading, total = 0 }: DifuntosTableProps
                             )}
                           </TableCell>
                         </TableRow>
-                      ))}
+                        );
+                      })}
                     </TableBody>
-                  </Table>
-                </div>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
+              </Table>
             </div>
           </div>
         )}
